@@ -96,8 +96,8 @@ const generate_all_dists_leaderboard = async () => {
 
   // if (!dists.includes(dist)) return;
   let mx = 50000;
-  // const hids = new Array(mx + 1).fill(0).map((a, i) => i);
-  let hids = [0, 5, 3312, 15147];
+  const hids = new Array(mx + 1).fill(0).map((a, i) => i);
+  // let hids = [0, 5, 3312, 15147];
   console.log(hids);
   // console.log({ hids });
   let all_ar = await get_horse_rating_ob_for_hids(hids);
