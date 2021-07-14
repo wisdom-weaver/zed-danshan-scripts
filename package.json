@@ -1,0 +1,25 @@
+{
+  "name": "odds_generator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index-odds-generator.js",
+  "scripts": {
+    "run_odds_generator": "run-func index-odds-generator.js run_odds_generator",
+    "run_leaderboard": "run-func leaderboard-generator.js run_leaderboard",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "lodash": "^4.17.21",
+    "mongodb": "^3.6.10",
+    "mongoose": "^5.13.2",
+    "node-fetch": "^2.6.1",
+    "prompt-sync": "^4.2.0"
+  },
+  "devDependencies": {
+    "run-func": "^1.0.5"
+  }
+}
