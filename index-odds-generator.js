@@ -6,9 +6,7 @@ const { run_func } = require("./index-run");
 
 const MONGO_ROOT_PASS = "RVfxjJr6NJiyKnTh";
 let st = 31438;
-let ed = 31438
-;
-
+let ed = 31438;
 // let st = 50000;
 // let ed = 50000;
 
