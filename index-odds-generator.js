@@ -5,14 +5,14 @@ const mongoose = require("mongoose");
 const { run_func } = require("./index-run");
 
 const MONGO_ROOT_PASS = "RVfxjJr6NJiyKnTh";
-let st = 0;
-let ed = 50000;
+let st = 31438;
+let ed = 31438
+;
 
 // let st = 50000;
 // let ed = 50000;
 
 let zed_db = mongoose.connection;
-
 
 const get_fee_cat = (fee) => {
   fee = parseFloat(fee);
@@ -141,7 +141,12 @@ const filter_acc_to_criteria = ({
       return true;
     }
   );
-  if (criteria?.min !== undefined) if (races.length < criteria.min) return [];
+  if (criteria?.min !== undefined) {
+    if (races?.length < criteria.min) {
+      // console.log("less", min);
+      return [];
+    }
+  }
   return races;
 };
 
