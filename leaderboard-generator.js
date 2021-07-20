@@ -249,9 +249,9 @@ const repair_leaderboard = async () => {
       leaderboard: all_ar,
     };
     console.log(ob);
-    // await zed_db.db
-    //   .collection("leaderboard")
-    //   .updateOne({ id }, { $set: ob }, { upsert: true });
+    await zed_db.db
+      .collection("leaderboard")
+      .updateOne({ id }, { $set: ob }, { upsert: true });
 
     console.log("#done leaderboard ", dist);
   }
