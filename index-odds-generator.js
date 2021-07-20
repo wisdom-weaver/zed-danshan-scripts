@@ -8,8 +8,8 @@ const app_root = require("app-root-path");
 
 const MONGO_ROOT_PASS = "RVfxjJr6NJiyKnTh";
 let mx = 70000;
-let st = 0;
-let ed = mx;
+let st = 3312;
+let ed = 3312;
 // let st = 50000;
 // let ed = 3312;
 
@@ -188,6 +188,12 @@ const cls = ["#", 0, 1, 2, 3, 4, 5];
 const dists = ["####", 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600];
 const fee_cats = ["#", "A", "B", "C"];
 
+const get_rated_type = (cf) => {
+  if (!cf || cf == "na") return "NR";
+  if (cf?.endsWith("_")) return "CH";
+  if (parseInt(cf[0]) != 0) return "GH";
+};
+
 const get_keys_map = ({ cls, dists, fee_cats }) => {
   let odds_modes = [];
   for (let c of cls)
@@ -252,7 +258,7 @@ const gen_and_upload_odds_coll = async ({
   return odds_coll;
 };
 
-const null_hr_ob = { cf: "na", d: null, med: null };
+const null_hr_ob = { cf: "na", d: null, med: null, side: "-" };
 
 const get_class_hr = async (hid) => {
   hid = parseInt(hid);
@@ -269,13 +275,15 @@ const get_class_hr = async (hid) => {
     d: "____",
     med: min_ob.v,
   };
-  if (_.isEmpty(res) || res.med > 10) return null_hr_ob;
+  // console.log(res);
+  if (_.isEmpty(res)) return null_hr_ob;
   return res;
 };
 
 const calc_blood_hr = async ({
   odds_live,
   hid,
+  tc,
   races_n = 0,
   override_dist = false,
 }) => {
@@ -283,8 +291,16 @@ const calc_blood_hr = async ({
     _.isEmpty(odds_live) ||
     _.isEmpty(_.compact(_.values(odds_live))) ||
     races_n == 0
-  )
-    return null_hr_ob;
+  ) {
+    let class_hr = {};
+    if (override_dist == false) class_hr = await get_class_hr(hid);
+    if (_.isEmpty(class_hr)) return { ...null_hr_ob, tc };
+    else {
+      let side = get_side_of_horse({ ...class_hr, tc });
+      return { ...class_hr, tc, side };
+    }
+    return { ...null_hr_ob, tc };
+  }
 
   let keys = get_keys_map({
     cls: cls.slice(2),
@@ -298,25 +314,40 @@ const calc_blood_hr = async ({
     med: odds_live[k],
   }));
   // console.log(ol);
+  let hr = {};
   for (let { k, cf, d, med } of ol)
     if (med != null && med <= 10) {
       let rb = { cf, d, med };
       let obs = _.filter(ol, (elem) => elem.cf == rb.cf);
       rb = _.minBy(obs, "med");
-      return { cf: rb.cf, d: rb.d, med: rb.med };
+      hr = { cf: rb.cf, d: rb.d, med: rb.med };
+      break;
     }
-
+  if (!_.isEmpty(hr)) {
+    hr = { ...hr, tc };
+    let side = get_side_of_horse(hr);
+    hr = { ...hr, side };
+    return hr;
+  }
+  console.log(hr);
+  console.log(hr);
   let mm = _.minBy(ol, "med");
   if (!mm || _.isEmpty(mm)) {
-    // let class_hr = {};
-    // if (override_dist == false) class_hr = await get_class_hr(hid);
-    // if (_.isEmpty(class_hr)) return null_hr_ob;
-    // else return class_hr;
-    return null_hr_ob;
+    let class_hr = {};
+    if (override_dist == false) class_hr = await get_class_hr(hid);
+    if (_.isEmpty(class_hr)) return { ...null_hr_ob, tc };
+    else {
+      let side = get_side_of_horse({ ...class_hr, tc });
+      return { ...class_hr, tc, side };
+    }
+    return { ...null_hr_ob, tc };
   } else {
-    let min_ob = { cf: "5C", d: mm?.d, med: mm?.med || null };
+    let min_ob = { cf: "5C", d: mm?.d, tc, med: mm?.med || null };
+    let side = get_side_of_horse(min_ob);
+    min_ob = { ...min_ob, side };
     return min_ob;
   }
+  return { ...null_hr_ob, tc };
 };
 
 const gen_and_upload_blood_hr = async ({
@@ -325,11 +356,11 @@ const gen_and_upload_blood_hr = async ({
   details,
   races_n = 0,
 }) => {
-  let rating_blood = await calc_blood_hr({ hid, odds_live, races_n });
   let tc = details?.thisclass;
+  let rating_blood = await calc_blood_hr({ hid, odds_live, races_n, tc });
   let name = details?.name;
-
-  rating_blood = { tc, ...rating_blood };
+  let rated_type = get_rated_type(rating_blood?.cf);
+  rating_blood = { ...rating_blood, rated_type };
 
   let ob = {
     hid,
@@ -376,24 +407,11 @@ const generate_blood_mapping = async () => {
   ar = _.groupBy(ar, "cf");
   ar = _.values(ar).map((e) => _.sortBy(e, "med"));
   ar = _.flatten(ar);
-  for (let i in ar) {
-    let hr_ob = ar[i];
-    let hid = ar[i].hid;
-    if (ar[i].cf == "na") {
-      hr_ob = (await get_class_hr(hid)) || null_hr_ob;
-      hr_ob.tc = ar[i].tc;
-      hr_ob.hid = hid;
-    }
-    let side = get_side_of_horse(hr_ob);
-    console.log(hid, hr_ob, side);
-    ar[i] = { ...ar[i], side };
-  }
-  // ar = ar.map((e) => ({ ...e, side: get_side_of_horse(e) }));
   ar = ar.map(({ hid, rc, tc, cf, d, med, side }, i) => ({
     rank: i + 1,
     hid,
     details: _.find(def_ar, { hid }).details,
-    rating_blood: { cf, d, med, side },
+    rating_blood: { tc, cf, d, med, side, rc },
   }));
   // console.log(ar);
   let db_date = new Date().toISOString();
@@ -482,11 +500,11 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 let odds_generator = async () => {
   try {
     await start();
-    console.log("\n\n\n## Looping... \n\n\n");
-    return await odds_generator();
+    // console.log("\n\n\n## Looping... \n\n\n");
+    // return await odds_generator();
   } catch (err) {
     await delay(5000);
-    return await odds_generator();
+    // return await odds_generator();
   }
 };
 
