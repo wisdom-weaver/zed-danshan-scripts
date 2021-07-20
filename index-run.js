@@ -31,5 +31,6 @@ const run_func = async (run_func) => {
 };
 
 module.exports = {
-  run_func
-}
+  init,
+  run_func,
+};

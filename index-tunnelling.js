@@ -3,6 +3,7 @@ const { MongoClient } = require("mongodb");
 const mongoose = require("mongoose");
 const prompt = require("prompt-sync")();
 const fetch = require("node-fetch");
+const { from_zed2 } = require("./index-odds-generator");
 require("dotenv").config();
 
 let zed_db = mongoose.connection;
@@ -13,7 +14,7 @@ const get_first_raceid = async (hid) => {
 };
 const get_horses_in_race = async (rid) => {
   rid = rid.toString();
-  let ob = await zed_db.db.collection("zed2").find({ 4: rid }).toArray();
+  let ob = await from_zed2({ 4: rid });
   console.log({ ob });
 
   if (_.isEmpty(ob)) return null;

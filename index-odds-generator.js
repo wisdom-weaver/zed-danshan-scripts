@@ -2,15 +2,22 @@ const _ = require("lodash");
 const prompt = require("prompt-sync")();
 const fetch = require("node-fetch");
 const mongoose = require("mongoose");
-const { run_func } = require("./index-run");
+const { run_func, init } = require("./index-run");
+const { write_to_path } = require("./utils");
+const app_root = require("app-root-path");
 
 const MONGO_ROOT_PASS = "RVfxjJr6NJiyKnTh";
-let st = 31438;
-let ed = 31438;
+let mx = 70000;
+let st = 0;
+let ed = mx;
 // let st = 50000;
-// let ed = 50000;
+// let ed = 3312;
 
 let zed_db = mongoose.connection;
+
+const filter_error_horses = (horses = []) => {
+  return horses?.filter(({ hid }) => ![15812, 15745].includes(hid));
+};
 
 const get_fee_cat = (fee) => {
   fee = parseFloat(fee);
@@ -35,6 +42,12 @@ const key_mapping_bs_zed = [
   ["10", "gate"],
   ["11", "odds"],
 ];
+
+const from_zed2 = async (query) => {
+  let data = await zed_db.db.collection("zed2").find(query).toArray();
+  data = _.uniqBy(data, (i) => [i["4"], i["6"]].join());
+  return data;
+};
 
 const struct_race_row_data = (data) => {
   try {
@@ -93,10 +106,11 @@ const get_details_of_hid = async (hid) => {
 };
 
 const get_races_of_hid = async (hid) => {
+  // console.log(hid);
+  if (isNaN(hid)) return [];
+  hid = parseInt(hid);
   let query = { 6: hid };
-  // console.log(query);
-  let zed2_col = await mongoose.connection.db.collection("zed2");
-  let data = await zed2_col.find(query).toArray();
+  let data = await from_zed2(query);
   data = struct_race_row_data(data);
   return data;
 };
@@ -106,6 +120,7 @@ const filter_acc_to_criteria = ({
   criteria = {},
   extra_criteria = {},
 }) => {
+  races = races.filter((ea) => ea.odds != 0);
   if (_.isEmpty(criteria)) return races;
   races = races.filter(
     ({
@@ -236,14 +251,45 @@ const gen_and_upload_odds_coll = async ({
   // console.log("# hid:", hid, "len", races.length, coll, "done..");
   return odds_coll;
 };
-const calc_blood_hr = ({ odds_live, hid, races_n = 0 }) => {
-  if (_.isEmpty(odds_live) || races_n == 0)
-    return { cf: "na", d: null, med: null };
+
+const null_hr_ob = { cf: "na", d: null, med: null };
+
+const get_class_hr = async (hid) => {
+  hid = parseInt(hid);
+  // console.log("get_class_hr");
+  let ob = await zed_db.db.collection("odds_overall").findOne({ hid });
+  let odds_overall = ob?.odds_overall || {};
+
+  let keys = [1, 2, 3, 4, 5].map((ea) => `${ea}#####`);
+  let req = keys.map((k) => ({ k, v: odds_overall[k] }));
+  let min_ob = _.minBy(req, "v");
+  if (_.isEmpty(min_ob)) return null;
+  let res = {
+    cf: min_ob.k.slice(0, 1) + "_",
+    d: "____",
+    med: min_ob.v,
+  };
+  if (_.isEmpty(res) || res.med > 10) return null_hr_ob;
+  return res;
+};
+
+const calc_blood_hr = async ({
+  odds_live,
+  hid,
+  races_n = 0,
+  override_dist = false,
+}) => {
+  if (
+    _.isEmpty(odds_live) ||
+    _.isEmpty(_.compact(_.values(odds_live))) ||
+    races_n == 0
+  )
+    return null_hr_ob;
 
   let keys = get_keys_map({
     cls: cls.slice(2),
     fee_cats: fee_cats.slice(1),
-    dists: dists.slice(1),
+    dists: override_dist != false ? [override_dist] : dists.slice(1),
   });
   let ol = keys.map((k) => ({
     k,
@@ -261,34 +307,47 @@ const calc_blood_hr = ({ odds_live, hid, races_n = 0 }) => {
     }
 
   let mm = _.minBy(ol, "med");
-  if (!mm || _.isEmpty(mm)) return { cf: "na", d: null, med: null };
-  let min_ob = { cf: "5C", d: mm?.d, med: mm?.med || null };
-  return min_ob;
+  if (!mm || _.isEmpty(mm)) {
+    // let class_hr = {};
+    // if (override_dist == false) class_hr = await get_class_hr(hid);
+    // if (_.isEmpty(class_hr)) return null_hr_ob;
+    // else return class_hr;
+    return null_hr_ob;
+  } else {
+    let min_ob = { cf: "5C", d: mm?.d, med: mm?.med || null };
+    return min_ob;
+  }
 };
+
 const gen_and_upload_blood_hr = async ({
   hid,
   odds_live,
   details,
   races_n = 0,
 }) => {
-  let rating_blood = calc_blood_hr({ hid, odds_live, races_n });
+  let rating_blood = await calc_blood_hr({ hid, odds_live, races_n });
   let tc = details?.thisclass;
   let name = details?.name;
+
+  rating_blood = { tc, ...rating_blood };
+
   let ob = {
     hid,
     name,
-    rating_blood: { tc, ...rating_blood },
+    rating_blood,
     details,
   };
   await zed_db.db
     .collection("rating_blood")
     .updateOne({ hid: parseInt(hid) }, { $set: ob }, { upsert: true });
-  console.log(`# hid: ${hid} len:${races_n} rating_blood:`, rating_blood);
+  console.log(`# hid:`, hid, `rating_blood:`, rating_blood);
 };
 
 const get_side_of_horse = (ea) => {
+  // console.log("EA=>", ea);
   let { tc, cf, med } = ea;
   let rc = parseInt(cf[0]);
+  // console.log(tc, rc);
   med = parseFloat(med);
   let side = "";
   if (med > 10) side = "A";
@@ -302,10 +361,12 @@ const get_side_of_horse = (ea) => {
 };
 
 const generate_blood_mapping = async () => {
+  console.log("generate_blood_mapping");
   // zed_db.db.collection("blood").insert({ id: "blood" });
   // return;
   let def_ar = await zed_db.db.collection("rating_blood").find({}).toArray();
   console.log("len: ", def_ar.length);
+  def_ar = filter_error_horses(def_ar);
   let ar = def_ar.map(({ hid, rating_blood }) => ({
     hid,
     rc: parseInt(rating_blood.cf[0]),
@@ -315,13 +376,26 @@ const generate_blood_mapping = async () => {
   ar = _.groupBy(ar, "cf");
   ar = _.values(ar).map((e) => _.sortBy(e, "med"));
   ar = _.flatten(ar);
-  ar = ar.map((e) => ({ ...e, side: get_side_of_horse(e) }));
-  ar = ar.map(({ hid, rc, tc, cf, d, med, side }) => ({
+  for (let i in ar) {
+    let hr_ob = ar[i];
+    let hid = ar[i].hid;
+    if (ar[i].cf == "na") {
+      hr_ob = (await get_class_hr(hid)) || null_hr_ob;
+      hr_ob.tc = ar[i].tc;
+      hr_ob.hid = hid;
+    }
+    let side = get_side_of_horse(hr_ob);
+    console.log(hid, hr_ob, side);
+    ar[i] = { ...ar[i], side };
+  }
+  // ar = ar.map((e) => ({ ...e, side: get_side_of_horse(e) }));
+  ar = ar.map(({ hid, rc, tc, cf, d, med, side }, i) => ({
+    rank: i + 1,
     hid,
     details: _.find(def_ar, { hid }).details,
     rating_blood: { cf, d, med, side },
   }));
-
+  // console.log(ar);
   let db_date = new Date().toISOString();
   let i = 1;
   for (let chunk of _.chunk(ar, 10000)) {
@@ -343,14 +417,14 @@ const generate_blood_mapping = async () => {
       { $set: { id: "blood", db_date, len: i } },
       { upsert: true }
     );
-  // write_to_path({
-  //   file_path: `${app_root}/data/blood/blood.json`,
-  //   data: { id: "blood", db_date, blood: ar },
-  // });
+  write_to_path({
+    file_path: `${app_root}/data/blood/blood.json`,
+    data: { id: "blood", db_date, blood: ar },
+  });
   await delay(5000);
   try {
     console.log("caching on heroku server");
-    await fetch(`https://bs-zed-backend-api.herokuapp.com//blood/download`);
+    await fetch(`https://bs-zed-backend-api.herokuapp.com/blood/download`);
   } catch (err) {}
   return;
 };
@@ -378,7 +452,7 @@ const start = async () => {
   console.log("=> odds_generator: ", `${st}:${ed}`);
 
   let i = 0;
-  let cs = 10;
+  let cs = 25;
   for (let chunk of _.chunk(hids, cs)) {
     i += cs;
     console.log("\n=> fetching together:", chunk.toString());
@@ -391,7 +465,14 @@ const start = async () => {
   console.log("## Generating Blood Ranks");
   await generate_blood_mapping();
   console.log("## Completed Blood Ranks");
-
+  await delay(60000);
+  try {
+    console.log("caching live odds on heroku server");
+    await fetch(
+      `https://bs-zed-backend-api.herokuapp.com/live/download2?mx=${mx}`
+    );
+  } catch (err) {}
+  await delay(240000);
   console.log("## DONE");
   return 0;
 };
@@ -413,9 +494,21 @@ let run_odds_generator = async () => {
   run_func(odds_generator);
 };
 
+let run_blood_generator = async () => {
+  await init();
+  console.log("## Generating Blood Ranks");
+  await generate_blood_mapping();
+  console.log("## Completed Blood Ranks");
+};
+
 module.exports = {
   calc_blood_hr,
   get_races_of_hid,
   odds_generator,
   run_odds_generator,
+  get_details_of_hid,
+  from_zed2,
+  generate_blood_mapping,
+  run_blood_generator,
+  mx,
 };

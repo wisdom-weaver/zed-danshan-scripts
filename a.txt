@@ -1,0 +1,5 @@
+
+> odds_generator@1.0.0 run_test2
+> run-func leaderboard-generator.js run_test2
+
+starting...

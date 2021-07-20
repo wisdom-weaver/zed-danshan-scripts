@@ -1,3 +1,6 @@
+const fs = require("fs");
+const path = require("path");
+const app_root = require("app-root-path");
 const _ = require("lodash");
 
 const calc_avg = (ar = []) => {
@@ -7,6 +10,31 @@ const calc_avg = (ar = []) => {
   return sum / ar.length;
 };
 
+const write_to_path = ({ file_path, data }) => {
+  if (!fs.existsSync(path.dirname(file_path)))
+    fs.mkdirSync(path.dirname(file_path), { recursive: true });
+  fs.writeFileSync(file_path, JSON.stringify(data, null, 2));
+};
+
+const write_to_path_fast = ({ file_path, data }) => {
+  if (!fs.existsSync(path.dirname(file_path)))
+    fs.mkdirSync(path.dirname(file_path), { recursive: true });
+  fs.writeFile(file_path, JSON.stringify(data, null, 2), {}, () => {});
+};
+
+const read_from_path = ({ file_path }) => {
+  try {
+    if (!fs.existsSync(file_path)) return null;
+    json = fs.readFileSync(file_path, "utf8");
+    if (_.isEmpty(json)) return null;
+    return JSON.parse(json) || null;
+  } catch (err) {
+    return null;
+  }
+};
+
 module.exports = {
   calc_avg,
+  write_to_path,
+  read_from_path,
 };

@@ -5,13 +5,19 @@
   "main": "index-odds-generator.js",
   "scripts": {
     "run_odds_generator": "run-func index-odds-generator.js run_odds_generator",
+    "run_blood_generator": "run-func index-odds-generator.js run_blood_generator",
     "run_leaderboard": "run-func leaderboard-generator.js run_leaderboard",
+    "run_repair_leaderboard": "run-func leaderboard-generator.js run_repair_leaderboard",
+    "run_test": "run-func leaderboard-generator.js run_test",
+    "run_test2": "run-func leaderboard-generator.js run_test2",
+    "test1": "run-func tests.js test1",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "app-root-path": "^3.0.0",
     "dotenv": "^10.0.0",
     "lodash": "^4.17.21",
     "mongodb": "^3.6.10",
