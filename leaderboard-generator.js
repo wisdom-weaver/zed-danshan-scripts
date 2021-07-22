@@ -128,8 +128,8 @@ const get_details_ob_for_hids = async (hids) => {
 };
 
 const generate_all_dists_leaderboard = async () => {
-  // let dists = ["All", 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600];
-  let dists = ["All"];
+  let dists = ["All", 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600];
+  // let dists = ["All"];
   // let dists = [1000]
   // if (!dists.includes(dist)) return;
   let hids = new Array(mx + 1).fill(0).map((a, i) => i);
@@ -145,6 +145,7 @@ const generate_all_dists_leaderboard = async () => {
     let ar = all_ar.map(({ hid, horse_rating_ob = {} }) => {
       let hr = horse_rating_ob[dist];
       if (_.isEmpty(hr)) return null;
+      if (hr.rated_type != "GH") return null;
       return { hid, horse_rating: hr };
     });
     ar = _.compact(ar);
@@ -200,15 +201,15 @@ const generate_all_dists_leaderboard = async () => {
       "leaderboard-dist": dist,
       leaderboard: ar,
     };
-    // console.log(ar);
+    console.log(ar);
     await zed_db.db
       .collection("leaderboard")
       .updateOne({ id }, { $set: ob }, { upsert: true });
     console.log("dist", dist, "complete");
-    // write_to_path_fast({
-    //   file_path: leaderboard_out_path(dist),
-    //   data: ob,
-    // });
+    write_to_path({
+      file_path: `${app_root}/test/leader-${dist}.json`,
+      data: ob,
+    });
   }
   console.log("#finished all dists leaderboard generation");
   return;

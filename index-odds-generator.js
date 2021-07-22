@@ -6,10 +6,9 @@ const { run_func, init } = require("./index-run");
 const { write_to_path } = require("./utils");
 const app_root = require("app-root-path");
 
-const MONGO_ROOT_PASS = "RVfxjJr6NJiyKnTh";
 let mx = 70000;
-let st = 3312;
-let ed = 3312;
+let st = 0;
+let ed = mx;
 // let st = 50000;
 // let ed = 3312;
 
@@ -263,11 +262,12 @@ const null_hr_ob = { cf: "na", d: null, med: null, side: "-" };
 const get_class_hr = async (hid) => {
   hid = parseInt(hid);
   // console.log("get_class_hr");
-  let ob = await zed_db.db.collection("odds_overall").findOne({ hid });
-  let odds_overall = ob?.odds_overall || {};
+  let races = await get_races_of_hid(hid);
+  let odds_ob = gen_odds_coll({ races, extra_criteria: { is_paid: true } });
 
   let keys = [1, 2, 3, 4, 5].map((ea) => `${ea}#####`);
-  let req = keys.map((k) => ({ k, v: odds_overall[k] }));
+  let req = keys.map((k) => ({ k, v: odds_ob[k] }));
+  // console.log(req);
   let min_ob = _.minBy(req, "v");
   if (_.isEmpty(min_ob)) return null;
   let res = {
@@ -277,6 +277,7 @@ const get_class_hr = async (hid) => {
   };
   // console.log(res);
   if (_.isEmpty(res)) return null_hr_ob;
+  if (res.med > 10) res.cf = "5_";
   return res;
 };
 
@@ -329,8 +330,8 @@ const calc_blood_hr = async ({
     hr = { ...hr, side };
     return hr;
   }
-  console.log(hr);
-  console.log(hr);
+  // console.log(hr);
+  // console.log(hr);
   let mm = _.minBy(ol, "med");
   if (!mm || _.isEmpty(mm)) {
     let class_hr = {};
@@ -407,12 +408,22 @@ const generate_blood_mapping = async () => {
   ar = _.groupBy(ar, "cf");
   ar = _.values(ar).map((e) => _.sortBy(e, "med"));
   ar = _.flatten(ar);
-  ar = ar.map(({ hid, rc, tc, cf, d, med, side }, i) => ({
-    rank: i + 1,
-    hid,
-    details: _.find(def_ar, { hid }).details,
-    rating_blood: { tc, cf, d, med, side, rc },
-  }));
+  let ar_GH = ar.filter((ea) => ea.rated_type == "GH");
+  ar_GH = ar_GH.map((ea, i) => ({ ...ea, rank: i + 1 }));
+  let ar_CH = ar.filter((ea) => ea.rated_type == "CH");
+  ar_CH = ar_CH.map((ea) => ({ ...ea, rank: null }));
+  let ar_NR = ar.filter((ea) => ea.rated_type == "NR");
+  ar_NR = ar_NR.map((ea) => ({ ...ea, rank: null }));
+  ar = [...ar_GH, ...ar_CH, ...ar_NR].map(
+    ({ hid, rank, rc, tc, cf, d, med, side, rated_type }, i) => {
+      return {
+        rank,
+        hid,
+        details: _.find(def_ar, { hid }).details,
+        rating_blood: { tc, cf, d, med, side, rc, rated_type },
+      };
+    }
+  );
   // console.log(ar);
   let db_date = new Date().toISOString();
   let i = 1;
@@ -458,7 +469,11 @@ const generate_odds_for = async (hid) => {
     { coll: "odds_overall", extra_criteria: {} },
     { coll: "odds_live", extra_criteria: { is_paid: true, min: 3 } },
   ];
-  let odds_overall = gen_and_upload_odds_coll({ hid, races, ...or_map[0] });
+  let odds_overall = await gen_and_upload_odds_coll({
+    hid,
+    races,
+    ...or_map[0],
+  });
   let odds_live = await gen_and_upload_odds_coll({ hid, races, ...or_map[1] });
 
   let races_n = races?.length || 0;
