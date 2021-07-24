@@ -10,9 +10,10 @@ const {
   calc_blood_hr,
   get_details_of_hid,
   mx,
+  get_rated_type,
 } = require("./index-odds-generator");
 const { run_func } = require("./index-run");
-const { calc_avg, write_to_path, read_from_path } = require("./utils");
+const { calc_avg, write_to_path, read_from_path, dec2 } = require("./utils");
 let zed_db = mongoose.connection;
 
 const compare_horses_on_common_races_avgs = async ({ hid1, hid2, dist }) => {
@@ -133,7 +134,7 @@ const generate_all_dists_leaderboard = async () => {
   // let dists = [1000]
   // if (!dists.includes(dist)) return;
   let hids = new Array(mx + 1).fill(0).map((a, i) => i);
-  // let hids = []
+  // let hids = [3312];
   hids = filter_hids(hids);
   console.log(hids);
   // console.log({ hids });
@@ -144,8 +145,7 @@ const generate_all_dists_leaderboard = async () => {
   for (let dist of dists) {
     let ar = all_ar.map(({ hid, horse_rating_ob = {} }) => {
       let hr = horse_rating_ob[dist];
-      if (_.isEmpty(hr)) return null;
-      if (hr.rated_type != "GH") return null;
+      if (get_rated_type(hr?.cf) !== "GH") return null;
       return { hid, horse_rating: hr };
     });
     ar = _.compact(ar);
@@ -161,26 +161,26 @@ const generate_all_dists_leaderboard = async () => {
     }
     ar = _.flatten(_.values(ar));
     let top_1000 = ar.slice(0, 1000).map((e) => e.hid);
-    await zed_db.db
-      .collection("leaderboard")
-      .updateOne(
-        { id: `top_1000_${dist}` },
-        { $set: { id: `top_1000_${dist}`, dist: dist, top_1000 } },
-        { upsert: true }
-      );
+    // await zed_db.db
+    //   .collection("leaderboard")
+    //   .updateOne(
+    //     { id: `top_1000_${dist}` },
+    //     { $set: { id: `top_1000_${dist}`, dist: dist, top_1000 } },
+    //     { upsert: true }
+    //   );
     console.log(`wrote top_1000_${dist}`);
 
     ar = ar.slice(0, 100);
     let hids = ar.map((ea) => ea.hid);
 
     if (dist != "All") hids = await compare_heads(hids, dist);
-    await zed_db.db
-      .collection("leaderboard")
-      .updateOne(
-        { id: `heads_top_100_${dist}` },
-        { $set: { id: `heads_top_100_${dist}`, dist: dist, top_100: hids } },
-        { upsert: true }
-      );
+    // await zed_db.db
+    //   .collection("leaderboard")
+    //   .updateOne(
+    //     { id: `heads_top_100_${dist}` },
+    //     { $set: { id: `heads_top_100_${dist}`, dist: dist, top_100: hids } },
+    //     { upsert: true }
+    //   );
     console.log(`wrote heads_top_100_${dist}`);
     let det_ar = await get_details_ob_for_hids(hids);
 
@@ -202,12 +202,12 @@ const generate_all_dists_leaderboard = async () => {
       leaderboard: ar,
     };
     console.log(ar);
-    await zed_db.db
-      .collection("leaderboard")
-      .updateOne({ id }, { $set: ob }, { upsert: true });
+    // await zed_db.db
+    //   .collection("leaderboard")
+    //   .updateOne({ id }, { $set: ob }, { upsert: true });
     console.log("dist", dist, "complete");
     write_to_path({
-      file_path: `${app_root}/test/leader-${dist}.json`,
+      file_path: `${app_root}/test-1/leader-${dist}.json`,
       data: ob,
     });
   }
@@ -278,7 +278,15 @@ const check_h2_better_h1 = async (hid1, hid2, dist) => {
   // console.log("dist =>", dist);
   // console.log(hid1, "=>", avg1);
   // console.log(hid2, "=>", avg2);
-  console.log("head to head", hid1, hid2, "diff: ", avg1 - avg2);
+  // console.log(
+  //   "head to head",
+  //   hid1,
+  //   hid2,
+  //   "diff: ",
+  //   avg1 - avg2,
+  //   "better: ",
+  //   avg1 > avg2 ? hid2 : hid1
+  // );
   // let dec2 = (n) => parseFloat(n).toFixed(2);
   // let b = avg2 < avg1 ? hid2 : hid1;
   return avg1 - avg2;
@@ -293,19 +301,98 @@ const compare_heads = async (hids = [], dist) => {
   let arr = [...hids];
   // console.log(hids);
   let n = hids.length;
-  for (let i = 1; i < n; ++i) {
-    let key = arr[i];
-    let j = i - 1;
-    while (j >= 0 && (await check_h2_better_h1(arr[j], key, dist)) >= 0) {
-      // console.log(`${i}th`, key, " & ", `${j}th`, arr[j]);
-      arr[j + 1] = arr[j];
-      j = j - 1;
-    }
-    arr[j + 1] = key;
-    // console.log(arr.toString());
-  }
+
+  arr = await quickSort(arr, 0, n - 1, dist);
+  console.log({ arr });
+  // for (let i = 1; i < n; ++i) {
+  //   let key = arr[i];
+  //   let j = i - 1;
+  //   while (j >= 0 && (await check_h2_better_h1(arr[j], key, dist)) > 0) {
+  //     // console.log(`${i}th`, key, " & ", `${j}th`, arr[j]);
+  //     arr[j + 1] = arr[j];
+  //     j = j - 1;
+  //   }
+  //   arr[j + 1] = key;
+  //   // console.log(arr.toString());
+  // }
+
+  // One by one move boundary of unsorted subarray
+  // for (let i = 0; i < n - 1; i++) {
+  //   let min_idx = i;
+  //   for (let j = i + 1; j < n; j++)
+  //     if ((await check_h2_better_h1(arr[j], arr[min_idx], dist)) > 0)
+  //       min_idx = j;
+  //   let temp = arr[min_idx];
+  //   arr[min_idx] = arr[i];
+  //   arr[i] = temp;
+  // }
+
+  // for (let i = 0; i < n - 1; i++)
+  //   for (let j = 0; j < n - i - 1; j++)
+  //     if (await check_h2_better_h1(arr[j], arr[j + 1], dist) > 0) {
+  //       // swap arr[j+1] and arr[j]
+  //       let temp = arr[j];
+  //       arr[j] = arr[j + 1];
+  //       arr[j + 1] = temp;
+  //     }
+
+  // One by one move boundary of unsorted subarray
+  // for (let i = 0; i < n - 1; i++) {
+  //   // Find the minimum element in unsorted array
+  //   let min_idx = i;
+  //   for (let j = i + 1; j < n; j++)
+  //     if ((await check_h2_better_h1(arr[j], arr[min_idx], dist)) < 0)
+  //       min_idx = j;
+  //   // Swap the found minimum element with the first
+  //   // element
+  //   let temp = arr[min_idx];
+  //   arr[min_idx] = arr[i];
+  //   arr[i] = temp;
+  // }
+
   return arr;
 };
+
+function swap(items, leftIndex, rightIndex) {
+  var temp = items[leftIndex];
+  items[leftIndex] = items[rightIndex];
+  items[rightIndex] = temp;
+}
+async function partition(items, left, right, dist) {
+  var pivot = items[Math.floor((right + left) / 2)], //middle element
+    i = left, //left pointer
+    j = right; //right pointer
+  while (i <= j) {
+    while (items[i] < pivot) {
+      i++;
+    }
+    while (items[j] > pivot) {
+      j--;
+    }
+    if ((await check_h2_better_h1(items[i], items[j], dist)) > 0) {
+      swap(items, i, j); //sawpping two elements
+      i++;
+      j--;
+    }
+  }
+  return i;
+}
+
+async function quickSort(items, left, right, dist) {
+  var index;
+  if (items.length > 1) {
+    index = await partition(items, left, right, dist); //index returned from partition
+    if (left < index - 1) {
+      //more elements on the left side of the pivot
+      quickSort(items, left, index - 1, dist);
+    }
+    if (index < right) {
+      //more elements on the right side of the pivot
+      quickSort(items, index, right, dist);
+    }
+  }
+  return items;
+}
 
 const run_leaderboard = () => {
   run_func(generate_all_dists_leaderboard);
@@ -313,6 +400,44 @@ const run_leaderboard = () => {
 
 const run_repair_leaderboard = () => {
   run_func(repair_leaderboard);
+};
+
+const best_in_battlefield = async ({ h, hids = [], meds = {}, dist }) => {
+  // return { left: [], best: null };
+  // console.log(meds)
+  if (_.isEmpty(hids)) return { left: [], best: null };
+  let last_better;
+  let comp = new Array(hids.length - 1);
+  let log = [];
+  for (let i in hids) {
+    let hid = hids[i];
+    let med = meds[hid];
+    let diff, better;
+    if (h == hid) {
+      diff = 0;
+      better = h;
+    } else {
+      diff = await check_h2_better_h1(h, hid, dist);
+      if (diff == 0) {
+        better = meds[h] < meds[hid] ? h : hid;
+        // console.log(h, hid, meds[h], meds[hid], med[h] < med[hid], better);
+      } else better = diff > 0 ? hid : h;
+    }
+    comp[i] = better;
+    log[i] = { h1: h, h2: hid, diff: dec2(diff), med, better };
+    if (i != 0 && last_better !== better) {
+      console.table(log);
+      console.log({last_better, better}, "skip to next RUN...");
+      return { left: hids, best: null };
+    }
+    last_better = better;
+  }
+  let left = hids;
+  let best = _.uniq(comp);
+  best = best.length == 1 ? best[0] : null;
+  if (best !== null) left = hids.filter((e) => e != best);
+  console.table(log);
+  return { left, best };
 };
 
 const test = async () => {
@@ -478,4 +603,6 @@ module.exports = {
   run_repair_leaderboard,
   run_test,
   run_test2,
+  compare_heads,
+  best_in_battlefield,
 };

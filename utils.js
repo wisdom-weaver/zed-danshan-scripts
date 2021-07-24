@@ -32,9 +32,15 @@ const read_from_path = ({ file_path }) => {
     return null;
   }
 };
-
+const dec2 = (n) => parseFloat(n).toFixed(2);
+const pad = (n, l = 3) => {
+  let pp = new Array(l - parseInt(n).toString().length).fill(0).join("");
+  return `${pp}${n}`;
+};
 module.exports = {
   calc_avg,
   write_to_path,
   read_from_path,
+  dec2,
+  pad,
 };

@@ -8,7 +8,7 @@ require("dotenv").config();
 
 let zed_db = mongoose.connection;
 const get_first_raceid = async (hid) => {
-  let r1 = await zed_db.db.collection("zed2").findOne({ 6: hid });
+  let r1 = await zed_db.db.collection("zed3").findOne({ 6: hid });
   if (r1 && !_.isEmpty(r1)) return r1["4"];
   else return null;
 };

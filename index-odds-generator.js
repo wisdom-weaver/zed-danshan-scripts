@@ -7,7 +7,7 @@ const { write_to_path } = require("./utils");
 const app_root = require("app-root-path");
 
 let mx = 70000;
-let st = 0;
+let st = 5800;
 let ed = mx;
 // let st = 50000;
 // let ed = 3312;
@@ -43,7 +43,7 @@ const key_mapping_bs_zed = [
 ];
 
 const from_zed2 = async (query) => {
-  let data = await zed_db.db.collection("zed2").find(query).toArray();
+  let data = await zed_db.db.collection("zed3").find(query).toArray();
   data = _.uniqBy(data, (i) => [i["4"], i["6"]].join());
   return data;
 };
@@ -187,10 +187,11 @@ const cls = ["#", 0, 1, 2, 3, 4, 5];
 const dists = ["####", 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600];
 const fee_cats = ["#", "A", "B", "C"];
 
-const get_rated_type = (cf) => {
+const get_rated_type = (cf=null) => {
   if (!cf || cf == "na") return "NR";
   if (cf?.endsWith("_")) return "CH";
   if (parseInt(cf[0]) != 0) return "GH";
+  return "NR";
 };
 
 const get_keys_map = ({ cls, dists, fee_cats }) => {
@@ -544,4 +545,5 @@ module.exports = {
   generate_blood_mapping,
   run_blood_generator,
   mx,
+  get_rated_type,
 };
