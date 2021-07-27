@@ -7,10 +7,11 @@ const { write_to_path } = require("./utils");
 const app_root = require("app-root-path");
 
 let mx = 70000;
+let h = 58792;
 let st = 0;
 let ed = mx;
-// let st = 50000;
-// let ed = 3312;
+// let st = h;
+// let ed = h;
 
 let zed_db = mongoose.connection;
 
