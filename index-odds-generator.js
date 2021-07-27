@@ -7,7 +7,7 @@ const { write_to_path } = require("./utils");
 const app_root = require("app-root-path");
 
 let mx = 70000;
-let st = 5800;
+let st = 0;
 let ed = mx;
 // let st = 50000;
 // let ed = 3312;
@@ -187,7 +187,7 @@ const cls = ["#", 0, 1, 2, 3, 4, 5];
 const dists = ["####", 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600];
 const fee_cats = ["#", "A", "B", "C"];
 
-const get_rated_type = (cf=null) => {
+const get_rated_type = (cf = null) => {
   if (!cf || cf == "na") return "NR";
   if (cf?.endsWith("_")) return "CH";
   if (parseInt(cf[0]) != 0) return "GH";
@@ -363,10 +363,11 @@ const gen_and_upload_blood_hr = async ({
   let name = details?.name;
   let rated_type = get_rated_type(rating_blood?.cf);
   rating_blood = { ...rating_blood, rated_type };
-
+  let db_date = new Date().toISOString();
   let ob = {
     hid,
     name,
+    db_date,
     rating_blood,
     details,
   };

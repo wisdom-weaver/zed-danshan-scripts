@@ -258,14 +258,49 @@ const repair_leaderboard = async () => {
   }
 };
 
+const had_last_race_in_days = async ({ hid, dist, days = 30 }) => {
+  let r1 = await get_races_of_hid(hid);
+  r1 = r1.filter((e) => e.distance == dist);
+  let l1 = _.maxBy(r1, "date")?.date;
+  l1 = new Date(l1).getTime();
+  let now = Date.now();
+  let not_before = now - days * 24 * 60 * 60 * 1000;
+  if (l1 < not_before) {
+    console.log("no race in dist", dist, "for horse", hid);
+    return false;
+  }
+  return true;
+};
+
 const check_h2_better_h1 = async (hid1, hid2, dist) => {
   // console.log("head to head", hid1, hid2);
   let r1 = await get_races_of_hid(hid1);
-  r1 = r1.filter((e) => e.distance == dist);
   let r2 = await get_races_of_hid(hid2);
+
+  r1 = r1.filter((e) => e.distance == dist);
   r2 = r2.filter((e) => e.distance == dist);
-  // console.log({ r2 });
+
+  // l1 = _.maxBy(r1, "date")?.date;
+  // l2 = _.maxBy(r2, "date")?.date;
+  // l1 = new Date(l1).getTime();
+  // l2 = new Date(l2).getTime();
+  // let now = Date.now();
+  // let days = 30;
+  // let not_before = now - days * 24 * 60 * 60 * 1000;
+  // console.log(l1);
+  // console.log(l2);
+  // console.log(not_before);
+  // if (l1 < not_before) {
+  //   console.log("no race in dist", dist, "for horse", hid1);
+  //   return 0;
+  // }
+  // if (l2 < not_before) {
+  //   console.log("no race in dist", dist, "for horse", hid2);
+  //   return 0;
+  // }
+
   let comm = _.intersectionBy(r1, r2, "raceid");
+  if (comm.length < 3) return 0;
   comm = comm.map(({ raceid }) => ({
     raceid,
     odds1: _.find(r1, { raceid }).odds,
@@ -427,7 +462,7 @@ const best_in_battlefield = async ({ h, hids = [], meds = {}, dist }) => {
     log[i] = { h1: h, h2: hid, diff: dec2(diff), med, better };
     if (i != 0 && last_better !== better) {
       console.table(log);
-      console.log({last_better, better}, "skip to next RUN...");
+      console.log({ last_better, better }, "skip to next RUN...");
       return { left: hids, best: null };
     }
     last_better = better;
@@ -605,4 +640,6 @@ module.exports = {
   run_test2,
   compare_heads,
   best_in_battlefield,
+  check_h2_better_h1,
+  had_last_race_in_days,
 };

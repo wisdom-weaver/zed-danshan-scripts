@@ -1,7 +1,9 @@
 const { generate_blood_mapping } = require("./index-odds-generator");
 const {
   compare_heads,
+  check_h2_better_h1,
   best_in_battlefield,
+  had_last_race_in_days,
 } = require("./leaderboard-generator");
 const { init } = require("./index-run");
 const _ = require("lodash");
@@ -77,6 +79,11 @@ const test2 = async () => {
   // ar = ar.slice(0, 3);
 
   let hids = _.map(ar, "hid");
+  for (let i in hids) {
+    if (!(await had_last_race_in_days({ hid: hids[i], dist }))) hids[i] = null;
+  }
+  hids = _.compact(hids)
+
   let meds = hids.map((hid) => {
     let { cf, med } = _.find(ar, { hid });
     return [hid, cf + pad(med)];
@@ -147,7 +154,18 @@ const test2 = async () => {
   });
 };
 
+const test3 = async () => {
+  await init();
+  let h1 = 1892;
+  let h2 = 10656;
+  let dist = 1600;
+  console.log(await had_last_race_in_days({ hid: h1, dist }));
+  console.log(await had_last_race_in_days({ hid: h2, dist }));
+  // check_h2_better_h1(h1, h2, dist);
+};
+
 module.exports = {
   test1,
   test2,
+  test3,
 };
