@@ -8,6 +8,7 @@
     "run_blood_generator": "run-func index-odds-generator.js run_blood_generator",
     "run_leaderboard": "run-func leaderboard-generator.js run_leaderboard",
     "run_repair_leaderboard": "run-func leaderboard-generator.js run_repair_leaderboard",
+    "give_ranks_on_rating_blood": "run-func index-odds-generator.js give_ranks_on_rating_blood",
     "run_test": "run-func leaderboard-generator.js run_test",
     "run_test2": "run-func leaderboard-generator.js run_test2",
     "test1": "run-func tests.js test1",

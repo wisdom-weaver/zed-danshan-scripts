@@ -3,7 +3,7 @@ const prompt = require("prompt-sync")();
 const fetch = require("node-fetch");
 const mongoose = require("mongoose");
 const { run_func, init } = require("./index-run");
-const { write_to_path } = require("./utils");
+const { write_to_path, read_from_path } = require("./utils");
 const app_root = require("app-root-path");
 
 let mx = 70000;
@@ -515,6 +515,28 @@ const start = async () => {
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const give_ranks_on_rating_blood = async () => {
+  await init();
+  let obs = await zed_db.db.collection("blood").find().toArray();
+  console.log("blood got", obs.length);
+  let ar = obs.map((ea) => ea?.blood || []);
+  ar = _.flatten(ar);
+  
+  // write_to_path({ file_path: `${app_root}/backup/blood.json`, data: ar });
+  // console.log("blood wrote to json");
+
+  // let ar = read_from_path({ file_path: `${app_root}/backup/blood.json` });
+  let hids = new Array(mx + 1).fill(0).map((ea, i) => i);
+  for (let hid of hids) {
+    let rank = _.find(ar, { hid })?.rank || null;
+    zed_db.db
+      .collection("rating_blood")
+      .updateOne({ hid }, { $set: { rank } }, { upsert: true });
+    if (hid % 100) console.log("done", hid);
+  }
+  console.log("# completed giving ranks");
+};
+
 let odds_generator = async () => {
   try {
     await start();
@@ -548,4 +570,5 @@ module.exports = {
   run_blood_generator,
   mx,
   get_rated_type,
+  give_ranks_on_rating_blood,
 };
