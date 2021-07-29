@@ -8,7 +8,7 @@ const app_root = require("app-root-path");
 
 let mx = 70000;
 let h = 3312;
-let st = 64558;
+let st = 0;
 let ed = mx;
 // let st = h;
 // let ed = h;
@@ -500,6 +500,7 @@ const start = async () => {
     i += cs;
     console.log("\n=> fetching together:", chunk.toString());
     await Promise.all(chunk.map((hid) => generate_odds_for(hid)));
+    await delay(1000)
     // if (i % 10000 == 0) generate_blood_mapping();
   }
 
