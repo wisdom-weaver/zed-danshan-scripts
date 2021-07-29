@@ -8,7 +8,7 @@ const app_root = require("app-root-path");
 
 let mx = 70000;
 let h = 32101;
-let st = 0;
+let st = 64558;
 let ed = mx;
 // let st = h;
 // let ed = h;
@@ -401,15 +401,18 @@ const generate_blood_mapping = async () => {
   let def_ar = await zed_db.db.collection("rating_blood").find({}).toArray();
   console.log("len: ", def_ar.length);
   def_ar = filter_error_horses(def_ar);
-  let ar = def_ar.map(({ hid, rating_blood }) => ({
-    hid,
-    rc: parseInt(rating_blood.cf[0]),
-    ...rating_blood,
-  }));
+
+  let ar = def_ar.map(({ hid, rating_blood }) => {
+    if (_.isEmpty(rating_blood)) return null;
+    return { hid, rc: parseInt(rating_blood.cf[0]), ...rating_blood };
+  });
+
+  ar = _.compact(ar)
   ar = _.sortBy(ar, "cf");
   ar = _.groupBy(ar, "cf");
   ar = _.values(ar).map((e) => _.sortBy(e, "med"));
   ar = _.flatten(ar);
+
   let ar_GH = ar.filter((ea) => ea.rated_type == "GH");
   ar_GH = ar_GH.map((ea, i) => ({ ...ea, rank: i + 1 }));
   let ar_CH = ar.filter((ea) => ea.rated_type == "CH");
