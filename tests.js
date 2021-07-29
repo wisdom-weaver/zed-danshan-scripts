@@ -5,11 +5,12 @@ const {
   best_in_battlefield,
   had_last_race_in_days,
 } = require("./leaderboard-generator");
-const { init } = require("./index-run");
+const { init, zed_db, zed_ch } = require("./index-run");
 const _ = require("lodash");
 const mongoose = require("mongoose");
 const { write_to_path, read_from_path } = require("./utils");
 const app_root = require("app-root-path");
+const { MongoClient } = require("mongodb");
 
 const test1 = async () => {
   await init();
@@ -82,7 +83,7 @@ const test2 = async () => {
   for (let i in hids) {
     if (!(await had_last_race_in_days({ hid: hids[i], dist }))) hids[i] = null;
   }
-  hids = _.compact(hids)
+  hids = _.compact(hids);
 
   let meds = hids.map((hid) => {
     let { cf, med } = _.find(ar, { hid });
@@ -164,8 +165,20 @@ const test3 = async () => {
   // check_h2_better_h1(h1, h2, dist);
 };
 
+const test4 = async () => {
+  console.log("test4");
+  await init();
+  let ob = await zed_db.db.collection("rating_blood").findOne({});
+  console.log(ob);
+  let ob2 = await zed_ch.db.collection("zed").findOne({});
+  console.log(ob2);
+  zed_db.close();
+  zed_ch.close();
+};
+
 module.exports = {
   test1,
   test2,
   test3,
+  test4,
 };

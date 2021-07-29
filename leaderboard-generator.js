@@ -12,9 +12,8 @@ const {
   mx,
   get_rated_type,
 } = require("./index-odds-generator");
-const { run_func } = require("./index-run");
+const { init, zed_db, zed_ch, run_func } = require("./index-run");
 const { calc_avg, write_to_path, read_from_path, dec2 } = require("./utils");
-let zed_db = mongoose.connection;
 
 const compare_horses_on_common_races_avgs = async ({ hid1, hid2, dist }) => {
   let race1 = await get_races_of_hid(hid1);
@@ -430,11 +429,17 @@ async function quickSort(items, left, right, dist) {
 }
 
 const run_leaderboard = () => {
-  run_func(generate_all_dists_leaderboard);
+  await init();
+  await generate_all_dists_leaderboard()
+  zed_db.close();
+  zed_ch.close();
 };
 
 const run_repair_leaderboard = () => {
-  run_func(repair_leaderboard);
+  await init();
+  await repair_leaderboard();
+  zed_db.close();
+  zed_ch.close();
 };
 
 const best_in_battlefield = async ({ h, hids = [], meds = {}, dist }) => {
