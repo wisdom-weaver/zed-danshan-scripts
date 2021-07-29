@@ -6,6 +6,7 @@
   "scripts": {
     "run_odds_generator": "run-func index-odds-generator.js run_odds_generator",
     "run_blood_generator": "run-func index-odds-generator.js run_blood_generator",
+    "run_cache_on_heroku": "run-func index-odds-generator.js run_cache_on_heroku",
     "run_leaderboard": "run-func leaderboard-generator.js run_leaderboard",
     "run_repair_leaderboard": "run-func leaderboard-generator.js run_repair_leaderboard",
     "give_ranks_on_rating_blood": "run-func index-odds-generator.js give_ranks_on_rating_blood",

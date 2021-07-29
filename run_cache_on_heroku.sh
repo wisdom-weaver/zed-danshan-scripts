@@ -1,6 +1,6 @@
 #!/bin/bash
 
-npm run run_odds_generator;
+npm run run_cache_on_heroku;
 echo
 echo ------------
 echo screen on hold

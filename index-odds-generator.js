@@ -7,11 +7,11 @@ const { write_to_path, read_from_path } = require("./utils");
 const app_root = require("app-root-path");
 
 let mx = 70000;
-let h = 32101;
-let st = 64558;
-let ed = mx;
-// let st = h;
-// let ed = h;
+let h = 3312;
+// let st = 64558;
+// let ed = mx;
+let st = h;
+let ed = h;
 
 const filter_error_horses = (horses = []) => {
   return horses?.filter(({ hid }) => ![15812, 15745].includes(hid));
@@ -407,7 +407,7 @@ const generate_blood_mapping = async () => {
     return { hid, rc: parseInt(rating_blood.cf[0]), ...rating_blood };
   });
 
-  ar = _.compact(ar)
+  ar = _.compact(ar);
   ar = _.sortBy(ar, "cf");
   ar = _.groupBy(ar, "cf");
   ar = _.values(ar).map((e) => _.sortBy(e, "med"));
@@ -580,6 +580,21 @@ let run_blood_generator = async () => {
   zed_ch.close();
 };
 
+const run_cache_on_heroku = async () => {
+  try {
+    console.log("caching on heroku server");
+    await fetch(`https://bs-zed-backend-api.herokuapp.com/blood/download`);
+  } catch (err) {}
+  await delay(60000);
+  try {
+    console.log("caching live odds on heroku server");
+    await fetch(
+      `https://bs-zed-backend-api.herokuapp.com/live/download2?mx=${mx}`
+    );
+  } catch (err) {}
+  console.log("the rest will be done on the server");
+};
+
 module.exports = {
   calc_blood_hr,
   get_races_of_hid,
@@ -592,4 +607,5 @@ module.exports = {
   mx,
   get_rated_type,
   give_ranks_on_rating_blood,
+  run_cache_on_heroku
 };
