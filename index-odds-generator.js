@@ -8,10 +8,10 @@ const app_root = require("app-root-path");
 
 let mx = 70000;
 let h = 3312;
-// let st = 64558;
-// let ed = mx;
-let st = h;
-let ed = h;
+let st = 64558;
+let ed = mx;
+// let st = h;
+// let ed = h;
 
 const filter_error_horses = (horses = []) => {
   return horses?.filter(({ hid }) => ![15812, 15745].includes(hid));
