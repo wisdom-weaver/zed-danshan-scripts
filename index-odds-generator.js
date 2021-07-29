@@ -566,8 +566,8 @@ let odds_generator = async () => {
 let run_odds_generator = async () => {
   await init();
   await odds_generator();
-  zed_db.close();
-  zed_ch.close();
+  // zed_db.close();
+  // zed_ch.close();
 };
 
 let run_blood_generator = async () => {
@@ -576,8 +576,8 @@ let run_blood_generator = async () => {
   await generate_blood_mapping();
   await give_ranks_on_rating_blood();
   console.log("## Completed Blood Ranks");
-  zed_db.close();
-  zed_ch.close();
+  // zed_db.close();
+  // zed_ch.close();
 };
 
 const run_cache_on_heroku = async () => {
