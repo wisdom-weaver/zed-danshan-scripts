@@ -16,6 +16,8 @@
     "test2": "run-func tests.js test2",
     "test3": "run-func tests.js test3",
     "test4": "run-func tests.js test4",
+    "test5": "run-func tests.js test5",
+    "test6": "run-func tests.js test6",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

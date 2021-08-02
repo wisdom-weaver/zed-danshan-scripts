@@ -1,0 +1,2702 @@
+[
+  {
+    "id": "z001-nakamoto-genesis",
+    "med": 6.38
+  },
+  {
+    "id": "z002-nakamoto-genesis",
+    "med": 7.02
+  },
+  {
+    "id": "z002-nakamoto-legendary",
+    "med": 8.02
+  },
+  {
+    "id": "z003-nakamoto-exclusive",
+    "med": 9.78
+  },
+  {
+    "id": "z003-nakamoto-legendary",
+    "med": 8.31
+  },
+  {
+    "id": "z003-szabo-genesis",
+    "med": 7.85
+  },
+  {
+    "id": "z004-nakamoto-elite",
+    "med": 17.3
+  },
+  {
+    "id": "z004-nakamoto-exclusive",
+    "med": 11.47
+  },
+  {
+    "id": "z004-nakamoto-legendary",
+    "med": 8.56
+  },
+  {
+    "id": "z004-szabo-genesis",
+    "med": 8.67
+  },
+  {
+    "id": "z004-szabo-legendary",
+    "med": 8.13
+  },
+  {
+    "id": "z005-finney-genesis",
+    "med": 9.42
+  },
+  {
+    "id": "z005-nakamoto-elite",
+    "med": 13.52
+  },
+  {
+    "id": "z005-nakamoto-exclusive",
+    "med": 11.44
+  },
+  {
+    "id": "z005-szabo-exclusive",
+    "med": 9.36
+  },
+  {
+    "id": "z005-szabo-legendary",
+    "med": 8.58
+  },
+  {
+    "id": "z006-finney-genesis",
+    "med": 10.75
+  },
+  {
+    "id": "z006-finney-legendary",
+    "med": 8.82
+  },
+  {
+    "id": "z006-nakamoto-elite",
+    "med": 14.59
+  },
+  {
+    "id": "z006-nakamoto-exclusive",
+    "med": 11.14
+  },
+  {
+    "id": "z006-szabo-elite",
+    "med": 7.33
+  },
+  {
+    "id": "z006-szabo-exclusive",
+    "med": 12.44
+  },
+  {
+    "id": "z006-szabo-legendary",
+    "med": 8.73
+  },
+  {
+    "id": "z007-finney-exclusive",
+    "med": 12.36
+  },
+  {
+    "id": "z007-finney-genesis",
+    "med": 12.01
+  },
+  {
+    "id": "z007-finney-legendary",
+    "med": 9
+  },
+  {
+    "id": "z007-nakamoto-cross",
+    "med": 13.54
+  },
+  {
+    "id": "z007-nakamoto-elite",
+    "med": 13.42
+  },
+  {
+    "id": "z007-nakamoto-exclusive",
+    "med": 11.76
+  },
+  {
+    "id": "z007-szabo-elite",
+    "med": 11.91
+  },
+  {
+    "id": "z007-szabo-exclusive",
+    "med": 10.96
+  },
+  {
+    "id": "z007-szabo-legendary",
+    "med": 9.41
+  },
+  {
+    "id": "z008-buterin-genesis",
+    "med": 13.12
+  },
+  {
+    "id": "z008-finney-elite",
+    "med": 13.76
+  },
+  {
+    "id": "z008-finney-exclusive",
+    "med": 11.51
+  },
+  {
+    "id": "z008-finney-legendary",
+    "med": 10.02
+  },
+  {
+    "id": "z008-nakamoto-cross",
+    "med": 14.87
+  },
+  {
+    "id": "z008-nakamoto-elite",
+    "med": 13.95
+  },
+  {
+    "id": "z008-nakamoto-exclusive",
+    "med": 11.45
+  },
+  {
+    "id": "z008-szabo-cross",
+    "med": 9.54
+  },
+  {
+    "id": "z008-szabo-elite",
+    "med": 15.16
+  },
+  {
+    "id": "z008-szabo-exclusive",
+    "med": 11.67
+  },
+  {
+    "id": "z008-szabo-legendary",
+    "med": 10.54
+  },
+  {
+    "id": "z009-buterin-genesis",
+    "med": 13.72
+  },
+  {
+    "id": "z009-buterin-legendary",
+    "med": 12.11
+  },
+  {
+    "id": "z009-finney-elite",
+    "med": 14.58
+  },
+  {
+    "id": "z009-finney-exclusive",
+    "med": 13.22
+  },
+  {
+    "id": "z009-finney-legendary",
+    "med": 10.37
+  },
+  {
+    "id": "z009-nakamoto-cross",
+    "med": 16.9
+  },
+  {
+    "id": "z009-nakamoto-elite",
+    "med": 13.99
+  },
+  {
+    "id": "z009-nakamoto-exclusive",
+    "med": 9.99
+  },
+  {
+    "id": "z009-szabo-cross",
+    "med": 11.67
+  },
+  {
+    "id": "z009-szabo-elite",
+    "med": 13.31
+  },
+  {
+    "id": "z009-szabo-exclusive",
+    "med": 10.72
+  },
+  {
+    "id": "z010-buterin-exclusive",
+    "med": 13.57
+  },
+  {
+    "id": "z010-buterin-genesis",
+    "med": 15.41
+  },
+  {
+    "id": "z010-buterin-legendary",
+    "med": 11.68
+  },
+  {
+    "id": "z010-finney-elite",
+    "med": 14.29
+  },
+  {
+    "id": "z010-finney-exclusive",
+    "med": 13.1
+  },
+  {
+    "id": "z010-finney-legendary",
+    "med": 11
+  },
+  {
+    "id": "z010-nakamoto-cross",
+    "med": 19.27
+  },
+  {
+    "id": "z010-nakamoto-elite",
+    "med": 15.1
+  },
+  {
+    "id": "z010-nakamoto-exclusive",
+    "med": 11.8
+  },
+  {
+    "id": "z010-szabo-cross",
+    "med": 15.06
+  },
+  {
+    "id": "z010-szabo-elite",
+    "med": 13.89
+  },
+  {
+    "id": "z010-szabo-exclusive",
+    "med": 12.86
+  },
+  {
+    "id": "z011-buterin-elite",
+    "med": 16.87
+  },
+  {
+    "id": "z011-buterin-exclusive",
+    "med": 12.84
+  },
+  {
+    "id": "z011-buterin-legendary",
+    "med": 12.51
+  },
+  {
+    "id": "z011-finney-cross",
+    "med": 16.89
+  },
+  {
+    "id": "z011-finney-elite",
+    "med": 17.07
+  },
+  {
+    "id": "z011-finney-exclusive",
+    "med": 12.02
+  },
+  {
+    "id": "z011-finney-legendary",
+    "med": 11.77
+  },
+  {
+    "id": "z011-nakamoto-cross",
+    "med": 19.05
+  },
+  {
+    "id": "z011-nakamoto-elite",
+    "med": 16.27
+  },
+  {
+    "id": "z011-nakamoto-exclusive",
+    "med": 14.93
+  },
+  {
+    "id": "z011-szabo-cross",
+    "med": 13.82
+  },
+  {
+    "id": "z011-szabo-elite",
+    "med": 14.5
+  },
+  {
+    "id": "z011-szabo-exclusive",
+    "med": 11.57
+  },
+  {
+    "id": "z012-buterin-elite",
+    "med": 15.68
+  },
+  {
+    "id": "z012-buterin-exclusive",
+    "med": 13.99
+  },
+  {
+    "id": "z012-buterin-legendary",
+    "med": 12.25
+  },
+  {
+    "id": "z012-finney-cross",
+    "med": 15.03
+  },
+  {
+    "id": "z012-finney-elite",
+    "med": 14.28
+  },
+  {
+    "id": "z012-finney-exclusive",
+    "med": 12.92
+  },
+  {
+    "id": "z012-finney-legendary",
+    "med": 12.09
+  },
+  {
+    "id": "z012-finney-missing",
+    "med": 0
+  },
+  {
+    "id": "z012-nakamoto-cross",
+    "med": 20.77
+  },
+  {
+    "id": "z012-nakamoto-elite",
+    "med": 13.23
+  },
+  {
+    "id": "z012-nakamoto-exclusive",
+    "med": 7.91
+  },
+  {
+    "id": "z012-szabo-cross",
+    "med": 14.06
+  },
+  {
+    "id": "z012-szabo-elite",
+    "med": 14.08
+  },
+  {
+    "id": "z012-szabo-exclusive",
+    "med": 12.09
+  },
+  {
+    "id": "z013-buterin-cross",
+    "med": 19.39
+  },
+  {
+    "id": "z013-buterin-elite",
+    "med": 15.64
+  },
+  {
+    "id": "z013-buterin-exclusive",
+    "med": 14.29
+  },
+  {
+    "id": "z013-buterin-legendary",
+    "med": 12.63
+  },
+  {
+    "id": "z013-buterin-missing",
+    "med": 0
+  },
+  {
+    "id": "z013-finney-cross",
+    "med": 20.35
+  },
+  {
+    "id": "z013-finney-elite",
+    "med": 13.37
+  },
+  {
+    "id": "z013-finney-exclusive",
+    "med": 13.04
+  },
+  {
+    "id": "z013-finney-legendary",
+    "med": 12.93
+  },
+  {
+    "id": "z013-nakamoto-cross",
+    "med": 14.78
+  },
+  {
+    "id": "z013-nakamoto-elite",
+    "med": 13.58
+  },
+  {
+    "id": "z013-nakamoto-exclusive",
+    "med": 10.6
+  },
+  {
+    "id": "z013-szabo-cross",
+    "med": 22.18
+  },
+  {
+    "id": "z013-szabo-elite",
+    "med": 14.02
+  },
+  {
+    "id": "z013-szabo-exclusive",
+    "med": 13.45
+  },
+  {
+    "id": "z014-buterin-cross",
+    "med": 15.53
+  },
+  {
+    "id": "z014-buterin-elite",
+    "med": 16.24
+  },
+  {
+    "id": "z014-buterin-exclusive",
+    "med": 14.58
+  },
+  {
+    "id": "z014-buterin-legendary",
+    "med": 13.8
+  },
+  {
+    "id": "z014-finney-cross",
+    "med": 18.22
+  },
+  {
+    "id": "z014-finney-elite",
+    "med": 14.7
+  },
+  {
+    "id": "z014-finney-exclusive",
+    "med": 15.49
+  },
+  {
+    "id": "z014-finney-legendary",
+    "med": 13.52
+  },
+  {
+    "id": "z014-nakamoto-cross",
+    "med": 19.27
+  },
+  {
+    "id": "z014-nakamoto-elite",
+    "med": 13.65
+  },
+  {
+    "id": "z014-nakamoto-pacer",
+    "med": 0
+  },
+  {
+    "id": "z014-szabo-cross",
+    "med": 17.04
+  },
+  {
+    "id": "z014-szabo-elite",
+    "med": 16.62
+  },
+  {
+    "id": "z014-szabo-exclusive",
+    "med": 13.95
+  },
+  {
+    "id": "z015-buterin-cross",
+    "med": 20.9
+  },
+  {
+    "id": "z015-buterin-elite",
+    "med": 14.88
+  },
+  {
+    "id": "z015-buterin-exclusive",
+    "med": 15.15
+  },
+  {
+    "id": "z015-buterin-legendary",
+    "med": 14.46
+  },
+  {
+    "id": "z015-finney-cross",
+    "med": 22.04
+  },
+  {
+    "id": "z015-finney-elite",
+    "med": 14.68
+  },
+  {
+    "id": "z015-finney-exclusive",
+    "med": 12.67
+  },
+  {
+    "id": "z015-nakamoto-cross",
+    "med": 20.19
+  },
+  {
+    "id": "z015-nakamoto-elite",
+    "med": 26.52
+  },
+  {
+    "id": "z015-nakamoto-exclusive",
+    "med": 11.45
+  },
+  {
+    "id": "z015-szabo-cross",
+    "med": 16.68
+  },
+  {
+    "id": "z015-szabo-elite",
+    "med": 18.58
+  },
+  {
+    "id": "z015-szabo-exclusive",
+    "med": 16.21
+  },
+  {
+    "id": "z016-buterin-cross",
+    "med": 15.63
+  },
+  {
+    "id": "z016-buterin-elite",
+    "med": 17.49
+  },
+  {
+    "id": "z016-buterin-exclusive",
+    "med": 14.61
+  },
+  {
+    "id": "z016-buterin-legendary",
+    "med": 15.59
+  },
+  {
+    "id": "z016-buterin-missing",
+    "med": 0
+  },
+  {
+    "id": "z016-finney-cross",
+    "med": 17.97
+  },
+  {
+    "id": "z016-finney-elite",
+    "med": 18.42
+  },
+  {
+    "id": "z016-finney-exclusive",
+    "med": 13.71
+  },
+  {
+    "id": "z016-nakamoto-cross",
+    "med": 16.4
+  },
+  {
+    "id": "z016-nakamoto-elite",
+    "med": 11.52
+  },
+  {
+    "id": "z016-szabo-cross",
+    "med": 16.94
+  },
+  {
+    "id": "z016-szabo-elite",
+    "med": 13.52
+  },
+  {
+    "id": "z016-szabo-exclusive",
+    "med": 22.47
+  },
+  {
+    "id": "z017-buterin-cross",
+    "med": 13.48
+  },
+  {
+    "id": "z017-buterin-elite",
+    "med": 18.51
+  },
+  {
+    "id": "z017-buterin-exclusive",
+    "med": 15.82
+  },
+  {
+    "id": "z017-buterin-legendary",
+    "med": 15.83
+  },
+  {
+    "id": "z017-buterin-missing",
+    "med": 0
+  },
+  {
+    "id": "z017-finney-cross",
+    "med": 18.15
+  },
+  {
+    "id": "z017-finney-elite",
+    "med": 13.97
+  },
+  {
+    "id": "z017-finney-exclusive",
+    "med": 13.66
+  },
+  {
+    "id": "z017-nakamoto-cross",
+    "med": 19.33
+  },
+  {
+    "id": "z017-nakamoto-elite",
+    "med": 13.36
+  },
+  {
+    "id": "z017-nakamoto-pacer",
+    "med": 0
+  },
+  {
+    "id": "z017-szabo-cross",
+    "med": 20.38
+  },
+  {
+    "id": "z017-szabo-elite",
+    "med": 15.16
+  },
+  {
+    "id": "z018-buterin-cross",
+    "med": 16.68
+  },
+  {
+    "id": "z018-buterin-elite",
+    "med": 17.69
+  },
+  {
+    "id": "z018-buterin-exclusive",
+    "med": 16.58
+  },
+  {
+    "id": "z018-buterin-legendary",
+    "med": 16.97
+  },
+  {
+    "id": "z018-buterin-missing",
+    "med": 0
+  },
+  {
+    "id": "z018-finney-cross",
+    "med": 24.84
+  },
+  {
+    "id": "z018-finney-elite",
+    "med": 16.09
+  },
+  {
+    "id": "z018-finney-exclusive",
+    "med": 14.26
+  },
+  {
+    "id": "z018-nakamoto-cross",
+    "med": 14.59
+  },
+  {
+    "id": "z018-nakamoto-elite",
+    "med": 26.01
+  },
+  {
+    "id": "z018-nakamoto-pacer",
+    "med": 6.45
+  },
+  {
+    "id": "z018-szabo-cross",
+    "med": 12.81
+  },
+  {
+    "id": "z018-szabo-elite",
+    "med": 16.88
+  },
+  {
+    "id": "z018-szabo-exclusive",
+    "med": 10.91
+  },
+  {
+    "id": "z018-szabo-pacer",
+    "med": 0
+  },
+  {
+    "id": "z019-buterin-cross",
+    "med": 17.69
+  },
+  {
+    "id": "z019-buterin-elite",
+    "med": 17.53
+  },
+  {
+    "id": "z019-buterin-exclusive",
+    "med": 16.23
+  },
+  {
+    "id": "z019-buterin-legendary",
+    "med": 17.57
+  },
+  {
+    "id": "z019-finney-cross",
+    "med": 16.35
+  },
+  {
+    "id": "z019-finney-elite",
+    "med": 10.72
+  },
+  {
+    "id": "z019-finney-exclusive",
+    "med": 15.79
+  },
+  {
+    "id": "z019-nakamoto-cross",
+    "med": 24.82
+  },
+  {
+    "id": "z019-nakamoto-pacer",
+    "med": 10.44
+  },
+  {
+    "id": "z019-szabo-cross",
+    "med": 21.7
+  },
+  {
+    "id": "z019-szabo-elite",
+    "med": 20.31
+  },
+  {
+    "id": "z019-szabo-exclusive",
+    "med": 17.46
+  },
+  {
+    "id": "z019-szabo-pacer",
+    "med": 0
+  },
+  {
+    "id": "z020-buterin-cross",
+    "med": 18.91
+  },
+  {
+    "id": "z020-buterin-elite",
+    "med": 20
+  },
+  {
+    "id": "z020-buterin-exclusive",
+    "med": 15.99
+  },
+  {
+    "id": "z020-buterin-legendary",
+    "med": 17.8
+  },
+  {
+    "id": "z020-buterin-missing",
+    "med": 0
+  },
+  {
+    "id": "z020-finney-cross",
+    "med": 17.05
+  },
+  {
+    "id": "z020-finney-elite",
+    "med": 16.09
+  },
+  {
+    "id": "z020-finney-exclusive",
+    "med": 17.19
+  },
+  {
+    "id": "z020-finney-pacer",
+    "med": 0
+  },
+  {
+    "id": "z020-nakamoto-cross",
+    "med": 14.93
+  },
+  {
+    "id": "z020-nakamoto-elite",
+    "med": 30.79
+  },
+  {
+    "id": "z020-nakamoto-pacer",
+    "med": 24.72
+  },
+  {
+    "id": "z020-szabo-cross",
+    "med": 16.68
+  },
+  {
+    "id": "z020-szabo-elite",
+    "med": 19.9
+  },
+  {
+    "id": "z020-szabo-exclusive",
+    "med": 19.1
+  },
+  {
+    "id": "z020-szabo-pacer",
+    "med": 0
+  },
+  {
+    "id": "z021-buterin-cross",
+    "med": 15.01
+  },
+  {
+    "id": "z021-buterin-elite",
+    "med": 20.64
+  },
+  {
+    "id": "z021-buterin-exclusive",
+    "med": 17.41
+  },
+  {
+    "id": "z021-finney-cross",
+    "med": 20.38
+  },
+  {
+    "id": "z021-finney-elite",
+    "med": 22.61
+  },
+  {
+    "id": "z021-finney-exclusive",
+    "med": 16.3
+  },
+  {
+    "id": "z021-nakamoto-cross",
+    "med": 20.47
+  },
+  {
+    "id": "z021-nakamoto-pacer",
+    "med": 0
+  },
+  {
+    "id": "z021-szabo-cross",
+    "med": 30.75
+  },
+  {
+    "id": "z021-szabo-elite",
+    "med": 17.06
+  },
+  {
+    "id": "z021-szabo-exclusive",
+    "med": 0
+  },
+  {
+    "id": "z022-buterin-cross",
+    "med": 19.1
+  },
+  {
+    "id": "z022-buterin-elite",
+    "med": 16.04
+  },
+  {
+    "id": "z022-buterin-exclusive",
+    "med": 16.75
+  },
+  {
+    "id": "z022-buterin-missing",
+    "med": 0
+  },
+  {
+    "id": "z022-finney-cross",
+    "med": 21.67
+  },
+  {
+    "id": "z022-finney-elite",
+    "med": 14.42
+  },
+  {
+    "id": "z022-finney-exclusive",
+    "med": 18.76
+  },
+  {
+    "id": "z022-finney-pacer",
+    "med": 0
+  },
+  {
+    "id": "z022-nakamoto-cross",
+    "med": 23.56
+  },
+  {
+    "id": "z022-nakamoto-pacer",
+    "med": 0
+  },
+  {
+    "id": "z022-szabo-cross",
+    "med": 24.64
+  },
+  {
+    "id": "z022-szabo-elite",
+    "med": 21.47
+  },
+  {
+    "id": "z023-buterin-cross",
+    "med": 16.42
+  },
+  {
+    "id": "z023-buterin-elite",
+    "med": 19.67
+  },
+  {
+    "id": "z023-buterin-exclusive",
+    "med": 16.4
+  },
+  {
+    "id": "z023-buterin-missing",
+    "med": 0
+  },
+  {
+    "id": "z023-finney-cross",
+    "med": 18.09
+  },
+  {
+    "id": "z023-finney-elite",
+    "med": 19.51
+  },
+  {
+    "id": "z023-finney-exclusive",
+    "med": 15.93
+  },
+  {
+    "id": "z023-nakamoto-cross",
+    "med": 17.81
+  },
+  {
+    "id": "z023-nakamoto-elite",
+    "med": 25.63
+  },
+  {
+    "id": "z023-nakamoto-pacer",
+    "med": 16.16
+  },
+  {
+    "id": "z023-szabo-cross",
+    "med": 14.72
+  },
+  {
+    "id": "z023-szabo-elite",
+    "med": 11.27
+  },
+  {
+    "id": "z024-buterin-cross",
+    "med": 20.1
+  },
+  {
+    "id": "z024-buterin-elite",
+    "med": 19.87
+  },
+  {
+    "id": "z024-buterin-exclusive",
+    "med": 18.52
+  },
+  {
+    "id": "z024-buterin-missing",
+    "med": 0
+  },
+  {
+    "id": "z024-finney-cross",
+    "med": 20.33
+  },
+  {
+    "id": "z024-finney-elite",
+    "med": 18.84
+  },
+  {
+    "id": "z024-finney-exclusive",
+    "med": 18.82
+  },
+  {
+    "id": "z024-nakamoto-cross",
+    "med": 25.58
+  },
+  {
+    "id": "z024-szabo-cross",
+    "med": 18.19
+  },
+  {
+    "id": "z024-szabo-elite",
+    "med": 16.21
+  },
+  {
+    "id": "z024-szabo-exclusive",
+    "med": 31.37
+  },
+  {
+    "id": "z025-buterin-cross",
+    "med": 17.15
+  },
+  {
+    "id": "z025-buterin-elite",
+    "med": 18.82
+  },
+  {
+    "id": "z025-buterin-exclusive",
+    "med": 16.15
+  },
+  {
+    "id": "z025-finney-cross",
+    "med": 13.84
+  },
+  {
+    "id": "z025-finney-elite",
+    "med": 15.07
+  },
+  {
+    "id": "z025-finney-exclusive",
+    "med": 16.09
+  },
+  {
+    "id": "z025-nakamoto-cross",
+    "med": 20.33
+  },
+  {
+    "id": "z025-nakamoto-pacer",
+    "med": 0
+  },
+  {
+    "id": "z025-szabo-cross",
+    "med": 14.74
+  },
+  {
+    "id": "z025-szabo-elite",
+    "med": 44.65
+  },
+  {
+    "id": "z025-szabo-pacer",
+    "med": 0
+  },
+  {
+    "id": "z026-buterin-cross",
+    "med": 17.74
+  },
+  {
+    "id": "z026-buterin-elite",
+    "med": 18.53
+  },
+  {
+    "id": "z026-buterin-exclusive",
+    "med": 18.57
+  },
+  {
+    "id": "z026-buterin-missing",
+    "med": 0
+  },
+  {
+    "id": "z026-finney-cross",
+    "med": 12.71
+  },
+  {
+    "id": "z026-finney-elite",
+    "med": 17.33
+  },
+  {
+    "id": "z026-finney-exclusive",
+    "med": 12.29
+  },
+  {
+    "id": "z026-nakamoto-cross",
+    "med": 28.12
+  },
+  {
+    "id": "z026-szabo-cross",
+    "med": 20.17
+  },
+  {
+    "id": "z026-szabo-elite",
+    "med": 0
+  },
+  {
+    "id": "z027-buterin-cross",
+    "med": 19.58
+  },
+  {
+    "id": "z027-buterin-elite",
+    "med": 16.67
+  },
+  {
+    "id": "z027-buterin-exclusive",
+    "med": 19.95
+  },
+  {
+    "id": "z027-buterin-pacer",
+    "med": 0
+  },
+  {
+    "id": "z027-finney-cross",
+    "med": 19.9
+  },
+  {
+    "id": "z027-finney-elite",
+    "med": 13.32
+  },
+  {
+    "id": "z027-finney-exclusive",
+    "med": 18.08
+  },
+  {
+    "id": "z027-nakamoto-cross",
+    "med": 24.8
+  },
+  {
+    "id": "z027-szabo-cross",
+    "med": 17.82
+  },
+  {
+    "id": "z028-buterin-cross",
+    "med": 20.46
+  },
+  {
+    "id": "z028-buterin-elite",
+    "med": 17.86
+  },
+  {
+    "id": "z028-buterin-exclusive",
+    "med": 18.75
+  },
+  {
+    "id": "z028-buterin-pacer",
+    "med": 12.22
+  },
+  {
+    "id": "z028-finney-cross",
+    "med": 24.56
+  },
+  {
+    "id": "z028-finney-elite",
+    "med": 21.23
+  },
+  {
+    "id": "z028-finney-exclusive",
+    "med": 8.59
+  },
+  {
+    "id": "z028-finney-pacer",
+    "med": 12.17
+  },
+  {
+    "id": "z028-nakamoto-cross",
+    "med": 19.59
+  },
+  {
+    "id": "z028-nakamoto-pacer",
+    "med": 0
+  },
+  {
+    "id": "z028-szabo-cross",
+    "med": 12.51
+  },
+  {
+    "id": "z029-buterin-cross",
+    "med": 19.08
+  },
+  {
+    "id": "z029-buterin-elite",
+    "med": 20.16
+  },
+  {
+    "id": "z029-buterin-exclusive",
+    "med": 17.93
+  },
+  {
+    "id": "z029-buterin-pacer",
+    "med": 27.45
+  },
+  {
+    "id": "z029-finney-cross",
+    "med": 18.72
+  },
+  {
+    "id": "z029-finney-elite",
+    "med": 14.31
+  },
+  {
+    "id": "z029-finney-exclusive",
+    "med": 15.4
+  },
+  {
+    "id": "z029-finney-pacer",
+    "med": 0
+  },
+  {
+    "id": "z029-nakamoto-cross",
+    "med": 21.29
+  },
+  {
+    "id": "z029-nakamoto-pacer",
+    "med": 43.33
+  },
+  {
+    "id": "z029-szabo-cross",
+    "med": 14.1
+  },
+  {
+    "id": "z029-szabo-elite",
+    "med": 12.6
+  },
+  {
+    "id": "z029-szabo-pacer",
+    "med": 27.91
+  },
+  {
+    "id": "z030-buterin-cross",
+    "med": 22.02
+  },
+  {
+    "id": "z030-buterin-elite",
+    "med": 17.66
+  },
+  {
+    "id": "z030-buterin-exclusive",
+    "med": 19.43
+  },
+  {
+    "id": "z030-buterin-pacer",
+    "med": 21.4
+  },
+  {
+    "id": "z030-finney-cross",
+    "med": 43.42
+  },
+  {
+    "id": "z030-finney-elite",
+    "med": 16.29
+  },
+  {
+    "id": "z030-finney-exclusive",
+    "med": 25.87
+  },
+  {
+    "id": "z030-finney-pacer",
+    "med": 17.71
+  },
+  {
+    "id": "z030-nakamoto-cross",
+    "med": 22.77
+  },
+  {
+    "id": "z030-nakamoto-pacer",
+    "med": 18.14
+  },
+  {
+    "id": "z030-szabo-pacer",
+    "med": 0
+  },
+  {
+    "id": "z031-buterin-cross",
+    "med": 22.48
+  },
+  {
+    "id": "z031-buterin-elite",
+    "med": 20.19
+  },
+  {
+    "id": "z031-buterin-exclusive",
+    "med": 18.86
+  },
+  {
+    "id": "z031-buterin-pacer",
+    "med": 0
+  },
+  {
+    "id": "z031-finney-cross",
+    "med": 16.49
+  },
+  {
+    "id": "z031-finney-elite",
+    "med": 19.49
+  },
+  {
+    "id": "z031-finney-exclusive",
+    "med": 23.09
+  },
+  {
+    "id": "z031-finney-pacer",
+    "med": 10.07
+  },
+  {
+    "id": "z031-nakamoto-cross",
+    "med": 19.34
+  },
+  {
+    "id": "z031-nakamoto-pacer",
+    "med": 0
+  },
+  {
+    "id": "z031-szabo-cross",
+    "med": 26.08
+  },
+  {
+    "id": "z031-szabo-pacer",
+    "med": 0
+  },
+  {
+    "id": "z032-buterin-cross",
+    "med": 19.96
+  },
+  {
+    "id": "z032-buterin-elite",
+    "med": 19.72
+  },
+  {
+    "id": "z032-buterin-exclusive",
+    "med": 16.56
+  },
+  {
+    "id": "z032-finney-cross",
+    "med": 27.92
+  },
+  {
+    "id": "z032-finney-elite",
+    "med": 19.85
+  },
+  {
+    "id": "z032-nakamoto-cross",
+    "med": 23.26
+  },
+  {
+    "id": "z032-szabo-cross",
+    "med": 9.3
+  },
+  {
+    "id": "z033-buterin-cross",
+    "med": 22.81
+  },
+  {
+    "id": "z033-buterin-elite",
+    "med": 14.93
+  },
+  {
+    "id": "z033-buterin-exclusive",
+    "med": 20.11
+  },
+  {
+    "id": "z033-buterin-pacer",
+    "med": 18.57
+  },
+  {
+    "id": "z033-finney-cross",
+    "med": 15.25
+  },
+  {
+    "id": "z033-finney-elite",
+    "med": 17.31
+  },
+  {
+    "id": "z033-finney-exclusive",
+    "med": 15.53
+  },
+  {
+    "id": "z033-finney-pacer",
+    "med": 0
+  },
+  {
+    "id": "z033-nakamoto-pacer",
+    "med": 24.31
+  },
+  {
+    "id": "z033-szabo-cross",
+    "med": 18.26
+  },
+  {
+    "id": "z034-buterin-cross",
+    "med": 19.09
+  },
+  {
+    "id": "z034-buterin-elite",
+    "med": 21.48
+  },
+  {
+    "id": "z034-buterin-exclusive",
+    "med": 20.62
+  },
+  {
+    "id": "z034-finney-cross",
+    "med": 28.03
+  },
+  {
+    "id": "z034-finney-elite",
+    "med": 22.32
+  },
+  {
+    "id": "z034-finney-exclusive",
+    "med": 10.48
+  },
+  {
+    "id": "z034-nakamoto-cross",
+    "med": 0
+  },
+  {
+    "id": "z034-szabo-cross",
+    "med": 31
+  },
+  {
+    "id": "z035-buterin-cross",
+    "med": 18.55
+  },
+  {
+    "id": "z035-buterin-elite",
+    "med": 23.26
+  },
+  {
+    "id": "z035-buterin-exclusive",
+    "med": 17.29
+  },
+  {
+    "id": "z035-buterin-pacer",
+    "med": 25.22
+  },
+  {
+    "id": "z035-finney-cross",
+    "med": 23.27
+  },
+  {
+    "id": "z035-finney-elite",
+    "med": 18.92
+  },
+  {
+    "id": "z035-finney-exclusive",
+    "med": 10.77
+  },
+  {
+    "id": "z035-finney-pacer",
+    "med": 21.55
+  },
+  {
+    "id": "z035-szabo-cross",
+    "med": 18.21
+  },
+  {
+    "id": "z036-buterin-cross",
+    "med": 16.92
+  },
+  {
+    "id": "z036-buterin-elite",
+    "med": 20.24
+  },
+  {
+    "id": "z036-buterin-exclusive",
+    "med": 19.18
+  },
+  {
+    "id": "z036-finney-cross",
+    "med": 25.05
+  },
+  {
+    "id": "z036-finney-elite",
+    "med": 17.25
+  },
+  {
+    "id": "z036-finney-pacer",
+    "med": 0
+  },
+  {
+    "id": "z036-nakamoto-cross",
+    "med": 24.2
+  },
+  {
+    "id": "z036-nakamoto-pacer",
+    "med": 0
+  },
+  {
+    "id": "z036-szabo-cross",
+    "med": 20.77
+  },
+  {
+    "id": "z037-buterin-cross",
+    "med": 21.42
+  },
+  {
+    "id": "z037-buterin-elite",
+    "med": 15.58
+  },
+  {
+    "id": "z037-buterin-exclusive",
+    "med": 20.17
+  },
+  {
+    "id": "z037-buterin-pacer",
+    "med": 20.79
+  },
+  {
+    "id": "z037-finney-cross",
+    "med": 20.56
+  },
+  {
+    "id": "z037-finney-elite",
+    "med": 23.44
+  },
+  {
+    "id": "z037-finney-exclusive",
+    "med": 28.18
+  },
+  {
+    "id": "z037-finney-pacer",
+    "med": 14.99
+  },
+  {
+    "id": "z037-nakamoto-pacer",
+    "med": 18.42
+  },
+  {
+    "id": "z038-buterin-cross",
+    "med": 22.43
+  },
+  {
+    "id": "z038-buterin-elite",
+    "med": 18.76
+  },
+  {
+    "id": "z038-buterin-exclusive",
+    "med": 18.86
+  },
+  {
+    "id": "z038-buterin-pacer",
+    "med": 19.47
+  },
+  {
+    "id": "z038-finney-cross",
+    "med": 23.63
+  },
+  {
+    "id": "z038-finney-elite",
+    "med": 19.82
+  },
+  {
+    "id": "z038-finney-exclusive",
+    "med": 10.37
+  },
+  {
+    "id": "z038-finney-pacer",
+    "med": 24.37
+  },
+  {
+    "id": "z038-nakamoto-cross",
+    "med": 15.02
+  },
+  {
+    "id": "z038-szabo-cross",
+    "med": 22.03
+  },
+  {
+    "id": "z039-buterin-cross",
+    "med": 15.61
+  },
+  {
+    "id": "z039-buterin-elite",
+    "med": 20.15
+  },
+  {
+    "id": "z039-buterin-exclusive",
+    "med": 20.28
+  },
+  {
+    "id": "z039-buterin-pacer",
+    "med": 17.27
+  },
+  {
+    "id": "z039-finney-cross",
+    "med": 0
+  },
+  {
+    "id": "z039-finney-elite",
+    "med": 17.6
+  },
+  {
+    "id": "z039-finney-exclusive",
+    "med": 45.02
+  },
+  {
+    "id": "z039-nakamoto-pacer",
+    "med": 0
+  },
+  {
+    "id": "z040-buterin-cross",
+    "med": 21.99
+  },
+  {
+    "id": "z040-buterin-elite",
+    "med": 18.77
+  },
+  {
+    "id": "z040-buterin-exclusive",
+    "med": 20
+  },
+  {
+    "id": "z040-buterin-pacer",
+    "med": 12.2
+  },
+  {
+    "id": "z040-finney-cross",
+    "med": 27.46
+  },
+  {
+    "id": "z040-nakamoto-cross",
+    "med": 17.39
+  },
+  {
+    "id": "z040-nakamoto-pacer",
+    "med": 16.87
+  },
+  {
+    "id": "z040-szabo-elite",
+    "med": 47.72
+  },
+  {
+    "id": "z040-szabo-pacer",
+    "med": 32.2
+  },
+  {
+    "id": "z041-buterin-cross",
+    "med": 20.73
+  },
+  {
+    "id": "z041-buterin-elite",
+    "med": 19.33
+  },
+  {
+    "id": "z041-buterin-exclusive",
+    "med": 20.1
+  },
+  {
+    "id": "z041-finney-cross",
+    "med": 20.96
+  },
+  {
+    "id": "z041-finney-elite",
+    "med": 21.37
+  },
+  {
+    "id": "z041-finney-exclusive",
+    "med": 43.65
+  },
+  {
+    "id": "z042-buterin-cross",
+    "med": 17.71
+  },
+  {
+    "id": "z042-buterin-elite",
+    "med": 20.04
+  },
+  {
+    "id": "z042-buterin-exclusive",
+    "med": 18.01
+  },
+  {
+    "id": "z042-buterin-pacer",
+    "med": 16.08
+  },
+  {
+    "id": "z042-finney-cross",
+    "med": 21.01
+  },
+  {
+    "id": "z042-finney-elite",
+    "med": 13.91
+  },
+  {
+    "id": "z042-finney-exclusive",
+    "med": 16.61
+  },
+  {
+    "id": "z042-nakamoto-cross",
+    "med": 0
+  },
+  {
+    "id": "z042-nakamoto-pacer",
+    "med": 0
+  },
+  {
+    "id": "z042-szabo-cross",
+    "med": 24.68
+  },
+  {
+    "id": "z043-buterin-cross",
+    "med": 23.17
+  },
+  {
+    "id": "z043-buterin-elite",
+    "med": 19.42
+  },
+  {
+    "id": "z043-buterin-pacer",
+    "med": 0
+  },
+  {
+    "id": "z043-finney-cross",
+    "med": 22.94
+  },
+  {
+    "id": "z043-finney-elite",
+    "med": 32.41
+  },
+  {
+    "id": "z043-finney-exclusive",
+    "med": 44.71
+  },
+  {
+    "id": "z043-finney-pacer",
+    "med": 13.48
+  },
+  {
+    "id": "z043-nakamoto-pacer",
+    "med": 17.15
+  },
+  {
+    "id": "z043-szabo-cross",
+    "med": 0
+  },
+  {
+    "id": "z044-buterin-cross",
+    "med": 19.58
+  },
+  {
+    "id": "z044-buterin-elite",
+    "med": 22.58
+  },
+  {
+    "id": "z044-buterin-exclusive",
+    "med": 26.08
+  },
+  {
+    "id": "z044-buterin-pacer",
+    "med": 18.31
+  },
+  {
+    "id": "z044-finney-exclusive",
+    "med": 22.28
+  },
+  {
+    "id": "z044-szabo-cross",
+    "med": 23.48
+  },
+  {
+    "id": "z044-szabo-pacer",
+    "med": 14.38
+  },
+  {
+    "id": "z045-buterin-cross",
+    "med": 18.83
+  },
+  {
+    "id": "z045-buterin-elite",
+    "med": 16.86
+  },
+  {
+    "id": "z045-buterin-exclusive",
+    "med": 22.53
+  },
+  {
+    "id": "z045-buterin-pacer",
+    "med": 27.91
+  },
+  {
+    "id": "z045-finney-cross",
+    "med": 15.24
+  },
+  {
+    "id": "z045-finney-elite",
+    "med": 29.39
+  },
+  {
+    "id": "z045-finney-exclusive",
+    "med": 9.33
+  },
+  {
+    "id": "z045-nakamoto-pacer",
+    "med": 14.85
+  },
+  {
+    "id": "z046-buterin-cross",
+    "med": 19.66
+  },
+  {
+    "id": "z046-buterin-elite",
+    "med": 18.34
+  },
+  {
+    "id": "z046-buterin-exclusive",
+    "med": 43.42
+  },
+  {
+    "id": "z046-buterin-pacer",
+    "med": 9.96
+  },
+  {
+    "id": "z046-finney-cross",
+    "med": 20.83
+  },
+  {
+    "id": "z046-finney-exclusive",
+    "med": 17.89
+  },
+  {
+    "id": "z046-finney-pacer",
+    "med": 0
+  },
+  {
+    "id": "z046-nakamoto-pacer",
+    "med": 17.13
+  },
+  {
+    "id": "z047-buterin-cross",
+    "med": 22.96
+  },
+  {
+    "id": "z047-buterin-elite",
+    "med": 15.16
+  },
+  {
+    "id": "z047-buterin-exclusive",
+    "med": 8.65
+  },
+  {
+    "id": "z047-finney-cross",
+    "med": 0
+  },
+  {
+    "id": "z047-nakamoto-pacer",
+    "med": 0
+  },
+  {
+    "id": "z048-buterin-cross",
+    "med": 18.51
+  },
+  {
+    "id": "z048-buterin-elite",
+    "med": 13.53
+  },
+  {
+    "id": "z048-buterin-exclusive",
+    "med": 19.53
+  },
+  {
+    "id": "z048-buterin-pacer",
+    "med": 16.45
+  },
+  {
+    "id": "z048-finney-cross",
+    "med": 30.39
+  },
+  {
+    "id": "z048-finney-elite",
+    "med": 0
+  },
+  {
+    "id": "z048-nakamoto-cross",
+    "med": 16.95
+  },
+  {
+    "id": "z048-nakamoto-pacer",
+    "med": 21.58
+  },
+  {
+    "id": "z048-szabo-pacer",
+    "med": 43.04
+  },
+  {
+    "id": "z049-buterin-cross",
+    "med": 20.97
+  },
+  {
+    "id": "z049-buterin-elite",
+    "med": 24.92
+  },
+  {
+    "id": "z049-buterin-exclusive",
+    "med": 14.8
+  },
+  {
+    "id": "z049-buterin-pacer",
+    "med": 15.26
+  },
+  {
+    "id": "z049-finney-exclusive",
+    "med": 17.59
+  },
+  {
+    "id": "z050-buterin-cross",
+    "med": 13.27
+  },
+  {
+    "id": "z050-buterin-elite",
+    "med": 28.56
+  },
+  {
+    "id": "z050-buterin-exclusive",
+    "med": 17.02
+  },
+  {
+    "id": "z050-buterin-pacer",
+    "med": 16.33
+  },
+  {
+    "id": "z050-szabo-pacer",
+    "med": 12.13
+  },
+  {
+    "id": "z051-buterin-cross",
+    "med": 17.78
+  },
+  {
+    "id": "z051-buterin-elite",
+    "med": 19.6
+  },
+  {
+    "id": "z051-buterin-pacer",
+    "med": 31.06
+  },
+  {
+    "id": "z051-finney-cross",
+    "med": 0
+  },
+  {
+    "id": "z051-finney-elite",
+    "med": 44.78
+  },
+  {
+    "id": "z051-szabo-pacer",
+    "med": 17.53
+  },
+  {
+    "id": "z052-buterin-cross",
+    "med": 14.4
+  },
+  {
+    "id": "z052-buterin-elite",
+    "med": 15.58
+  },
+  {
+    "id": "z052-buterin-pacer",
+    "med": 22.39
+  },
+  {
+    "id": "z052-finney-pacer",
+    "med": 10.13
+  },
+  {
+    "id": "z052-szabo-cross",
+    "med": 19.18
+  },
+  {
+    "id": "z053-buterin-cross",
+    "med": 18.8
+  },
+  {
+    "id": "z053-buterin-elite",
+    "med": 20.94
+  },
+  {
+    "id": "z053-buterin-pacer",
+    "med": 0
+  },
+  {
+    "id": "z054-buterin-cross",
+    "med": 19.45
+  },
+  {
+    "id": "z054-buterin-elite",
+    "med": 30.47
+  },
+  {
+    "id": "z054-buterin-exclusive",
+    "med": 12.55
+  },
+  {
+    "id": "z054-buterin-pacer",
+    "med": 18.04
+  },
+  {
+    "id": "z054-finney-cross",
+    "med": 20.2
+  },
+  {
+    "id": "z054-finney-elite",
+    "med": 28.49
+  },
+  {
+    "id": "z054-nakamoto-cross",
+    "med": 0
+  },
+  {
+    "id": "z054-szabo-cross",
+    "med": 19.04
+  },
+  {
+    "id": "z054-szabo-pacer",
+    "med": 16.75
+  },
+  {
+    "id": "z055-buterin-cross",
+    "med": 20.45
+  },
+  {
+    "id": "z055-buterin-elite",
+    "med": 20.88
+  },
+  {
+    "id": "z055-buterin-exclusive",
+    "med": 0
+  },
+  {
+    "id": "z055-buterin-pacer",
+    "med": 22.99
+  },
+  {
+    "id": "z055-finney-elite",
+    "med": 22.94
+  },
+  {
+    "id": "z055-finney-pacer",
+    "med": 24.1
+  },
+  {
+    "id": "z056-buterin-cross",
+    "med": 21.69
+  },
+  {
+    "id": "z056-buterin-elite",
+    "med": 20.4
+  },
+  {
+    "id": "z056-buterin-pacer",
+    "med": 14.12
+  },
+  {
+    "id": "z056-finney-cross",
+    "med": 21.97
+  },
+  {
+    "id": "z056-finney-pacer",
+    "med": 22.95
+  },
+  {
+    "id": "z057-buterin-cross",
+    "med": 19.88
+  },
+  {
+    "id": "z057-buterin-elite",
+    "med": 19.27
+  },
+  {
+    "id": "z057-buterin-pacer",
+    "med": 19.63
+  },
+  {
+    "id": "z058-buterin-cross",
+    "med": 20.69
+  },
+  {
+    "id": "z058-buterin-elite",
+    "med": 20.23
+  },
+  {
+    "id": "z059-buterin-cross",
+    "med": 22.31
+  },
+  {
+    "id": "z059-buterin-elite",
+    "med": 17.72
+  },
+  {
+    "id": "z060-buterin-cross",
+    "med": 21.69
+  },
+  {
+    "id": "z060-buterin-elite",
+    "med": 14.57
+  },
+  {
+    "id": "z060-buterin-exclusive",
+    "med": 17.86
+  },
+  {
+    "id": "z060-buterin-pacer",
+    "med": 20.4
+  },
+  {
+    "id": "z061-buterin-cross",
+    "med": 20.97
+  },
+  {
+    "id": "z061-buterin-elite",
+    "med": 25.3
+  },
+  {
+    "id": "z061-nakamoto-pacer",
+    "med": 23.69
+  },
+  {
+    "id": "z062-buterin-cross",
+    "med": 18.27
+  },
+  {
+    "id": "z062-buterin-elite",
+    "med": 13.85
+  },
+  {
+    "id": "z062-buterin-pacer",
+    "med": 16.72
+  },
+  {
+    "id": "z062-szabo-cross",
+    "med": 22.45
+  },
+  {
+    "id": "z063-buterin-cross",
+    "med": 16.89
+  },
+  {
+    "id": "z063-buterin-pacer",
+    "med": 22.19
+  },
+  {
+    "id": "z063-finney-cross",
+    "med": 23.11
+  },
+  {
+    "id": "z064-buterin-cross",
+    "med": 23.65
+  },
+  {
+    "id": "z064-buterin-pacer",
+    "med": 19.7
+  },
+  {
+    "id": "z064-finney-cross",
+    "med": 8.52
+  },
+  {
+    "id": "z065-buterin-cross",
+    "med": 18.74
+  },
+  {
+    "id": "z066-buterin-cross",
+    "med": 16.54
+  },
+  {
+    "id": "z066-buterin-elite",
+    "med": 45.02
+  },
+  {
+    "id": "z066-buterin-pacer",
+    "med": 0
+  },
+  {
+    "id": "z066-szabo-pacer",
+    "med": 20.09
+  },
+  {
+    "id": "z067-buterin-cross",
+    "med": 14.95
+  },
+  {
+    "id": "z068-buterin-cross",
+    "med": 22.73
+  },
+  {
+    "id": "z068-finney-pacer",
+    "med": 0
+  },
+  {
+    "id": "z069-buterin-cross",
+    "med": 20.02
+  },
+  {
+    "id": "z069-buterin-elite",
+    "med": 15.17
+  },
+  {
+    "id": "z069-szabo-cross",
+    "med": 13.92
+  },
+  {
+    "id": "z070-buterin-cross",
+    "med": 25.2
+  },
+  {
+    "id": "z070-buterin-elite",
+    "med": 25.52
+  },
+  {
+    "id": "z070-buterin-pacer",
+    "med": 22.39
+  },
+  {
+    "id": "z071-buterin-cross",
+    "med": 24.74
+  },
+  {
+    "id": "z071-buterin-pacer",
+    "med": 15
+  },
+  {
+    "id": "z072-buterin-cross",
+    "med": 20.66
+  },
+  {
+    "id": "z072-buterin-pacer",
+    "med": 11.95
+  },
+  {
+    "id": "z073-buterin-cross",
+    "med": 19.85
+  },
+  {
+    "id": "z073-buterin-elite",
+    "med": 9.78
+  },
+  {
+    "id": "z073-finney-cross",
+    "med": 14.75
+  },
+  {
+    "id": "z073-finney-pacer",
+    "med": 46.13
+  },
+  {
+    "id": "z073-szabo-cross",
+    "med": 15.98
+  },
+  {
+    "id": "z074-buterin-cross",
+    "med": 25.67
+  },
+  {
+    "id": "z075-buterin-pacer",
+    "med": 0
+  },
+  {
+    "id": "z076-buterin-cross",
+    "med": 45.33
+  },
+  {
+    "id": "z076-buterin-pacer",
+    "med": 18.35
+  },
+  {
+    "id": "z077-buterin-cross",
+    "med": 28.44
+  },
+  {
+    "id": "z077-buterin-pacer",
+    "med": 0
+  },
+  {
+    "id": "z078-buterin-cross",
+    "med": 20.81
+  },
+  {
+    "id": "z079-buterin-cross",
+    "med": 17.25
+  },
+  {
+    "id": "z080-buterin-elite",
+    "med": 18.78
+  },
+  {
+    "id": "z081-buterin-cross",
+    "med": 0
+  },
+  {
+    "id": "z081-buterin-pacer",
+    "med": 15.94
+  },
+  {
+    "id": "z082-buterin-pacer",
+    "med": 9.78
+  },
+  {
+    "id": "z083-buterin-pacer",
+    "med": 18.28
+  },
+  {
+    "id": "z083-finney-pacer",
+    "med": 0
+  },
+  {
+    "id": "z083-nakamoto-pacer",
+    "med": 15.61
+  },
+  {
+    "id": "z084-buterin-pacer",
+    "med": 16.56
+  },
+  {
+    "id": "z085-buterin-cross",
+    "med": 22.87
+  },
+  {
+    "id": "z085-buterin-pacer",
+    "med": 26.7
+  },
+  {
+    "id": "z086-buterin-cross",
+    "med": 22.85
+  },
+  {
+    "id": "z086-buterin-pacer",
+    "med": 22.54
+  },
+  {
+    "id": "z087-buterin-pacer",
+    "med": 15.81
+  },
+  {
+    "id": "z088-buterin-cross",
+    "med": 17.5
+  },
+  {
+    "id": "z088-buterin-pacer",
+    "med": 17.79
+  },
+  {
+    "id": "z091-buterin-elite",
+    "med": 23.46
+  },
+  {
+    "id": "z091-buterin-pacer",
+    "med": 31.36
+  },
+  {
+    "id": "z092-buterin-cross",
+    "med": 26.71
+  },
+  {
+    "id": "z092-buterin-pacer",
+    "med": 23.81
+  },
+  {
+    "id": "z093-buterin-cross",
+    "med": 16.46
+  },
+  {
+    "id": "z093-buterin-pacer",
+    "med": 15.43
+  },
+  {
+    "id": "z094-buterin-cross",
+    "med": 16
+  },
+  {
+    "id": "z094-buterin-pacer",
+    "med": 22.44
+  },
+  {
+    "id": "z096-buterin-cross",
+    "med": 22.67
+  },
+  {
+    "id": "z097-buterin-pacer",
+    "med": 24.66
+  },
+  {
+    "id": "z098-buterin-cross",
+    "med": 11.93
+  },
+  {
+    "id": "z098-buterin-elite",
+    "med": 22.06
+  },
+  {
+    "id": "z099-buterin-pacer",
+    "med": 20.55
+  },
+  {
+    "id": "z100-buterin-cross",
+    "med": 23.53
+  },
+  {
+    "id": "z100-buterin-elite",
+    "med": 27.69
+  },
+  {
+    "id": "z100-buterin-pacer",
+    "med": 19.22
+  },
+  {
+    "id": "z101-nakamoto-pacer",
+    "med": 22.21
+  },
+  {
+    "id": "z104-buterin-cross",
+    "med": 20.97
+  },
+  {
+    "id": "z104-buterin-pacer",
+    "med": 20.62
+  },
+  {
+    "id": "z105-buterin-cross",
+    "med": 0
+  },
+  {
+    "id": "z106-buterin-elite",
+    "med": 18.08
+  },
+  {
+    "id": "z106-buterin-pacer",
+    "med": 0
+  },
+  {
+    "id": "z107-buterin-pacer",
+    "med": 0
+  },
+  {
+    "id": "z110-buterin-cross",
+    "med": 24.07
+  },
+  {
+    "id": "z111-buterin-cross",
+    "med": 14.04
+  },
+  {
+    "id": "z111-buterin-pacer",
+    "med": 23.48
+  },
+  {
+    "id": "z112-buterin-cross",
+    "med": 20.76
+  },
+  {
+    "id": "z115-buterin-cross",
+    "med": 0
+  },
+  {
+    "id": "z116-buterin-cross",
+    "med": 0
+  },
+  {
+    "id": "z116-buterin-pacer",
+    "med": 19.1
+  },
+  {
+    "id": "z117-buterin-cross",
+    "med": 0
+  },
+  {
+    "id": "z118-buterin-cross",
+    "med": 14.82
+  },
+  {
+    "id": "z119-buterin-pacer",
+    "med": 19.11
+  },
+  {
+    "id": "z120-buterin-cross",
+    "med": 0
+  },
+  {
+    "id": "z121-nakamoto-pacer",
+    "med": 13.77
+  },
+  {
+    "id": "z122-nakamoto-pacer",
+    "med": 17.6
+  },
+  {
+    "id": "z125-buterin-pacer",
+    "med": 25.37
+  },
+  {
+    "id": "z126-buterin-pacer",
+    "med": 16.59
+  },
+  {
+    "id": "z128-buterin-cross",
+    "med": 15.01
+  },
+  {
+    "id": "z129-buterin-pacer",
+    "med": 0
+  },
+  {
+    "id": "z130-buterin-pacer",
+    "med": 17.66
+  },
+  {
+    "id": "z135-buterin-pacer",
+    "med": 12.49
+  },
+  {
+    "id": "z138-buterin-pacer",
+    "med": 21.57
+  },
+  {
+    "id": "z139-buterin-pacer",
+    "med": 18.07
+  },
+  {
+    "id": "z140-buterin-cross",
+    "med": 16.08
+  },
+  {
+    "id": "z142-buterin-pacer",
+    "med": 19.29
+  },
+  {
+    "id": "z143-buterin-pacer",
+    "med": 19.81
+  },
+  {
+    "id": "z144-buterin-pacer",
+    "med": 15.63
+  },
+  {
+    "id": "z145-buterin-pacer",
+    "med": 20.39
+  },
+  {
+    "id": "z146-buterin-cross",
+    "med": 19.47
+  },
+  {
+    "id": "z146-buterin-pacer",
+    "med": 23.5
+  },
+  {
+    "id": "z147-buterin-pacer",
+    "med": 21.37
+  },
+  {
+    "id": "z153-buterin-pacer",
+    "med": 0
+  },
+  {
+    "id": "z154-buterin-pacer",
+    "med": 18.1
+  },
+  {
+    "id": "z155-buterin-pacer",
+    "med": 11.74
+  },
+  {
+    "id": "z156-buterin-pacer",
+    "med": 19.64
+  },
+  {
+    "id": "z161-buterin-pacer",
+    "med": 21.99
+  },
+  {
+    "id": "z163-buterin-pacer",
+    "med": 12.08
+  },
+  {
+    "id": "z164-buterin-pacer",
+    "med": 18.89
+  },
+  {
+    "id": "z166-buterin-cross",
+    "med": 15.72
+  },
+  {
+    "id": "z170-buterin-pacer",
+    "med": 19.16
+  },
+  {
+    "id": "z172-buterin-pacer",
+    "med": 16.31
+  },
+  {
+    "id": "z173-buterin-pacer",
+    "med": 21.26
+  },
+  {
+    "id": "z176-buterin-pacer",
+    "med": 0
+  },
+  {
+    "id": "z177-buterin-pacer",
+    "med": 17.63
+  },
+  {
+    "id": "z180-buterin-pacer",
+    "med": 18.57
+  },
+  {
+    "id": "z183-buterin-pacer",
+    "med": 28.12
+  },
+  {
+    "id": "z184-buterin-cross",
+    "med": 0
+  },
+  {
+    "id": "z186-buterin-cross",
+    "med": 16.88
+  },
+  {
+    "id": "z191-buterin-pacer",
+    "med": 0
+  },
+  {
+    "id": "z193-buterin-pacer",
+    "med": 24.48
+  },
+  {
+    "id": "z198-buterin-pacer",
+    "med": 0
+  },
+  {
+    "id": "z203-buterin-pacer",
+    "med": 36.73
+  },
+  {
+    "id": "z204-buterin-pacer",
+    "med": 16.22
+  },
+  {
+    "id": "z205-nakamoto-pacer",
+    "med": 22.88
+  },
+  {
+    "id": "z211-buterin-pacer",
+    "med": 0
+  },
+  {
+    "id": "z212-buterin-cross",
+    "med": 13.38
+  },
+  {
+    "id": "z213-buterin-cross",
+    "med": 18.63
+  },
+  {
+    "id": "z215-buterin-pacer",
+    "med": 0
+  },
+  {
+    "id": "z223-buterin-cross",
+    "med": 0
+  },
+  {
+    "id": "z227-nakamoto-pacer",
+    "med": 0
+  },
+  {
+    "id": "z233-buterin-pacer",
+    "med": 0
+  },
+  {
+    "id": "z239-buterin-pacer",
+    "med": 20.53
+  },
+  {
+    "id": "z242-buterin-pacer",
+    "med": 13.75
+  },
+  {
+    "id": "z248-buterin-pacer",
+    "med": 23.11
+  },
+  {
+    "id": "z249-buterin-pacer",
+    "med": 16.3
+  },
+  {
+    "id": "z252-buterin-pacer",
+    "med": 17.8
+  },
+  {
+    "id": "z258-buterin-pacer",
+    "med": 18.41
+  },
+  {
+    "id": "z266-nakamoto-pacer",
+    "med": 15.4
+  },
+  {
+    "id": "z268-buterin-pacer",
+    "med": 17.48
+  },
+  {
+    "id": "z268-nakamoto-pacer",
+    "med": 17.12
+  },
+  {
+    "id": "z268-szabo-pacer",
+    "med": 20.88
+  }
+]

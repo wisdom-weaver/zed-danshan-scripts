@@ -20,7 +20,7 @@ const test1 = async () => {
   //   { a: null, b: 2 },
   //   { a: null, b: 4 },
   // ];
-  let zed_db = mongoose.connection;
+
   // let datas = await zed_db.db.collection("leaderboard").find({}).toArray();
   // for (let data of datas) {
   //   console.log("writing ", data.id, "...");
@@ -30,29 +30,29 @@ const test1 = async () => {
   //   });
   // }
 
-  // let dists = ["All", 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600];
-  // for (let dist of dists) {
-  //   let id = `leaderboard-${dist}`;
-  //   console.log("writing ", id, "...");
-  //   let ob = read_from_path({
-  //     file_path: `${app_root}/backup/leaderboard/${id}.json`,
-  //   });
-  //   await zed_db.db
-  //     .collection("leaderboard")
-  //     .updateOne({ id }, { $set: ob }, { upsert: true });
-  // }
-
-  let dists = [1600];
+  let dists = ["All", 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600];
   for (let dist of dists) {
     let id = `leaderboard-${dist}`;
-    let file_path = `${app_root}/test-1/leader-${dist}.json`;
     console.log("writing ", id, "...");
-    let ob = read_from_path({ file_path });
-    console.log(ob?.leaderboard?.length);
+    let ob = read_from_path({
+      file_path: `${app_root}/backup/leaderboard/${id}.json`,
+    });
     await zed_db.db
       .collection("leaderboard")
       .updateOne({ id }, { $set: ob }, { upsert: true });
   }
+
+  // let dists = [1600];
+  // for (let dist of dists) {
+  //   let id = `leaderboard-${dist}`;
+  //   let file_path = `${app_root}/test-1/leader-${dist}.json`;
+  //   console.log("writing ", id, "...");
+  //   let ob = read_from_path({ file_path });
+  //   console.log(ob?.leaderboard?.length);
+  //   await zed_db.db
+  //     .collection("leaderboard")
+  //     .updateOne({ id }, { $set: ob }, { upsert: true });
+  // }
 };
 
 const test2 = async () => {
@@ -176,9 +176,131 @@ const test4 = async () => {
   zed_ch.close();
 };
 
+const test5 = async () => {
+  await init();
+  let dists = [1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600];
+  // let dists = [1600];
+  for (let dist of dists) {
+    console.log("Dist:", dist);
+    let ob = read_from_path({
+      file_path: `${app_root}/backup/leaderboard/leaderboard-${dist}.json`,
+    });
+    let ar = ob?.leaderboard;
+    let pad = (n, l = 3, d = 3) => {
+      let pp = new Array(l - parseInt(n).toString().length).fill(0).join("");
+      n = parseFloat(n).toFixed(d);
+      return `${pp}${n}`;
+    };
+    ar = _.sortBy(ar, (i) => {
+      return i.horse_rating.cf + pad(i.horse_rating.med);
+    });
+    ar = ar.map(({ hid, name, horse_rating }, i) => ({
+      hid,
+      rank: i + 1,
+      name,
+      ...horse_rating,
+    }));
+    // ar = ar.slice(0, 3);
+
+    let hids = _.map(ar, "hid");
+    for (let i in hids) {
+      if (!(await had_last_race_in_days({ hid: hids[i], dist })))
+        hids[i] = null;
+    }
+    hids = _.compact(hids);
+
+    let meds = hids.map((hid) => {
+      let { cf, med } = _.find(ar, { hid });
+      return [hid, cf + pad(med)];
+    });
+    meds = Object.fromEntries(meds);
+
+    console.table(ar);
+    console.log(hids);
+
+    hids = await compare_heads(hids, dist);
+    let ar2 = new Array(hids.length).fill({});
+    for (let i in ar2) {
+      let hid = hids[i];
+      console.log(i, hid);
+      let rank = parseInt(i) + 1;
+      let { cf, d, med, name } = _.find(ar, { hid });
+      ar2[i] = {
+        hid,
+        rank,
+        name,
+        med: cf + pad(med),
+        horse_rating: { cf, d, med },
+      };
+    }
+    console.table(ar2);
+    let db_date = new Date().toISOString();
+    let id = `leaderboard-${dist}`;
+    let data = { id, db_date, leaderboard: ar2 };
+    write_to_path({
+      file_path: `${app_root}/test-2/leader-${dist}.json`,
+      data,
+    });
+    await zed_db.db
+      .collection("leaderboard")
+      .updateOne({ id }, { $set: data }, { upsert: true });
+    console.log("wrote leaderboard", dist);
+  }
+};
+
+const test6 = async () => {
+  await init();
+  let ar = read_from_path({
+    file_path: `${app_root}/required_jsons/z_medians_raw.json`,
+  });
+  console.log(ar.length);
+  let data = [];
+  for (let row of ar) {
+    let [z, blood, breed, med] = row;
+    z = z.toString().toLowerCase();
+    blood = blood.toString().toLowerCase();
+    breed = breed.toString().toLowerCase();
+    let id = `${z}-${blood}-${breed}`;
+    med = parseFloat(med || 0) || 0;
+    let doc = { id, med };
+    data.push(doc);
+  }
+
+  let cs = 10;
+  for (let chunk of _.chunk(data, cs)) {
+    console.log(chunk[0].id);
+    await Promise.all(
+      chunk.map((doc) => {
+        let id = doc.id;
+        zed_db.db
+          .collection("z_meds")
+          .updateOne({ id }, { $set: doc }, { upsert: true });
+      })
+    );
+  }
+
+  write_to_path({
+    file_path: `${app_root}/required_jsons/z_medians_final.json`,
+    data,
+  });
+
+  await zed_db.db
+    .collection("z_meds")
+    .updateOne(
+      { id: "z_ALL" },
+      { $set: { id: "z_ALL", ar: data } },
+      { upsert: true }
+    );
+
+  console.log("wrote", "zed_ALL");
+  zed_db.close();
+};
+
 module.exports = {
   test1,
   test2,
   test3,
   test4,
+  test5,
+  test6,
 };

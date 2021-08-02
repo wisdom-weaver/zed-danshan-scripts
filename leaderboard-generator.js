@@ -312,18 +312,11 @@ const check_h2_better_h1 = async (hid1, hid2, dist) => {
   // console.log("dist =>", dist);
   // console.log(hid1, "=>", avg1);
   // console.log(hid2, "=>", avg2);
-  // console.log(
-  //   "head to head",
-  //   hid1,
-  //   hid2,
-  //   "diff: ",
-  //   avg1 - avg2,
-  //   "better: ",
-  //   avg1 > avg2 ? hid2 : hid1
-  // );
+  let diff = avg1 - avg2;
+  console.log("head to head\t", hid1, "\t", hid2, "\tdiff: ", dec2(diff));
   // let dec2 = (n) => parseFloat(n).toFixed(2);
   // let b = avg2 < avg1 ? hid2 : hid1;
-  return avg1 - avg2;
+  return diff;
   // let data = read_from_path({
   //   file_path: `${app_root}/data/1400-data-table.json`,
   // });
@@ -336,53 +329,16 @@ const compare_heads = async (hids = [], dist) => {
   // console.log(hids);
   let n = hids.length;
 
-  arr = await quickSort(arr, 0, n - 1, dist);
-  console.log({ arr });
-  // for (let i = 1; i < n; ++i) {
-  //   let key = arr[i];
-  //   let j = i - 1;
-  //   while (j >= 0 && (await check_h2_better_h1(arr[j], key, dist)) > 0) {
-  //     // console.log(`${i}th`, key, " & ", `${j}th`, arr[j]);
-  //     arr[j + 1] = arr[j];
-  //     j = j - 1;
-  //   }
-  //   arr[j + 1] = key;
-  //   // console.log(arr.toString());
-  // }
-
-  // One by one move boundary of unsorted subarray
-  // for (let i = 0; i < n - 1; i++) {
-  //   let min_idx = i;
-  //   for (let j = i + 1; j < n; j++)
-  //     if ((await check_h2_better_h1(arr[j], arr[min_idx], dist)) > 0)
-  //       min_idx = j;
-  //   let temp = arr[min_idx];
-  //   arr[min_idx] = arr[i];
-  //   arr[i] = temp;
-  // }
-
-  // for (let i = 0; i < n - 1; i++)
-  //   for (let j = 0; j < n - i - 1; j++)
-  //     if (await check_h2_better_h1(arr[j], arr[j + 1], dist) > 0) {
-  //       // swap arr[j+1] and arr[j]
-  //       let temp = arr[j];
-  //       arr[j] = arr[j + 1];
-  //       arr[j + 1] = temp;
-  //     }
-
-  // One by one move boundary of unsorted subarray
-  // for (let i = 0; i < n - 1; i++) {
-  //   // Find the minimum element in unsorted array
-  //   let min_idx = i;
-  //   for (let j = i + 1; j < n; j++)
-  //     if ((await check_h2_better_h1(arr[j], arr[min_idx], dist)) < 0)
-  //       min_idx = j;
-  //   // Swap the found minimum element with the first
-  //   // element
-  //   let temp = arr[min_idx];
-  //   arr[min_idx] = arr[i];
-  //   arr[i] = temp;
-  // }
+  for (let i = 1; i < n; ++i) {
+    let key = arr[i];
+    let j = i - 1;
+    while (j >= 0 && (await check_h2_better_h1(arr[j], key, dist)) > 1.25) {
+      console.log(`${i}th`, key, " & ", `${j}th`, arr[j]);
+      arr[j + 1] = arr[j];
+      j = j - 1;
+    }
+    arr[j + 1] = key;
+  }
 
   return arr;
 };
@@ -428,14 +384,14 @@ async function quickSort(items, left, right, dist) {
   return items;
 }
 
-const run_leaderboard = () => {
+const run_leaderboard = async () => {
   await init();
-  await generate_all_dists_leaderboard()
+  await generate_all_dists_leaderboard();
   zed_db.close();
   zed_ch.close();
 };
 
-const run_repair_leaderboard = () => {
+const run_repair_leaderboard = async () => {
   await init();
   await repair_leaderboard();
   zed_db.close();
@@ -459,9 +415,10 @@ const best_in_battlefield = async ({ h, hids = [], meds = {}, dist }) => {
     } else {
       diff = await check_h2_better_h1(h, hid, dist);
       if (diff == 0) {
-        better = meds[h] < meds[hid] ? h : hid;
+        if (meds[h] == meds[hid]) better = Math.min(parseInt(h), parseInt(hid));
+        else better = meds[h] < meds[hid] ? h : hid;
         // console.log(h, hid, meds[h], meds[hid], med[h] < med[hid], better);
-      } else better = diff > 0 ? hid : h;
+      } else better = diff > 1.25 ? hid : h;
     }
     comp[i] = better;
     log[i] = { h1: h, h2: hid, diff: dec2(diff), med, better };

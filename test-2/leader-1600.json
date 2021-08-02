@@ -1,0 +1,842 @@
+{
+  "id": "leaderboard-1600",
+  "db_date": "2021-07-30T20:59:34.609Z",
+  "leaderboard": [
+    {
+      "hid": 325,
+      "rank": 1,
+      "name": "Barok",
+      "med": "1A007.815",
+      "horse_rating": {
+        "cf": "1A",
+        "d": "1600",
+        "med": 7.8149999999999995
+      }
+    },
+    {
+      "hid": 1892,
+      "rank": 2,
+      "name": "Ducky Mallon",
+      "med": "1A008.200",
+      "horse_rating": {
+        "cf": "1A",
+        "d": "1600",
+        "med": 8.2
+      }
+    },
+    {
+      "hid": 13089,
+      "rank": 3,
+      "name": "Wild Thoughts",
+      "med": "1A008.550",
+      "horse_rating": {
+        "cf": "1A",
+        "d": "1600",
+        "med": 8.55
+      }
+    },
+    {
+      "hid": 463,
+      "rank": 4,
+      "name": "Chromatic Theory",
+      "med": "1A008.610",
+      "horse_rating": {
+        "cf": "1A",
+        "d": "1600",
+        "med": 8.61
+      }
+    },
+    {
+      "hid": 18904,
+      "rank": 5,
+      "name": "Vanilla Bean",
+      "med": "1A008.650",
+      "horse_rating": {
+        "cf": "1A",
+        "d": "1600",
+        "med": 8.65
+      }
+    },
+    {
+      "hid": 296,
+      "rank": 6,
+      "name": "Proud Delight",
+      "med": "1A008.670",
+      "horse_rating": {
+        "cf": "1A",
+        "d": "1600",
+        "med": 8.67
+      }
+    },
+    {
+      "hid": 26122,
+      "rank": 7,
+      "name": "Victorious Taurus",
+      "med": "1A008.850",
+      "horse_rating": {
+        "cf": "1A",
+        "d": "1600",
+        "med": 8.85
+      }
+    },
+    {
+      "hid": 8607,
+      "rank": 8,
+      "name": "Slander Unlimited",
+      "med": "1A009.160",
+      "horse_rating": {
+        "cf": "1A",
+        "d": "1600",
+        "med": 9.16
+      }
+    },
+    {
+      "hid": 5535,
+      "rank": 9,
+      "name": "Rua Augusta",
+      "med": "1A009.330",
+      "horse_rating": {
+        "cf": "1A",
+        "d": "1600",
+        "med": 9.33
+      }
+    },
+    {
+      "hid": 10119,
+      "rank": 10,
+      "name": "Y2k2k",
+      "med": "1A009.330",
+      "horse_rating": {
+        "cf": "1A",
+        "d": "1600",
+        "med": 9.33
+      }
+    },
+    {
+      "hid": 980,
+      "rank": 11,
+      "name": "What Rhymes With Venus",
+      "med": "1A009.405",
+      "horse_rating": {
+        "cf": "1A",
+        "d": "1600",
+        "med": 9.405000000000001
+      }
+    },
+    {
+      "hid": 1978,
+      "rank": 12,
+      "name": "Bubs Gold",
+      "med": "1A009.450",
+      "horse_rating": {
+        "cf": "1A",
+        "d": "1600",
+        "med": 9.45
+      }
+    },
+    {
+      "hid": 7090,
+      "rank": 13,
+      "name": "Bonnie Parker",
+      "med": "1A009.450",
+      "horse_rating": {
+        "cf": "1A",
+        "d": "1600",
+        "med": 9.45
+      }
+    },
+    {
+      "hid": 10918,
+      "rank": 14,
+      "name": "Compelling Story",
+      "med": "1A009.460",
+      "horse_rating": {
+        "cf": "1A",
+        "d": "1600",
+        "med": 9.46
+      }
+    },
+    {
+      "hid": 412,
+      "rank": 15,
+      "name": "Black Jack",
+      "med": "1A009.470",
+      "horse_rating": {
+        "cf": "1A",
+        "d": "1600",
+        "med": 9.47
+      }
+    },
+    {
+      "hid": 13613,
+      "rank": 16,
+      "name": "Today's Favourite",
+      "med": "1A009.480",
+      "horse_rating": {
+        "cf": "1A",
+        "d": "1600",
+        "med": 9.48
+      }
+    },
+    {
+      "hid": 2009,
+      "rank": 17,
+      "name": "Boom Tune",
+      "med": "1A009.550",
+      "horse_rating": {
+        "cf": "1A",
+        "d": "1600",
+        "med": 9.55
+      }
+    },
+    {
+      "hid": 19602,
+      "rank": 18,
+      "name": "Desert Rose",
+      "med": "1A009.670",
+      "horse_rating": {
+        "cf": "1A",
+        "d": "1600",
+        "med": 9.67
+      }
+    },
+    {
+      "hid": 11078,
+      "rank": 19,
+      "name": "XCOM",
+      "med": "1A009.750",
+      "horse_rating": {
+        "cf": "1A",
+        "d": "1600",
+        "med": 9.75
+      }
+    },
+    {
+      "hid": 13135,
+      "rank": 20,
+      "name": "Node Z",
+      "med": "1A009.770",
+      "horse_rating": {
+        "cf": "1A",
+        "d": "1600",
+        "med": 9.77
+      }
+    },
+    {
+      "hid": 3634,
+      "rank": 21,
+      "name": "Taikun Prince",
+      "med": "1A009.800",
+      "horse_rating": {
+        "cf": "1A",
+        "d": "1600",
+        "med": 9.8
+      }
+    },
+    {
+      "hid": 15023,
+      "rank": 22,
+      "name": "Tanqueray",
+      "med": "1A009.860",
+      "horse_rating": {
+        "cf": "1A",
+        "d": "1600",
+        "med": 9.86
+      }
+    },
+    {
+      "hid": 12968,
+      "rank": 23,
+      "name": "Star Strider",
+      "med": "1A009.880",
+      "horse_rating": {
+        "cf": "1A",
+        "d": "1600",
+        "med": 9.88
+      }
+    },
+    {
+      "hid": 13389,
+      "rank": 24,
+      "name": "Lost In Space",
+      "med": "1A009.980",
+      "horse_rating": {
+        "cf": "1A",
+        "d": "1600",
+        "med": 9.98
+      }
+    },
+    {
+      "hid": 15296,
+      "rank": 25,
+      "name": "Steph Curry",
+      "med": "1A009.990",
+      "horse_rating": {
+        "cf": "1A",
+        "d": "1600",
+        "med": 9.99
+      }
+    },
+    {
+      "hid": 16451,
+      "rank": 26,
+      "name": "Shrimp Bender 69",
+      "med": "1B008.520",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 8.52
+      }
+    },
+    {
+      "hid": 36685,
+      "rank": 27,
+      "name": "Shadow For Hours",
+      "med": "1B008.530",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 8.530000000000001
+      }
+    },
+    {
+      "hid": 13287,
+      "rank": 28,
+      "name": "Ohhh",
+      "med": "1B008.650",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 8.65
+      }
+    },
+    {
+      "hid": 13001,
+      "rank": 29,
+      "name": "Big Deal",
+      "med": "1B008.670",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 8.67
+      }
+    },
+    {
+      "hid": 5,
+      "rank": 30,
+      "name": "Something Special",
+      "med": "1B008.675",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 8.675
+      }
+    },
+    {
+      "hid": 79,
+      "rank": 31,
+      "name": "Banana Fluff",
+      "med": "1B008.695",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 8.695
+      }
+    },
+    {
+      "hid": 13469,
+      "rank": 32,
+      "name": "Collision",
+      "med": "1B008.710",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 8.71
+      }
+    },
+    {
+      "hid": 26506,
+      "rank": 33,
+      "name": "Born To Finish",
+      "med": "1B008.790",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 8.79
+      }
+    },
+    {
+      "hid": 27007,
+      "rank": 34,
+      "name": "Saffron Sunrise",
+      "med": "1B008.810",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 8.81
+      }
+    },
+    {
+      "hid": 13405,
+      "rank": 35,
+      "name": "The Publisher",
+      "med": "1B008.820",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 8.82
+      }
+    },
+    {
+      "hid": 3607,
+      "rank": 36,
+      "name": "Saga Bolton",
+      "med": "1B008.870",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 8.870000000000001
+      }
+    },
+    {
+      "hid": 12611,
+      "rank": 37,
+      "name": "Experts Know",
+      "med": "1B008.925",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 8.925
+      }
+    },
+    {
+      "hid": 1653,
+      "rank": 38,
+      "name": "The One Up",
+      "med": "1B009.030",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.03
+      }
+    },
+    {
+      "hid": 26574,
+      "rank": 39,
+      "name": "Meat And Two Veg",
+      "med": "1B009.090",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.09
+      }
+    },
+    {
+      "hid": 6341,
+      "rank": 40,
+      "name": "Power",
+      "med": "1B009.140",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.14
+      }
+    },
+    {
+      "hid": 17429,
+      "rank": 41,
+      "name": "What a Save!",
+      "med": "1B009.170",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.17
+      }
+    },
+    {
+      "hid": 599,
+      "rank": 42,
+      "name": "Mirage",
+      "med": "1B009.180",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.18
+      }
+    },
+    {
+      "hid": 10123,
+      "rank": 43,
+      "name": "Aurora Star",
+      "med": "1B009.190",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.19
+      }
+    },
+    {
+      "hid": 15045,
+      "rank": 44,
+      "name": "Glorious Triumph",
+      "med": "1B009.200",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.2
+      }
+    },
+    {
+      "hid": 916,
+      "rank": 45,
+      "name": "Glorious Hero",
+      "med": "1B009.205",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.205
+      }
+    },
+    {
+      "hid": 18919,
+      "rank": 46,
+      "name": "Mane Event",
+      "med": "1B009.245",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.245000000000001
+      }
+    },
+    {
+      "hid": 23955,
+      "rank": 47,
+      "name": "Storm Ranger",
+      "med": "1B009.280",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.28
+      }
+    },
+    {
+      "hid": 1637,
+      "rank": 48,
+      "name": "Major Major Major",
+      "med": "1B009.410",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.41
+      }
+    },
+    {
+      "hid": 23832,
+      "rank": 49,
+      "name": "Flying Dagger",
+      "med": "1B009.430",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.43
+      }
+    },
+    {
+      "hid": 6982,
+      "rank": 50,
+      "name": "Come At Me Bro",
+      "med": "1B009.440",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.44
+      }
+    },
+    {
+      "hid": 20298,
+      "rank": 51,
+      "name": "Jumbo",
+      "med": "1B009.480",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.48
+      }
+    },
+    {
+      "hid": 17888,
+      "rank": 52,
+      "name": "Silly Samwise",
+      "med": "1B009.485",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.485
+      }
+    },
+    {
+      "hid": 3136,
+      "rank": 53,
+      "name": "The Bold and Brave",
+      "med": "1B009.500",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.5
+      }
+    },
+    {
+      "hid": 5466,
+      "rank": 54,
+      "name": "Ginger Megs",
+      "med": "1B009.525",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.524999999999999
+      }
+    },
+    {
+      "hid": 143,
+      "rank": 55,
+      "name": "Solar",
+      "med": "1B009.540",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.54
+      }
+    },
+    {
+      "hid": 1446,
+      "rank": 56,
+      "name": "Big And Tall",
+      "med": "1B009.580",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.58
+      }
+    },
+    {
+      "hid": 13575,
+      "rank": 57,
+      "name": "Dark Comedy",
+      "med": "1B009.700",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.7
+      }
+    },
+    {
+      "hid": 17565,
+      "rank": 58,
+      "name": "Dank",
+      "med": "1B009.700",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.7
+      }
+    },
+    {
+      "hid": 20708,
+      "rank": 59,
+      "name": "From Out Of The Tree",
+      "med": "1B009.700",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.7
+      }
+    },
+    {
+      "hid": 29581,
+      "rank": 60,
+      "name": "Majestic Shadow",
+      "med": "1B009.720",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.72
+      }
+    },
+    {
+      "hid": 1000,
+      "rank": 61,
+      "name": "Team Lucky",
+      "med": "1B009.740",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.74
+      }
+    },
+    {
+      "hid": 12493,
+      "rank": 62,
+      "name": "Understanding Distance",
+      "med": "1B009.750",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.75
+      }
+    },
+    {
+      "hid": 13012,
+      "rank": 63,
+      "name": "Open Darkness",
+      "med": "1B009.790",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.79
+      }
+    },
+    {
+      "hid": 197,
+      "rank": 64,
+      "name": "Alloy",
+      "med": "1B009.800",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.8
+      }
+    },
+    {
+      "hid": 518,
+      "rank": 65,
+      "name": "Expedition Hero",
+      "med": "1B009.800",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.8
+      }
+    },
+    {
+      "hid": 14822,
+      "rank": 66,
+      "name": "Platinum Spirit",
+      "med": "1B009.850",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.85
+      }
+    },
+    {
+      "hid": 16396,
+      "rank": 67,
+      "name": "Rest In Peace",
+      "med": "1B009.900",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.9
+      }
+    },
+    {
+      "hid": 20742,
+      "rank": 68,
+      "name": "Giulio Cesare",
+      "med": "1B009.900",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.9
+      }
+    },
+    {
+      "hid": 8950,
+      "rank": 69,
+      "name": "Outrun Me",
+      "med": "1B009.930",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.93
+      }
+    },
+    {
+      "hid": 6207,
+      "rank": 70,
+      "name": "Comanche",
+      "med": "1B009.940",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.94
+      }
+    },
+    {
+      "hid": 29470,
+      "rank": 71,
+      "name": "Lock The Doors",
+      "med": "1B009.940",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.94
+      }
+    },
+    {
+      "hid": 131,
+      "rank": 72,
+      "name": "Vast Sensibility",
+      "med": "1B009.990",
+      "horse_rating": {
+        "cf": "1B",
+        "d": "1600",
+        "med": 9.99
+      }
+    },
+    {
+      "hid": 12918,
+      "rank": 73,
+      "name": "Unfolded Brilliance",
+      "med": "1C008.440",
+      "horse_rating": {
+        "cf": "1C",
+        "d": "1600",
+        "med": 8.44
+      }
+    },
+    {
+      "hid": 6423,
+      "rank": 74,
+      "name": "Anmer",
+      "med": "1C008.805",
+      "horse_rating": {
+        "cf": "1C",
+        "d": "1600",
+        "med": 8.805
+      }
+    },
+    {
+      "hid": 802,
+      "rank": 75,
+      "name": "The Scent of Allure",
+      "med": "1C009.085",
+      "horse_rating": {
+        "cf": "1C",
+        "d": "1600",
+        "med": 9.085
+      }
+    },
+    {
+      "hid": 887,
+      "rank": 76,
+      "name": "The Artful",
+      "med": "1C009.320",
+      "horse_rating": {
+        "cf": "1C",
+        "d": "1600",
+        "med": 9.32
+      }
+    }
+  ]
+}
