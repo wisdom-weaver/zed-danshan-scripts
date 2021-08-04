@@ -7,11 +7,11 @@ const { write_to_path, read_from_path } = require("./utils");
 const app_root = require("app-root-path");
 
 let mx = 70000;
-let h = 3312;
+let h = 55000;
 let st = 0;
 let ed = mx;
-// let st = h;
-// let ed = h;
+// st = h;
+// ed = h;
 
 const filter_error_horses = (horses = []) => {
   return horses?.filter(({ hid }) => ![15812, 15745].includes(hid));
@@ -510,14 +510,14 @@ const start = async () => {
   await generate_blood_mapping();
   await give_ranks_on_rating_blood();
   console.log("## Completed Blood Ranks");
-  await delay(60000);
-  try {
-    console.log("caching live odds on heroku server");
-    await fetch(
-      `https://bs-zed-backend-api.herokuapp.com/live/download2?mx=${mx}`
-    );
-  } catch (err) {}
-  await delay(240000);
+  // await delay(60000);
+  // try {
+  //   console.log("caching live odds on heroku server");
+  //   await fetch(
+  //     `https://bs-zed-backend-api.herokuapp.com/live/download2?mx=${mx}`
+  //   );
+  // } catch (err) {}
+  // await delay(240000);
   console.log("## DONE");
   return 0;
 };
@@ -586,13 +586,13 @@ const run_cache_on_heroku = async () => {
     console.log("caching on heroku server");
     await fetch(`https://bs-zed-backend-api.herokuapp.com/blood/download`);
   } catch (err) {}
-  await delay(60000);
-  try {
-    console.log("caching live odds on heroku server");
-    await fetch(
-      `https://bs-zed-backend-api.herokuapp.com/live/download2?mx=${mx}`
-    );
-  } catch (err) {}
+  // await delay(60000);
+  // try {
+  //   console.log("caching live odds on heroku server");
+  //   await fetch(
+  //     `https://bs-zed-backend-api.herokuapp.com/live/download2?mx=${mx}`
+  //   );
+  // } catch (err) {}
   console.log("the rest will be done on the server");
 };
 
