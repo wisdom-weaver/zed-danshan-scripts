@@ -391,6 +391,7 @@ const get_side_of_horse = (ea) => {
     else if (tc == rc) side = "C";
     else side = "-";
   }
+  if (tc == 1 && side == "C") side = "B";
   return side;
 };
 
@@ -500,7 +501,7 @@ const start = async () => {
     i += cs;
     console.log("\n=> fetching together:", chunk.toString());
     await Promise.all(chunk.map((hid) => generate_odds_for(hid)));
-    await delay(1000)
+    await delay(1000);
     // if (i % 10000 == 0) generate_blood_mapping();
   }
 
@@ -608,5 +609,5 @@ module.exports = {
   mx,
   get_rated_type,
   give_ranks_on_rating_blood,
-  run_cache_on_heroku
+  run_cache_on_heroku,
 };
