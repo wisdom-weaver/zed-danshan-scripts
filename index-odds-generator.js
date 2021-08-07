@@ -7,7 +7,7 @@ const { write_to_path, read_from_path } = require("./utils");
 const app_root = require("app-root-path");
 
 let mx = 70000;
-let h = 55000;
+let h = 52388;
 let st = 0;
 let ed = mx;
 // st = h;
