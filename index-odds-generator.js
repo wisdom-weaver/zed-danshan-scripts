@@ -6,12 +6,12 @@ const { init, zed_db, zed_ch, run_func } = require("./index-run");
 const { write_to_path, read_from_path } = require("./utils");
 const app_root = require("app-root-path");
 
-let mx = 70000;
-let h = 52388;
+let mx = 80000;
+let h = 59747;
 let st = 0;
 let ed = mx;
-// st = h;
-// ed = h;
+st = h;
+ed = h;
 
 const filter_error_horses = (horses = []) => {
   return horses?.filter(({ hid }) => ![15812, 15745].includes(hid));
