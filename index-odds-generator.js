@@ -5,16 +5,26 @@ const mongoose = require("mongoose");
 const { init, zed_db, zed_ch, run_func } = require("./index-run");
 const { write_to_path, read_from_path } = require("./utils");
 const app_root = require("app-root-path");
+const { get_fee_cat_on } = require("./base");
 
-let mx = 82000;
-let h = 59747;
+let mx = 80000;
+let h = 3312;
 let st = 0;
 let ed = mx;
-st = h;
-ed = h;
+// st = h;
+// ed = h;
 
 const filter_error_horses = (horses = []) => {
   return horses?.filter(({ hid }) => ![15812, 15745].includes(hid));
+};
+
+const get_fee_cat = (fee) => {
+  fee = parseFloat(fee);
+  if (fee == 0) return "G";
+  if (fee >= 0.003) return "A";
+  if (fee > 0.0015 && fee < 0.003) return "B";
+  if (fee <= 0.0015) return "C";
+  return undefined;
 };
 
 const key_mapping_bs_zed = [
@@ -100,7 +110,11 @@ const get_races_of_hid = async (hid) => {
   let query = { 6: hid };
   let data = await from_ch_zed_collection(query);
   data = struct_race_row_data(data);
-  // console.log(hid, "races.len=", data.length);
+  data = data.map((e) => {
+    let { entryfee: fee, date } = e;
+    let fee_cat = get_fee_cat_on({ fee, date });
+    return { ...e, fee_cat };
+  });
   return data;
 };
 
@@ -109,7 +123,7 @@ const filter_acc_to_criteria = ({
   criteria = {},
   extra_criteria = {},
 }) => {
-  races = races.filter((ea) => ea.odds != 0);
+  // races = races.filter((ea) => ea.odds != 0);
   if (_.isEmpty(criteria)) return races;
   races = races.filter(
     ({
@@ -124,7 +138,7 @@ const filter_acc_to_criteria = ({
       name,
       gate,
       odds,
-      fee_cat,
+      fee_cat
     }) => {
       entryfee = parseFloat(entryfee);
 
@@ -175,7 +189,7 @@ const calc_median = (array = []) => {
 
 const cls = ["#", 0, 1, 2, 3, 4, 5];
 const dists = ["####", 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600];
-const fee_cats = ["#", "A", "B", "C"];
+const fee_cats = ["#", "A", "B", "C", "F"];
 
 const get_rated_type = (cf = null) => {
   if (!cf || cf == "na") return "NR";
