@@ -6,7 +6,7 @@ const { init, zed_db, zed_ch, run_func } = require("./index-run");
 const { write_to_path, read_from_path } = require("./utils");
 const app_root = require("app-root-path");
 
-let mx = 80000;
+let mx = 82000;
 let h = 59747;
 let st = 0;
 let ed = mx;
@@ -15,15 +15,6 @@ ed = h;
 
 const filter_error_horses = (horses = []) => {
   return horses?.filter(({ hid }) => ![15812, 15745].includes(hid));
-};
-
-const get_fee_cat = (fee) => {
-  fee = parseFloat(fee);
-  if (fee == 0) return "G";
-  if (fee >= 0.003) return "A";
-  if (fee > 0.0015 && fee < 0.003) return "B";
-  if (fee <= 0.0015) return "C";
-  return undefined;
 };
 
 const key_mapping_bs_zed = [
@@ -133,9 +124,9 @@ const filter_acc_to_criteria = ({
       name,
       gate,
       odds,
+      fee_cat,
     }) => {
       entryfee = parseFloat(entryfee);
-      fee_cat = get_fee_cat(entryfee);
 
       if (criteria?.thisclass !== undefined && criteria?.thisclass !== "#")
         if (!(thisclass == criteria.thisclass)) return false;
