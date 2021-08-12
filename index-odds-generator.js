@@ -13,7 +13,7 @@ const {
 } = require("./base");
 
 let mx = 80000;
-let h = 3312;
+let h = 69063;
 let st = 0;
 let ed = mx;
 // st = h;
@@ -500,11 +500,12 @@ const generate_odds_for = async (hid) => {
   let bhr = await gen_and_upload_blood_hr({ hid, odds_live, details, races_n });
   // console.log(bhr);
   console.log(`# hid:`, hid, "len:", races.length, "rating_blood:", bhr);
+  await get_parent_details_upload(hid);
 };
 
 const start = async () => {
   await download_eth_prices();
-  
+
   let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
   console.log("=> odds_generator: ", `${st}:${ed}`);
 
@@ -608,6 +609,74 @@ const run_cache_on_heroku = async () => {
   //   );
   // } catch (err) {}
   console.log("the rest will be done on the server");
+};
+const get_parent_details_upload = async (hid) => {
+  hid = parseInt(hid);
+  let parents_d = await get_parent_details(hid);
+  if (!_.isEmpty(parents_d))
+    await zed_db
+      .collection("rating_blood")
+      .updateOne(
+        { hid },
+        { $set: { "details.parents_d": parents_d } },
+        { upsert: true }
+      );
+};
+const get_parent_details = async (hid) => {
+  hid = parseInt(hid);
+  let doc = await zed_db.collection("rating_blood").findOne({ hid });
+  // console.log(doc)
+  if (_.isEmpty(doc)) return;
+  let { mother, father } = doc.details.parents;
+  let parents_d = { mother: null, father: null };
+  // console.log({ mother, father });
+  if (mother) parents_d.mother = await get_details_complete_str(mother);
+  if (father) parents_d.father = await get_details_complete_str(father);
+  return parents_d;
+};
+const get_details_complete_str = async (hid) => {
+  if (!hid) return null;
+  hid = parseInt(hid);
+  let doc = await zed_db.collection("rating_blood").findOne({ hid });
+  // console.log("get_details_complete_str", hid, doc);
+  if (_.isEmpty(doc)) return null;
+  let { cf, d, med, tc, side, rated_type } = doc.rating_blood;
+  let {
+    name,
+    bloodline,
+    breed_type,
+    genotype,
+    horse_type,
+    hex_code,
+    owner_stable_slug,
+    rating,
+    win_rate,
+  } = doc.details;
+
+  let str = "";
+  let ar = [
+    doc.hid,
+    name,
+    rating,
+    win_rate,
+    bloodline,
+    breed_type,
+    genotype,
+    horse_type,
+    hex_code,
+    owner_stable_slug,
+    rated_type,
+    cf,
+    d,
+    med,
+    side,
+    tc,
+    doc.rank,
+  ];
+
+  str = ar.join("|+|");
+  // console.log(str);
+  return str;
 };
 
 module.exports = {
