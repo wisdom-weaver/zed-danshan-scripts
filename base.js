@@ -1,5 +1,40 @@
-const eth_prices = require("./required_jsons/eth-usd-price.json");
+var app_root = require("app-root-path");
 const _ = require("lodash");
+const { zed_db } = require("./index-run");
+const { read_from_path, write_to_path } = require("./utils");
+
+let eth_prices = read_from_path({
+  file_path: `${app_root}/required_jsons/eth-usd-price.json`,
+});
+
+const download_eth_prices = async () => {
+  let doc = await zed_db.collection("base").findOne({ id: "eth_prices" });
+  let doc_local = read_from_path({
+    file_path: `${app_root}/required_jsons/eth-usd-price.json`,
+  });
+
+  console.log("_ETH:: Now         :", new Date().toISOString());
+  console.log(
+    "_ETH:: Last Cache  :",
+    new Date(doc_local.db_date).toISOString()
+  );
+  console.log("_ETH:: Databse Date:", new Date(doc.db_date).toISOString());
+
+  let diff =
+    new Date(doc_local.db_date).getTime() - new Date(doc.db_date).getTime();
+  if (Math.abs(diff) < 1 * 1000) {
+    console.log("ETH prices latest=>", _.keys(doc.data)[0]);  
+    return;
+  }
+  write_to_path({
+    file_path: `${app_root}/required_jsons/eth-usd-price.json`,
+    data: doc,
+  });
+  eth_prices = doc;
+  console.log("download ETH prices sucessfull, latest=>", _.keys(doc.data)[0]);
+  let date = get_date(0);
+  console.log({ [date]: get_at_eth_price_on(date) });
+};
 
 const dollar_limit_breaks = {
   C_B: 4,
@@ -29,15 +64,15 @@ const get_date = (date) => {
   }
 };
 const get_at_eth_price_on = (date) => {
-  let price = eth_prices[date];
-  return price || _.values(eth_prices)[0];
+  let price = eth_prices.data[date];
+  return price || _.values(eth_prices.data)[0];
 };
 const get_fee_cat = ({ price, fee = 0 }) => {
   fee = parseFloat(fee);
   let price_limits = get_price_limits(price);
   let [l1, l2] = _.values(price_limits);
   // console.log({ price_limits });
-  if(fee==0) return "F";
+  if (fee == 0) return "F";
   if (fee < l1) return "C";
   else if (fee >= l1 && fee < l2) return "B";
   else if (fee >= l2) return "A";
@@ -57,4 +92,5 @@ module.exports = {
   get_date,
   get_at_eth_price_on,
   get_fee_cat_on,
+  download_eth_prices,
 };

@@ -5,7 +5,12 @@ const mongoose = require("mongoose");
 const { init, zed_db, zed_ch, run_func } = require("./index-run");
 const { write_to_path, read_from_path } = require("./utils");
 const app_root = require("app-root-path");
-const { get_fee_cat_on } = require("./base");
+const {
+  get_fee_cat_on,
+  download_eth_prices,
+  get_at_eth_price_on,
+  get_date,
+} = require("./base");
 
 let mx = 80000;
 let h = 3312;
@@ -138,7 +143,7 @@ const filter_acc_to_criteria = ({
       name,
       gate,
       odds,
-      fee_cat
+      fee_cat,
     }) => {
       entryfee = parseFloat(entryfee);
 
@@ -475,6 +480,7 @@ const generate_odds_for = async (hid) => {
   hid = parseInt(hid);
   if (isNaN(hid)) return;
   let races = await get_races_of_hid(hid);
+  // console.log(races[0]);
   // console.log(races.reduce((acc, ea) => (ea.odds == 0 ? acc + 1 : acc), 0));
   // console.log(races);
   // gen_and_upload_odds_overall({ hid, races });
@@ -497,6 +503,8 @@ const generate_odds_for = async (hid) => {
 };
 
 const start = async () => {
+  await download_eth_prices();
+  
   let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
   console.log("=> odds_generator: ", `${st}:${ed}`);
 
