@@ -18,6 +18,8 @@ let st = 0;
 let ed = mx;
 // st = h;
 // ed = h;
+let chunk_size = 10;
+let chunk_delay = 1000;
 
 const filter_error_horses = (horses = []) => {
   return horses?.filter(({ hid }) => ![15812, 15745].includes(hid));
@@ -510,12 +512,11 @@ const start = async () => {
   console.log("=> odds_generator: ", `${st}:${ed}`);
 
   let i = 0;
-  let cs = 25;
-  for (let chunk of _.chunk(hids, cs)) {
-    i += cs;
+  for (let chunk of _.chunk(hids, chunk_size)) {
+    i += chunk_size;
     console.log("\n=> fetching together:", chunk.toString());
     await Promise.all(chunk.map((hid) => generate_odds_for(hid)));
-    await delay(1000);
+    await delay(chunk_delay);
     // if (i % 10000 == 0) generate_blood_mapping();
   }
 
