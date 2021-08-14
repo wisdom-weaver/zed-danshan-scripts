@@ -1,2 +1,0 @@
-npm run run_leaderboard
-PAUSE

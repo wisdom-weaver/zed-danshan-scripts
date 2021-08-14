@@ -481,97 +481,116 @@ const generate_blood_mapping = async () => {
 };
 
 const generate_odds_for = async (hid) => {
-  let details = await get_details_of_hid(hid);
-  if (_.isEmpty(details)) return console.log("# hid:", hid, "empty_horse");
-  hid = parseInt(hid);
-  if (isNaN(hid)) return;
-  let races = await get_races_of_hid(hid);
-  // console.log(races[0]);
-  // console.log(races.reduce((acc, ea) => (ea.odds == 0 ? acc + 1 : acc), 0));
-  // console.log(races);
-  // gen_and_upload_odds_overall({ hid, races });
-  let or_map = [
-    { coll: "odds_overall", extra_criteria: {} },
-    { coll: "odds_live", extra_criteria: { is_paid: true, min: 3 } },
-  ];
-  let odds_overall = await gen_and_upload_odds_coll({
-    hid,
-    races,
-    ...or_map[0],
-  });
-  // console.log(odds_overall);
-  let odds_live = await gen_and_upload_odds_coll({ hid, races, ...or_map[1] });
-  // console.log(odds_live);
-  let races_n = races?.length || 0;
-  let bhr = await gen_and_upload_blood_hr({ hid, odds_live, details, races_n });
-  // console.log(bhr);
-  // console.log(`# hid:`, hid, "len:", races.length, "rating_blood:", bhr);
-  await get_parent_details_upload(hid);
+  try{
+    let details = await get_details_of_hid(hid);
+    if (_.isEmpty(details)) return console.log("# hid:", hid, "empty_horse");
+    hid = parseInt(hid);
+    if (isNaN(hid)) return;
+    let races = await get_races_of_hid(hid);
+    // console.log(races[0]);
+    // console.log(races.reduce((acc, ea) => (ea.odds == 0 ? acc + 1 : acc), 0));
+    // console.log(races);
+    // gen_and_upload_odds_overall({ hid, races });
+    let or_map = [
+      { coll: "odds_overall", extra_criteria: {} },
+      { coll: "odds_live", extra_criteria: { is_paid: true, min: 3 } },
+    ];
+    let odds_overall = await gen_and_upload_odds_coll({
+      hid,
+      races,
+      ...or_map[0],
+    });
+    // console.log(odds_overall);
+    let odds_live = await gen_and_upload_odds_coll({ hid, races, ...or_map[1] });
+    // console.log(odds_live);
+    let races_n = races?.length || 0;
+    let bhr = await gen_and_upload_blood_hr({ hid, odds_live, details, races_n });
+    // console.log(bhr);
+    // console.log(`# hid:`, hid, "len:", races.length, "rating_blood:", bhr);
+    await get_parent_details_upload(hid);
+  }catch(err){
+    console.log("ERROR on horse", hid,"\n",err);
+  }
 };
 
-const start = async () => {
-  await download_eth_prices();
+const fetch_all_horses = async ()=>{
+  try{
+    let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
+    console.log("=> STARTED odds_generator: ", `${st}:${ed}`);
 
-  let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
-  console.log("=> STARTED odds_generator: ", `${st}:${ed}`);
+    let i = 0;
+    for (let chunk of _.chunk(hids, chunk_size)) {
+      i += chunk_size;
+      // console.log("\n=> fetching together:", chunk.toString());
+      await Promise.all(chunk.map((hid) => generate_odds_for(hid)));
+      await delay(chunk_delay);
+      console.log("! got", chunk[0], " -> ", chunk[chunk.length - 1]);
+      // if (i % 10000 == 0) generate_blood_mapping();
+    }
 
-  let i = 0;
-  for (let chunk of _.chunk(hids, chunk_size)) {
-    i += chunk_size;
-    // console.log("\n=> fetching together:", chunk.toString());
-    await Promise.all(chunk.map((hid) => generate_odds_for(hid)));
-    await delay(chunk_delay);
-    console.log("! got", chunk[0], " -> ", chunk[chunk.length - 1]);
-    // if (i % 10000 == 0) generate_blood_mapping();
+  }catch(err){
+      console.log("ERROR fetch_all_horses\n",err);
   }
+}
 
-  console.log("## Fetch completed");
+const start = async () => {
+  try{
+    await download_eth_prices();
 
-  console.log("## Generating Blood Ranks");
-  await generate_blood_mapping();
-  await give_ranks_on_rating_blood();
-  console.log("## Completed Blood Ranks");
-  // await delay(60000);
-  // try {
-  //   console.log("caching live odds on heroku server");
-  //   await fetch(
-  //     `https://bs-zed-backend-api.herokuapp.com/live/download2?mx=${mx}`
-  //   );
-  // } catch (err) {}
-  // await delay(240000);
-  console.log("## DONE");
-  return 0;
+    await fetch_all_horses();
+
+    console.log("## Fetch completed");
+
+    console.log("## Generating Blood Ranks");
+    await generate_blood_mapping();
+    await give_ranks_on_rating_blood();
+    console.log("## Completed Blood Ranks");
+    // await delay(60000);
+    // try {
+    //   console.log("caching live odds on heroku server");
+    //   await fetch(
+    //     `https://bs-zed-backend-api.herokuapp.com/live/download2?mx=${mx}`
+    //   );
+    // } catch (err) {}
+    // await delay(240000);
+    console.log("## DONE");
+    return 0;
+  }catch(err){ console.log("ERROR start-fn \n",err); }
 };
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const give_rank_hid = async ({ hid, ar }) => {
-  let rank = _.find(ar, { hid })?.rank || null;
-  await zed_db.db
+  try{
+    let rank = _.find(ar, { hid })?.rank || null;
+    await zed_db.db
     .collection("rating_blood")
     .updateOne({ hid }, { $set: { rank } }, { upsert: true });
-};
+  }catch(err){console.log("err give_rank_hid", hid,"\n",err);}
+}
 
 const give_ranks_on_rating_blood = async () => {
-  await init();
-  let obs = await zed_db.db.collection("blood").find().toArray();
-  console.log("blood got", obs.length);
-  let ar = obs.map((ea) => ea?.blood || []);
-  ar = _.flatten(ar);
-
-  // write_to_path({ file_path: `${app_root}/backup/blood.json`, data: ar });
-  // console.log("blood wrote to json");
-
-  // let ar = read_from_path({ file_path: `${app_root}/backup/blood.json` });
-  let hids = new Array(mx + 1).fill(0).map((ea, i) => i);
-  let cs = 50;
-  let i = 0;
-  for (let chunk of _.chunk(hids, cs)) {
-    i++;
-    await Promise.all(chunk.map((hid) => give_rank_hid({ hid, ar })));
-    if (i % 20 == 0) console.log("done ranks till", chunk[chunk.length - 1]);
-  }
-  console.log("# completed giving ranks");
+  try{
+    await init();
+    let obs = await zed_db.db.collection("blood").find().toArray();
+    console.log("blood got", obs.length);
+    let ar = obs.map((ea) => ea?.blood || []);
+    ar = _.flatten(ar);
+    
+    // write_to_path({ file_path: `${app_root}/backup/blood.json`, data: ar });
+    // console.log("blood wrote to json");
+    
+    // let ar = read_from_path({ file_path: `${app_root}/backup/blood.json` });
+    let hids = new Array(mx + 1).fill(0).map((ea, i) => i);
+    let cs = 50;
+    let i = 0;
+    for (let chunk of _.chunk(hids, cs)) {
+      i++;
+      await Promise.all(chunk.map((hid) => give_rank_hid({ hid, ar })));
+      if (i % 20 == 0) console.log("done ranks till", chunk[chunk.length - 1]);
+    }
+    console.log("# completed giving ranks");
+  }catch(err){ console.log("err giving ranks back\n",err); }
 };
 
 let odds_generator = async () => {
