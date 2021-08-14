@@ -18,7 +18,7 @@ let st = 0;
 let ed = mx;
 // st = h;
 // ed = h;
-let chunk_size = 10;
+let chunk_size = 15;
 let chunk_delay = 1000;
 
 const filter_error_horses = (horses = []) => {
@@ -50,9 +50,13 @@ const key_mapping_bs_zed = [
 ];
 
 const from_ch_zed_collection = async (query) => {
-  let data = await zed_ch.db.collection("zed").find(query).toArray();
-  data = _.uniqBy(data, (i) => [i["4"], i["6"]].join());
-  return data;
+  try {
+    let data = await zed_ch.db.collection("zed").find(query).toArray();
+    data = _.uniqBy(data, (i) => [i["4"], i["6"]].join());
+    return data;
+  } catch (err) {
+    return [];
+  }
 };
 
 const struct_race_row_data = (data) => {
@@ -501,7 +505,7 @@ const generate_odds_for = async (hid) => {
   let races_n = races?.length || 0;
   let bhr = await gen_and_upload_blood_hr({ hid, odds_live, details, races_n });
   // console.log(bhr);
-  console.log(`# hid:`, hid, "len:", races.length, "rating_blood:", bhr);
+  // console.log(`# hid:`, hid, "len:", races.length, "rating_blood:", bhr);
   await get_parent_details_upload(hid);
 };
 
@@ -509,14 +513,15 @@ const start = async () => {
   await download_eth_prices();
 
   let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
-  console.log("=> odds_generator: ", `${st}:${ed}`);
+  console.log("=> STARTED odds_generator: ", `${st}:${ed}`);
 
   let i = 0;
   for (let chunk of _.chunk(hids, chunk_size)) {
     i += chunk_size;
-    console.log("\n=> fetching together:", chunk.toString());
+    // console.log("\n=> fetching together:", chunk.toString());
     await Promise.all(chunk.map((hid) => generate_odds_for(hid)));
     await delay(chunk_delay);
+    console.log("! got", chunk[0], " -> ", chunk[chunk.length - 1]);
     // if (i % 10000 == 0) generate_blood_mapping();
   }
 
@@ -575,6 +580,7 @@ let odds_generator = async () => {
     // console.log("\n\n\n## Looping... \n\n\n");
     // return await odds_generator();
   } catch (err) {
+    console.log("ERROR odds_generator\n", err);
     await delay(5000);
     // return await odds_generator();
   }
