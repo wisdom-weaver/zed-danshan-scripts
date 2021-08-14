@@ -412,76 +412,80 @@ const get_side_of_horse = (ea) => {
 };
 
 const generate_blood_mapping = async () => {
-  console.log("generate_blood_mapping");
-  // zed_db.db.collection("blood").insert({ id: "blood" });
-  // return;
-  let def_ar = await zed_db.db.collection("rating_blood").find({}).toArray();
-  console.log("len: ", def_ar.length);
-  def_ar = filter_error_horses(def_ar);
+  try {
+    console.log("generate_blood_mapping");
+    // zed_db.db.collection("blood").insert({ id: "blood" });
+    // return;
+    let def_ar = await zed_db.db.collection("rating_blood").find({}).toArray();
+    console.log("len: ", def_ar.length);
+    def_ar = filter_error_horses(def_ar);
 
-  let ar = def_ar.map(({ hid, rating_blood }) => {
-    if (_.isEmpty(rating_blood)) return null;
-    return { hid, rc: parseInt(rating_blood.cf[0]), ...rating_blood };
-  });
+    let ar = def_ar.map(({ hid, rating_blood }) => {
+      if (_.isEmpty(rating_blood)) return null;
+      return { hid, rc: parseInt(rating_blood.cf[0]), ...rating_blood };
+    });
 
-  ar = _.compact(ar);
-  ar = _.sortBy(ar, "cf");
-  ar = _.groupBy(ar, "cf");
-  ar = _.values(ar).map((e) => _.sortBy(e, "med"));
-  ar = _.flatten(ar);
+    ar = _.compact(ar);
+    ar = _.sortBy(ar, "cf");
+    ar = _.groupBy(ar, "cf");
+    ar = _.values(ar).map((e) => _.sortBy(e, "med"));
+    ar = _.flatten(ar);
 
-  let ar_GH = ar.filter((ea) => ea.rated_type == "GH");
-  ar_GH = ar_GH.map((ea, i) => ({ ...ea, rank: i + 1 }));
-  let ar_CH = ar.filter((ea) => ea.rated_type == "CH");
-  ar_CH = ar_CH.map((ea) => ({ ...ea, rank: null }));
-  let ar_NR = ar.filter((ea) => ea.rated_type == "NR");
-  ar_NR = ar_NR.map((ea) => ({ ...ea, rank: null }));
-  ar = [...ar_GH, ...ar_CH, ...ar_NR].map(
-    ({ hid, rank, rc, tc, cf, d, med, side, rated_type }, i) => {
-      return {
-        rank,
-        hid,
-        details: _.find(def_ar, { hid }).details,
-        rating_blood: { tc, cf, d, med, side, rc, rated_type },
-      };
+    let ar_GH = ar.filter((ea) => ea.rated_type == "GH");
+    ar_GH = ar_GH.map((ea, i) => ({ ...ea, rank: i + 1 }));
+    let ar_CH = ar.filter((ea) => ea.rated_type == "CH");
+    ar_CH = ar_CH.map((ea) => ({ ...ea, rank: null }));
+    let ar_NR = ar.filter((ea) => ea.rated_type == "NR");
+    ar_NR = ar_NR.map((ea) => ({ ...ea, rank: null }));
+    ar = [...ar_GH, ...ar_CH, ...ar_NR].map(
+      ({ hid, rank, rc, tc, cf, d, med, side, rated_type }, i) => {
+        return {
+          rank,
+          hid,
+          details: _.find(def_ar, { hid }).details,
+          rating_blood: { tc, cf, d, med, side, rc, rated_type },
+        };
+      }
+    );
+    // console.log(ar);
+    let db_date = new Date().toISOString();
+    let i = 1;
+    for (let chunk of _.chunk(ar, 10000)) {
+      let id = `blood_${i}`;
+      await zed_db.db
+        .collection("blood")
+        .updateOne(
+          { id },
+          { $set: { id, db_date, blood: chunk } },
+          { upsert: true }
+        );
+      i++;
+      console.log("wrote", id);
     }
-  );
-  // console.log(ar);
-  let db_date = new Date().toISOString();
-  let i = 1;
-  for (let chunk of _.chunk(ar, 10000)) {
-    let id = `blood_${i}`;
     await zed_db.db
       .collection("blood")
       .updateOne(
-        { id },
-        { $set: { id, db_date, blood: chunk } },
+        { id: `blood` },
+        { $set: { id: "blood", db_date, len: i } },
         { upsert: true }
       );
-    i++;
-    console.log("wrote", id);
+    write_to_path({
+      file_path: `${app_root}/data/blood/blood.json`,
+      data: { id: "blood", db_date, blood: ar },
+    });
+    await delay(5000);
+    try {
+      console.log("caching on heroku server");
+      await fetch(`https://bs-zed-backend-api.herokuapp.com/blood/download`);
+    } catch (err) {}
+    return;
+  } catch (err) {
+    console.log("ERROR generate_blood_mapping\n", err);
   }
-  await zed_db.db
-    .collection("blood")
-    .updateOne(
-      { id: `blood` },
-      { $set: { id: "blood", db_date, len: i } },
-      { upsert: true }
-    );
-  write_to_path({
-    file_path: `${app_root}/data/blood/blood.json`,
-    data: { id: "blood", db_date, blood: ar },
-  });
-  await delay(5000);
-  try {
-    console.log("caching on heroku server");
-    await fetch(`https://bs-zed-backend-api.herokuapp.com/blood/download`);
-  } catch (err) {}
-  return;
 };
 
 const generate_odds_for = async (hid) => {
-  try{
+  try {
     let details = await get_details_of_hid(hid);
     if (_.isEmpty(details)) return console.log("# hid:", hid, "empty_horse");
     hid = parseInt(hid);
@@ -501,20 +505,29 @@ const generate_odds_for = async (hid) => {
       ...or_map[0],
     });
     // console.log(odds_overall);
-    let odds_live = await gen_and_upload_odds_coll({ hid, races, ...or_map[1] });
+    let odds_live = await gen_and_upload_odds_coll({
+      hid,
+      races,
+      ...or_map[1],
+    });
     // console.log(odds_live);
     let races_n = races?.length || 0;
-    let bhr = await gen_and_upload_blood_hr({ hid, odds_live, details, races_n });
+    let bhr = await gen_and_upload_blood_hr({
+      hid,
+      odds_live,
+      details,
+      races_n,
+    });
     // console.log(bhr);
     // console.log(`# hid:`, hid, "len:", races.length, "rating_blood:", bhr);
     await get_parent_details_upload(hid);
-  }catch(err){
-    console.log("ERROR on horse", hid,"\n",err);
+  } catch (err) {
+    console.log("ERROR on horse", hid, "\n", err);
   }
 };
 
-const fetch_all_horses = async ()=>{
-  try{
+const fetch_all_horses = async () => {
+  try {
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
     console.log("=> STARTED odds_generator: ", `${st}:${ed}`);
 
@@ -527,14 +540,13 @@ const fetch_all_horses = async ()=>{
       console.log("! got", chunk[0], " -> ", chunk[chunk.length - 1]);
       // if (i % 10000 == 0) generate_blood_mapping();
     }
-
-  }catch(err){
-      console.log("ERROR fetch_all_horses\n",err);
+  } catch (err) {
+    console.log("ERROR fetch_all_horses\n", err);
   }
-}
+};
 
 const start = async () => {
-  try{
+  try {
     await download_eth_prices();
 
     await fetch_all_horses();
@@ -555,31 +567,35 @@ const start = async () => {
     // await delay(240000);
     console.log("## DONE");
     return 0;
-  }catch(err){ console.log("ERROR start-fn \n",err); }
+  } catch (err) {
+    console.log("ERROR start-fn \n", err);
+  }
 };
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const give_rank_hid = async ({ hid, ar }) => {
-  try{
+  try {
     let rank = _.find(ar, { hid })?.rank || null;
     await zed_db.db
-    .collection("rating_blood")
-    .updateOne({ hid }, { $set: { rank } }, { upsert: true });
-  }catch(err){console.log("err give_rank_hid", hid,"\n",err);}
-}
+      .collection("rating_blood")
+      .updateOne({ hid }, { $set: { rank } }, { upsert: true });
+  } catch (err) {
+    console.log("err give_rank_hid", hid, "\n", err);
+  }
+};
 
 const give_ranks_on_rating_blood = async () => {
-  try{
+  try {
     await init();
     let obs = await zed_db.db.collection("blood").find().toArray();
     console.log("blood got", obs.length);
     let ar = obs.map((ea) => ea?.blood || []);
     ar = _.flatten(ar);
-    
+
     // write_to_path({ file_path: `${app_root}/backup/blood.json`, data: ar });
     // console.log("blood wrote to json");
-    
+
     // let ar = read_from_path({ file_path: `${app_root}/backup/blood.json` });
     let hids = new Array(mx + 1).fill(0).map((ea, i) => i);
     let cs = 50;
@@ -590,7 +606,9 @@ const give_ranks_on_rating_blood = async () => {
       if (i % 20 == 0) console.log("done ranks till", chunk[chunk.length - 1]);
     }
     console.log("# completed giving ranks");
-  }catch(err){ console.log("err giving ranks back\n",err); }
+  } catch (err) {
+    console.log("err giving ranks back\n", err);
+  }
 };
 
 let odds_generator = async () => {
