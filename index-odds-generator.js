@@ -669,8 +669,14 @@ const get_parent_details_upload = async (hid) => {
 const get_parent_details = async (hid) => {
   hid = parseInt(hid);
   let doc = await zed_db.collection("rating_blood").findOne({ hid });
+  if (_.isEmpty(doc)) return;
+  if(_.isEmpty(doc.details.parents)){
+    await delay(500);
+    doc = await zed_db.collection("rating_blood").findOne({ hid });
+  }
   // console.log(doc)
   if (_.isEmpty(doc)) return;
+  
   let { mother, father } = doc.details.parents;
   let parents_d = { mother: null, father: null };
   // console.log({ mother, father });
