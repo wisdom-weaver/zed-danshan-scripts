@@ -13,13 +13,13 @@ const {
 } = require("./base");
 
 let mx = 80000;
-let h = 69063;
+let h = 65253;
 let st = 0;
 let ed = mx;
 // st = h;
 // ed = h;
-let chunk_size = 15;
-let chunk_delay = 1000;
+let chunk_size = 25;
+let chunk_delay = 100;
 
 const filter_error_horses = (horses = []) => {
   return horses?.filter(({ hid }) => ![15812, 15745].includes(hid));
@@ -522,7 +522,7 @@ const generate_odds_for = async (hid) => {
     // console.log(`# hid:`, hid, "len:", races.length, "rating_blood:", bhr);
     await get_parent_details_upload(hid);
   } catch (err) {
-    console.log("ERROR on horse", hid, "\n", err);
+    console.log("ERROR on horse", hid);
   }
 };
 
