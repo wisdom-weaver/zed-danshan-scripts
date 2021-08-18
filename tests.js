@@ -11,6 +11,7 @@ const mongoose = require("mongoose");
 const { write_to_path, read_from_path } = require("./utils");
 const app_root = require("app-root-path");
 const { MongoClient } = require("mongodb");
+const fetch = require("node-fetch");
 
 const test1 = async () => {
   await init();
@@ -296,6 +297,94 @@ const test6 = async () => {
   zed_db.close();
 };
 
+const backend_base = "https://bs-zed-backend-api.herokuapp.com";
+const get_breed_rating_hid = async (hid) => {
+  if (hid == null) return null;
+  let api = `${backend_base}/odds/kids-g-odds/horse/${hid}?mode=str`;
+  try {
+    return await fetch(api).then((r) => r.json());
+  } catch (err) {
+    return await get_breed_rating_hid(hid);
+  }
+};
+const get_parents_hids = async (hid) => {
+  if (hid == null) return null;
+  let doc = await zed_db.db.collection("rating_blood").findOne({ hid });
+  return doc?.details?.parents || { father: null, mother: null };
+};
+const get_parents_breed_ratings = async (hid) => {
+  if (hid == null) return null;
+  let parents = await get_parents_hids(hid);
+  let { mother, father } = parents;
+  console.log(hid, mother, father);
+  let mother_br = mother && (await get_breed_rating_hid(mother));
+  let father_br = father && (await get_breed_rating_hid(father));
+  if (mother)
+    mother_br =
+      (mother_br &&
+        mother_br?.gz_med &&
+        parseFloat(parseFloat(mother_br?.gz_med).toFixed(3))) ||
+      null;
+  else mother = null;
+  if (father)
+    father_br =
+      (father_br &&
+        father_br?.gz_med &&
+        parseFloat(parseFloat(father_br?.gz_med).toFixed(3))) ||
+      null;
+  else father = null;
+  return {
+    mother_hid: mother,
+    mother_br: mother_br,
+    father_hid: father,
+    father_br,
+  };
+};
+const test7 = async () => {
+  let races_n = 150;
+  await init();
+  let ar = await zed_ch.db
+    .collection("zed")
+    .find({ 5: 0 })
+    .sort({ 2: -1 })
+    .limit(12 * races_n)
+    .toArray();
+  ar = _.groupBy(ar, "4");
+  // console.log(ar);
+  ar = _.entries(ar).map(([rid, ea]) => {
+    let mini = _.minBy(ea, "11");
+    return {
+      rid,
+      hid: mini["6"],
+      name: mini["9"],
+      odds: mini["11"],
+      date: mini["2"],
+    };
+  });
+  ar = ar.filter((e) => e.odds != 0);
+  let hids = _.map(ar, "hid");
+  let br_ob = await Promise.all(
+    hids.map((hid) => get_parents_breed_ratings(hid).then((d) => [hid, d]))
+  );
+  br_ob = Object.fromEntries(br_ob);
+  ar = ar.map((ea, i) => {
+    let hid = ea.hid;
+    let br = br_ob[hid] || {
+      mother_hid: null,
+      mother_br: null,
+      father_hid: null,
+      father_br: null,
+    };
+    return { ...ea, ...br };
+  });
+  ar = ar.filter((ea) => {
+    let { father_br, mother_br } = ea;
+    if (father_br == mother_br) return false;
+    return true;
+  });
+  console.table(ar);
+};
+
 module.exports = {
   test1,
   test2,
@@ -303,4 +392,5 @@ module.exports = {
   test4,
   test5,
   test6,
+  test7,
 };

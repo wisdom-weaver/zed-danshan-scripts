@@ -13,10 +13,10 @@ const {
 } = require("./base");
 
 let mx = 80000;
-let h = 65253;
+let h = 75000;
 let st = 0;
 let ed = mx;
-// st = h;
+st = h;
 // ed = h;
 let chunk_size = 25;
 let chunk_delay = 100;
@@ -293,7 +293,7 @@ const get_class_hr = async (hid) => {
   };
   // console.log(res);
   if (_.isEmpty(res)) return null_hr_ob;
-  if (res.med > 10) res.cf = "5_";
+  if (res.med > 10.8) res.cf = "5_";
   return res;
 };
 
@@ -333,7 +333,7 @@ const calc_blood_hr = async ({
   // console.log(ol);
   let hr = {};
   for (let { k, cf, d, med } of ol)
-    if (med != null && med <= 10) {
+    if (med != null && med <= 10.8) {
       let rb = { cf, d, med };
       let obs = _.filter(ol, (elem) => elem.cf == rb.cf);
       rb = _.minBy(obs, "med");
@@ -400,7 +400,7 @@ const get_side_of_horse = (ea) => {
   // console.log(tc, rc);
   med = parseFloat(med);
   let side = "";
-  if (med > 10) side = "A";
+  if (med > 10.8) side = "A";
   else {
     if (tc < rc) side = "A";
     else if (tc > rc) side = "B";
