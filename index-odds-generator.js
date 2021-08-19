@@ -16,7 +16,7 @@ let mx = 80000;
 let h = 75000;
 let st = 0;
 let ed = mx;
-st = h;
+// st = h;
 // ed = h;
 let chunk_size = 25;
 let chunk_delay = 100;
@@ -109,10 +109,15 @@ const struct_details_of_hid = (data) => {
   };
 };
 const get_details_of_hid = async (hid) => {
-  let api = (hid) => `https://api.zed.run/api/v1/horses/get/${hid}`;
-  let data = await fetch(api(hid)).then((resp) => resp.json());
-  if (_.isEmpty(data) || data.error) return false;
-  return struct_details_of_hid(data);
+  try {
+    let api = (hid) => `https://api.zed.run/api/v1/horses/get/${hid}`;
+    let data = await fetch(api(hid)).then((resp) => resp.json());
+    if (_.isEmpty(data) || data.error) return false;
+    return struct_details_of_hid(data);
+  } catch (err) {
+    console.log("Error api.zed on", hid);
+    return null;
+  }
 };
 
 const get_races_of_hid = async (hid) => {
@@ -250,15 +255,15 @@ const gen_odds_coll = ({ coll, races = [], extra_criteria = {} }) => {
   return ob;
 };
 const upload_odds_coll = async ({ hid, coll, odds_coll }) => {
-  let db_date = new Date().toISOString();
-  let ob = { hid, db_date, [coll]: odds_coll };
-
   try {
-    zed_db.db
+    let db_date = new Date().toISOString();
+    let ob = { hid, db_date, [coll]: odds_coll };
+
+    await zed_db.db
       .collection(coll)
       .updateOne({ hid }, { $set: ob }, { upsert: true });
   } catch (err) {
-    console.log(err);
+    console.log("error gen_odds_coll", hid);
   }
 };
 const gen_and_upload_odds_coll = async ({
@@ -267,10 +272,14 @@ const gen_and_upload_odds_coll = async ({
   coll,
   extra_criteria,
 }) => {
-  let odds_coll = gen_odds_coll({ races, coll, extra_criteria });
-  await upload_odds_coll({ coll, odds_coll, hid });
-  // console.log("# hid:", hid, "len", races.length, coll, "done..");
-  return odds_coll;
+  try {
+    let odds_coll = gen_odds_coll({ races, coll, extra_criteria });
+    await upload_odds_coll({ coll, odds_coll, hid });
+    // console.log("# hid:", hid, "len", races.length, coll, "done..");
+    return odds_coll;
+  } catch (err) {
+    console.log("error gen_and_upload_odds_coll", hid, coll);
+  }
 };
 
 const null_hr_ob = { cf: "na", d: null, med: null, side: "-" };
@@ -522,7 +531,7 @@ const generate_odds_for = async (hid) => {
     // console.log(`# hid:`, hid, "len:", races.length, "rating_blood:", bhr);
     await get_parent_details_upload(hid);
   } catch (err) {
-    console.log("ERROR on horse", hid);
+    console.log("ERROR generate_odds_for", hid);
   }
 };
 
@@ -670,13 +679,13 @@ const get_parent_details = async (hid) => {
   hid = parseInt(hid);
   let doc = await zed_db.collection("rating_blood").findOne({ hid });
   if (_.isEmpty(doc)) return;
-  if(_.isEmpty(doc.details.parents)){
+  if (_.isEmpty(doc.details.parents)) {
     await delay(500);
     doc = await zed_db.collection("rating_blood").findOne({ hid });
   }
   // console.log(doc)
   if (_.isEmpty(doc)) return;
-  
+
   let { mother, father } = doc.details.parents;
   let parents_d = { mother: null, father: null };
   // console.log({ mother, father });
