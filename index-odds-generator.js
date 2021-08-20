@@ -18,7 +18,7 @@ let st = 0;
 let ed = mx;
 // st = h;
 // ed = h;
-let chunk_size = 50;
+let chunk_size = 25;
 let chunk_delay = 100;
 
 const filter_error_horses = (horses = []) => {
