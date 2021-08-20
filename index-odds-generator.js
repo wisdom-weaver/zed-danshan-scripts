@@ -115,8 +115,9 @@ const get_details_of_hid = async (hid) => {
     if (_.isEmpty(data) || data.error) return false;
     return struct_details_of_hid(data);
   } catch (err) {
-    console.log("Error api.zed on", hid);
-    return null;
+    console.log("Error api.zed on", hid,"refetching....");
+    await delay(100);
+    return await get_details_of_hid(hid);
   }
 };
 
