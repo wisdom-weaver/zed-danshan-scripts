@@ -12,6 +12,7 @@
     "give_ranks_on_rating_blood": "run-func index-odds-generator.js give_ranks_on_rating_blood",
     "run_test": "run-func leaderboard-generator.js run_test",
     "run_test2": "run-func leaderboard-generator.js run_test2",
+    "get_all_horses_kids":  "run-func horses-kids.js get_all_horses_kids",
     "test1": "run-func tests.js test1",
     "test2": "run-func tests.js test2",
     "test3": "run-func tests.js test3",

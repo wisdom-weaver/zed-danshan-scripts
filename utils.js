@@ -37,10 +37,27 @@ const pad = (n, l = 3) => {
   let pp = new Array(l - parseInt(n).toString().length).fill(0).join("");
   return `${pp}${n}`;
 };
+
+const calc_median = (array = []) => {
+  if (_.isEmpty(array)) return null;
+  array = array.map(parseFloat).sort((a, b) => a - b);
+  let median = 0;
+  if (array.length == 0) return null;
+  if (array.length % 2 === 0) {
+    // array with even number elements
+    median = (array[array.length / 2] + array[array.length / 2 - 1]) / 2;
+  } else {
+    median = array[(array.length - 1) / 2]; // array with odd number elements
+  }
+  // console.log(array, median)
+  return median;
+};
+
 module.exports = {
   calc_avg,
   write_to_path,
   read_from_path,
   dec2,
   pad,
+  calc_median,
 };
