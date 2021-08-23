@@ -39,17 +39,22 @@ const pad = (n, l = 3) => {
 };
 
 const calc_median = (array = []) => {
+  array = _.compact(array);
   if (_.isEmpty(array)) return null;
   array = array.map(parseFloat).sort((a, b) => a - b);
   let median = 0;
   if (array.length == 0) return null;
   if (array.length % 2 === 0) {
-    // array with even number elements
-    median = (array[array.length / 2] + array[array.length / 2 - 1]) / 2;
+    // console.log("even");
+    let l = array[array.length / 2]
+    let r = array[array.length / 2 - 1]
+    // console.log({l,r})
+    median = (l+r) / 2;
   } else {
+    // console.log("odd");
     median = array[(array.length - 1) / 2]; // array with odd number elements
   }
-  // console.log(array, median)
+  // console.log({array, median})
   return median;
 };
 
