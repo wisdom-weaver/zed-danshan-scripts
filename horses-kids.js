@@ -21,7 +21,7 @@ const {
 
 let mx = 82000;
 let h = 4;
-let st = 0;
+let st = 50500;
 let ed = mx;
 // st = h;
 // ed = h;
@@ -252,7 +252,7 @@ const get_all_horses_kids = async () => {
     console.log("=> STARTED horses_kids: ", `${st}:${ed}`);
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
 
-    for (let run = 1; run <= tot_runs; run++) {
+    for (let run = 4; run <= tot_runs; run++) {
       let i = 0;
       for (let chunk of _.chunk(hids, chunk_size)) {
         i += chunk_size;

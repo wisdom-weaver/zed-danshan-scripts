@@ -47,6 +47,8 @@ const key_mapping_bs_zed = [
   ["9", "name"],
   ["10", "gate"],
   ["11", "odds"],
+  ["12", "unknown"],
+  ["13", "flame"],
 ];
 
 const from_ch_zed_collection = async (query) => {

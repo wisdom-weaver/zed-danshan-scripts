@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const app_root = require("app-root-path");
 const _ = require("lodash");
+const fetch = require("node-fetch");
 
 const calc_avg = (ar = []) => {
   ar = _.compact(ar);
@@ -46,10 +47,10 @@ const calc_median = (array = []) => {
   if (array.length == 0) return null;
   if (array.length % 2 === 0) {
     // console.log("even");
-    let l = array[array.length / 2]
-    let r = array[array.length / 2 - 1]
+    let l = array[array.length / 2];
+    let r = array[array.length / 2 - 1];
     // console.log({l,r})
-    median = (l+r) / 2;
+    median = (l + r) / 2;
   } else {
     // console.log("odd");
     median = array[(array.length - 1) / 2]; // array with odd number elements
@@ -58,6 +59,21 @@ const calc_median = (array = []) => {
   return median;
 };
 
+const fetch_r_delay = 100;
+const fetch_r = async (api, i = 3) => {
+  if (i == 0) return null;
+  try {
+    return await fetch(api).then((r) => r.json());
+  } catch (err) {
+    console.log(err);
+    console.log(`err fetching`, api, `\n retries left: ${i}`);
+    await delay(fetch_r_delay);
+    return await fetch_r(api, i - 1);
+  }
+};
+
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 module.exports = {
   calc_avg,
   write_to_path,
@@ -65,4 +81,7 @@ module.exports = {
   dec2,
   pad,
   calc_median,
+  fetch_r_delay,
+  fetch_r,
+  delay,
 };
