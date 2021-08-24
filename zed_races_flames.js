@@ -52,6 +52,7 @@ const set_flame_for_horse = async ({ rid, hid, flame }) => {
     let doc = await zed_ch.db.collection("zed").findOne({ 4: rid, 6: hid });
     if (doc == null) {
       // console.log("missing horse", hid, " document in", rid);
+      return;
     }
     let _id = ObjectId(doc?._id);
     let update_ob = { 13: flame };
