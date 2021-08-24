@@ -8,7 +8,7 @@ const app_root = require("app-root-path");
 const { ObjectId } = require("mongodb");
 const readline = require("readline");
 
-let from_date = "2020-01-31";
+let from_date = "2020-12-31";
 let to_date = "2021-10-23";
 let chunk_size = 10;
 let chunk_delay = 100;
@@ -112,7 +112,7 @@ const add_flames_to_race_on_date = async (date) => {
     process.stdout.write(`${date_str} : no races found   `);
     return;
   }
-  process.stdout.write(`${date_str} : ${rids.length} races found\n`);
+  process.stdout.write(`${date_str} : ${rids.length} races found\r`);
   let i = 0;
   let n = rids.length;
   for (let chunk of _.chunk(rids, chunk_size)) {
@@ -121,7 +121,7 @@ const add_flames_to_race_on_date = async (date) => {
     i += chunk.length;
     await delay(chunk_delay);
   }
-  process.stdout.write(`${date_str} : ${progress_bar(n, n)} \r`);
+  process.stdout.write(`${date_str} : ${progress_bar(n, n)} races\r`);
 };
 
 const add_flames_to_race_from_to_date = async (from, to) => {
