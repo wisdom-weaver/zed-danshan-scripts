@@ -99,8 +99,8 @@ const find_raceids_on_date = async (date) => {
 const progress_bar = (a, b) => {
   let len = 50;
   let per = parseFloat((a / b) * 100).toFixed(2);
-  let eqs = new Array(parseInt((len * a) / b)).fill("=").join("");
-  let dts = new Array(parseInt(len * (1 - a / b))).fill(".").join("");
+  let eqs = new Array(Math.ceil((len * a) / b)).fill("=").join("");
+  let dts = new Array(Math.ceil(len * (1 - a / b))).fill(".").join("");
   return `[${eqs}>${dts}] ${per}%| ${a}/${b}`;
 };
 const add_flames_to_race_on_date = async (date) => {
