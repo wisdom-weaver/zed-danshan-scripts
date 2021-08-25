@@ -1,0 +1,21 @@
+
+> odds_generator@1.0.0 get_all_horses_kids
+> run-func horses-kids.js get_all_horses_kids
+
+starting...
+# MONGO connected zed_db
+# MONGO connected zed_ch
+z_ALL loaded
+=> STARTED horses_kids:  7210:85000
+#RUN1 7210  ->  7214
+#RUN1 7215  ->  7219
+#RUN1 7220  ->  7224
+#RUN1 7225  ->  7229
+#RUN1 7230  ->  7234
+#RUN1 7235  ->  7239
+#RUN1 7240  ->  7244
+#RUN1 7245  ->  7249
+#RUN1 7250  ->  7254
+#RUN1 7255  ->  7259
+------
+#RUN1 7260  ->  7264

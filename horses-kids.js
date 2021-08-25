@@ -19,20 +19,20 @@ const {
   get_date,
 } = require("./base");
 
-let mx = 82000;
-let h = 4;
-let st = 50500;
+let mx = 85000;
+let h = 1;
+let st = 0;
 let ed = mx;
-// st = h;
+// st = 6589;
 // ed = h;
-let chunk_size = 25;
-let chunk_delay = 100;
+let chunk_size = 5;
+let chunk_delay = 10;
 
 //global
 let z_ALL = {};
 let tot_runs = 5;
 
-const fetch_r_delay = 100;
+const fetch_r_delay = 10;
 const fetch_r = async (api, i = 3) => {
   if (i == 0) return null;
   try {
@@ -252,15 +252,18 @@ const get_all_horses_kids = async () => {
     console.log("=> STARTED horses_kids: ", `${st}:${ed}`);
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
 
-    for (let run = 4; run <= tot_runs; run++) {
+    for (let run = 1; run <= tot_runs; run++) {
       let i = 0;
       for (let chunk of _.chunk(hids, chunk_size)) {
-        i += chunk_size;
-        // console.log("\n=> fetching together:", chunk.toString());
         await Promise.all(chunk.map((hid) => get_kids_and_upload(hid)));
         await delay(chunk_delay);
         console.log(`#RUN${run}`, chunk[0], " -> ", chunk[chunk.length - 1]);
-        // if (i % 10000 == 0) generate_blood_mapping();
+        i++;
+        if(i%10==0){
+          console.log("------");
+          await delay(3000);
+          i=0;
+        }
       }
     }
     console.log("## Fetch completed");
