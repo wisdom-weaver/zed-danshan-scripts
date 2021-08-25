@@ -259,10 +259,10 @@ const get_all_horses_kids = async () => {
         await delay(chunk_delay);
         console.log(`#RUN${run}`, chunk[0], " -> ", chunk[chunk.length - 1]);
         i++;
-        if(i%10==0){
+        if (i % 10 == 0) {
           console.log("------");
-          await delay(3000);
-          i=0;
+          await delay(2000);
+          i = 0;
         }
       }
     }
