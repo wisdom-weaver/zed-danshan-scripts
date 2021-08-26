@@ -12,7 +12,7 @@ const {
   get_date,
 } = require("./base");
 
-let mx = 85000;
+let mx = 88000;
 let h = 75000;
 let st = 0;
 let ed = mx;
@@ -117,7 +117,7 @@ const get_details_of_hid = async (hid) => {
     if (_.isEmpty(data) || data.error) return false;
     return struct_details_of_hid(data);
   } catch (err) {
-    console.log("Error api.zed on", hid,"refetching....");
+    console.log("Error api.zed on", hid, "refetching....");
     await delay(100);
     return await get_details_of_hid(hid);
   }
@@ -754,4 +754,5 @@ module.exports = {
   get_rated_type,
   give_ranks_on_rating_blood,
   run_cache_on_heroku,
+  struct_race_row_data,
 };

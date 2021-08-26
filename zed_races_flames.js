@@ -7,13 +7,17 @@ const { fetch_r, delay } = require("./utils");
 const app_root = require("app-root-path");
 const { ObjectId } = require("mongodb");
 const readline = require("readline");
+const { download_eth_prices, get_fee_cat_on } = require("./base");
 
-let from_date = "2020-12-31";
-let to_date = "2021-10-23";
+let from_date;
+let to_date = new Date(Date.now()).toISOString().slice(0, 10);
 let chunk_size = 10;
 let chunk_delay = 100;
+let cutoff_date = "2021-08-25T19:00:00.000Z";
+let default_from_date = "2021-08-26";
 
 //global
+let avg_ob = {};
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -55,7 +59,18 @@ const set_flame_for_horse = async ({ rid, hid, flame }) => {
       return;
     }
     let _id = ObjectId(doc?._id);
+    let date = doc["2"];
     let update_ob = { 13: flame };
+    if (date >= cutoff_date) {
+      let d = doc["1"];
+      let fee = doc["3"];
+      let c = doc["5"];
+      let p = doc["8"];
+      let fee_cat = get_fee_cat_on({ date, fee });
+      let key = [c, fee_cat, d, p, flame].join("_");
+      let odds = avg_ob[key] || 0;
+      update_ob["11"] = odds;
+    }
     await zed_ch.db.collection("zed").updateOne({ _id }, { $set: update_ob });
   } catch (err) {
     console.log("err on set_flame_for_horse", rid, hid);
@@ -130,17 +145,42 @@ const add_flames_to_race_from_to_date = async (from, to) => {
   let st_d = new Date(from).getTime();
   let ed_d = new Date(to).getTime();
   let dif = 24 * 60 * 60 * 1000;
-  for (let now = st_d; now < ed_d; now += dif) {
+  for (let now = st_d; now <= ed_d; now += dif) {
     let today = new Date(now).toISOString();
-    await add_flames_to_race_on_date(today);
+    try {
+      await add_flames_to_race_on_date(today);
+      let update_ob = { last_updated: today };
+      await zed_db.db
+        .collection("odds_avg")
+        .updateOne({ id: "odds_avg_ALL" }, { $set: update_ob });
+    } catch (err) {
+      console.log("\nerr getting races on ", today);
+    }
   }
 };
 
 const add_flames_on_all_races = async () => {
   await init();
+  await download_eth_prices();
+  let doc = await zed_db.db
+    .collection("odds_avg")
+    .findOne({ id: "odds_avg_ALL" });
+  avg_ob = doc?.avg_ob;
+  if (_.isEmpty(avg_ob)) return console.log("Failed to load avgs");
+  console.log("avgs loaded", _.keys(avg_ob).length);
+  console.log("last updated date:", doc?.last_updated);
+
+  from_date = doc?.last_updated || default_from_date;
+  from_date = new Date(from_date).toISOString().slice(0, 10);
+
   await add_flames_to_race_from_to_date(from_date, to_date);
-  console.log("=========\nCOMPLETED");
+  console.log("\n=========\nCOMPLETED");
+  await zed_db.close();
+  await zed_ch.close();
+  return;
+  process.exit();
 };
+// add_flames_on_all_races();
 
 module.exports = {
   add_flames_on_all_races,
