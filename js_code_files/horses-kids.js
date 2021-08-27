@@ -30,7 +30,7 @@ let chunk_delay = 10;
 
 //global
 let z_ALL = {};
-let tot_runs = 5;
+let tot_runs = 1;
 
 const fetch_r_delay = 10;
 const fetch_r = async (api, i = 3) => {
