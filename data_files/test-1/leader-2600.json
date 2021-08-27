@@ -1,0 +1,19 @@
+{
+  "id": "leaderboard-2600",
+  "date": 1627025472619,
+  "date_str": "2021-07-23T07:31:12.619Z",
+  "leaderboard-dist": 2600,
+  "leaderboard": [
+    {
+      "hid": 3312,
+      "rank": 1,
+      "horse_rating": {
+        "cf": "3B",
+        "d": "2600",
+        "med": 9.4,
+        "side": "-"
+      },
+      "name": "Ecology"
+    }
+  ]
+}
