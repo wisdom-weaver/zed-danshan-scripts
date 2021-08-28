@@ -12,7 +12,7 @@ const {
   get_date,
 } = require("./base");
 
-let mx = 88000;
+let mx = 88433;
 // let h = 79917;
 let st = 0;
 let ed = mx;

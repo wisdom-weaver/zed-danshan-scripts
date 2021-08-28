@@ -20,14 +20,14 @@ const {
   get_date,
 } = require("./base");
 
-let mx = 85000;
+let mx = 88433;
 let h = 1;
 let st = 0;
 let ed = mx;
 // st = 6589;
 // ed = h;
-let chunk_size = 5;
-let chunk_delay = 10;
+let chunk_size = 3;
+let chunk_delay = 500;
 
 //global
 let z_ALL = {};
