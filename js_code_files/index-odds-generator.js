@@ -761,4 +761,6 @@ module.exports = {
   struct_race_row_data,
   initiate_everything,
   generate_odds_for,
+  generate_blood_mapping,
+  give_ranks_on_rating_blood,
 };

@@ -8,7 +8,10 @@ const app_root = require("app-root-path");
 const { ObjectId } = require("mongodb");
 const readline = require("readline");
 const { download_eth_prices, get_fee_cat_on } = require("./base");
-const { generate_odds_for } = require("./index-odds-generator");
+const {
+  generate_odds_for,
+  generate_blood_mapping,
+} = require("./index-odds-generator");
 const { get_parents_hids, get_kids_and_upload } = require("./horses-kids");
 
 let from_date;
@@ -250,6 +253,11 @@ const add_flames_on_all_races = async () => {
   await zed_db.db
     .collection("odds_avg")
     .updateOne({ id: "odds_avg_ALL" }, { $set: update_ob });
+
+  console.log("generate_blood_mapping");
+  await generate_blood_mapping();
+  console.log("give_ranks_on_rating_blood");
+  await give_ranks_on_rating_blood();
   console.log("\n=========\nCOMPLETED");
   await zed_db.close();
   await zed_ch.close();
