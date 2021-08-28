@@ -206,17 +206,19 @@ const breed_generator_for_hid_parents = async (hid) => {
   // console.log(hid, mother, father);
   await get_kids_and_upload(mother);
   await get_kids_and_upload(father);
+  await get_kids_and_upload(hid);
 };
 
 const breed_generator_parents_of_all_horses = async (hids = []) => {
   let i = 0;
-  let cs = 5;
+  let cs = 2;
   let n = hids.length;
   console.log("\n##breed_generator_parents_of_all_horses:", n);
   for (let chunk of _.chunk(hids, cs)) {
     process.stdout.write(`${progress_bar(i, n)} \r`);
     await Promise.all(chunk.map((hid) => breed_generator_for_hid_parents(hid)));
     i += cs;
+    delay(100);
   }
   process.stdout.write(`${progress_bar(n, n)} \r`);
   console.log("\n##COMPLETED breed_generator_parents_of_all_horses");
@@ -240,7 +242,7 @@ const add_flames_on_all_races = async () => {
   console.log("\n\n## GOT", rids.length, "races in the duration");
   hids = hids.sort();
   hids = _.uniq(hids);
-  
+
   await odds_generator_for(hids);
   await breed_generator_parents_of_all_horses(hids);
 
