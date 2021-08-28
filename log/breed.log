@@ -1,0 +1,361 @@
+
+> odds_generator@1.0.0 get_all_horses_kids
+> run-func js_code_files/horses-kids.js get_all_horses_kids
+
+## Initiating
+_ETH:: Now         : 2021-08-28T18:26:48.221Z
+_ETH:: Last Cache  : 2021-08-28T17:00:34.511Z
+_ETH:: Databse Date: 2021-08-28T17:00:34.511Z
+ETH prices latest=> 2021-08-28
+finding max hid right now
+got max_horse: 88508
+z_ALL loaded
+=> STARTED horses_kids:  0:88508
+#RUN1 0  ->  4
+#RUN1 5  ->  9
+#RUN1 10  ->  14
+#RUN1 15  ->  19
+#RUN1 20  ->  24
+#RUN1 25  ->  29
+#RUN1 30  ->  34
+#RUN1 35  ->  39
+#RUN1 40  ->  44
+#RUN1 45  ->  49
+------
+#RUN1 50  ->  54
+#RUN1 55  ->  59
+#RUN1 60  ->  64
+#RUN1 65  ->  69
+#RUN1 70  ->  74
+#RUN1 75  ->  79
+#RUN1 80  ->  84
+#RUN1 85  ->  89
+#RUN1 90  ->  94
+#RUN1 95  ->  99
+------
+#RUN1 100  ->  104
+#RUN1 105  ->  109
+#RUN1 110  ->  114
+#RUN1 115  ->  119
+#RUN1 120  ->  124
+#RUN1 125  ->  129
+#RUN1 130  ->  134
+#RUN1 135  ->  139
+#RUN1 140  ->  144
+#RUN1 145  ->  149
+------
+#RUN1 150  ->  154
+#RUN1 155  ->  159
+#RUN1 160  ->  164
+#RUN1 165  ->  169
+#RUN1 170  ->  174
+#RUN1 175  ->  179
+#RUN1 180  ->  184
+#RUN1 185  ->  189
+#RUN1 190  ->  194
+#RUN1 195  ->  199
+------
+#RUN1 200  ->  204
+#RUN1 205  ->  209
+#RUN1 210  ->  214
+#RUN1 215  ->  219
+#RUN1 220  ->  224
+#RUN1 225  ->  229
+#RUN1 230  ->  234
+#RUN1 235  ->  239
+#RUN1 240  ->  244
+#RUN1 245  ->  249
+------
+#RUN1 250  ->  254
+#RUN1 255  ->  259
+#RUN1 260  ->  264
+#RUN1 265  ->  269
+#RUN1 270  ->  274
+#RUN1 275  ->  279
+#RUN1 280  ->  284
+#RUN1 285  ->  289
+#RUN1 290  ->  294
+#RUN1 295  ->  299
+------
+#RUN1 300  ->  304
+#RUN1 305  ->  309
+#RUN1 310  ->  314
+#RUN1 315  ->  319
+#RUN1 320  ->  324
+#RUN1 325  ->  329
+#RUN1 330  ->  334
+#RUN1 335  ->  339
+#RUN1 340  ->  344
+#RUN1 345  ->  349
+------
+#RUN1 350  ->  354
+#RUN1 355  ->  359
+#RUN1 360  ->  364
+#RUN1 365  ->  369
+#RUN1 370  ->  374
+#RUN1 375  ->  379
+#RUN1 380  ->  384
+#RUN1 385  ->  389
+#RUN1 390  ->  394
+#RUN1 395  ->  399
+------
+#RUN1 400  ->  404
+#RUN1 405  ->  409
+#RUN1 410  ->  414
+#RUN1 415  ->  419
+#RUN1 420  ->  424
+#RUN1 425  ->  429
+#RUN1 430  ->  434
+#RUN1 435  ->  439
+#RUN1 440  ->  444
+#RUN1 445  ->  449
+------
+#RUN1 450  ->  454
+#RUN1 455  ->  459
+#RUN1 460  ->  464
+#RUN1 465  ->  469
+#RUN1 470  ->  474
+#RUN1 475  ->  479
+#RUN1 480  ->  484
+#RUN1 485  ->  489
+#RUN1 490  ->  494
+#RUN1 495  ->  499
+------
+#RUN1 500  ->  504
+#RUN1 505  ->  509
+#RUN1 510  ->  514
+#RUN1 515  ->  519
+#RUN1 520  ->  524
+#RUN1 525  ->  529
+#RUN1 530  ->  534
+#RUN1 535  ->  539
+#RUN1 540  ->  544
+#RUN1 545  ->  549
+------
+#RUN1 550  ->  554
+#RUN1 555  ->  559
+#RUN1 560  ->  564
+#RUN1 565  ->  569
+#RUN1 570  ->  574
+#RUN1 575  ->  579
+#RUN1 580  ->  584
+#RUN1 585  ->  589
+#RUN1 590  ->  594
+#RUN1 595  ->  599
+------
+#RUN1 600  ->  604
+#RUN1 605  ->  609
+#RUN1 610  ->  614
+#RUN1 615  ->  619
+#RUN1 620  ->  624
+#RUN1 625  ->  629
+#RUN1 630  ->  634
+#RUN1 635  ->  639
+#RUN1 640  ->  644
+#RUN1 645  ->  649
+------
+#RUN1 650  ->  654
+#RUN1 655  ->  659
+#RUN1 660  ->  664
+#RUN1 665  ->  669
+#RUN1 670  ->  674
+#RUN1 675  ->  679
+#RUN1 680  ->  684
+#RUN1 685  ->  689
+#RUN1 690  ->  694
+#RUN1 695  ->  699
+------
+#RUN1 700  ->  704
+#RUN1 705  ->  709
+#RUN1 710  ->  714
+#RUN1 715  ->  719
+#RUN1 720  ->  724
+#RUN1 725  ->  729
+#RUN1 730  ->  734
+#RUN1 735  ->  739
+#RUN1 740  ->  744
+#RUN1 745  ->  749
+------
+#RUN1 750  ->  754
+#RUN1 755  ->  759
+#RUN1 760  ->  764
+#RUN1 765  ->  769
+#RUN1 770  ->  774
+#RUN1 775  ->  779
+#RUN1 780  ->  784
+#RUN1 785  ->  789
+#RUN1 790  ->  794
+#RUN1 795  ->  799
+------
+#RUN1 800  ->  804
+#RUN1 805  ->  809
+#RUN1 810  ->  814
+#RUN1 815  ->  819
+#RUN1 820  ->  824
+#RUN1 825  ->  829
+#RUN1 830  ->  834
+#RUN1 835  ->  839
+#RUN1 840  ->  844
+#RUN1 845  ->  849
+------
+#RUN1 850  ->  854
+#RUN1 855  ->  859
+#RUN1 860  ->  864
+#RUN1 865  ->  869
+#RUN1 870  ->  874
+#RUN1 875  ->  879
+#RUN1 880  ->  884
+#RUN1 885  ->  889
+#RUN1 890  ->  894
+#RUN1 895  ->  899
+------
+#RUN1 900  ->  904
+#RUN1 905  ->  909
+#RUN1 910  ->  914
+#RUN1 915  ->  919
+#RUN1 920  ->  924
+#RUN1 925  ->  929
+#RUN1 930  ->  934
+#RUN1 935  ->  939
+#RUN1 940  ->  944
+#RUN1 945  ->  949
+------
+#RUN1 950  ->  954
+#RUN1 955  ->  959
+#RUN1 960  ->  964
+#RUN1 965  ->  969
+#RUN1 970  ->  974
+#RUN1 975  ->  979
+#RUN1 980  ->  984
+#RUN1 985  ->  989
+#RUN1 990  ->  994
+#RUN1 995  ->  999
+------
+#RUN1 1000  ->  1004
+#RUN1 1005  ->  1009
+#RUN1 1010  ->  1014
+#RUN1 1015  ->  1019
+#RUN1 1020  ->  1024
+#RUN1 1025  ->  1029
+#RUN1 1030  ->  1034
+#RUN1 1035  ->  1039
+#RUN1 1040  ->  1044
+#RUN1 1045  ->  1049
+------
+#RUN1 1050  ->  1054
+#RUN1 1055  ->  1059
+#RUN1 1060  ->  1064
+#RUN1 1065  ->  1069
+#RUN1 1070  ->  1074
+#RUN1 1075  ->  1079
+#RUN1 1080  ->  1084
+#RUN1 1085  ->  1089
+#RUN1 1090  ->  1094
+#RUN1 1095  ->  1099
+------
+#RUN1 1100  ->  1104
+#RUN1 1105  ->  1109
+#RUN1 1110  ->  1114
+#RUN1 1115  ->  1119
+#RUN1 1120  ->  1124
+#RUN1 1125  ->  1129
+#RUN1 1130  ->  1134
+#RUN1 1135  ->  1139
+#RUN1 1140  ->  1144
+#RUN1 1145  ->  1149
+------
+#RUN1 1150  ->  1154
+#RUN1 1155  ->  1159
+#RUN1 1160  ->  1164
+#RUN1 1165  ->  1169
+#RUN1 1170  ->  1174
+#RUN1 1175  ->  1179
+#RUN1 1180  ->  1184
+#RUN1 1185  ->  1189
+#RUN1 1190  ->  1194
+#RUN1 1195  ->  1199
+------
+#RUN1 1200  ->  1204
+#RUN1 1205  ->  1209
+#RUN1 1210  ->  1214
+#RUN1 1215  ->  1219
+#RUN1 1220  ->  1224
+#RUN1 1225  ->  1229
+#RUN1 1230  ->  1234
+#RUN1 1235  ->  1239
+#RUN1 1240  ->  1244
+#RUN1 1245  ->  1249
+------
+#RUN1 1250  ->  1254
+#RUN1 1255  ->  1259
+#RUN1 1260  ->  1264
+#RUN1 1265  ->  1269
+#RUN1 1270  ->  1274
+#RUN1 1275  ->  1279
+#RUN1 1280  ->  1284
+#RUN1 1285  ->  1289
+#RUN1 1290  ->  1294
+FetchError: invalid json response body at https://api.zed.run/api/v1/horses/offsprings/1299?after=g3QAAAABZAACaWRiAAGTCA== reason: Unexpected token < in JSON at position 0
+    at /home/nox/Documents/projects/zed-danshan-scripts/node_modules/node-fetch/lib/index.js:272:32
+    at runMicrotasks (<anonymous>)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at async fetch_r (/home/nox/Documents/projects/zed-danshan-scripts/js_code_files/utils.js:69:12)
+    at async get_kids (/home/nox/Documents/projects/zed-danshan-scripts/js_code_files/horses-kids.js:56:16)
+    at async get_kids (/home/nox/Documents/projects/zed-danshan-scripts/js_code_files/horses-kids.js:77:46)
+    at async get_kids (/home/nox/Documents/projects/zed-danshan-scripts/js_code_files/horses-kids.js:77:46)
+    at async get_kids (/home/nox/Documents/projects/zed-danshan-scripts/js_code_files/horses-kids.js:77:46)
+    at async get_kg (/home/nox/Documents/projects/zed-danshan-scripts/js_code_files/horses-kids.js:124:17)
+    at async get_kids_and_upload (/home/nox/Documents/projects/zed-danshan-scripts/js_code_files/horses-kids.js:228:12)
+    at async Promise.all (index 4)
+    at async Object.get_all_horses_kids (/home/nox/Documents/projects/zed-danshan-scripts/js_code_files/horses-kids.js:251:9) {
+  type: 'invalid-json'
+}
+#RUN1 1295  ->  1299
+------
+#RUN1 1300  ->  1304
+#RUN1 1305  ->  1309
+#RUN1 1310  ->  1314
+#RUN1 1315  ->  1319
+#RUN1 1320  ->  1324
+#RUN1 1325  ->  1329
+#RUN1 1330  ->  1334
+#RUN1 1335  ->  1339
+#RUN1 1340  ->  1344
+#RUN1 1345  ->  1349
+------
+#RUN1 1350  ->  1354
+#RUN1 1355  ->  1359
+#RUN1 1360  ->  1364
+#RUN1 1365  ->  1369
+#RUN1 1370  ->  1374
+#RUN1 1375  ->  1379
+#RUN1 1380  ->  1384
+#RUN1 1385  ->  1389
+#RUN1 1390  ->  1394
+#RUN1 1395  ->  1399
+------
+#RUN1 1400  ->  1404
+#RUN1 1405  ->  1409
+#RUN1 1410  ->  1414
+#RUN1 1415  ->  1419
+#RUN1 1420  ->  1424
+#RUN1 1425  ->  1429
+#RUN1 1430  ->  1434
+#RUN1 1435  ->  1439
+#RUN1 1440  ->  1444
+#RUN1 1445  ->  1449
+------
+#RUN1 1450  ->  1454
+#RUN1 1455  ->  1459
+#RUN1 1460  ->  1464
+#RUN1 1465  ->  1469
+#RUN1 1470  ->  1474
+#RUN1 1475  ->  1479
+#RUN1 1480  ->  1484
+#RUN1 1485  ->  1489
+#RUN1 1490  ->  1494
+#RUN1 1495  ->  1499
+------
+#RUN1 1500  ->  1504
+#RUN1 1505  ->  1509
+#RUN1 1510  ->  1514

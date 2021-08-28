@@ -760,4 +760,5 @@ module.exports = {
   run_cache_on_heroku,
   struct_race_row_data,
   initiate_everything,
+  generate_odds_for,
 };

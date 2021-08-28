@@ -8,6 +8,8 @@ const app_root = require("app-root-path");
 const { ObjectId } = require("mongodb");
 const readline = require("readline");
 const { download_eth_prices, get_fee_cat_on } = require("./base");
+const { generate_odds_for } = require("./index-odds-generator");
+const { get_parents_hids, get_kids_and_upload } = require("./horses-kids");
 
 let from_date;
 let to_date = new Date(Date.now()).toISOString().slice(0, 10);
@@ -18,6 +20,7 @@ let default_from_date = "2021-08-26";
 
 //global
 let avg_ob = {};
+let hids = [];
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -48,6 +51,9 @@ const get_flames = async (rid) => {
   if (!rid) return null;
   let api = `https://rpi.zed.run/?race_id=${rid}`;
   let doc = await fetch_r(api);
+  let rpi = doc?.rpi || {};
+  let n_hids = _.keys(rpi);
+  hids = [...hids, ...n_hids];
   return doc?.rpi || null;
 };
 
@@ -107,6 +113,7 @@ const find_raceids_on_date = async (date) => {
       { 2: { $gt: st_date, $lt: ed_date } },
       { projection: { 4: 1, _id: 0 } }
     )
+    // .limit(20)
     .toArray();
   let rids = _.isEmpty(docs) ? [] : _.map(docs, "4");
   return _.uniq(rids);
@@ -137,9 +144,30 @@ const add_flames_to_race_on_date = async (date) => {
     await delay(chunk_delay);
   }
   process.stdout.write(`${date_str} : ${progress_bar(n, n)} races\r`);
+  return rids || [];
+};
+
+const get_hids_of_race = async (rid) => {
+  let flames_ob = (await get_flames(rid)) || {};
+  return _.keys(flames_ob) || [];
+};
+const get_hids_in_races = async (rids = []) => {
+  let hids = [];
+  let i = 0,
+    n = rids.length;
+  for (let chunk of _.chunk(rids, chunk_size)) {
+    process.stdout.write(`${progress_bar(i, n)} \r`);
+    let data = await Promise.all(chunk.map((rid) => get_hids_of_race(rid)));
+    let chunk_hids = _.flatten(data);
+    hids = [...hids, ...chunk_hids];
+    i += chunk.length;
+  }
+  process.stdout.write(`${progress_bar(n, n)} \r`);
+  return _.uniq(hids);
 };
 
 const add_flames_to_race_from_to_date = async (from, to) => {
+  let all_rids = [];
   console.log("from: ", from);
   console.log("to  : ", to);
   let st_d = new Date(from).getTime();
@@ -148,15 +176,50 @@ const add_flames_to_race_from_to_date = async (from, to) => {
   for (let now = st_d; now <= ed_d; now += dif) {
     let today = new Date(now).toISOString();
     try {
-      await add_flames_to_race_on_date(today);
-      let update_ob = { last_updated: today };
-      await zed_db.db
-        .collection("odds_avg")
-        .updateOne({ id: "odds_avg_ALL" }, { $set: update_ob });
+      let rids = await add_flames_to_race_on_date(today);
+      all_rids = [...all_rids, ...rids];
+      console.log("getting horses in races:", rids.length);
     } catch (err) {
       console.log("\nerr getting races on ", today);
     }
   }
+  return all_rids;
+};
+
+const odds_generator_for = async (hids) => {
+  let i = 0;
+  let n = hids.length;
+  console.log("\n##odds_generator_for hids:", n);
+  for (let chunk of _.chunk(hids, 25)) {
+    process.stdout.write(`${progress_bar(i, n)} \r`);
+    await Promise.all(chunk.map((hid) => generate_odds_for(hid)));
+    i += chunk.length;
+  }
+  process.stdout.write(`${progress_bar(n, n)} \r`);
+  console.log("\n##COMPLETED odds_generator_for");
+};
+
+const breed_generator_for_hid_parents = async (hid) => {
+  hids = parseInt(hid);
+  if (hid == null) return;
+  let { mother = null, father = null } = await get_parents_hids(hid);
+  // console.log(hid, mother, father);
+  await get_kids_and_upload(mother);
+  await get_kids_and_upload(father);
+};
+
+const breed_generator_parents_of_all_horses = async (hids = []) => {
+  let i = 0;
+  let cs = 5;
+  let n = hids.length;
+  console.log("\n##breed_generator_parents_of_all_horses:", n);
+  for (let chunk of _.chunk(hids, cs)) {
+    process.stdout.write(`${progress_bar(i, n)} \r`);
+    await Promise.all(chunk.map((hid) => breed_generator_for_hid_parents(hid)));
+    i += cs;
+  }
+  process.stdout.write(`${progress_bar(n, n)} \r`);
+  console.log("\n##COMPLETED breed_generator_parents_of_all_horses");
 };
 
 const add_flames_on_all_races = async () => {
@@ -173,14 +236,26 @@ const add_flames_on_all_races = async () => {
   from_date = doc?.last_updated || default_from_date;
   from_date = new Date(from_date).toISOString().slice(0, 10);
 
-  await add_flames_to_race_from_to_date(from_date, to_date);
+  let rids = await add_flames_to_race_from_to_date(from_date, to_date);
+  console.log("\n\n## GOT", rids.length, "races in the duration");
+  hids = hids.sort();
+  hids = _.uniq(hids);
+  
+  await odds_generator_for(hids);
+  await breed_generator_parents_of_all_horses(hids);
+
+  let update_ob = { last_updated: to_date.slice(0, 10) };
+  await zed_db.db
+    .collection("odds_avg")
+    .updateOne({ id: "odds_avg_ALL" }, { $set: update_ob });
   console.log("\n=========\nCOMPLETED");
   await zed_db.close();
   await zed_ch.close();
+
   return;
   process.exit();
 };
-// add_flames_on_all_races();
+add_flames_on_all_races();
 
 module.exports = {
   add_flames_on_all_races,

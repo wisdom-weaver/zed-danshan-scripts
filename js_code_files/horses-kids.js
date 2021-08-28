@@ -269,4 +269,6 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 module.exports = {
   get_all_horses_kids,
+  get_kids_and_upload,
+  get_parents_hids,
 };
