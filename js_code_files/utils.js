@@ -59,7 +59,7 @@ const calc_median = (array = []) => {
   return median;
 };
 
-const fetch_r_delay = 100;
+const fetch_r_delay = 500;
 const fetch_r = async (api, i = 3) => {
   if (i == 0) {
     console.log(`err fetching`, api);
