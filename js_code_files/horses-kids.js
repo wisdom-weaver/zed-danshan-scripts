@@ -22,8 +22,8 @@ const {
 const { generate_max_horse } = require("./max_horses");
 
 let st, ed, mx;
-let chunk_size = 3;
-let chunk_delay = 500;
+let chunk_size = 5;
+let chunk_delay = 100;
 
 //global
 let z_ALL = {};
@@ -254,16 +254,14 @@ const get_all_horses_kids = async () => {
         i++;
         if (i % 10 == 0) {
           console.log("------");
-          await delay(2000);
+          await delay(1000);
           i = 0;
         }
       }
     }
     console.log("## Fetch completed");
-    await zed_db.close();
   } catch (err) {
     console.log("ERROR get_all_horses_kids\n", err);
-    await zed_db.close();
   }
 };
 
