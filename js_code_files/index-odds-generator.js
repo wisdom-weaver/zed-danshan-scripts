@@ -11,15 +11,19 @@ const {
   get_at_eth_price_on,
   get_date,
 } = require("./base");
+const { generate_max_horse } = require("./max_horses");
 
-let mx = 88433;
-// let h = 79917;
-let st = 0;
-let ed = mx;
-// st = h;
-// ed = h;
+let st, ed, mx;
 let chunk_size = 25;
 let chunk_delay = 100;
+
+const initiate_everything = async () => {
+  console.log("## Initiating");
+  await download_eth_prices();
+  st = 0;
+  mx = await generate_max_horse();
+  ed = mx;
+};
 
 const filter_error_horses = (horses = []) => {
   return horses?.filter(({ hid }) => ![15812, 15745].includes(hid));
@@ -160,7 +164,7 @@ const filter_acc_to_criteria = ({
       fee_cat,
     }) => {
       entryfee = parseFloat(entryfee);
-      if(odds==0 || odds==null) return false;
+      if (odds == 0 || odds == null) return false;
       if (criteria?.thisclass !== undefined && criteria?.thisclass !== "#")
         if (!(thisclass == criteria.thisclass)) return false;
 
@@ -560,10 +564,9 @@ const fetch_all_horses = async () => {
 
 const start = async () => {
   try {
-    await download_eth_prices();
+    await initiate_everything();
 
     await fetch_all_horses();
-
     console.log("## Fetch completed");
 
     console.log("## Generating Blood Ranks");
@@ -756,4 +759,5 @@ module.exports = {
   give_ranks_on_rating_blood,
   run_cache_on_heroku,
   struct_race_row_data,
+  initiate_everything,
 };

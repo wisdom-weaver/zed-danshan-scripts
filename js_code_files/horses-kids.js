@@ -19,19 +19,23 @@ const {
   get_at_eth_price_on,
   get_date,
 } = require("./base");
+const { generate_max_horse } = require("./max_horses");
 
-let mx = 88433;
-let h = 1;
-let st = 0;
-let ed = mx;
-// st = 6589;
-// ed = h;
+let st, ed, mx;
 let chunk_size = 3;
 let chunk_delay = 500;
 
 //global
 let z_ALL = {};
 let tot_runs = 1;
+
+const initiate_everything = async () => {
+  console.log("## Initiating");
+  await download_eth_prices();
+  st = 0;
+  mx = await generate_max_horse();
+  ed = mx;
+};
 
 const get_parents_hids = async (hid) => {
   let api = `https://api.zed.run/api/v1/horses/get/${hid}`;
@@ -235,7 +239,7 @@ const get_kids_and_upload = async (hid) => {
 
 const get_all_horses_kids = async () => {
   try {
-    await init();
+    await initiate_everything();
     z_ALL = await get_z_ALL_meds();
     console.log("z_ALL loaded");
     console.log("=> STARTED horses_kids: ", `${st}:${ed}`);
