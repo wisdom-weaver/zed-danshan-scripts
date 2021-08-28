@@ -13,7 +13,7 @@ const {
 } = require("./base");
 
 let mx = 88000;
-let h = 75000;
+// let h = 79917;
 let st = 0;
 let ed = mx;
 // st = h;
@@ -160,7 +160,7 @@ const filter_acc_to_criteria = ({
       fee_cat,
     }) => {
       entryfee = parseFloat(entryfee);
-
+      if(odds==0 || odds==null) return false;
       if (criteria?.thisclass !== undefined && criteria?.thisclass !== "#")
         if (!(thisclass == criteria.thisclass)) return false;
 
@@ -252,6 +252,7 @@ const get_odds_map = ({
 const gen_odds_coll = ({ coll, races = [], extra_criteria = {} }) => {
   let odds_map = get_odds_map({ cls, dists, fee_cats, races, extra_criteria });
   let ob = {};
+  // console.log(odds_map);
   for (let key in odds_map) {
     ob[key] = calc_median(odds_map[key]);
   }
@@ -288,14 +289,14 @@ const gen_and_upload_odds_coll = async ({
 const null_hr_ob = { cf: "na", d: null, med: null, side: "-" };
 
 const get_class_hr = async (hid) => {
-  hid = parseInt(hid);
+  hid = parseFloat(hid).toFixed(0);
   // console.log("get_class_hr");
   let races = await get_races_of_hid(hid);
   let odds_ob = gen_odds_coll({ races, extra_criteria: { is_paid: true } });
 
   let keys = [1, 2, 3, 4, 5].map((ea) => `${ea}#####`);
   let req = keys.map((k) => ({ k, v: odds_ob[k] }));
-  // console.log(req);
+  // console.log(odds_ob);
   let min_ob = _.minBy(req, "v");
   if (_.isEmpty(min_ob)) return null;
   let res = {
@@ -522,7 +523,7 @@ const generate_odds_for = async (hid) => {
       races,
       ...or_map[1],
     });
-    // console.log(odds_live);
+    // console.log(or_map[1]);
     let races_n = races?.length || 0;
     let bhr = await gen_and_upload_blood_hr({
       hid,
