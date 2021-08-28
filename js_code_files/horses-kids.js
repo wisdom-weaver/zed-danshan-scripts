@@ -10,6 +10,7 @@ const {
   pad,
   calc_median,
   dec2,
+  fetch_r,
 } = require("./utils");
 const app_root = require("app-root-path");
 const {
@@ -31,18 +32,6 @@ let chunk_delay = 10;
 //global
 let z_ALL = {};
 let tot_runs = 1;
-
-const fetch_r_delay = 10;
-const fetch_r = async (api, i = 3) => {
-  if (i == 0) return null;
-  try {
-    return await fetch(api).then((r) => r.json());
-  } catch (err) {
-    console.log(`err fetching`, api, `\n retries left: ${i}`);
-    await delay(fetch_r_delay);
-    return await fetch_r(api, i - 1);
-  }
-};
 
 const get_parents_hids = async (hid) => {
   let api = `https://api.zed.run/api/v1/horses/get/${hid}`;

@@ -61,12 +61,14 @@ const calc_median = (array = []) => {
 
 const fetch_r_delay = 100;
 const fetch_r = async (api, i = 3) => {
-  if (i == 0) return null;
+  if (i == 0) {
+    console.log(`err fetching`, api);
+    return null;
+  }
   try {
     return await fetch(api).then((r) => r.json());
   } catch (err) {
     console.log(err);
-    console.log(`err fetching`, api, `\n retries left: ${i}`);
     await delay(fetch_r_delay);
     return await fetch_r(api, i - 1);
   }
