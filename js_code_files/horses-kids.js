@@ -210,7 +210,7 @@ const get_kg = async (hid) => {
     let kid_scores = _.chain(kids).keyBy("hid").mapValues("kid_score").value();
 
     let vals = _.chain(kid_scores).values().compact().value();
-    console.log(vals);
+    // console.log(vals);
     let avg = calc_avg(vals) ?? null;
     let gz_med = calc_median(vals) ?? null;
 
