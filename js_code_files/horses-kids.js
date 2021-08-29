@@ -22,7 +22,7 @@ const {
 const { generate_max_horse } = require("./max_horses");
 
 let st, ed, mx;
-let chunk_size = 5;
+let chunk_size = 10;
 let chunk_delay = 100;
 
 //global
@@ -209,8 +209,10 @@ const get_kg = async (hid) => {
     let odds = _.chain(kids).keyBy("hid").mapValues("g").value();
     let kid_scores = _.chain(kids).keyBy("hid").mapValues("kid_score").value();
 
-    let avg = calc_avg(_.values(kid_scores)) ?? null;
-    let gz_med = calc_median(_.values(kid_scores)) ?? null;
+    let vals = _.chain(kid_scores).values().compact().value();
+    console.log(vals);
+    let avg = calc_avg(vals) ?? null;
+    let gz_med = calc_median(vals) ?? null;
 
     let kg = { hid, odds, avg, gz_med, kids_n, is };
     // console.log({ avg: dec2(avg), gz_med: dec2(gz_med) });

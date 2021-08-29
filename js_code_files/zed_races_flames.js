@@ -11,6 +11,7 @@ const { download_eth_prices, get_fee_cat_on } = require("./base");
 const {
   generate_odds_for,
   generate_blood_mapping,
+  give_ranks_on_rating_blood,
 } = require("./index-odds-generator");
 const { get_parents_hids, get_kids_and_upload } = require("./horses-kids");
 
@@ -194,11 +195,11 @@ const odds_generator_for = async (hids) => {
   let n = hids.length;
   console.log("\n##odds_generator_for hids:", n);
   for (let chunk of _.chunk(hids, 25)) {
-    process.stdout.write(`${progress_bar(i, n)} \r`);
+    process.stdout.write(`odds  : ${progress_bar(i, n)} \r`);
     await Promise.all(chunk.map((hid) => generate_odds_for(hid)));
     i += chunk.length;
   }
-  process.stdout.write(`${progress_bar(n, n)} \r`);
+  process.stdout.write(`odds  : ${progress_bar(n, n)} \r`);
   console.log("\n##COMPLETED odds_generator_for");
 };
 
@@ -218,12 +219,12 @@ const breed_generator_parents_of_all_horses = async (hids = []) => {
   let n = hids.length;
   console.log("\n##breed_generator_parents_of_all_horses:", n);
   for (let chunk of _.chunk(hids, cs)) {
-    process.stdout.write(`${progress_bar(i, n)} \r`);
+    process.stdout.write(`breed : ${progress_bar(i, n)} \r`);
     await Promise.all(chunk.map((hid) => breed_generator_for_hid_parents(hid)));
     i += cs;
     delay(100);
   }
-  process.stdout.write(`${progress_bar(n, n)} \r`);
+  process.stdout.write(`breed : ${progress_bar(n, n)} \r`);
   console.log("\n##COMPLETED breed_generator_parents_of_all_horses");
 };
 
@@ -240,6 +241,9 @@ const add_flames_on_all_races = async () => {
 
   from_date = doc?.last_updated || default_from_date;
   from_date = new Date(from_date).toISOString().slice(0, 10);
+
+  // from_date = "2020-12-31";
+  // to_date = "2020-12-31";
 
   let rids = await add_flames_to_race_from_to_date(from_date, to_date);
   console.log("\n\n## GOT", rids.length, "races in the duration");
@@ -265,7 +269,7 @@ const add_flames_on_all_races = async () => {
   return;
   process.exit();
 };
-add_flames_on_all_races();
+// add_flames_on_all_races();
 
 module.exports = {
   add_flames_on_all_races,
