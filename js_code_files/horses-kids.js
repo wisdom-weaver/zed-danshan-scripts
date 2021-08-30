@@ -257,10 +257,9 @@ const get_kids_and_upload = async (hid, print = 0) => {
 const get_all_horses_kids = async () => {
   try {
     await initiate_everything();
-
     // await download_eth_prices();
-    st = 10000;
-    // ed = 1;
+    // st = 530;
+    // ed = 530;
     z_ALL = await get_z_ALL_meds();
     console.log("z_ALL loaded");
 
