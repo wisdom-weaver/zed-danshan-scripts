@@ -77,7 +77,7 @@ const get_filtered_br = async () => {
     .toArray();
   console.log(docs);
 };
-get_filtered_br();
+// get_filtered_br();
 
 module.exports = {
   write_horse_details_to_all_br,

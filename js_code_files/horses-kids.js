@@ -20,6 +20,7 @@ const {
   get_date,
 } = require("./base");
 const { generate_max_horse } = require("./max_horses");
+const { write_horse_details_to_hid_br } = require("./breed_score_leaderboard");
 
 let st, ed, mx;
 let chunk_size = 25;
@@ -250,6 +251,7 @@ const get_kids_and_upload = async (hid, print = 0) => {
   await zed_db.db
     .collection("kids")
     .updateOne({ hid }, { $set: kg }, { upsert: true });
+  await write_horse_details_to_hid_br(hid);
 };
 
 const get_all_horses_kids = async () => {
