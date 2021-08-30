@@ -203,24 +203,26 @@ const odds_generator_for = async (hids) => {
   console.log("\n##COMPLETED odds_generator_for");
 };
 
-const breed_generator_for_hid_parents = async (hid) => {
+const breed_generator_for_hid_parents = async (hid, log = 0) => {
   hids = parseInt(hid);
   if (hid == null) return;
   let { mother = null, father = null } = await get_parents_hids(hid);
-  // console.log(hid, mother, father);
-  await get_kids_and_upload(mother);
-  await get_kids_and_upload(father);
-  await get_kids_and_upload(hid);
+  if (log == 1) console.log(hid, mother, father);
+  await get_kids_and_upload(mother, log);
+  await get_kids_and_upload(father, log);
+  await get_kids_and_upload(hid, log);
 };
 
-const breed_generator_parents_of_all_horses = async (hids = []) => {
+const breed_generator_parents_of_all_horses = async (hids = [], log) => {
   let i = 0;
-  let cs = 2;
+  let cs = 1;
   let n = hids.length;
   console.log("\n##breed_generator_parents_of_all_horses:", n);
   for (let chunk of _.chunk(hids, cs)) {
     process.stdout.write(`breed : ${progress_bar(i, n)} \r`);
-    await Promise.all(chunk.map((hid) => breed_generator_for_hid_parents(hid)));
+    await Promise.all(
+      chunk.map((hid) => breed_generator_for_hid_parents(hid, log))
+    );
     i += cs;
     delay(100);
   }
@@ -245,15 +247,20 @@ const add_flames_on_all_races = async () => {
   // from_date = "2020-12-31";
   // to_date = "2020-12-31";
 
-  let rids = await add_flames_to_race_from_to_date(from_date, to_date);
-  console.log("\n\n## GOT", rids.length, "races in the duration");
+  await add_flames_to_race_from_to_date(from_date, to_date);
+  console.log("\n\n## GOT all races in the duration");
+  
   hids = hids.sort();
   hids = _.uniq(hids);
+  console.log("horses=>");
+  console.log(JSON.stringify(hids));
 
   await odds_generator_for(hids);
-  await breed_generator_parents_of_all_horses(hids);
+
+  await breed_generator_parents_of_all_horses(hids,1);
 
   let update_ob = { last_updated: to_date.slice(0, 10) };
+  
   await zed_db.db
     .collection("odds_avg")
     .updateOne({ id: "odds_avg_ALL" }, { $set: update_ob });

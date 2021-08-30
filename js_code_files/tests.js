@@ -13,6 +13,7 @@ const app_root = require("app-root-path");
 const { MongoClient } = require("mongodb");
 const fetch = require("node-fetch");
 const { download_eth_prices } = require("./base");
+const fs = require("fs");
 
 const test1 = async () => {
   await init();
@@ -389,7 +390,69 @@ const test7 = async () => {
 const test8 = async () => {
   await init();
   await download_eth_prices();
+  console.log("test8");
+  let path = `${app_root}/log/bb.log`;
+  let txt = fs.readFileSync(path, { encoding: "utf8" });
+  txt = txt.split("\n");
+  let ob = {};
+  for (let i = 0; i < txt.length; i++) {
+    let row = txt[i];
+    if (!row.startsWith("horse_")) continue;
+    let hid = row.split(" ")[0].replaceAll("horse_", "");
+    hid = parseInt(hid);
+    let row2 = txt[i + 1];
+    row2 = row2.replace("avg", `"avg"`);
+    row2 = row2.replace("gz_med", `"gz_med"`);
+    let data = JSON.parse(row2);
+    // if (hid == 20560) {
+    // console.log(hid, data);
+    // await zed_db
+    //   .collection("kids")
+    //   .updateOne({ hid }, { $set: data }, { upsert: true });
+    // }
+    ob[hid] = data;
+  }
+  let out_path = `${app_root}/log/gz_med.json`;
+  write_to_path({ file_path: out_path, data: { gz_med_ob: ob } });
+  console.log("completed");
 };
+const test9 = async () => {
+  await init();
+  await download_eth_prices();
+  console.log("test9");
+  let out_path = `${app_root}/log/gz_med.json`;
+  let json = read_from_path({ file_path: out_path });
+  let { gz_med_ob } = json;
+  gz_med_ob = _.entries(gz_med_ob).map(([hid, data]) => ({
+    hid: parseInt(hid),
+    ...data,
+  }));
+  // gz_med_ob = gz_med_ob.slice(0, 10);
+  for (let chunk of _.chunk(gz_med_ob, 100)) {
+    await Promise.all(
+      chunk.map((e) => {
+        return zed_db
+          .collection("kids")
+          .updateOne({ hid: e.hid }, { $set: e }, { upsert: true });
+      })
+    );
+    console.log(chunk[0].hid, "->", chunk[chunk.length - 1].hid);
+  }
+  console.log("completed");
+};
+
+const test10 = async () => {
+  await init();
+  await download_eth_prices();
+  console.log("test10");
+  let to_date = "2021-08-29";
+  let update_ob = { last_updated: to_date.slice(0, 10) };
+  await zed_db.db
+    .collection("odds_avg")
+    .updateOne({ id: "odds_avg_ALL" }, { $set: update_ob });
+  console.log("completed");
+};
+test10();
 
 module.exports = {
   test1,
