@@ -271,7 +271,7 @@ const upload_odds_coll = async ({ hid, coll, odds_coll }) => {
       .collection(coll)
       .updateOne({ hid }, { $set: ob }, { upsert: true });
   } catch (err) {
-    console.log("error gen_odds_coll", hid);
+    return console.log("error gen_odds_coll", hid);
   }
 };
 const gen_and_upload_odds_coll = async ({
@@ -539,7 +539,7 @@ const generate_odds_for = async (hid) => {
     // console.log(`# hid:`, hid, "len:", races.length, "rating_blood:", bhr);
     await get_parent_details_upload(hid);
   } catch (err) {
-    console.log("ERROR generate_odds_for", hid);
+    return console.log("ERROR generate_odds_for", hid);
   }
 };
 

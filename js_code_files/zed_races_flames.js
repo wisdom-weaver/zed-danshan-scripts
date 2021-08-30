@@ -257,10 +257,10 @@ const add_flames_on_all_races = async () => {
 
   await odds_generator_for(hids);
 
-  await breed_generator_parents_of_all_horses(hids,1);
+  await breed_generator_parents_of_all_horses(hids, 1);
 
   let update_ob = { last_updated: to_date.slice(0, 10) };
-  
+
   await zed_db.db
     .collection("odds_avg")
     .updateOne({ id: "odds_avg_ALL" }, { $set: update_ob });
@@ -276,7 +276,7 @@ const add_flames_on_all_races = async () => {
   return;
   process.exit();
 };
-// add_flames_on_all_races();
+add_flames_on_all_races();
 
 module.exports = {
   add_flames_on_all_races,
