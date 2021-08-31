@@ -53,6 +53,7 @@ const key_mapping_bs_zed = [
   ["11", "odds"],
   ["12", "unknown"],
   ["13", "flame"],
+  ["14", "fee_cat"],
 ];
 
 const from_ch_zed_collection = async (query) => {

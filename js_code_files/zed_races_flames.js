@@ -19,7 +19,7 @@ let from_date;
 let to_date = new Date(Date.now()).toISOString().slice(0, 10);
 let chunk_size = 10;
 let chunk_delay = 100;
-let cutoff_date = "2021-08-25T19:00:00.000Z";
+let cutoff_date = "2021-08-24T00:00:00.000Z";
 let default_from_date = "2021-08-26";
 
 //global
@@ -244,8 +244,8 @@ const add_flames_on_all_races = async () => {
   from_date = doc?.last_updated || default_from_date;
   from_date = new Date(from_date).toISOString().slice(0, 10);
 
-  // from_date = "2020-12-31";
-  // to_date = "2020-12-31";
+  from_date = "2021-08-24";
+  to_date = "2021-08-26";
 
   await add_flames_to_race_from_to_date(from_date, to_date);
   console.log("\n\n## GOT all races in the duration");
@@ -257,13 +257,13 @@ const add_flames_on_all_races = async () => {
 
   await odds_generator_for(hids);
 
-  await breed_generator_parents_of_all_horses(hids, 1);
+  // await breed_generator_parents_of_all_horses(hids, 1);
 
-  let update_ob = { last_updated: to_date.slice(0, 10) };
+  // let update_ob = { last_updated: to_date.slice(0, 10) };
 
-  await zed_db.db
-    .collection("odds_avg")
-    .updateOne({ id: "odds_avg_ALL" }, { $set: update_ob });
+  // await zed_db.db
+  //   .collection("odds_avg")
+  //   .updateOne({ id: "odds_avg_ALL" }, { $set: update_ob });
 
   console.log("generate_blood_mapping");
   await generate_blood_mapping();
@@ -276,8 +276,8 @@ const add_flames_on_all_races = async () => {
   return;
   process.exit();
 };
-add_flames_on_all_races();
 
 module.exports = {
   add_flames_on_all_races,
+  progress_bar
 };
