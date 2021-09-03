@@ -76,6 +76,49 @@ const fetch_r = async (api, i = 3) => {
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const key_mapping_bs_zed = [
+  ["_id", "_id"],
+  ["1", "distance"],
+  ["2", "date"],
+  ["3", "entryfee"],
+  ["4", "raceid"],
+  ["5", "thisclass"],
+  ["6", "hid"],
+  ["7", "finishtime"],
+  ["8", "place"],
+  ["9", "name"],
+  ["10", "gate"],
+  ["11", "odds"],
+  ["12", "unknown"],
+  ["13", "flame"],
+  ["14", "fee_cat"],
+];
+
+const struct_race_row_data = (data) => {
+  try {
+    // console.log(data.length);
+    if (_.isEmpty(data)) return [];
+    data = data?.map((row) => {
+      // console.log(row);
+      if (row == null) return null;
+      return key_mapping_bs_zed.reduce(
+        (acc, [key_init, key_final]) => ({
+          ...acc,
+          [key_final]: row[key_init] || 0,
+        }),
+        {}
+      );
+    });
+    data = _.compact(data);
+  } catch (err) {
+    if (data.name == "MongoNetworkError") {
+      console.log("MongoNetworkError");
+    }
+    return [];
+  }
+  return data;
+};
+
 module.exports = {
   calc_avg,
   write_to_path,
@@ -86,4 +129,5 @@ module.exports = {
   fetch_r_delay,
   fetch_r,
   delay,
+  struct_race_row_data,
 };

@@ -12,6 +12,7 @@ const {
   get_date,
 } = require("./base");
 const { generate_max_horse } = require("./max_horses");
+const { get_n_upload_rating_flames } = require("./update_flame_concentration");
 
 let st, ed, mx;
 let chunk_size = 25;
@@ -508,6 +509,7 @@ const generate_odds_for = async (hid) => {
     if (_.isEmpty(details)) return console.log("# hid:", hid, "empty_horse");
     hid = parseInt(hid);
     if (isNaN(hid)) return;
+    await get_n_upload_rating_flames(hid);
     let races = await get_races_of_hid(hid);
     // console.log(races[0]);
     // console.log(races.reduce((acc, ea) => (ea.odds == 0 ? acc + 1 : acc), 0));

@@ -5,7 +5,7 @@ const { ObjectID, ObjectId } = require("mongodb");
 const { delay } = require("./utils");
 const { progress_bar } = require("./zed_races_flames");
 const { get_max_horse } = require("./max_horses");
-const { get_races_of_hid } = require("./index-odds-generator");
+const { get_races_of_hid } = require("./cyclic_dependency")
 
 const add_fee_cat_to_doc = async (doc) => {
   let _id = doc._id;
@@ -49,7 +49,7 @@ const each_horse_fee_cat_n_flames_rating = async (hid) => {
 const add_fee_cat_to_all_horses_races = async () => {
   await init();
   await download_eth_prices();
-  let st = 1;
+  let st = 23720;
   let ed = await get_max_horse();
   console.log(st, ":", ed);
   let hids = new Array(ed - st + 1).fill(0).map((e, i) => st + i);
@@ -57,9 +57,7 @@ const add_fee_cat_to_all_horses_races = async () => {
   // hids = [75441];
   let cs = 20;
   for (let chunk of _.chunk(hids, cs)) {
-    await Promise.all(
-      chunk.map((hid) => each_horse_fee_cat_n_flames_rating(hid))
-    );
+    await Promise.all(chunk.map((hid) => add_fee_cat_to_hid_races(hid)));
     console.log(chunk[0], " -> ", chunk[chunk.length - 1]);
   }
 };
@@ -128,8 +126,10 @@ const get_rating_flames = async (hid) => {
       let F = 1;
       let d = parseInt(key.slice(2));
       let fr = races.filter((r) => {
+        let fee_cat = get_fee_cat_on({ date: r.date, fee: r.entryfee });
         if (r.thisclass !== c) return false;
-        if (r.fee_cat !== f) return false;
+        // if (r.fee_cat !== f) return false;
+        if (fee_cat !== f) return false;
         if (r.distance !== d) return false;
         return true;
       });
@@ -173,7 +173,7 @@ const get_rating_flames = async (hid) => {
     return mx_ob;
   } catch (err) {
     console.log("err on get_rating_flames", hid);
-    // console.log(err);
+    console.log(err);
   }
 };
 const get_n_upload_rating_flames = async (hid) => {
@@ -186,11 +186,33 @@ const get_n_upload_rating_flames = async (hid) => {
     .collection("rating_flames")
     .updateOne({ hid }, { $set: ob }, { upsert: true });
 };
-add_fee_cat_to_all_horses_races();
+// add_fee_cat_to_all_horses_races();
 
-// const test = async () => {
-//   await init();
-//   let hid = 2;
-//   await get_n_upload_rating_flames(hid);
-// };
+const test = async () => {
+  await init();
+  let hid = 3312;
+  await get_n_upload_rating_flames(hid);
+  console.log("completed");
+};
 // test();
+
+const add_rating_flames_to_all_horses_races = async () => {
+  await init();
+  await download_eth_prices();
+  let st = 1;
+  let ed = await get_max_horse();
+  console.log(st, ":", ed);
+  let hids = new Array(ed - st + 1).fill(0).map((e, i) => st + i);
+  // hids = [37136, 53814, 75441, 3312, 19587];
+  // hids = [75441];
+  let cs = 50;
+  for (let chunk of _.chunk(hids, cs)) {
+    await Promise.all(chunk.map((hid) => get_n_upload_rating_flames(hid)));
+    console.log(chunk[0], " -> ", chunk[chunk.length - 1]);
+  }
+};
+// add_rating_flames_to_all_horses_races();
+
+module.exports = {
+  get_n_upload_rating_flames,
+};
