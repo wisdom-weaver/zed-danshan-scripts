@@ -313,7 +313,7 @@ const add_flames_on_all_races = async () => {
 const runner = async () => {
   await add_flames_on_all_races();
 };
-runner();
+// runner();
 
 module.exports = {
   add_flames_on_all_races,
