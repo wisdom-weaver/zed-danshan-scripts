@@ -8,7 +8,7 @@ const {
 const { init, zed_db, zed_ch } = require("./index-run");
 const _ = require("lodash");
 const mongoose = require("mongoose");
-const { write_to_path, read_from_path } = require("./utils");
+const { write_to_path, read_from_path, fetch_r } = require("./utils");
 const app_root = require("app-root-path");
 const { MongoClient } = require("mongodb");
 const fetch = require("node-fetch");
@@ -452,7 +452,19 @@ const test10 = async () => {
     .updateOne({ id: "odds_avg_ALL" }, { $set: update_ob });
   console.log("completed");
 };
-test10();
+const test11 = async () => {
+  let rid = "NnzBouwP";
+  let api = `https://bs-zed-backend-api.herokuapp.com/races/get/by-raceid/${rid}`;
+  let ar = await fetch_r(api);
+  ar = _.sortBy(ar, "finishtime").map(({ hid, name, place, finishtime }) => ({
+    hid,
+    name,
+    place,
+    finishtime,
+  }));
+  console.table(ar);
+};
+test11();
 
 module.exports = {
   test1,

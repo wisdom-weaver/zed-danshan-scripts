@@ -1,5 +1,5 @@
-const {get_fee_cat_on} = require("./base")
-const _ = require("lodash")
+const { get_fee_cat_on } = require("./base");
+const _ = require("lodash");
 const { zed_ch } = require("./index-run");
 
 const key_mapping_bs_zed = [
@@ -69,6 +69,17 @@ const get_races_of_hid = async (hid) => {
   return data;
 };
 
+const progress_bar = (a, b) => {
+  let len = 50;
+  let per = parseFloat((a / b) * 100).toFixed(2);
+  let eqs = new Array(Math.ceil((len * a) / b)).fill("=").join("");
+  let dts = new Array(Math.ceil(len * (1 - a / b))).fill(".").join("");
+  return `[${eqs}>${dts}] ${per}%| ${a}/${b}`;
+};
+
 module.exports = {
-  get_races_of_hid
-}
+  get_races_of_hid,
+  from_ch_zed_collection,
+  struct_race_row_data,
+  progress_bar,
+};

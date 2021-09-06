@@ -14,10 +14,13 @@ const {
   give_ranks_on_rating_blood,
 } = require("./index-odds-generator");
 const { get_parents_hids, get_kids_and_upload } = require("./horses-kids");
+const {
+  get_adjusted_finish_times,
+} = require("./zed_races_adjusted_finish_time");
 
 let from_date;
 let to_date = new Date(Date.now()).toISOString().slice(0, 10);
-let chunk_size = 10;
+let chunk_size = 20;
 let chunk_delay = 100;
 let cutoff_date = "2021-08-24T00:00:00.000Z";
 let default_from_date = "2021-08-26";
@@ -45,6 +48,8 @@ const key_mapping_bs_zed = [
   ["11", "odds"],
   ["12", "unknown"],
   ["13", "flame"],
+  ["14", "fee_cat"],
+  ["15", "adjfinishtime"],
 ];
 const key_no = (key) => {
   let r = _.find(key_mapping_bs_zed, { 1: key });
@@ -61,7 +66,13 @@ const get_flames = async (rid) => {
   return doc?.rpi || null;
 };
 
-const set_flame_for_horse = async ({ rid, hid, flame }) => {
+const set_flame_for_horse = async ({
+  hid,
+  rid,
+  flame,
+  fee_cat,
+  adjfinishtime,
+}) => {
   try {
     let doc = await zed_ch.db.collection("zed").findOne({ 4: rid, 6: hid });
     if (doc == null) {
@@ -70,17 +81,21 @@ const set_flame_for_horse = async ({ rid, hid, flame }) => {
     }
     let _id = ObjectId(doc?._id);
     let date = doc["2"];
-    let update_ob = { 13: flame };
-    if (date >= cutoff_date) {
-      let d = doc["1"];
-      let fee = doc["3"];
-      let c = doc["5"];
-      let p = doc["8"];
-      let fee_cat = get_fee_cat_on({ date, fee });
-      let key = [c, fee_cat, d, p, flame].join("_");
-      let odds = avg_ob[key] || 0;
-      update_ob["11"] = odds;
-    }
+    let update_ob = {
+      13: flame,
+      14: fee_cat,
+      15: adjfinishtime,
+    };
+    // if (date >= cutoff_date) {
+    //   let d = doc["1"];
+    //   let fee = doc["3"];
+    //   let c = doc["5"];
+    //   let p = doc["8"];
+    //   let fee_cat = get_fee_cat_on({ date, fee });
+    //   let key = [c, fee_cat, d, p, flame].join("_");
+    //   let odds = avg_ob[key] || 0;
+    //   update_ob["11"] = odds;
+    // }
     await zed_ch.db.collection("zed").updateOne({ _id }, { $set: update_ob });
   } catch (err) {
     console.log("err on set_flame_for_horse", rid, hid);
@@ -89,12 +104,29 @@ const set_flame_for_horse = async ({ rid, hid, flame }) => {
 
 const add_flames_to_race = async (rid) => {
   try {
+    let doc01 = (await zed_ch.db.collection("zed").findOne({ 4: rid })) || null;
+    if (_.isEmpty(doc01)) {
+      console.log(rid, "race not found in database");
+      return;
+    }
     let flames = await get_flames(rid);
-    if (_.isEmpty(flames)) return console.log("couldn't load flames for", rid);
+    let aft = await get_adjusted_finish_times(rid);
+    let fee_cat = await get_fee_cat_on({ date: doc01["2"], fee: doc01["3"] });
+    // console.log({ rid, flames, aft, fee_cat });
+    // if (_.isEmpty(flames)) return console.log("couldn't load flames for", rid);
     // console.log(flames);
-    let hids = _.keys(flames).map(parseFloat);
+    // let hids = _.keys(flames).map(parseFloat);
+    let hids = _.keys(aft).map(parseFloat);
     await Promise.all(
-      hids.map((hid) => set_flame_for_horse({ hid, rid, flame: flames[hid] }))
+      hids.map((hid) =>
+        set_flame_for_horse({
+          hid,
+          rid,
+          flame: flames[hid],
+          fee_cat,
+          adjfinishtime: aft[hid],
+        })
+      )
     );
   } catch (err) {
     console.log("err add_flames_to_race ", rid, err.message);
@@ -241,11 +273,12 @@ const add_flames_on_all_races = async () => {
   console.log("avgs loaded", _.keys(avg_ob).length);
   console.log("last updated date:", doc?.last_updated);
 
-  from_date = doc?.last_updated || default_from_date;
-  from_date = new Date(from_date).toISOString().slice(0, 10);
+  // from_date = doc?.last_updated || default_from_date;
+  // from_date = new Date(from_date).toISOString().slice(0, 10);
 
-  // from_date = "2021-08-24";
-  // to_date = "2021-08-26";
+  // from_date = "2020-12-30";
+  from_date = "2021-04-23"
+  to_date = new Date().toISOString().slice(0, 10);
 
   await add_flames_to_race_from_to_date(from_date, to_date);
   console.log("\n\n## GOT all races in the duration");
@@ -277,7 +310,12 @@ const add_flames_on_all_races = async () => {
   process.exit();
 };
 
+const runner = async () => {
+  await add_flames_on_all_races();
+};
+runner();
+
 module.exports = {
   add_flames_on_all_races,
-  progress_bar
+  progress_bar,
 };
