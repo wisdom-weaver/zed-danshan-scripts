@@ -241,12 +241,12 @@ const zed_races_automated_script_run = async () => {
   let cron_str = "*/2 * * * *";
   const c_itvl = cron_parser.parseExpression(cron_str);
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
-  zed_race_add_runner("manual", {
-    from_a: "2021-09-10T23:27:12Z",
-    to_a: "2021-09-10T23:27:12Z",
-  });
+  // zed_race_add_runner("manual", {
+  //   from_a: "2021-09-10T23:27:12Z",
+  //   to_a: "2021-09-10T23:27:12Z",
+  // });
   // zed_race_add_runner("auto");
-  // cron.schedule(cron_str, () => zed_race_add_runner("auto"));
+  cron.schedule(cron_str, () => zed_race_add_runner("auto"));
 };
 zed_races_automated_script_run();
 
