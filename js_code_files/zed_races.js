@@ -128,7 +128,6 @@ const add_times_flames_odds = async (raw_data) => {
   for (let [rid, race] of _.entries(raw_data)) {
     let raw_race = _.values(race);
     if (_.isEmpty(race)) {
-      console.log("empty race", rid);
       continue;
     }
     let adj_ob = await get_adjusted_finish_times(rid, "raw_data", raw_race);
@@ -174,7 +173,7 @@ const zed_race_add_runner = async (mode = "auto", dates) => {
   let now = Date.now();
   let from, to;
   if (mode == "auto") {
-    from = new Date(now - mt * 2.3).toISOString();
+    from = new Date(now - mt * 5).toISOString();
     to = new Date(now).toISOString();
   } else if (mode == "manual") {
     let { from_a, to_a } = dates || {};
@@ -185,14 +184,47 @@ const zed_race_add_runner = async (mode = "auto", dates) => {
   let f_s = new Date(from).toISOString().slice(11, 19);
   let t_s = new Date(to).toISOString().slice(11, 19);
   try {
-    console.log(date_str, f_s, "->", t_s);
+    console.log("\n#", date_str, f_s, "->", t_s);
     let races = await get_zed_raw_data(from, to);
+    if (_.keys(races).length == 0) {
+      console.log("no races");
+      return;
+    }
+
+    let min_races = [];
     let rids = _.keys(races);
-    console.log(rids.length, "races: ", rids);
+    console.log("fetched", rids.length, "race ids");
+    let doc_exists = await Promise.all(
+      rids.map((rid) => zed_ch.db.collection("zed").findOne({ 4: rid }))
+    );
+    
+    doc_exists = _.chain(doc_exists)
+      .map((it, idx) => {
+        let rid = rids[idx];
+        if (_.isEmpty(it)) return [rid, false];
+        else return [rid, true];
+      })
+      .fromPairs().value();
+    // console.log(doc_exists);
+
+    for (let [rid, r] of _.entries(races)) {
+      if (_.isEmpty(r)) {
+        console.log("err", rid, "empty race");
+        continue;
+      }
+      if (doc_exists[rid]) {
+        console.log("existing race at :", _.values(r)[0][2], rid);
+        continue;
+      }
+        console.log("getting race from:", _.values(r)[0][2], rid);
+      min_races.push([rid, r]);
+    }
+    races = _.chain(min_races).compact().fromPairs().value();
+    // console.log(races);
 
     races = await add_times_flames_odds(races);
     await push_races_to_mongo(races);
-    console.log("done.");
+    console.log("done", _.keys(races).length, "races");
   } catch (err) {
     console.log("ERROR on zed_race_add_runner", err.message);
   }
@@ -207,13 +239,13 @@ const zed_races_automated_script_run = async () => {
   const c_itvl = cron_parser.parseExpression(cron_str);
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
   // zed_race_add_runner("manual", {
-  //   from_a: "2021-09-10T21:50:00Z",
-  //   to_a: "2021-09-10T21:55:00Z",
+  //   from_a: "2021-09-10T22:47:00Z",
+  //   to_a: "2021-09-10T22:52:00Z",
   // });
   // zed_race_add_runner("auto");
-  cron.schedule(cron_str, ()=>zed_race_add_runner("auto"));
+  cron.schedule(cron_str, () => zed_race_add_runner("auto"));
 };
-zed_races_automated_script_run();
+// zed_races_automated_script_run();
 
 module.exports = {
   zed_secret_key,

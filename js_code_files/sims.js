@@ -2,6 +2,8 @@ const _ = require("lodash");
 const norminv = require("./norminv");
 const { fetch_r } = require("./utils");
 
+const sim_n = 2000;
+
 const preset_SDs = {
   1000: 0.86,
   1200: 1.08,
@@ -120,7 +122,7 @@ const get_sims_result_for_rid = async (rid) => {
   let api = `https://bs-zed-backend-api.herokuapp.com/simulation/race/${rid}`;
   let doc = await fetch_r(api);
   doc = post_process2(doc);
-  let n = 5000;
+  let n = sim_n;
   let { stats_ob, ...a } = doc;
   let sims = get_simulated_races({ stats_ob, n });
 
