@@ -1,8 +1,18 @@
 const axios = require("axios");
+const _ = require("lodash");
+const { init, zed_ch } = require("./index-run");
+const { struct_race_row_data } = require("./utils");
+const {
+  get_adjusted_finish_times,
+} = require("./zed_races_adjusted_finish_time");
+const { get_flames } = require("./zed_races_flames");
+const cron = require("node-cron");
+const cron_parser = require("cron-parser");
+const { get_fee_cat_on } = require("./base");
 
 const zed_gql = "https://zed-ql.zed.run/graphql/getRaceResults";
-const zed_secret_key =
-  '"eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjcnlwdG9maWVsZF9hcGkiLCJleHAiOjE2MzE5MzgzNzgsImlhdCI6MTYyOTUxOTE3OCwiaXNzIjoiY3J5cHRvZmllbGRfYXBpIiwianRpIjoiZTE1ZjczYWUtNjRkNi00ZjQ3LWI3MmItY2NlNTk1ZWU0ZDU0IiwibmJmIjoxNjI5NTE5MTc3LCJzdWIiOnsiZXh0ZXJuYWxfaWQiOiIzMjA4YmVmNy01OTRjLTRhYTgtOGU2YS0zNzJkMTNkY2I2NjMiLCJpZCI6MTQzNzAsInB1YmxpY19hZGRyZXNzIjoiMHhhMGQ5NjY1RTE2M2Y0OTgwODJDZDczMDQ4REExN2U3ZDY5RmQ5MjI0Iiwic3RhYmxlX25hbWUiOiJEYW5zaGFuIn0sInR5cCI6ImFjY2VzcyJ9.Ke5vgLKxoH9FVBUzD1PJ-qwPUH6EmMe_qQyS38MAJEkCroykb6ZRL2Hhu5TYsv0iCi5ta9wVx9R49FtjdB8v5g"';
+
+const zed_secret_key = process.env.zed_secret_key;
 const mt = 60 * 1000;
 
 const get_zed_raw_data = async (from, to) => {
@@ -60,27 +70,122 @@ const get_zed_raw_data = async (from, to) => {
       data: JSON.stringify(payload),
     };
     let result = await axios(axios_config);
-    result = result?.data?.data?.getRaceResults?.edges || [];
-    return result;
+    let edges = result?.data?.data?.getRaceResults?.edges || [];
+    let racesData = {};
+    for (let edgeIndex in edges) {
+      let edge = edges[edgeIndex];
+      let node = edge.node;
+      let node_length = node.length;
+      let node_startTime = node.startTime;
+      let node_fee = node.fee;
+      let node_raceId = node.raceId;
+      let node_class = node.class;
+      let horses = node.horses;
+
+      racesData[node_raceId] = {};
+
+      for (let horseIndex in horses) {
+        let horse = horses[horseIndex];
+        let horses_horseId = horse.horseId;
+        let horses_finishTime = horse.finishTime;
+        let horses_finalPosition = horse.finalPosition;
+        let horses_name = horse.name;
+        let horses_gate = horse.gate;
+
+        racesData[node_raceId][horses_horseId] = {
+          1: node_length,
+          2: node_startTime,
+          3: node_fee,
+          4: node_raceId,
+          5: node_class,
+          6: horses_horseId,
+          7: horses_finishTime,
+          8: horses_finalPosition,
+          9: horses_name,
+          10: horses_gate,
+          11: 0,
+          12: 0,
+        };
+      }
+    }
+
+    return racesData;
   } catch (err) {
+    console.log("err", err);
     return [];
   }
 };
 
-const runner = async () => {
-  console.log("runner");
+const places_adjusted_times_n_flames = async (raw_data) => {
+  for (let [rid, race] of _.entries(raw_data)) {
+    let raw_race = _.values(race);
+    let adj_ob = await get_adjusted_finish_times(rid, "raw_data", raw_race);
+    let flames_ob = await get_flames(rid);
+    let fee_cat = get_fee_cat_on({ date: raw_race[0][2], fee: raw_race[0][3] });
+    raw_data[rid] = _.chain(raw_data[rid])
+      .entries()
+      .map(([hid, e]) => {
+        e[13] = flames_ob[hid];
+        e[14] = fee_cat;
+        e[15] = adj_ob[hid];
+        return [hid, e];
+      })
+      .fromPairs()
+      .value();
+  }
+  return raw_data;
+};
+
+const push_races_to_mongo = async (races) => {
+  let mongo_push = [];
+  for (let r in races) {
+    for (let h in races[r]) {
+      mongo_push.push({
+        updateOne: {
+          filter: { 4: races[r][h]["4"], 6: races[r][h]["6"] },
+          update: { $set: { ...races[r][h] } },
+          upsert: true,
+        },
+      });
+    }
+  }
+  // console.log(mongo_push);
+  await zed_ch.db.collection("zed").bulkWrite(mongo_push);
+};
+
+const zed_race_add_runner = async () => {
   let ob = {};
   let now = Date.now();
-  const from = new Date(now - mt * 5).toISOString();
+  const from = new Date(now - mt * 2).toISOString();
   const to = new Date(now).toISOString();
-  console.log("from:", from);
-  console.log("to  :", to);
-  ob = await get_zed_raw_data(from, to);
-  console.log(ob);
-  
+  let date_str = new Date(now).toISOString().slice(0, 10);
+  let f_s = new Date(from).toISOString().slice(11, 16);
+  let t_s = new Date(to).toISOString().slice(11, 16);
+  try {
+    console.log(date_str, f_s, "->", t_s);
+    let races = await get_zed_raw_data(from, to);
+    races = await places_adjusted_times_n_flames(races);
+    await push_races_to_mongo(races);
+    // console.log(races);
+    let rids = _.keys(races);
+    console.log(rids.length, "races: ", rids);
+  } catch (err) {
+    console.log("ERROR on zed_race_add_runner", err.message);
+  }
 };
-runner();
+
+const zed_races_automated_script_run = async () => {
+  await init();
+  console.log("zed_races_script_run started");
+  let cron_str = "*/2 * * * *";
+  const c_itvl = cron_parser.parseExpression(cron_str);
+  console.log("Next run:", c_itvl.next().toISOString());
+  // zed_race_add_runner();
+  cron.schedule(cron_str, zed_race_add_runner);
+};
+// zed_races_script_run();
 
 module.exports = {
   zed_secret_key,
+  zed_races_automated_script_run,
 };

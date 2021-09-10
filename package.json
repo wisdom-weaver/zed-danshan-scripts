@@ -14,6 +14,7 @@
     "run_test2": "run-func js_code_files/leaderboard-generator.js run_test2",
     "get_all_horses_kids": "run-func js_code_files/horses-kids.js get_all_horses_kids",
     "add_flames_on_all_races": "run-func js_code_files/zed_races_flames.js add_flames_on_all_races",
+    "zed_races_automated_script_run":"run-func js_code_files/zed_races.js zed_races_automated_script_run",
     "test1": "run-func js_code_files/tests.js test1",
     "test2": "run-func js_code_files/tests.js test2",
     "test3": "run-func js_code_files/tests.js test3",
@@ -29,10 +30,12 @@
   "dependencies": {
     "app-root-path": "^3.0.0",
     "axios": "^0.21.4",
+    "cron-parser": "^4.0.0",
     "dotenv": "^10.0.0",
     "lodash": "^4.17.21",
     "mongodb": "^3.6.10",
     "mongoose": "^5.13.2",
+    "node-cron": "^3.0.0",
     "node-fetch": "^2.6.1",
     "prompt-sync": "^4.2.0"
   },

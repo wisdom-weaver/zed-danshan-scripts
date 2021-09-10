@@ -3,7 +3,6 @@ const _ = require("lodash");
 const { download_eth_prices, get_fee_cat_on } = require("./base");
 const { ObjectID, ObjectId } = require("mongodb");
 const { delay } = require("./utils");
-const { progress_bar } = require("./zed_races_flames");
 const { get_max_horse } = require("./max_horses");
 const { get_races_of_hid } = require("./cyclic_dependency")
 

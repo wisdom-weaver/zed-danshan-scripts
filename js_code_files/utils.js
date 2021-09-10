@@ -92,6 +92,7 @@ const key_mapping_bs_zed = [
   ["12", "unknown"],
   ["13", "flame"],
   ["14", "fee_cat"],
+  ["15", "adjfinishtime"],
 ];
 
 const struct_race_row_data = (data) => {

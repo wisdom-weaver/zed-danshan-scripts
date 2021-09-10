@@ -18,15 +18,20 @@ let zed_db = mongoose.createConnection(uri_db + "/zed", options);
 let zed_ch = mongoose.createConnection(uri_ch + "/zed", options);
 
 const init = async () => {
+
   console.log("starting...");
-  await zed_db;
-  console.log("# MONGO connected zed_db");
-  await zed_ch;
-  console.log("# MONGO connected zed_ch");
+  try {
+    await zed_db;
+    console.log("# MONGO connected zed_db");
+  } catch (err) { console.log("zed_db", err.message) }
+  try {
+    await zed_ch;
+    console.log("# MONGO connected zed_ch");
+  } catch (err) { console.log("zed_ch err", err.message) }
 };
 
 const run_func = async (run_func) => {
-  let zed_db = await init();
+  await init();
   await run_func();
   process.exit();
 };

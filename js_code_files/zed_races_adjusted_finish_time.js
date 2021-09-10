@@ -19,9 +19,14 @@ let global = {
   2600: { mean: 156.03, sd: 2.93 },
 };
 
-const get_adjusted_finish_times = async (rid) => {
-  let race = await from_ch_zed_collection({ 4: rid });
-  if (_.isEmpty(race)) return [];
+const get_adjusted_finish_times = async (rid, mode = "fetch", raw_data) => {
+  let race = [];
+  if (mode == "fetch") {
+    race = await from_ch_zed_collection({ 4: rid });
+  } else if (mode == "raw_data") {
+    race = raw_data;
+  }
+  if (_.isEmpty(race)) return {};
   race = struct_race_row_data(race);
   let finishtimes = _.map(race, "finishtime");
   let mean_finishtime = _.mean(finishtimes);

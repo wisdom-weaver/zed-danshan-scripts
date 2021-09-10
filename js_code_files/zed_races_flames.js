@@ -317,5 +317,5 @@ const runner = async () => {
 
 module.exports = {
   add_flames_on_all_races,
-  progress_bar,
+  get_flames
 };
