@@ -2,7 +2,10 @@ var app_root = require("app-root-path");
 const _ = require("lodash");
 const { zed_db } = require("./index-run");
 const { read_from_path, write_to_path } = require("./utils");
-let eth_prices_file_path = `${app_root}/required_jsons/eth-usd-price.json`
+const cron = require("node-cron");
+const cron_parser = require("cron-parser");
+
+let eth_prices_file_path = `${app_root}/required_jsons/eth-usd-price.json`;
 
 let eth_prices = read_from_path({
   file_path: eth_prices_file_path,
@@ -24,7 +27,7 @@ const download_eth_prices = async () => {
   let diff =
     new Date(doc_local.db_date).getTime() - new Date(doc.db_date).getTime();
   if (Math.abs(diff) < 1 * 1000) {
-    console.log("ETH prices latest=>", _.keys(doc.data)[0]);  
+    console.log("ETH prices latest=>", _.keys(doc.data)[0]);
     return;
   }
   write_to_path({
@@ -86,6 +89,22 @@ const get_fee_cat_on = ({ date, fee }) => {
   // console.log({ fee, date, fee_cat });
   return fee_cat;
 };
+const eth_runner_fn = async () => {
+  await download_eth_prices();
+};
+const auto_eth_cron = async () => {
+  let cron_str = "0 11 0 * * *";
+  console.log("#starting auto_eth_cron", cron_str, cron.validate(cron_str));
+  const c_itvl = cron_parser.parseExpression(cron_str);
+  const runner = () => {
+    console.log("#running auto_eth_cron");
+    console.log("_ETH: Now run:", new Date().toISOString());
+    console.log("_ETH: Next run:", c_itvl.next().toISOString());
+    eth_runner_fn();
+  };
+  runner();
+  cron.schedule(cron_str, runner);
+};
 
 module.exports = {
   get_price_limits,
@@ -94,4 +113,5 @@ module.exports = {
   get_at_eth_price_on,
   get_fee_cat_on,
   download_eth_prices,
+  auto_eth_cron,
 };

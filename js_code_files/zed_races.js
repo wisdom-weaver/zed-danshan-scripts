@@ -1,14 +1,19 @@
 const axios = require("axios");
 const _ = require("lodash");
 const { init, zed_ch } = require("./index-run");
-const { struct_race_row_data } = require("./utils");
+const { struct_race_row_data, delay } = require("./utils");
 const {
   get_adjusted_finish_times,
 } = require("./zed_races_adjusted_finish_time");
 const { get_flames } = require("./zed_races_flames");
 const cron = require("node-cron");
 const cron_parser = require("cron-parser");
-const { get_fee_cat_on } = require("./base");
+const {
+  get_fee_cat_on,
+  download_eth_prices,
+  auto_eth_cron,
+} = require("./base");
+const { get_sims_zed_odds } = require("./sims");
 
 const zed_gql = "https://zed-ql.zed.run/graphql/getRaceResults";
 
@@ -71,6 +76,7 @@ const get_zed_raw_data = async (from, to) => {
     };
     let result = await axios(axios_config);
     let edges = result?.data?.data?.getRaceResults?.edges || [];
+    // console.log(edges);
     let racesData = {};
     for (let edgeIndex in edges) {
       let edge = edges[edgeIndex];
@@ -116,15 +122,23 @@ const get_zed_raw_data = async (from, to) => {
   }
 };
 
-const places_adjusted_times_n_flames = async (raw_data) => {
+const add_times_flames_odds = async (raw_data) => {
+  let ret = {};
+  if (_.isEmpty(raw_data)) return {};
   for (let [rid, race] of _.entries(raw_data)) {
     let raw_race = _.values(race);
+    if (_.isEmpty(race)) {
+      console.log("empty race", rid);
+      continue;
+    }
     let adj_ob = await get_adjusted_finish_times(rid, "raw_data", raw_race);
     let flames_ob = await get_flames(rid);
+    let odds_ob = await get_sims_zed_odds(rid);
     let fee_cat = get_fee_cat_on({ date: raw_race[0][2], fee: raw_race[0][3] });
-    raw_data[rid] = _.chain(raw_data[rid])
+    ret[rid] = _.chain(raw_data[rid])
       .entries()
       .map(([hid, e]) => {
+        e[11] = odds_ob[hid] || 0;
         e[13] = flames_ob[hid];
         e[14] = fee_cat;
         e[15] = adj_ob[hid];
@@ -137,6 +151,7 @@ const places_adjusted_times_n_flames = async (raw_data) => {
 };
 
 const push_races_to_mongo = async (races) => {
+  if (_.isEmpty(races)) return;
   let mongo_push = [];
   for (let r in races) {
     for (let h in races[r]) {
@@ -153,22 +168,31 @@ const push_races_to_mongo = async (races) => {
   await zed_ch.db.collection("zed").bulkWrite(mongo_push);
 };
 
-const zed_race_add_runner = async () => {
+const zed_race_add_runner = async (mode = "auto", dates) => {
+  // console.log(mode);
   let ob = {};
   let now = Date.now();
-  const from = new Date(now - mt * 2).toISOString();
-  const to = new Date(now).toISOString();
+  let from, to;
+  if (mode == "auto") {
+    from = new Date(now - mt * 2.3).toISOString();
+    to = new Date(now).toISOString();
+  } else if (mode == "manual") {
+    let { from_a, to_a } = dates || {};
+    from = new Date(from_a).toISOString();
+    to = new Date(to_a).toISOString();
+  }
   let date_str = new Date(now).toISOString().slice(0, 10);
-  let f_s = new Date(from).toISOString().slice(11, 16);
-  let t_s = new Date(to).toISOString().slice(11, 16);
+  let f_s = new Date(from).toISOString().slice(11, 19);
+  let t_s = new Date(to).toISOString().slice(11, 19);
   try {
     console.log(date_str, f_s, "->", t_s);
     let races = await get_zed_raw_data(from, to);
-    races = await places_adjusted_times_n_flames(races);
-    await push_races_to_mongo(races);
-    // console.log(races);
     let rids = _.keys(races);
     console.log(rids.length, "races: ", rids);
+
+    races = await add_times_flames_odds(races);
+    await push_races_to_mongo(races);
+    console.log("done.");
   } catch (err) {
     console.log("ERROR on zed_race_add_runner", err.message);
   }
@@ -176,14 +200,20 @@ const zed_race_add_runner = async () => {
 
 const zed_races_automated_script_run = async () => {
   await init();
-  console.log("zed_races_script_run started");
+  await auto_eth_cron();
+  await delay(1000);
+  console.log("\n## zed_races_script_run started");
   let cron_str = "*/2 * * * *";
   const c_itvl = cron_parser.parseExpression(cron_str);
-  console.log("Next run:", c_itvl.next().toISOString());
-  // zed_race_add_runner();
-  cron.schedule(cron_str, zed_race_add_runner);
+  console.log("Next run:", c_itvl.next().toISOString(), "\n");
+  // zed_race_add_runner("manual", {
+  //   from_a: "2021-09-10T21:50:00Z",
+  //   to_a: "2021-09-10T21:55:00Z",
+  // });
+  // zed_race_add_runner("auto");
+  cron.schedule(cron_str, ()=>zed_race_add_runner("auto"));
 };
-// zed_races_script_run();
+zed_races_automated_script_run();
 
 module.exports = {
   zed_secret_key,
