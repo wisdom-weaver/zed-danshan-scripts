@@ -194,17 +194,20 @@ const zed_race_add_runner = async (mode = "auto", dates) => {
     let min_races = [];
     let rids = _.keys(races);
     console.log("fetched", rids.length, "race ids");
-    let doc_exists = await Promise.all(
-      rids.map((rid) => zed_ch.db.collection("zed").findOne({ 4: rid }))
-    );
-    
+    let doc_exists = [];
+    if (mode == "auto")
+      doc_exists = await Promise.all(
+        rids.map((rid) => zed_ch.db.collection("zed").findOne({ 4: rid }))
+      );
+
     doc_exists = _.chain(doc_exists)
       .map((it, idx) => {
         let rid = rids[idx];
         if (_.isEmpty(it)) return [rid, false];
         else return [rid, true];
       })
-      .fromPairs().value();
+      .fromPairs()
+      .value();
     // console.log(doc_exists);
 
     for (let [rid, r] of _.entries(races)) {
@@ -216,7 +219,7 @@ const zed_race_add_runner = async (mode = "auto", dates) => {
         console.log("existing race at :", _.values(r)[0][2], rid);
         continue;
       }
-        console.log("getting race from:", _.values(r)[0][2], rid);
+      console.log("getting race from:", _.values(r)[0][2], rid);
       min_races.push([rid, r]);
     }
     races = _.chain(min_races).compact().fromPairs().value();
@@ -238,14 +241,14 @@ const zed_races_automated_script_run = async () => {
   let cron_str = "*/2 * * * *";
   const c_itvl = cron_parser.parseExpression(cron_str);
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
-  // zed_race_add_runner("manual", {
-  //   from_a: "2021-09-10T22:47:00Z",
-  //   to_a: "2021-09-10T22:52:00Z",
-  // });
+  zed_race_add_runner("manual", {
+    from_a: "2021-09-10T23:27:12Z",
+    to_a: "2021-09-10T23:27:12Z",
+  });
   // zed_race_add_runner("auto");
-  cron.schedule(cron_str, () => zed_race_add_runner("auto"));
+  // cron.schedule(cron_str, () => zed_race_add_runner("auto"));
 };
-// zed_races_automated_script_run();
+zed_races_automated_script_run();
 
 module.exports = {
   zed_secret_key,

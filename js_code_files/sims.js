@@ -142,11 +142,18 @@ const get_sims_zed_odds = async (rid) => {
       .keyBy("hid")
       .mapValues("odds_zed")
       .value();
-    // console.log(ret);
+    // console.log(ob.result.result_disp);
     return ret;
   } catch (err) {
     return {};
   }
 };
+
+const runner = async ()=>{
+  let rid = "UmUcfXZh"
+  let a = await get_sims_zed_odds(rid);
+  console.log(a);
+}
+// runner();
 
 module.exports = { get_sims_zed_odds };
