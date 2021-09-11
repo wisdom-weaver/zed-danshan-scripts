@@ -256,8 +256,11 @@ const zed_races_specific_duration_run = async () => {
 
   let from_a, to_a;
   console.log("Enter date in format Eg: 2021-09-11T00:13Z: ");
-  from_a = prompt("from: ");
-  to_a = prompt("to  : ");
+  // from_a = prompt("from: ");
+  // to_a = prompt("to  : ");
+
+  from_a = "2021-08-24T00:00:00.000Z";
+  to_a = "2021-09-11T01:22:20.667Z";
 
   from_a = new Date(from_a).getTime();
   to_a = new Date(to_a).getTime();
