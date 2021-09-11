@@ -261,14 +261,14 @@ const zed_races_specific_duration_run = async () => {
   from_a = prompt("from: ");
   to_a = prompt("to  : ");
 
-  // from_a = "2021-08-24T00:00:00.000Z";
-  // to_a = "2021-09-11T01:22:20.667Z";
+  from_a = "2021-08-24T00:00:00.000Z";
+  to_a = "2021-09-11T01:22:20.667Z";
 
   from_a = new Date(from_a).getTime();
   to_a = new Date(to_a).getTime() + 1;
 
   while (from_a < to_a) {
-    let to_a_2 = Math.min(to_a, from_a + 30 * mt);
+    let to_a_2 = Math.min(to_a, from_a + 10 * mt);
     await zed_race_add_runner("manual", { from_a, to_a: to_a_2 });
     from_a = to_a_2;
   }
