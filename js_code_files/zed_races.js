@@ -77,7 +77,6 @@ const get_zed_raw_data = async (from, to) => {
     };
     let result = await axios(axios_config);
     let edges = result?.data?.data?.getRaceResults?.edges || [];
-    // console.log(edges);
     let racesData = {};
     for (let edgeIndex in edges) {
       let edge = edges[edgeIndex];
@@ -90,7 +89,6 @@ const get_zed_raw_data = async (from, to) => {
       let horses = node.horses;
 
       racesData[node_raceId] = {};
-
       for (let horseIndex in horses) {
         let horse = horses[horseIndex];
         let horses_horseId = horse.horseId;
@@ -134,13 +132,16 @@ const add_times_flames_odds = async (raw_data) => {
     let adj_ob = await get_adjusted_finish_times(rid, "raw_data", raw_race);
     let flames_ob = await get_flames(rid);
     let odds_ob = await get_sims_zed_odds(rid);
+    // console.log(odds_ob);
     let date = raw_race[0][2];
     let fee_cat = get_fee_cat_on({ date, fee: raw_race[0][3] });
     ret[rid] = _.chain(raw_data[rid])
       .entries()
       .map(([hid, e]) => {
-        if (date >= "2021-08-24T00:00:00.000Z") e[11] = odds_ob[hid] || 0;
-        else delete e[11];
+        if (date >= "2021-08-24T00:00:00.000Z") {
+          // console.log(hid, odds_ob[hid]);
+          e[11] = odds_ob[hid] || 0;
+        } else delete e[11];
         e[13] = flames_ob[hid];
         e[14] = fee_cat;
         e[15] = adj_ob[hid];
@@ -222,7 +223,8 @@ const zed_race_add_runner = async (mode = "auto", dates) => {
         console.log("existing race at :", _.values(r)[0][2], rid);
         continue;
       }
-      console.log("getting race from:", _.values(r)[0][2], rid);
+      let l = _.values(r).length;
+      console.log("getting race from:", _.values(r)[0][2], rid, `${l}_h`);
       min_races.push([rid, r]);
     }
     races = _.chain(min_races).compact().fromPairs().value();
@@ -256,20 +258,21 @@ const zed_races_specific_duration_run = async () => {
 
   let from_a, to_a;
   console.log("Enter date in format Eg: 2021-09-11T00:13Z: ");
-  // from_a = prompt("from: ");
-  // to_a = prompt("to  : ");
+  from_a = prompt("from: ");
+  to_a = prompt("to  : ");
 
-  from_a = "2021-08-24T00:00:00.000Z";
-  to_a = "2021-09-11T01:22:20.667Z";
+  // from_a = "2021-08-24T00:00:00.000Z";
+  // to_a = "2021-09-11T01:22:20.667Z";
 
   from_a = new Date(from_a).getTime();
-  to_a = new Date(to_a).getTime();
+  to_a = new Date(to_a).getTime() + 1;
 
-  while (from_a <= to_a) {
-    let to_a_2 = from_a + 30 * mt;
+  while (from_a < to_a) {
+    let to_a_2 = Math.min(to_a, from_a + 30 * mt);
     await zed_race_add_runner("manual", { from_a, to_a: to_a_2 });
     from_a = to_a_2;
   }
+  console.log("ended");
 };
 // zed_races_specific_duration_run();
 

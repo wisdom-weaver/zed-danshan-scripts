@@ -18,6 +18,7 @@ const key_mapping_bs_zed = [
   ["12", "unknown"],
   ["13", "flame"],
   ["14", "fee_cat"],
+  ["15", "adjfinishtime"],
 ];
 
 const from_ch_zed_collection = async (query) => {
@@ -56,6 +57,7 @@ const struct_race_row_data = (data) => {
 };
 
 const get_races_of_hid = async (hid) => {
+  hid = parseInt(hid)
   if (isNaN(hid)) return [];
   hid = parseInt(hid);
   let query = { 6: hid };

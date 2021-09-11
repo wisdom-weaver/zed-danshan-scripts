@@ -37,6 +37,7 @@ const key_mapping_bs_zed = [
   ["12", "unknown"],
   ["13", "flame"],
   ["14", "fee_cat"],
+  ["15", "adjfinishtime"],
 ];
 const key_no = (key) => {
   let r = _.find(key_mapping_bs_zed, { 1: key });

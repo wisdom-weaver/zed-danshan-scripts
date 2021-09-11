@@ -1,31 +1,191 @@
 const appRootPath = require("app-root-path");
 const _ = require("lodash");
+const { get_races_of_hid } = require("./cyclic_dependency");
+const { init } = require("./index-run");
 const norminv = require("./norminv");
 const { fetch_r, write_to_path } = require("./utils");
 
 const sim_n = 2000;
 
-const preset_SDs = {
-  1000: 0.86,
-  1200: 1.08,
-  1400: 1.29,
-  1600: 1.47,
-  1800: 1.65,
-  2000: 1.88,
-  2200: 2.16,
-  2400: 2.51,
-  2600: 2.95,
+let preset_global = {
+  1000: { mean: 57.72, sd: 0.86 },
+  1200: { mean: 71.41, sd: 1.08 },
+  1400: { mean: 83.61, sd: 1.28 },
+  1600: { mean: 95.77, sd: 1.47 },
+  1800: { mean: 107.87, sd: 1.64 },
+  2000: { mean: 119.9, sd: 1.87 },
+  2200: { mean: 131.97, sd: 2.15 },
+  2400: { mean: 143.97, sd: 2.5 },
+  2600: { mean: 156.03, sd: 2.93 },
 };
-const presset_MEANs = {
-  1000: 57.72,
-  1200: 71.41,
-  1400: 83.61,
-  1600: 95.77,
-  1800: 107.87,
-  2000: 119.9,
-  2200: 131.97,
-  2400: 143.97,
-  2600: 156.02,
+
+const get_hid_doc = async (hid) => {
+  let api = `https://api.zed.run/api/v1/horses/get/${hid}`;
+  let doc = await fetch_r(api);
+  return doc;
+};
+const get_race_doc = async (rid) => {
+  let api = `https://racing-api.zed.run/api/v1/races?race_id=${rid}`;
+  let doc = await fetch_r(api);
+  if (_.isEmpty(doc) || doc.error) return null;
+
+  let {
+    length: dist,
+    gates,
+    final_positions,
+    class: race_class,
+    fee,
+    name: race_name,
+    start_time,
+    status,
+  } = doc;
+  let hids = _.values(gates);
+
+  let names_ob;
+  if (_.isEmpty(final_positions)) {
+    names_ob = await Promise.all(
+      hids.map((h) =>
+        get_hid_doc(h).then((d) => [h, d?.hash_info?.name || "-"])
+      )
+    );
+    names_ob = _.fromPairs(names_ob);
+  } else
+    names_ob = _.chain(final_positions)
+      .keyBy("horse_id")
+      .mapValues("name")
+      .value();
+
+  return {
+    dist,
+    race_class,
+    fee,
+    race_name,
+    start_time,
+    status,
+    hids,
+    names_ob,
+  };
+};
+const get_all_dist_stats = async (hid) => {
+  hid = parseFloat(hid);
+  let races = (await get_races_of_hid(hid)) || [];
+  // console.table(races);
+  let mini = {};
+  races.forEach((r) => {
+    let { distance, finishtime } = r;
+    mini[distance] = [...(mini[distance] || []), finishtime];
+  });
+
+  let ds = [1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600];
+
+  let p_ar = [];
+  for (let d of ds) {
+    let d_ar = mini[d] || [];
+    let min_t = _.min(d_ar);
+    let max_t = _.max(d_ar);
+    let mean_t = _.mean(d_ar);
+    let range = max_t - min_t;
+
+    let st_dev = (() => {
+      let devs = d_ar.map((e) => e - mean_t);
+      devs = devs.map((e) => Math.pow(e, 2));
+      return Math.sqrt(_.sum(devs) / devs.length);
+    })();
+
+    p_ar.push({
+      hid,
+      d,
+      len: d_ar.length,
+      min_t,
+      max_t,
+      mean_t,
+      range,
+      st_dev,
+    });
+  }
+  // console.table(pob);
+  return p_ar || [];
+};
+const get_adjusted_finish_times = async (rid) => {
+  let race = await from_ch_zed_collection({ 4: rid });
+  if (_.isEmpty(race)) return [];
+  race = struct_race_row_data(race);
+  let finishtimes = _.map(race, "finishtime");
+  let mean_finishtime = _.mean(finishtimes);
+  let dist = race[0].distance;
+  let pre = preset_global[dist];
+  let mean_diff_from_global = mean_finishtime - pre.mean;
+  let diff_allowed = pre.sd;
+  let diff_sd_factor = mean_diff_from_global / diff_allowed;
+  race = race.map((r) => {
+    let adjfinishtime = r.finishtime - diff_sd_factor * diff_allowed;
+    return { ...r, adjfinishtime };
+  });
+
+  // console.log({dist,pre,mean_diff_from_global,diff_allowed,diff_sd_factor});
+  // let p_race = race;
+  // p_race = _.map(race, (r) => {
+  //   let { hid, place, finishtime, adjfinishtime } = r;
+  //   return { hid, place, finishtime, adjfinishtime };
+  // });
+  // p_race = _.sortBy(p_race, (a) => parseFloat(a.place));
+  // console.table(p_race);
+  return race;
+};
+const get_dist_stats = async (hid, d) => {
+  hid = parseFloat(hid);
+  let races = (await get_races_of_hid(hid)) || [];
+  // console.log(hid, races.length);
+  let d_ar = _.chain(races)
+    .filter({ distance: d })
+    .map("adjfinishtime")
+    .compact()
+    .value();
+
+  // console.log(d_ar)
+  let min_t = _.min(d_ar);
+  let max_t = _.max(d_ar);
+  let mean_t = _.mean(d_ar);
+  let range = max_t - min_t;
+
+  let st_dev = (() => {
+    let devs = d_ar.map((e) => e - mean_t);
+    devs = devs.map((e) => Math.pow(e, 2));
+    return Math.sqrt(_.sum(devs) / devs.length);
+  })();
+
+  return {
+    hid,
+    d,
+    len: d_ar.length,
+    min_t,
+    max_t,
+    mean_t,
+    range,
+    st_dev,
+  };
+};
+const get_simulation_base_data = async (rid) => {
+  if (!rid) return null;
+  let doc = await get_race_doc(rid);
+  // console.log(doc);
+  if (_.isEmpty(doc)) return null;
+  let { hids, dist, names_ob, race_class, fee, race_name, start_time, status } =
+    doc;
+  let stats_ob = await Promise.all(
+    hids.map((hid) => get_dist_stats(hid, dist))
+  );
+  stats_ob = stats_ob.map((a) => ({ ...a, name: names_ob[a.hid] }));
+  return {
+    rid,
+    dist,
+    stats_ob,
+    race_class,
+    fee,
+    race_name,
+    start_time,
+    status,
+  };
 };
 
 const post_process2 = (doc) => {
@@ -33,10 +193,10 @@ const post_process2 = (doc) => {
   stats_ob = stats_ob.map((ea, i) => {
     let { hid, len, st_dev, mean_t } = ea;
     if (len === 0) return { ...ea, st_dev: null, mean_t: null };
-    if (len <= 0 || st_dev == 0) st_dev = preset_SDs[d];
-    else st_dev = preset_SDs[d] * 0.55 + st_dev * 0.45;
-    if (mean_t == 0) mean_t = preset_SDs[d];
-    else mean_t = presset_MEANs[d] * 0.55 + mean_t * 0.45;
+    if (len <= 0 || st_dev == 0) st_dev = preset_global[d].sd;
+    else st_dev = preset_global[d].sd * 0.55 + st_dev * 0.45;
+    if (mean_t == 0) mean_t = preset_global[d].sd;
+    else mean_t = preset_global[d].mean * 0.55 + mean_t * 0.45;
     return { ...ea, st_dev, mean_t };
   });
   stats_ob = _.compact(stats_ob);
@@ -120,8 +280,11 @@ const real_to_zed_odds = (r) => {
 };
 
 const get_sims_result_for_rid = async (rid) => {
-  let api = `https://bs-zed-backend-api.herokuapp.com/simulation/race/${rid}`;
-  let doc = await fetch_r(api);
+  // let api = `https://bs-zed-backend-api.herokuapp.com/simulation/race/${rid}`;
+  // let doc = await fetch_r(api);
+  // console.log(rid);
+  let doc = await get_simulation_base_data(rid);
+  // console.log(doc);
   doc = post_process2(doc);
   let n = sim_n;
   let { stats_ob, ...a } = doc;
@@ -143,7 +306,10 @@ const get_sims_zed_odds = async (rid) => {
       .keyBy("hid")
       .mapValues("odds_zed")
       .value();
-    // write_to_path({ file_path: `${appRootPath}/data_files/sims/sims-${Date.now()}-${rid}.json`, data: ob });
+    // write_to_path({
+    //   file_path: `${appRootPath}/data_files/sims/sims-${Date.now()}-${rid}.json`,
+    //   data: ob,
+    // });
     return ret;
   } catch (err) {
     return {};
@@ -151,7 +317,8 @@ const get_sims_zed_odds = async (rid) => {
 };
 
 const runner = async () => {
-  let rid = "UmUcfXZh";
+  await init();
+  let rid = "76UO2GyO";
   let a = await get_sims_zed_odds(rid);
   console.log(a);
 };
