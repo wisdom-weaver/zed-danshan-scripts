@@ -249,7 +249,10 @@ const zed_races_automated_script_run = async () => {
   // zed_race_add_runner("auto");
   cron.schedule(cron_str, () => zed_race_add_runner("auto"));
 };
-zed_races_automated_script_run();
+// zed_races_automated_script_run();
+
+
+
 
 module.exports = {
   zed_secret_key,
