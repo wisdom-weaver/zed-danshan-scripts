@@ -14,6 +14,7 @@ const {
   auto_eth_cron,
 } = require("./base");
 const { get_sims_zed_odds } = require("./sims");
+var prompt = require("prompt-sync")();
 
 const zed_gql = "https://zed-ql.zed.run/graphql/getRaceResults";
 
@@ -133,7 +134,7 @@ const add_times_flames_odds = async (raw_data) => {
     let adj_ob = await get_adjusted_finish_times(rid, "raw_data", raw_race);
     let flames_ob = await get_flames(rid);
     let odds_ob = await get_sims_zed_odds(rid);
-    
+
     let fee_cat = get_fee_cat_on({ date: raw_race[0][2], fee: raw_race[0][3] });
     ret[rid] = _.chain(raw_data[rid])
       .entries()
@@ -242,19 +243,52 @@ const zed_races_automated_script_run = async () => {
   let cron_str = "*/2 * * * *";
   const c_itvl = cron_parser.parseExpression(cron_str);
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
-  // zed_race_add_runner("manual", {
-  //   from_a: "2021-09-10T23:47:00Z",
-  //   to_a: "2021-09-10T23:47:00Z",
-  // });
-  // zed_race_add_runner("auto");
   cron.schedule(cron_str, () => zed_race_add_runner("auto"));
 };
 // zed_races_automated_script_run();
 
+const zed_races_specific_duration_run = async () => {
+  await init();
+  await auto_eth_cron();
+  await delay(1000);
+  console.log("\n## zed_races_specific_duration_run started");
+  let from_a, to_a;
+  console.log("Enter date in format Eg: 2021-09-11T00:13Z: ");
+  from_a = prompt("from: ");
+  to_a = prompt("to  : ");
+  zed_race_add_runner("manual", { from_a, to_a });
+};
+// zed_races_specific_duration_run();
 
+const zed_races_since_last_run = async () => {
+  await init();
+  await auto_eth_cron();
+  await delay(1000);
+  console.log("\n## zed_races_since_last_run started");
+  let from_a, to_a;
+  let now = Date.now();
+  let last_doc = await zed_ch.db
+    .collection("zed")
+    .find({})
+    .sort({ 2: -1 })
+    .limit(1)
+    .toArray();
+  from_a = last_doc[0][2];
+  console.log("last doc date: ", from_a);
 
+  from_a = new Date(from_a).getTime() - 5 * mt;
+  while (from_a < Date.now() - mt) {
+    to_a = from_a + 5 * mt;
+    await zed_race_add_runner("manual", { from_a, to_a });
+    from_a = to_a;
+  }
+  zed_races_automated_script_run("auto");
+};
+// zed_races_since_last_run();
 
 module.exports = {
   zed_secret_key,
   zed_races_automated_script_run,
+  zed_races_specific_duration_run,
+  zed_races_since_last_run,
 };

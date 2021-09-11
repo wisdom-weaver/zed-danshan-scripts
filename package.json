@@ -15,6 +15,8 @@
     "get_all_horses_kids": "run-func js_code_files/horses-kids.js get_all_horses_kids",
     "add_flames_on_all_races": "run-func js_code_files/zed_races_flames.js add_flames_on_all_races",
     "zed_races_automated_script_run": "run-func js_code_files/zed_races.js zed_races_automated_script_run",
+    "zed_races_specific_duration_run": "run-func js_code_files/zed_races.js zed_races_specific_duration_run",
+    "zed_races_since_last_run": "run-func js_code_files/zed_races.js zed_races_since_last_run",
     "test1": "run-func js_code_files/tests.js test1",
     "test2": "run-func js_code_files/tests.js test2",
     "test3": "run-func js_code_files/tests.js test3",
