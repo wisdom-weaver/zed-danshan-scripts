@@ -1,7 +1,7 @@
 const axios = require("axios");
 const _ = require("lodash");
 const { init, zed_ch } = require("./index-run");
-const { struct_race_row_data, delay } = require("./utils");
+const { struct_race_row_data, delay, write_to_path } = require("./utils");
 const {
   get_adjusted_finish_times,
 } = require("./zed_races_adjusted_finish_time");
@@ -14,6 +14,7 @@ const {
   auto_eth_cron,
 } = require("./base");
 const { get_sims_zed_odds } = require("./sims");
+const appRootPath = require("app-root-path");
 var prompt = require("prompt-sync")();
 
 const zed_gql = "https://zed-ql.zed.run/graphql/getRaceResults";
@@ -258,8 +259,8 @@ const zed_races_specific_duration_run = async () => {
 
   let from_a, to_a;
   console.log("Enter date in format Eg: 2021-09-11T00:13Z: ");
-  from_a = prompt("from: ");
-  to_a = prompt("to  : ");
+  // from_a = prompt("from: ");
+  // to_a = prompt("to  : ");
 
   from_a = "2021-08-24T00:00:00.000Z";
   to_a = "2021-09-11T01:22:20.667Z";
@@ -268,7 +269,7 @@ const zed_races_specific_duration_run = async () => {
   to_a = new Date(to_a).getTime() + 1;
 
   while (from_a < to_a) {
-    let to_a_2 = Math.min(to_a, from_a + 10 * mt);
+    let to_a_2 = Math.min(to_a, from_a + 20 * mt);
     await zed_race_add_runner("manual", { from_a, to_a: to_a_2 });
     from_a = to_a_2;
   }
@@ -301,6 +302,27 @@ const zed_races_since_last_run = async () => {
   zed_races_automated_script_run("auto");
 };
 // zed_races_since_last_run();
+
+const runner = async () => {
+  await init();
+  let date_st = "2021-08-24T00:00:00Z";
+  let date_ed = "2021-08-25T00:00:00Z";
+  let docs = await zed_ch.db
+    .collection("zed")
+    .find({ 2: { $gt: date_st, $lt: date_ed } })
+    .toArray();
+  // console.log(docs);
+  docs = _.groupBy(docs, 4);
+  for (let [rid, r] of _.entries(docs)) {
+    console.log(rid, r.length);
+    r = struct_race_row_data(r);
+    write_to_path({
+      file_path: `${appRootPath}/data_files/races_2/${rid}.json`,
+      data: { rid, data: r },
+    });
+  }
+};
+// runner();
 
 module.exports = {
   zed_secret_key,
