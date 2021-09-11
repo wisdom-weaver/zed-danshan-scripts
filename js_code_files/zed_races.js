@@ -133,6 +133,7 @@ const add_times_flames_odds = async (raw_data) => {
     let adj_ob = await get_adjusted_finish_times(rid, "raw_data", raw_race);
     let flames_ob = await get_flames(rid);
     let odds_ob = await get_sims_zed_odds(rid);
+    
     let fee_cat = get_fee_cat_on({ date: raw_race[0][2], fee: raw_race[0][3] });
     ret[rid] = _.chain(raw_data[rid])
       .entries()
@@ -242,8 +243,8 @@ const zed_races_automated_script_run = async () => {
   const c_itvl = cron_parser.parseExpression(cron_str);
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
   // zed_race_add_runner("manual", {
-  //   from_a: "2021-09-10T23:27:12Z",
-  //   to_a: "2021-09-10T23:27:12Z",
+  //   from_a: "2021-09-10T23:47:00Z",
+  //   to_a: "2021-09-10T23:47:00Z",
   // });
   // zed_race_add_runner("auto");
   cron.schedule(cron_str, () => zed_race_add_runner("auto"));

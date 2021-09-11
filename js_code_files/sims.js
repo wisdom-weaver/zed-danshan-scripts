@@ -1,6 +1,7 @@
+const appRootPath = require("app-root-path");
 const _ = require("lodash");
 const norminv = require("./norminv");
-const { fetch_r } = require("./utils");
+const { fetch_r, write_to_path } = require("./utils");
 
 const sim_n = 2000;
 
@@ -142,18 +143,18 @@ const get_sims_zed_odds = async (rid) => {
       .keyBy("hid")
       .mapValues("odds_zed")
       .value();
-    // console.log(ob.result.result_disp);
+    // write_to_path({ file_path: `${appRootPath}/data_files/sims/sims-${Date.now()}-${rid}.json`, data: ob });
     return ret;
   } catch (err) {
     return {};
   }
 };
 
-const runner = async ()=>{
-  let rid = "UmUcfXZh"
+const runner = async () => {
+  let rid = "UmUcfXZh";
   let a = await get_sims_zed_odds(rid);
   console.log(a);
-}
+};
 // runner();
 
 module.exports = { get_sims_zed_odds };
