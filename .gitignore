@@ -2,5 +2,6 @@
 /node_modules
 /data
 /data_file/data/blood
+/data_file/
 /log
 *.log
