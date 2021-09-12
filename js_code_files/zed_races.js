@@ -1,6 +1,6 @@
 const axios = require("axios");
 const _ = require("lodash");
-const { init, zed_ch } = require("./index-run");
+const { init, zed_ch, zed_db } = require("./index-run");
 const { struct_race_row_data, delay, write_to_path } = require("./utils");
 const {
   get_adjusted_finish_times,
@@ -15,12 +15,40 @@ const {
 } = require("./base");
 const { get_sims_zed_odds } = require("./sims");
 const appRootPath = require("app-root-path");
+const { config } = require("dotenv");
 var prompt = require("prompt-sync")();
 
 const zed_gql = "https://zed-ql.zed.run/graphql/getRaceResults";
 
 const zed_secret_key = process.env.zed_secret_key;
 const mt = 60 * 1000;
+
+const def_config = {
+  g_odds_zero: true,
+};
+
+const push_to_g_bucket = async (g_bucket = []) => {
+  let id = "g_bucket";
+  await zed_db.db.collection("script").updateOne(
+    { id },
+    {
+      $set: { id },
+      $addToSet: { g_bucket: { $each: g_bucket } },
+    },
+    { upsert: true }
+  );
+};
+const push_to_err_bucket = async (err_bucket = []) => {
+  let id = "err_bucket";
+  await zed_db.db.collection("script").updateOne(
+    { id },
+    {
+      $set: { id },
+      $addToSet: { err_bucket: { $each: err_bucket } },
+    },
+    { upsert: true }
+  );
+};
 
 const get_zed_raw_data = async (from, to) => {
   try {
@@ -122,7 +150,7 @@ const get_zed_raw_data = async (from, to) => {
   }
 };
 
-const add_times_flames_odds = async (raw_data) => {
+const add_times_flames_odds_to_races = async (raw_data, config) => {
   let ret = {};
   if (_.isEmpty(raw_data)) return {};
   for (let [rid, race] of _.entries(raw_data)) {
@@ -130,11 +158,19 @@ const add_times_flames_odds = async (raw_data) => {
     if (_.isEmpty(race)) {
       continue;
     }
+
+    let date = raw_race[0][2];
+    let thisclass = raw_race[0][5];
+
     let adj_ob = await get_adjusted_finish_times(rid, "raw_data", raw_race);
     let flames_ob = await get_flames(rid);
-    let odds_ob = await get_sims_zed_odds(rid);
-    // console.log(odds_ob);
-    let date = raw_race[0][2];
+    let odds_ob = {};
+    if (!_.isEmpty(config) && config.g_odds_zero == true) {
+      if (thisclass == 0) odds_ob = {};
+      else odds_ob = await get_sims_zed_odds(rid);
+    } else odds_ob = await get_sims_zed_odds(rid);
+    // console.log(rid, thisclass, odds_ob);
+
     let fee_cat = get_fee_cat_on({ date, fee: raw_race[0][3] });
     ret[rid] = _.chain(raw_data[rid])
       .entries()
@@ -172,8 +208,11 @@ const push_races_to_mongo = async (races) => {
   await zed_ch.db.collection("zed").bulkWrite(mongo_push);
 };
 
-const zed_race_add_runner = async (mode = "auto", dates) => {
+const zed_race_add_runner = async (mode = "auto", dates, config) => {
   // console.log(mode);
+  let err_bucket = [];
+  let g_bucket = [];
+
   let ob = {};
   let now = Date.now();
   let from, to;
@@ -224,14 +263,27 @@ const zed_race_add_runner = async (mode = "auto", dates) => {
         console.log("existing race at :", _.values(r)[0][2], rid);
         continue;
       }
+
       let l = _.values(r).length;
-      console.log("getting race from:", _.values(r)[0][2], rid, `${l}_h`);
-      min_races.push([rid, r]);
+      if (l == 0) {
+        console.log("ERROR EMPTY       ", _.values(r)[0][2], rid, `${l}_h`);
+        err_bucket.push({ rid, date: null });
+      } else if (l < 12) {
+        console.log("ERROR             ", _.values(r)[0][2], rid, `${l}_h`);
+        err_bucket.push({ rid, date: _.values(r)[0][2] });
+        let thisclass = _.values(r)[0][5];
+        if (thisclass == 0) g_bucket.push({ rid, date: _.values(r)[0][2] });
+      } else {
+        console.log("getting race from:", _.values(r)[0][2], rid, `${l}_h`);
+        min_races.push([rid, r]);
+      }
     }
+    await push_to_err_bucket(err_bucket);
+    await push_to_g_bucket(g_bucket);
     races = _.chain(min_races).compact().fromPairs().value();
     // console.log(races);
 
-    races = await add_times_flames_odds(races);
+    races = await add_times_flames_odds_to_races(races, config);
     await push_races_to_mongo(races);
     console.log("done", _.keys(races).length, "races");
   } catch (err) {
@@ -247,7 +299,7 @@ const zed_races_automated_script_run = async () => {
   let cron_str = "*/2 * * * *";
   const c_itvl = cron_parser.parseExpression(cron_str);
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
-  cron.schedule(cron_str, () => zed_race_add_runner("auto"));
+  cron.schedule(cron_str, () => zed_race_add_runner("auto", def_config));
 };
 // zed_races_automated_script_run();
 
@@ -258,19 +310,22 @@ const zed_races_specific_duration_run = async () => {
   console.log("\n## zed_races_specific_duration_run started");
 
   let from_a, to_a;
-  console.log("Enter date in format Eg: 2021-09-11T00:13Z: ");
+  // console.log("Enter date in format Eg: 2021-09-11T00:13Z: ");
   // from_a = prompt("from: ");
   // to_a = prompt("to  : ");
 
-  from_a = "2021-08-24T00:00:00.000Z";
-  to_a = "2021-09-11T01:22:20.667Z";
+  let date_st = "2021-08-24T00:00:00Z";
+  let date_ed = new Date().toISOString();
 
-  from_a = new Date(from_a).getTime();
+  from_a = date_st;
+  to_a = date_ed;
+
+  from_a = new Date(from_a).getTime() - 1;
   to_a = new Date(to_a).getTime() + 1;
 
   while (from_a < to_a) {
-    let to_a_2 = Math.min(to_a, from_a + 20 * mt);
-    await zed_race_add_runner("manual", { from_a, to_a: to_a_2 });
+    let to_a_2 = Math.min(to_a, from_a + 30 * mt);
+    await zed_race_add_runner("manual", { from_a, to_a: to_a_2 }, def_config);
     from_a = to_a_2;
   }
   console.log("ended");
@@ -293,10 +348,10 @@ const zed_races_since_last_run = async () => {
   from_a = last_doc[0][2];
   console.log("last doc date: ", from_a);
 
-  from_a = new Date(from_a).getTime() - 5 * mt;
+  from_a = new Date(from_a).getTime() - 10 * mt;
   while (from_a < Date.now() - mt) {
-    to_a = from_a + 5 * mt;
-    await zed_race_add_runner("manual", { from_a, to_a });
+    to_a = from_a + 10 * mt;
+    await zed_race_add_runner("manual", { from_a, to_a }, def_config);
     from_a = to_a;
   }
   zed_races_automated_script_run("auto");
@@ -305,22 +360,10 @@ const zed_races_since_last_run = async () => {
 
 const runner = async () => {
   await init();
-  let date_st = "2021-08-24T00:00:00Z";
-  let date_ed = "2021-08-25T00:00:00Z";
-  let docs = await zed_ch.db
-    .collection("zed")
-    .find({ 2: { $gt: date_st, $lt: date_ed } })
-    .toArray();
-  // console.log(docs);
-  docs = _.groupBy(docs, 4);
-  for (let [rid, r] of _.entries(docs)) {
-    console.log(rid, r.length);
-    r = struct_race_row_data(r);
-    write_to_path({
-      file_path: `${appRootPath}/data_files/races_2/${rid}.json`,
-      data: { rid, data: r },
-    });
-  }
+  let date_st = "2021-08-23T23:59:59Z";
+  let date_ed = new Date().toISOString();
+  // let docs = await zed_ch.db.collection("zed").deleteMany({ 2: { $gt: date_st, $lt: date_ed } });
+  console.log("end");
 };
 // runner();
 
