@@ -1,7 +1,12 @@
 const axios = require("axios");
 const _ = require("lodash");
 const { init, zed_ch, zed_db } = require("./index-run");
-const { struct_race_row_data, delay, write_to_path } = require("./utils");
+const {
+  struct_race_row_data,
+  delay,
+  write_to_path,
+  fetch_r,
+} = require("./utils");
 const {
   get_adjusted_finish_times,
 } = require("./zed_races_adjusted_finish_time");
@@ -22,9 +27,17 @@ const zed_gql = "https://zed-ql.zed.run/graphql/getRaceResults";
 
 const zed_secret_key = process.env.zed_secret_key;
 const mt = 60 * 1000;
+const hr = 1000 * 60 * 60;
+const day_diff = 1000 * 60 * 60 * 24 * 1;
 
 const def_config = {
   g_odds_zero: true,
+};
+
+const nano_diff = (d1, d2) => {
+  d1 = new Date(d1).getTime();
+  d2 = new Date(d2).getTime();
+  return d1 - d2;
 };
 
 const push_to_g_bucket = async (g_bucket = []) => {
@@ -38,6 +51,39 @@ const push_to_g_bucket = async (g_bucket = []) => {
     { upsert: true }
   );
 };
+const pull_from_g_bucket = async (g_bucket = []) => {
+  let id = "g_bucket";
+  await zed_db.db.collection("script").updateOne(
+    { id },
+    {
+      $set: { id },
+      $pullAll: { g_bucket: g_bucket },
+    },
+    { upsert: true }
+  );
+};
+const push_to_need_odds_bucket = async (need_odds_bucket = []) => {
+  let id = "need_odds_bucket";
+  await zed_db.db.collection("script").updateOne(
+    { id },
+    {
+      $set: { id },
+      $addToSet: { need_odds_bucket: { $each: need_odds_bucket } },
+    },
+    { upsert: true }
+  );
+};
+const pull_from_need_odds_bucket = async (need_odds_bucket = []) => {
+  let id = "need_odds_bucket";
+  await zed_db.db.collection("script").updateOne(
+    { id },
+    {
+      $set: { id },
+      $pullAll: { need_odds_bucket: need_odds_bucket },
+    },
+    { upsert: true }
+  );
+};
 const push_to_err_bucket = async (err_bucket = []) => {
   let id = "err_bucket";
   await zed_db.db.collection("script").updateOne(
@@ -45,6 +91,17 @@ const push_to_err_bucket = async (err_bucket = []) => {
     {
       $set: { id },
       $addToSet: { err_bucket: { $each: err_bucket } },
+    },
+    { upsert: true }
+  );
+};
+const pull_from_err_bucket = async (err_bucket = []) => {
+  let id = "err_bucket";
+  await zed_db.db.collection("script").updateOne(
+    { id },
+    {
+      $set: { id },
+      $pullAll: { err_bucket: err_bucket },
     },
     { upsert: true }
   );
@@ -176,7 +233,7 @@ const add_times_flames_odds_to_races = async (raw_data, config) => {
       .entries()
       .map(([hid, e]) => {
         if (date >= "2021-08-24T00:00:00.000Z") {
-          // console.log(hid, odds_ob[hid]);
+          // console.log(hid, thisclass, odds_ob[hid]);
           e[11] = odds_ob[hid] || 0;
         } else delete e[11];
         e[13] = flames_ob[hid];
@@ -221,6 +278,7 @@ const zed_race_add_runner = async (mode = "auto", dates, config) => {
     to = new Date(now).toISOString();
   } else if (mode == "manual") {
     let { from_a, to_a } = dates || {};
+
     from = new Date(from_a).toISOString();
     to = new Date(to_a).toISOString();
   }
@@ -314,8 +372,11 @@ const zed_races_specific_duration_run = async () => {
   // from_a = prompt("from: ");
   // to_a = prompt("to  : ");
 
-  let date_st = "2021-08-24T00:00:00Z";
-  let date_ed = new Date().toISOString();
+  // let date_st = "2021-08-24T00:00:00Z";
+  // let date_ed = new Date().toISOString();
+  let date = "2021-08-24T15:40:49Z";
+  let date_st = date;
+  let date_ed = date;
 
   from_a = date_st;
   to_a = date_ed;
@@ -358,12 +419,244 @@ const zed_races_since_last_run = async () => {
 };
 // zed_races_since_last_run();
 
-const runner = async () => {
+const zed_results_data = async (rid) => {
+  let api = `https://racing-api.zed.run/api/v1/races/result/${rid}`;
+  let doc = await fetch_r(api);
+  if (_.isEmpty(doc)) return null;
+  let { horse_list = [] } = doc;
+  let ob = _.chain(horse_list)
+    .map((i) => {
+      let { finish_position, gate, id, name, time } = i;
+      return {
+        hid: id,
+        name,
+        gate,
+        place: finish_position,
+        finishtime: time,
+      };
+    })
+    .keyBy("hid")
+    .value();
+  return ob;
+};
+const zed_flames_data = async (rid) => {
+  let api = `https://rpi.zed.run/?race_id=${rid}`;
+  let doc = await fetch_r(api);
+  if (_.isEmpty(doc)) return null;
+  let { rpi } = doc;
+  return rpi;
+};
+const zed_race_base_data = async (rid) => {
+  let api = `https://racing-api.zed.run/api/v1/races?race_id=${rid}`;
+  let doc = await fetch_r(api);
+  if (_.isEmpty(doc)) return null;
+  let {
+    class: thisclass,
+    fee: entryfee,
+    gates,
+    length: distance,
+    start_time: date,
+    status,
+  } = doc;
+  if (status !== "finished") return null;
+  let hids = _.values(gates);
+  let ob = { rid, thisclass, hids, entryfee, distance, date };
+  return ob;
+};
+
+const zed_race_build_for_mongodb = async (rid, conf = {}) => {
+  let { with_odds = false } = conf;
+  let [base, results, flames] = await Promise.all([
+    zed_race_base_data(rid),
+    zed_results_data(rid),
+    zed_flames_data(rid),
+  ]);
+  let { hids, thisclass, entryfee, distance, date } = base;
+  let fee_cat = get_fee_cat_on({ date, fee: entryfee });
+  let ar = hids.map((hid) => {
+    return {
+      hid,
+      ...results[hid],
+      flame: flames[hid],
+    };
+  });
+  ar = ar.map((i) => ({
+    1: distance,
+    2: date,
+    3: entryfee,
+    4: rid,
+    5: thisclass,
+    6: i.hid,
+    7: i.finishtime,
+    8: i.place,
+    9: i.name,
+    10: i.gate,
+    11: 0,
+    12: 0,
+    13: i.flame,
+    14: fee_cat,
+    15: 0,
+  }));
+  let adj_ob = await get_adjusted_finish_times(rid, "raw_data", ar);
+  // console.log(rid, adj_ob);
+
+  ar = ar.map((i) => ({ ...i, 15: adj_ob[i[6]] }));
+  if (with_odds == true) {
+    let odds_ob = await get_sims_zed_odds(rid);
+    ar = ar.map((i) => ({ ...i, 11: odds_ob[i[6]] }));
+    // console.log(odds_ob);
+  }
+  ar = _.keyBy(ar, "6");
+  return ar;
+};
+
+const zed_g_runner_single_race = async (rid) => {
+  if (!rid) return;
+  return zed_race_build_for_mongodb(rid, { with_odds: false });
+};
+
+const zed_race_odds_struct_mongodb = async (rid) => {
+  let ob = await get_sims_zed_odds(rid);
+  ob = _.entries(ob).map(([hid, odds]) => [hid, { 11: odds }]);
+  ob = _.fromPairs(ob);
+  return ob;
+};
+
+const zed_races_g_runner = async () => {
   await init();
-  let date_st = "2021-08-23T23:59:59Z";
-  let date_ed = new Date().toISOString();
-  // let docs = await zed_ch.db.collection("zed").deleteMany({ 2: { $gt: date_st, $lt: date_ed } });
-  console.log("end");
+  let g_docs = await zed_db.db.collection("script").findOne({ id: "g_bucket" });
+  g_docs = g_docs?.g_bucket || [];
+  let cs = 5;
+  console.log("g_docs", g_docs.length);
+  for (let chunk of _.chunk(g_docs, cs)) {
+    try {
+      let err_s = [];
+      let rem_g_s = [];
+
+      let data = await Promise.all(
+        chunk.map(({ rid, date }) => {
+          return zed_g_runner_single_race(rid).then((d) => [rid, d]);
+        })
+      );
+
+      data = data.filter(([rid, r]) => {
+        let this_doc = _.find(chunk, { rid });
+        let this_len = _.values(r).length;
+        console.log("g_race", this_doc.date, rid, `${this_len}_h`);
+        if (_.isEmpty(r) || this_len < 12) {
+          err_s.push(this_doc);
+          return false;
+        } else {
+          rem_g_s.push(this_doc);
+          return true;
+        }
+      });
+      let len = data.length;
+      if (!_.isEmpty(data)) {
+        data = _.fromPairs(data);
+        await push_races_to_mongo(data);
+        console.log(len, "races pushed");
+      } else console.log("NO races pushed");
+      if (!_.isEmpty(rem_g_s)) {
+        await pull_from_g_bucket(rem_g_s);
+        await push_to_need_odds_bucket(rem_g_s);
+        console.log(
+          rem_g_s.length,
+          "SUCCESS races rem from g_bucket & add to need_odds_bucket"
+        );
+      }
+      if (!_.isEmpty(err_s)) {
+        await push_to_g_bucket(err_s);
+        console.log(err_s.length, "ERROR found and pushed to g_bucket");
+      }
+      console.log("\n");
+    } catch (err) {
+      console.log("ERROR in zed_races_g_runner", err.message);
+    }
+  }
+};
+const zed_races_g_odds_runner = async () => {
+  await init();
+
+  let cs = 5;
+  let g_h = 72;
+
+  let need_odds_docs = await zed_db.db
+    .collection("script")
+    .findOne({ id: "need_odds_bucket" });
+  need_odds_docs = need_odds_docs?.need_odds_bucket || [];
+
+  console.log("need_odds_docs", need_odds_docs.length);
+  for (let chunk of _.chunk(need_odds_docs, cs)) {
+    try {
+      let err_s = [];
+      let rem_n_s = [];
+
+      let data = await Promise.all(
+        chunk.map(({ rid, date }) => {
+          if (Math.abs(nano_diff(date, Date.now())) < g_h * hr) return -1;
+          return zed_race_odds_struct_mongodb(rid).then((d) => [rid, d]);
+        })
+      );
+      
+      data = data.filter(([rid, r]) => {
+        let this_doc = _.find(chunk, { rid });
+        if (r == -1) {
+          console.log("g_odds", this_doc.date, rid, `SKIPPED no older than ${g_h}hrs`);
+          return false;
+        }
+        let this_len = _.values(r).length;
+        console.log("g_odds", this_doc.date, rid, `${this_len}_h`);
+        if (_.isEmpty(r) || this_len < 12) {
+          err_s.push(this_doc);
+          return false;
+        } else {
+          rem_n_s.push(this_doc);
+          return true;
+        }
+      });
+      let len = data.length;
+      // console.log("len:", len);
+      if (!_.isEmpty(data)) {
+        data = _.fromPairs(data);
+        await push_races_to_mongo(data);
+        console.log(len, "races odds pushed");
+      } else console.log("NO races odds pushed");
+      if (!_.isEmpty(rem_n_s)) {
+        await pull_from_need_odds_bucket(rem_n_s);
+        console.log(
+          rem_n_s.length,
+          "SUCCESS races odds & rem from need_odds_bucket"
+        );
+      }
+      if (!_.isEmpty(err_s)) {
+        await push_to_need_odds_bucket(err_s);
+        console.log(err_s.length, "ERROR found and pushed to need_odds_bucket");
+      }
+      console.log("\n");
+    } catch (err) {
+      console.log("ERROR in zed_races_g_runner", err.message);
+    }
+  }
+};
+
+const runner = async () => {
+  // await init();
+
+  // await zed_ch.db.collection("zed").deleteMany({ 2: "2021-08-24T16:22:49Z" });
+  // widtd86c 12_h
+  // I6YvLI9r 12_h
+  // FNo8fjj7 12_h
+
+  // let dc = { rid: "I6YvLI9r", date: "2021-08-24T15:40:49Z" };
+  // let ob = await zed_race_build_for_mongodb(dc.rid, { with_odds: true });
+  // console.table(ob);
+
+  // await zed_races_g_runner();
+  // await zed_races_g_odds_runner();
+
+  // zed_races_specific_duration_run();
+  // console.log("done");
 };
 // runner();
 

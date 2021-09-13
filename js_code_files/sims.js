@@ -367,10 +367,10 @@ const get_sims_zed_odds = async (rid) => {
       .keyBy("hid")
       .mapValues("odds_zed")
       .value();
-    write_to_path({
-      file_path: `${appRootPath}/data_files/sims/sims-${Date.now()}-${rid}.json`,
-      data: ob,
-    });
+    // write_to_path({
+    //   file_path: `${appRootPath}/data_files/sims/sims-${Date.now()}-${rid}.json`,
+    //   data: ob,
+    // });
     return ret;
   } catch (err) {
     return {};
@@ -379,57 +379,10 @@ const get_sims_zed_odds = async (rid) => {
 
 const runner = async () => {
   await init();
-  let rid = "yj8qZdYh";
+  let rid = "DZ9eKv9c";
   let a = await get_sims_zed_odds(rid);
   console.log(a);
   console.log(zed_to_real_odds(50));
-
-  // console.log(calc_sd([1, 2, 1.5]));
-  // let dists = [1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600];
-  // let cls = [0, 1, 2, 3, 4, 5];
-  // let a = [];
-  // for (let c of cls) for (let d of dists) a.push({ c, d });
-  // a = [{ c: 4, d: 2600 }];
-  // let ob = [];
-  // for (let { c, d } of a) {
-  //   console.log(c, d);
-  //   let docs = await zed_ch.db
-  //     .collection("zed")
-  //     .find(
-  //       {
-  //         1: d,
-  //         5: c,
-  //       },
-  //       { projection: { 7: 1, 15: 1, _id: 0 } }
-  //     )
-  //     .toArray();
-  //   let times = _.map(docs, 7);
-  //   let nor_times = _.map(docs, 15);
-  //   times = _.compact(times);
-  //   nor_times = _.compact(nor_times);
-
-  //   let mean = _.mean(times);
-  //   let sd = calc_sd(times);
-
-  //   let nor_mean = _.mean(nor_times);
-  //   let nor_sd = calc_sd(nor_times);
-  //   let cd_ob = {
-  //     cd: `${c}_${d}`,
-  //     mean,
-  //     sd,
-  //     nor_mean,
-  //     nor_sd,
-  //     len: times.length,
-  //   };
-  //   console.log(cd_ob);
-  //   ob.push(cd_ob);
-  // }
-  // ob = _.keyBy(ob, "cd");
-  // console.table(ob);
-  // write_to_path({
-  //   file_path: `${appRootPath}/data_files/global_preset.json`,
-  //   data: ob,
-  // });
 };
 // runner();
 

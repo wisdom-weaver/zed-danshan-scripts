@@ -452,19 +452,21 @@ const test10 = async () => {
     .updateOne({ id: "odds_avg_ALL" }, { $set: update_ob });
   console.log("completed");
 };
-const test11 = async () => {
-  let rid = "NnzBouwP";
-  let api = `https://bs-zed-backend-api.herokuapp.com/races/get/by-raceid/${rid}`;
-  let ar = await fetch_r(api);
-  ar = _.sortBy(ar, "finishtime").map(({ hid, name, place, finishtime }) => ({
-    hid,
-    name,
-    place,
-    finishtime,
-  }));
-  console.table(ar);
+const script_buckets_count_test = async () => {
+  await init();
+  let err_docs = await zed_db.db
+    .collection("script")
+    .findOne({ id: "err_bucket" });
+  err_docs = err_docs?.err_bucket;
+  console.log("err_bucket: ", err_docs?.length);
+  let g_docs = await zed_db.db.collection("script").findOne({ id: "g_bucket" });
+  g_docs = g_docs?.g_bucket;
+  console.log("g_bucket: ", g_docs?.length);
+  let need_odds_docs = await zed_db.db.collection("script").findOne({ id: "need_odds_bucket" });
+  need_odds_docs = need_odds_docs?.need_odds_bucket;
+  console.log("need_odds_bucket: ", need_odds_docs?.length);
 };
-test11();
+script_buckets_count_test();
 
 module.exports = {
   test1,
