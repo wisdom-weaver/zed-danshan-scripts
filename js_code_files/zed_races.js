@@ -6,6 +6,7 @@ const {
   delay,
   write_to_path,
   fetch_r,
+  read_from_path,
 } = require("./utils");
 const {
   get_adjusted_finish_times,
@@ -29,6 +30,11 @@ const zed_secret_key = process.env.zed_secret_key;
 const mt = 60 * 1000;
 const hr = 1000 * 60 * 60;
 const day_diff = 1000 * 60 * 60 * 24 * 1;
+const g_h = 72;
+
+const cron_conf = {
+  scheduled: true,
+};
 
 const def_config = {
   g_odds_zero: true,
@@ -349,18 +355,6 @@ const zed_race_add_runner = async (mode = "auto", dates, config) => {
   }
 };
 
-const zed_races_automated_script_run = async () => {
-  await init();
-  await auto_eth_cron();
-  await delay(1000);
-  console.log("\n## zed_races_script_run started");
-  let cron_str = "*/2 * * * *";
-  const c_itvl = cron_parser.parseExpression(cron_str);
-  console.log("Next run:", c_itvl.next().toISOString(), "\n");
-  cron.schedule(cron_str, () => zed_race_add_runner("auto", def_config));
-};
-// zed_races_automated_script_run();
-
 const zed_races_specific_duration_run = async () => {
   await init();
   await auto_eth_cron();
@@ -415,6 +409,8 @@ const zed_races_since_last_run = async () => {
     await zed_race_add_runner("manual", { from_a, to_a }, def_config);
     from_a = to_a;
   }
+  await zed_races_err_runner();
+  await zed_races_g_runner();
   zed_races_automated_script_run("auto");
 };
 // zed_races_since_last_run();
@@ -460,12 +456,13 @@ const zed_race_base_data = async (rid) => {
   } = doc;
   if (status !== "finished") return null;
   let hids = _.values(gates);
+  if (!date.endsWith("Z")) date += "Z";
   let ob = { rid, thisclass, hids, entryfee, distance, date };
   return ob;
 };
 
 const zed_race_build_for_mongodb = async (rid, conf = {}) => {
-  let { with_odds = false } = conf;
+  let { mode = "g" } = conf;
   let [base, results, flames] = await Promise.all([
     zed_race_base_data(rid),
     zed_results_data(rid),
@@ -501,10 +498,14 @@ const zed_race_build_for_mongodb = async (rid, conf = {}) => {
   // console.log(rid, adj_ob);
 
   ar = ar.map((i) => ({ ...i, 15: adj_ob[i[6]] }));
-  if (with_odds == true) {
+  if (mode == "g" || (mode == "err" && thisclass !== 0)) {
     let odds_ob = await get_sims_zed_odds(rid);
     ar = ar.map((i) => ({ ...i, 11: odds_ob[i[6]] }));
     // console.log(odds_ob);
+  }
+  if (mode == "err" && thisclass == 0) {
+    console.log("G", { rid, date });
+    await push_to_g_bucket([{ rid, date }]);
   }
   ar = _.keyBy(ar, "6");
   return ar;
@@ -512,20 +513,29 @@ const zed_race_build_for_mongodb = async (rid, conf = {}) => {
 
 const zed_g_runner_single_race = async (rid) => {
   if (!rid) return;
-  return zed_race_build_for_mongodb(rid, { with_odds: false });
+  return zed_race_build_for_mongodb(rid, { mode: "g" });
+};
+
+const zed_err_runner_single_race = async (rid) => {
+  if (!rid) return;
+  return zed_race_build_for_mongodb(rid, { mode: "err" });
 };
 
 const zed_race_odds_struct_mongodb = async (rid) => {
   let ob = await get_sims_zed_odds(rid);
-  ob = _.entries(ob).map(([hid, odds]) => [hid, { 11: odds }]);
+  ob = _.entries(ob).map(([hid, odds]) => [
+    hid,
+    { 4: rid, 6: parseFloat(hid), 11: odds },
+  ]);
   ob = _.fromPairs(ob);
   return ob;
 };
 
 const zed_races_g_runner = async () => {
-  await init();
   let g_docs = await zed_db.db.collection("script").findOne({ id: "g_bucket" });
   g_docs = g_docs?.g_bucket || [];
+  g_docs = _.sortBy(g_docs, "date");
+
   let cs = 5;
   console.log("g_docs", g_docs.length);
   for (let chunk of _.chunk(g_docs, cs)) {
@@ -535,14 +545,24 @@ const zed_races_g_runner = async () => {
 
       let data = await Promise.all(
         chunk.map(({ rid, date }) => {
+          if (nano_diff(Date.now(), date) < g_h * hr) return [rid, -1];
           return zed_g_runner_single_race(rid).then((d) => [rid, d]);
         })
       );
 
       data = data.filter(([rid, r]) => {
         let this_doc = _.find(chunk, { rid });
+        if (r == -1) {
+          console.log(
+            "g_odds",
+            this_doc.date,
+            rid,
+            `SKIPPED should be ${g_h}hrs old`
+          );
+          return false;
+        }
         let this_len = _.values(r).length;
-        console.log("g_race", this_doc.date, rid, `${this_len}_h`);
+        console.log("g_odds", this_doc.date, rid, `${this_len}_h`);
         if (_.isEmpty(r) || this_len < 12) {
           err_s.push(this_doc);
           return false;
@@ -555,19 +575,23 @@ const zed_races_g_runner = async () => {
       if (!_.isEmpty(data)) {
         data = _.fromPairs(data);
         await push_races_to_mongo(data);
-        console.log(len, "races pushed");
-      } else console.log("NO races pushed");
+        console.log("g_odds", len, "races pushed");
+      } else console.log("g_odds", "NO races pushed");
       if (!_.isEmpty(rem_g_s)) {
         await pull_from_g_bucket(rem_g_s);
-        await push_to_need_odds_bucket(rem_g_s);
         console.log(
+          "g_odds",
           rem_g_s.length,
           "SUCCESS races rem from g_bucket & add to need_odds_bucket"
         );
       }
       if (!_.isEmpty(err_s)) {
         await push_to_g_bucket(err_s);
-        console.log(err_s.length, "ERROR found and pushed to g_bucket");
+        console.log(
+          "g_odds",
+          err_s.length,
+          "ERROR found and pushed to g_bucket"
+        );
       }
       console.log("\n");
     } catch (err) {
@@ -575,88 +599,114 @@ const zed_races_g_runner = async () => {
     }
   }
 };
-const zed_races_g_odds_runner = async () => {
-  await init();
+
+const zed_races_err_runner = async () => {
+  let err_docs = await zed_db.db
+    .collection("script")
+    .findOne({ id: "err_bucket" });
+  err_docs = err_docs?.err_bucket || [];
+  err_docs = _.sortBy(err_docs, "date");
 
   let cs = 5;
-  let g_h = 72;
-
-  let need_odds_docs = await zed_db.db
-    .collection("script")
-    .findOne({ id: "need_odds_bucket" });
-  need_odds_docs = need_odds_docs?.need_odds_bucket || [];
-
-  console.log("need_odds_docs", need_odds_docs.length);
-  for (let chunk of _.chunk(need_odds_docs, cs)) {
+  console.log("err_docs", err_docs.length);
+  for (let chunk of _.chunk(err_docs, cs)) {
     try {
       let err_s = [];
-      let rem_n_s = [];
+      let rem_err_s = [];
 
       let data = await Promise.all(
         chunk.map(({ rid, date }) => {
-          if (Math.abs(nano_diff(date, Date.now())) < g_h * hr) return -1;
-          return zed_race_odds_struct_mongodb(rid).then((d) => [rid, d]);
+          return zed_err_runner_single_race(rid).then((d) => [rid, d]);
         })
       );
-      
+
       data = data.filter(([rid, r]) => {
         let this_doc = _.find(chunk, { rid });
-        if (r == -1) {
-          console.log("g_odds", this_doc.date, rid, `SKIPPED no older than ${g_h}hrs`);
-          return false;
-        }
         let this_len = _.values(r).length;
-        console.log("g_odds", this_doc.date, rid, `${this_len}_h`);
+        console.log("err_race", this_doc.date, rid, `${this_len}_h`);
         if (_.isEmpty(r) || this_len < 12) {
           err_s.push(this_doc);
           return false;
         } else {
-          rem_n_s.push(this_doc);
+          rem_err_s.push(this_doc);
           return true;
         }
       });
       let len = data.length;
-      // console.log("len:", len);
       if (!_.isEmpty(data)) {
         data = _.fromPairs(data);
         await push_races_to_mongo(data);
-        console.log(len, "races odds pushed");
-      } else console.log("NO races odds pushed");
-      if (!_.isEmpty(rem_n_s)) {
-        await pull_from_need_odds_bucket(rem_n_s);
-        console.log(
-          rem_n_s.length,
-          "SUCCESS races odds & rem from need_odds_bucket"
-        );
+        console.log(len, "races pushed");
+      } else console.log("NO races pushed");
+      if (!_.isEmpty(rem_err_s)) {
+        await pull_from_err_bucket(rem_err_s);
+        console.log(rem_err_s.length, "SUCCESS races rem from err_bucket");
       }
       if (!_.isEmpty(err_s)) {
-        await push_to_need_odds_bucket(err_s);
-        console.log(err_s.length, "ERROR found and pushed to need_odds_bucket");
+        await push_to_err_bucket(err_s);
+        console.log(err_s.length, "ERROR found and pushed to err_bucket");
       }
       console.log("\n");
     } catch (err) {
-      console.log("ERROR in zed_races_g_runner", err.message);
+      console.log("ERROR in zed_races_err_runner", err.message);
     }
   }
 };
 
+const zed_races_scripts_init = async () => {
+  await init();
+  await auto_eth_cron();
+  await delay(1000);
+};
+
+const zed_races_g_auto_run = async () => {
+  // await zed_races_scripts_init();
+  console.log("\n## zed_races_g_auto_run started");
+
+  let cron_str_1 = "0 0 * * *";
+  const c_itvl_1 = cron_parser.parseExpression(cron_str_1);
+  console.log("Next g_races RUN:", c_itvl_1.next().toISOString());
+  cron.schedule(cron_str_1, () => zed_races_g_runner(), cron_conf);
+};
+
+const zed_races_err_auto_run = async () => {
+  // await zed_races_scripts_init();
+  console.log("\n## zed_races_err_auto_run started");
+
+  let cron_str_1 = "*/5 * * * *";
+  const c_itvl_1 = cron_parser.parseExpression(cron_str_1);
+  console.log("Next err_races RUN:", c_itvl_1.next().toISOString());
+  cron.schedule(cron_str_1, () => zed_races_err_runner(), cron_conf);
+};
+
+const zed_races_automated_script_run = async () => {
+  await zed_races_scripts_init();
+  console.log("\n## zed_races_script_run started");
+  let cron_str = "*/2 * * * *";
+  const c_itvl = cron_parser.parseExpression(cron_str);
+  console.log("Next run:", c_itvl.next().toISOString(), "\n");
+  cron.schedule(
+    cron_str,
+    () => zed_race_add_runner("auto", def_config),
+    cron_conf
+  );
+  zed_races_g_auto_run();
+  zed_races_err_auto_run();
+};
+// zed_races_automated_script_run();
+
 const runner = async () => {
-  // await init();
+  await zed_races_scripts_init();
 
-  // await zed_ch.db.collection("zed").deleteMany({ 2: "2021-08-24T16:22:49Z" });
-  // widtd86c 12_h
-  // I6YvLI9r 12_h
-  // FNo8fjj7 12_h
+  await zed_races_err_runner();
+  await zed_races_g_runner();
 
-  // let dc = { rid: "I6YvLI9r", date: "2021-08-24T15:40:49Z" };
-  // let ob = await zed_race_build_for_mongodb(dc.rid, { with_odds: true });
-  // console.table(ob);
-
-  // await zed_races_g_runner();
-  // await zed_races_g_odds_runner();
+  let no = await zed_db.collection("script").findOne({ id: "g_bucket" });
+  no = no.g_bucket;
+  console.log(no.length);
 
   // zed_races_specific_duration_run();
-  // console.log("done");
+  console.log("done");
 };
 // runner();
 
