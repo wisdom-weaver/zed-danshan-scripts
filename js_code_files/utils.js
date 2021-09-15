@@ -68,7 +68,7 @@ const fetch_r = async (api, i = 3) => {
   try {
     return await fetch(api).then((r) => r.json());
   } catch (err) {
-    console.log(err);
+    console.log(err.message, api);
     await delay(fetch_r_delay);
     return await fetch_r(api, i - 1);
   }

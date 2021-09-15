@@ -34,7 +34,8 @@ const initiate_everything = async () => {
   console.log("## Initiating");
   await download_eth_prices();
   st = 0;
-  mx = await generate_max_horse();
+  mx = 82480;
+  // mx = await generate_max_horse();
   ed = mx;
 };
 
@@ -84,6 +85,43 @@ const get_kids = async ({ hid, after = null }) => {
   }
 };
 
+const get_details_of_hid_db = async (hid) => {
+  hid = parseInt(hid);
+  let doc = (await zed_db.db.collection("rating_blood").findOne({ hid })) || {};
+  let dets = doc?.details || {};
+  return { hid, ...dets };
+};
+
+const get_kids_existing = async ({ hid }) => {
+  try {
+    hid = parseInt(hid);
+    let br_doc = await zed_db.db.collection("kids").findOne({ hid });
+    let kids_hids = _.keys(br_doc?.odds || {});
+    kids_hids = kids_hids.map((a) => parseInt(a));
+    // console.log(kids_hids);
+    let kids = await Promise.all(
+      kids_hids.map((k) => get_details_of_hid_db(k))
+    );
+    kids = kids.map((k) => {
+      let { parents, genotype, bloodline, breed_type } = k;
+      return {
+        hid: k.hid,
+        genotype,
+        bloodline,
+        breed_type,
+        ...parents,
+      };
+    });
+    return kids;
+    kids_parents = Object.fromEntries(kids_parents);
+    kids_hids = kids_hids.map((ea) => ({ ...ea, ...kids_parents[ea.hid] }));
+    return kids_hids;
+  } catch (err) {
+    console.log(err);
+    return [];
+  }
+};
+
 const get_breed_rating = async (hid) => {
   if (hid === null) return null;
   let doc = await zed_db.db.collection("kids").findOne({ hid });
@@ -126,8 +164,8 @@ const get_kg = async (hid) => {
   try {
     hid = parseInt(hid);
     if (hid == null || isNaN(hid)) return null;
-    let kids = (await get_kids({ hid })) || [];
-
+    let kids = (await get_kids_existing({ hid })) || [];
+    // console.log({ hid, kids });
     if (_.isEmpty(kids)) {
       let empty_kg = {
         hid,
@@ -230,28 +268,32 @@ const get_kg = async (hid) => {
 };
 
 const get_kids_and_upload = async (hid, print = 0) => {
-  hid = parseInt(hid);
-  if (hid == null || isNaN(hid)) return null;
-  let kg = await get_kg(hid);
-  if (print == 1) {
-    let { avg, gz_med, odds, kids_n } = kg;
-    let str = _.values(odds)
-      .map((e) => (e == null ? "N" : parseFloat(e).toFixed(0)))
-      .join(" ");
-    console.log(`horse_${hid}`, ` (${kids_n})=>`, str);
-    console.log({ avg, gz_med });
+  try {
+    hid = parseInt(hid);
+    if (hid == null || isNaN(hid)) return null;
+    let kg = await get_kg(hid);
+    if (print == 1) {
+      let { avg, gz_med, odds, kids_n } = kg;
+      let str = _.values(odds)
+        .map((e) => (e == null ? "N" : parseFloat(e).toFixed(0)))
+        .join(" ");
+      console.log(`horse_${hid}`, ` (${kids_n})=>`, str);
+      console.log({ avg, gz_med });
+    }
+    if (_.isEmpty(kg)) {
+      console.log("get_kids_and_upload", hid, "empty_kg");
+      return;
+    }
+    // console.log(kg.is, hid, "=>", kg.kids_n, "kids, breed_rat:", kg.gz_med);
+    kg.db_date = new Date().toISOString();
+    kg.fn = "script";
+    await zed_db.db
+      .collection("kids")
+      .updateOne({ hid }, { $set: kg }, { upsert: true });
+    // await write_horse_details_to_hid_br(hid);
+  } catch (err) {
+    console.log("ERR on get_kids_and_upload", hid);
   }
-  if (_.isEmpty(kg)) {
-    console.log("get_kids_and_upload", hid, "empty_kg");
-    return;
-  }
-  // console.log(kg.is, hid, "=>", kg.kids_n, "kids, breed_rat:", kg.gz_med);
-  kg.db_date = new Date().toISOString();
-  kg.fn = "script";
-  await zed_db.db
-    .collection("kids")
-    .updateOne({ hid }, { $set: kg }, { upsert: true });
-  await write_horse_details_to_hid_br(hid);
 };
 
 const get_all_horses_kids = async () => {
@@ -285,10 +327,12 @@ const get_all_horses_kids = async () => {
     console.log("ERROR get_all_horses_kids\n", err);
   }
 };
+// get_all_horses_kids();
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 module.exports = {
+  get_kg,
   get_all_horses_kids,
   get_kids_and_upload,
   get_parents_hids,

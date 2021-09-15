@@ -462,11 +462,28 @@ const script_buckets_count_test = async () => {
   let g_docs = await zed_db.db.collection("script").findOne({ id: "g_bucket" });
   g_docs = g_docs?.g_bucket;
   console.log("g_bucket: ", g_docs?.length);
-  let need_odds_docs = await zed_db.db.collection("script").findOne({ id: "need_odds_bucket" });
+  let need_odds_docs = await zed_db.db
+    .collection("script")
+    .findOne({ id: "need_odds_bucket" });
   need_odds_docs = need_odds_docs?.need_odds_bucket;
   console.log("need_odds_bucket: ", need_odds_docs?.length);
 };
-script_buckets_count_test();
+// script_buckets_count_test();
+
+const clone_db = async () => {
+  await init();
+  // await zed_db.db.collection("blood").aggregate([{ $match: {} }, { $out: "collection2" }]);
+  let doc = await zed_db.db.collection("blood").findOne({ id: "blood" });
+  console.log(doc);
+  console.log("ended");
+};
+// clone_db();
+const t2 = async ()=>{
+  await init();
+  let doc = await zed_db.db.collection("kids").findOne({hid:150});
+  console.log(doc);
+}
+t2();
 
 module.exports = {
   test1,
