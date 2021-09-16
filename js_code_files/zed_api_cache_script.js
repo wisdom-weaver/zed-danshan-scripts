@@ -2,7 +2,11 @@ const _ = require("lodash");
 const { zed_db, init } = require("./index-run");
 const { fetch_r, delay } = require("./utils");
 const axios = require("axios");
-const { fetch_a, fetch_fatigue } = require("./fetch_axios");
+const {
+  fetch_a,
+  fetch_fatigue,
+  fetch_horse_zed_api,
+} = require("./fetch_axios");
 const cron = require("node-cron");
 const cron_parser = require("cron-parser");
 
@@ -11,20 +15,20 @@ const cron_conf = { scheduled: true };
 const cache_url = async (api_url) => {
   let doc = (await fetch_a(api_url)) || null;
   console.log("caching", api_url);
+  console.log(doc);
   if (doc == null) {
     console.log("err");
     return;
-  }
-  {
+  } else {
     console.log("got data");
     doc = {
       id: api_url,
       data: doc,
     };
+    await zed_db.db
+      .collection("zed_api_cache")
+      .updateOne({ id: api_url }, { $set: doc }, { upsert: true });
   }
-  await zed_db.db
-    .collection("zed_api_cache")
-    .updateOne({ id: api_url }, { $set: doc }, { upsert: true });
 };
 
 const live_base = "https://racing-api.zed.run/api/v1/races?status=open";
@@ -52,9 +56,38 @@ const live_cron = () => {
   cron.schedule(cron_str, () => live_upload(), cron_conf);
 };
 
+const upload_horse_dets = async (hid) => {
+  let doc = await fetch_horse_zed_api(hid);
+  if (doc == null) return console.log("err dets", hid);
+  let id = `hid-doc-${hid}`;
+  doc = { id, ...doc };
+  await zed_db.db
+    .collection("zed_api_cache")
+    .updateOne({ id }, { $set: doc }, { upsert: true });
+  console.log("done dets", hid);
+};
+
+const upload_horse_fatigue = async (hid) => {
+  let doc = await fetch_fatigue(hid);
+  if (doc == null) return console.log("err fatigue", hid);
+  let id = `hid-doc-${hid}`;
+  doc = { id, ...doc };
+  await zed_db.db
+    .collection("zed_api_cache")
+    .updateOne({ id }, { $set: doc }, { upsert: true });
+  console.log("done fatigue", hid);
+};
+
 const zed_api_cache_runner = async () => {
   await init();
   live_cron();
+  let hids = [3312, 15147, 102334]
+  for (let hid of hids) {
+    await upload_horse_dets(hid);
+    await delay(5000);
+    await upload_horse_fatigue(hid);
+    await delay(5000);
+  }
 };
 // zed_api_cache_runner();
 
