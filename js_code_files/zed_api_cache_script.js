@@ -86,25 +86,24 @@ const horse_update_runner = async () => {
   console.log("live_my_horses len:", hids.length);
   for (let hid of hids) {
     await upload_horse_dets(hid);
-    await delay(5000);
+    await delay(25 * 1000);
     await upload_horse_fatigue(hid);
-    await delay(5000);
+    await delay(25 * 1000);
   }
 };
 
-const horse_update_cron = () => {
-  console.log("\n## live_cron started");
-  let cron_str = "* * * * *";
-  const c_itvl = cron_parser.parseExpression(cron_str);
-  console.log("Next run:", c_itvl.next().toISOString(), "\n");
-  cron.schedule(cron_str, () => live_upload(), cron_conf);
+const horse_update_cron = async () => {
+  for (let i of _.range(1, 100 + 1)) {
+    console.log("started horse bunch cycle", i);
+    await horse_update_runner();
+    console.log("ended horse bunch cycle", i);
+  }
 };
 
 const zed_api_cache_runner = async () => {
   await init();
-  // live_cron();
-  // horse_update_cron();
-  horse_update_runner();
+  live_cron();
+  horse_update_cron();
 };
 // zed_api_cache_runner();
 
