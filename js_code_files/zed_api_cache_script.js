@@ -50,7 +50,7 @@ const live_upload = async () => {
 
 const live_cron = () => {
   console.log("\n## live_cron started");
-  let cron_str = "* * * * *";
+  let cron_str = "*/30 * * * * *";
   const c_itvl = cron_parser.parseExpression(cron_str);
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
   cron.schedule(cron_str, () => live_upload(), cron_conf);
