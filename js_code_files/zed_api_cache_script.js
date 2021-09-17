@@ -14,8 +14,8 @@ const cron_conf = { scheduled: true };
 
 const cache_url = async (api_url) => {
   let doc = (await fetch_a(api_url)) || null;
-  console.log("caching", api_url);
-  console.log(doc);
+  console.log(new Date().toISOString(), "caching", api_url);
+  // console.log(doc);
   if (doc == null) {
     console.log("err");
     return;
