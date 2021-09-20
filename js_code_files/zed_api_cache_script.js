@@ -44,7 +44,7 @@ const live_upload = async () => {
   console.log(new Date().toISOString());
   for (let api_url of api_urls) {
     await cache_url(api_url);
-    await delay(4000);
+    await delay(3000);
   }
 };
 
