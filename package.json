@@ -17,6 +17,8 @@
     "zed_races_automated_script_run": "run-func js_code_files/zed_races.js zed_races_automated_script_run",
     "zed_races_specific_duration_run": "run-func js_code_files/zed_races.js zed_races_specific_duration_run",
     "zed_races_since_last_run": "run-func js_code_files/zed_races.js zed_races_since_last_run",
+    "zed_races_err_manual_run": "run-func js_code_files/zed_races.js zed_races_err_manual_run",
+    "zed_races_g_manual_run": "run-func js_code_files/zed_races.js zed_races_g_manual_run",
     "zed_api_cache_runner": "run-func js_code_files/zed_api_cache_script.js zed_api_cache_runner",
     "test1": "run-func js_code_files/tests.js test1",
     "test2": "run-func js_code_files/tests.js test2",

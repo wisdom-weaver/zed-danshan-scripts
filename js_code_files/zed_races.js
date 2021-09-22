@@ -540,7 +540,7 @@ const zed_races_g_runner = async () => {
   g_docs = g_docs?.g_bucket || [];
   g_docs = _.sortBy(g_docs, "date");
 
-  let cs = 5;
+  let cs = 1;
   console.log("g_docs", g_docs.length);
   for (let chunk of _.chunk(g_docs, cs)) {
     try {
@@ -601,7 +601,12 @@ const zed_races_g_runner = async () => {
     } catch (err) {
       console.log("ERROR in zed_races_g_runner", err.message);
     }
+    await delay(4000);
   }
+};
+const zed_races_g_manual_run = async () => {
+  await zed_races_g_runner();
+  console.log("completed zed_g_races");
 };
 
 const zed_races_err_runner = async () => {
@@ -611,7 +616,7 @@ const zed_races_err_runner = async () => {
   err_docs = err_docs?.err_bucket || [];
   err_docs = _.sortBy(err_docs, "date");
 
-  let cs = 5;
+  let cs = 1;
   console.log("err_docs", err_docs.length);
   for (let chunk of _.chunk(err_docs, cs)) {
     try {
@@ -654,7 +659,12 @@ const zed_races_err_runner = async () => {
     } catch (err) {
       console.log("ERROR in zed_races_err_runner", err.message);
     }
+    await delay(5000);
   }
+};
+const zed_races_err_manual_run = async () => {
+  await zed_races_err_runner();
+  console.log("completed zed_err_races");
 };
 
 const zed_races_scripts_init = async () => {
@@ -677,7 +687,7 @@ const zed_races_err_auto_run = async () => {
   // await zed_races_scripts_init();
   console.log("\n## zed_races_err_auto_run started");
 
-  let cron_str_1 = "*/5 * * * *";
+  let cron_str_1 = "*/20 * * * *";
   const c_itvl_1 = cron_parser.parseExpression(cron_str_1);
   console.log("Next err_races RUN:", c_itvl_1.next().toISOString());
   cron.schedule(cron_str_1, () => zed_races_err_runner(), cron_conf);
@@ -695,8 +705,8 @@ const zed_races_automated_script_run = async () => {
     cron_conf
   );
   // zed_race_add_runner("auto", def_config)
-  // zed_races_g_auto_run();
-  // zed_races_err_auto_run();
+  zed_races_g_auto_run();
+  zed_races_err_auto_run();
 };
 // zed_races_automated_script_run();
 
@@ -720,4 +730,6 @@ module.exports = {
   zed_races_automated_script_run,
   zed_races_specific_duration_run,
   zed_races_since_last_run,
+  zed_races_err_manual_run,
+  zed_races_g_manual_run,
 };
