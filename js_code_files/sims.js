@@ -76,12 +76,12 @@ const calc_sd = (d_ar) => {
 
 const get_hid_doc = async (hid) => {
   let api = `https://api.zed.run/api/v1/horses/get/${hid}`;
-  let doc = await fetch_r(api);
+  let doc = await fetch_a(api);
   return doc;
 };
 const get_race_doc = async (rid) => {
   let api = `https://racing-api.zed.run/api/v1/races?race_id=${rid}`;
-  let doc = await fetch_r(api);
+  let doc = await fetch_a(api);
   if (_.isEmpty(doc) || doc.error) return null;
 
   let {
@@ -372,7 +372,7 @@ const real_to_zed_odds = (r) => {
 
 const get_sims_result_for_rid = async (rid, mode, raw_race) => {
   // let api = `https://bs-zed-backend-api.herokuapp.com/simulation/race/${rid}`;
-  // let doc = await fetch_r(api);
+  // let doc = await fetch_a(api);
   // console.log(rid);
   let doc = await get_simulation_base_data(rid, mode, raw_race);
   if (_.isEmpty(doc)) return {};
