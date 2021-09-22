@@ -99,7 +99,7 @@ const extract_owner = async (cont) => {
     };
     return ob || {};
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     return {};
   }
 };
@@ -152,7 +152,7 @@ const get_fam_part = async (cont) => {
         };
       else if (p1_txt == "Offspring") ob.offsprings = hids;
     } catch (err) {
-      console.log(err);
+      // console.log(err);
     }
     try {
       let p2 = await elem_by_x(cont, fam_p2_cont);
@@ -166,11 +166,11 @@ const get_fam_part = async (cont) => {
       // console.log(hids);
       if (p2_txt == "Offspring") ob.offsprings = hids;
     } catch (err) {
-      console.log(err);
+      // console.log(err);
     }
     return ob;
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     return def_fam_ob;
   }
 };
@@ -210,7 +210,7 @@ const get_n_upload_horse_details = async (hid) => {
     .updateOne({ hid }, { $set: data }, { upsert: true });
 };
 
-const get_n_upload_all_horse_details = async () => {
+const zed_horses_all_scrape = async () => {
   await init();
   console.log("started");
   let st = 1;
@@ -231,9 +231,13 @@ const runner = async () => {
   // let hid = 48992;
   // await console.log(ob);
   // console.log("done");
-  await get_n_upload_all_horse_details();
+  await zed_horses_all_scrape();
   // await init();
   // let doc = await zed_db.db.collection("horse_details").findOne({ hid: 92597 });
   // console.log(doc);
 };
-runner();
+// runner();
+
+module.exports = {
+  zed_horses_all_scrape,
+};

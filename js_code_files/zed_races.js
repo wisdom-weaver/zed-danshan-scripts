@@ -604,6 +604,7 @@ const zed_races_g_runner = async () => {
   }
 };
 const zed_races_g_manual_run = async () => {
+  await init();
   await zed_races_g_runner();
   console.log("completed zed_g_races");
 };
@@ -662,6 +663,7 @@ const zed_races_err_runner = async () => {
   }
 };
 const zed_races_err_manual_run = async () => {
+  await init();
   await zed_races_err_runner();
   console.log("completed zed_err_races");
 };
