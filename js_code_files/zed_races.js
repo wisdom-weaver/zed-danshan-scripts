@@ -22,6 +22,7 @@ const {
 const { get_sims_zed_odds } = require("./sims");
 const appRootPath = require("app-root-path");
 const { config } = require("dotenv");
+const { fetch_a } = require("./fetch_axios");
 
 const zed_gql = "https://zed-ql.zed.run/graphql/getRaceResults";
 
@@ -420,7 +421,7 @@ const zed_races_since_last_run = async () => {
 
 const zed_results_data = async (rid) => {
   let api = `https://racing-api.zed.run/api/v1/races/result/${rid}`;
-  let doc = await fetch_r(api);
+  let doc = await fetch_a(api);
   if (_.isEmpty(doc)) return null;
   let { horse_list = [] } = doc;
   let ob = _.chain(horse_list)
@@ -440,14 +441,14 @@ const zed_results_data = async (rid) => {
 };
 const zed_flames_data = async (rid) => {
   let api = `https://rpi.zed.run/?race_id=${rid}`;
-  let doc = await fetch_r(api);
+  let doc = await fetch_a(api);
   if (_.isEmpty(doc)) return null;
   let { rpi } = doc;
   return rpi;
 };
 const zed_race_base_data = async (rid) => {
   let api = `https://racing-api.zed.run/api/v1/races?race_id=${rid}`;
-  let doc = await fetch_r(api);
+  let doc = await fetch_a(api);
   if (_.isEmpty(doc)) return null;
   let {
     class: thisclass,
