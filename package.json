@@ -42,7 +42,8 @@
     "mongoose": "^5.13.2",
     "node-cron": "^3.0.0",
     "node-fetch": "^2.6.1",
-    "prompt-sync": "^4.2.0"
+    "prompt-sync": "^4.2.0",
+    "selenium-webdriver": "^4.0.0-rc-1"
   },
   "devDependencies": {
     "run-func": "^1.0.5"
