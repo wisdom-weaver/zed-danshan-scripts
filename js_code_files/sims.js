@@ -4,6 +4,7 @@ const { get_races_of_hid } = require("./cyclic_dependency");
 const { init, zed_ch } = require("./index-run");
 const norminv = require("./norminv");
 const { fetch_r, write_to_path } = require("./utils");
+const { fetch_a } = require("./fetch_axios");
 
 const sim_n = 2000;
 
@@ -229,7 +230,8 @@ const get_race_doc_from_raw_race = async (rid, raw_race) => {
   let status = "finished";
   let hids = _.chain(raw_race)
     .sortBy((i) => +parseInt(i[10]))
-    .map("6").value();
+    .map("6")
+    .value();
   let names_ob = _.chain(raw_race).keyBy("6").mapValues("9").value();
   let ob = {
     dist,
