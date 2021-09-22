@@ -219,9 +219,38 @@ const get_class_dist_stats = async (hid, c, d) => {
     st_dev,
   };
 };
-const get_simulation_base_data = async (rid) => {
+const get_race_doc_from_raw_race = async (rid, raw_race) => {
+  if (_.isEmpty(raw_race)) return {};
+  let dist = raw_race[0][1];
+  let race_class = raw_race[0][5];
+  let fee = raw_race[0][3];
+  let race_name = "--";
+  let start_time = raw_race[0][2];
+  let status = "finished";
+  let hids = _.chain(raw_race)
+    .sortBy((i) => +parseInt(i[10]))
+    .map("6").value();
+  let names_ob = _.chain(raw_race).keyBy("6").mapValues("9").value();
+  let ob = {
+    dist,
+    race_class,
+    fee,
+    race_name,
+    start_time,
+    status,
+    hids,
+    names_ob,
+  };
+  // console.log(ob)
+  return ob;
+};
+const get_simulation_base_data = async (rid, mode, raw_race) => {
   if (!rid) return null;
-  let doc = await get_race_doc(rid);
+
+  let doc = {};
+  if (mode == "fetch") doc = await get_race_doc(rid);
+  else if (mode == "raw_race")
+    doc = await get_race_doc_from_raw_race(rid, raw_race);
   if (_.isEmpty(doc)) return null;
   let { hids, dist, names_ob, race_class, fee, race_name, start_time, status } =
     doc;
@@ -339,11 +368,12 @@ const real_to_zed_odds = (r) => {
   return Math.log(0.95998 * r) / 0.213;
 };
 
-const get_sims_result_for_rid = async (rid) => {
+const get_sims_result_for_rid = async (rid, mode, raw_race) => {
   // let api = `https://bs-zed-backend-api.herokuapp.com/simulation/race/${rid}`;
   // let doc = await fetch_r(api);
   // console.log(rid);
-  let doc = await get_simulation_base_data(rid);
+  let doc = await get_simulation_base_data(rid, mode, raw_race);
+  if (_.isEmpty(doc)) return {};
   // console.log(doc);
   doc = post_process2(doc);
   // console.log(doc);
@@ -358,10 +388,11 @@ const get_sims_result_for_rid = async (rid) => {
   return { ...a, result, rand_sim };
 };
 
-const get_sims_zed_odds = async (rid) => {
+const get_sims_zed_odds = async (rid, mode = "fetch", raw_race) => {
   try {
     if (!rid) return {};
-    let ob = await get_sims_result_for_rid(rid);
+    let ob = await get_sims_result_for_rid(rid, mode, raw_race);
+    if (_.isEmpty(ob)) return {};
     let ret = {};
     ret = _.chain(ob?.result.result_disp)
       .keyBy("hid")
@@ -371,6 +402,7 @@ const get_sims_zed_odds = async (rid) => {
     //   file_path: `${appRootPath}/data_files/sims/sims-${Date.now()}-${rid}.json`,
     //   data: ob,
     // });
+    // console.log(ret);
     return ret;
   } catch (err) {
     return {};

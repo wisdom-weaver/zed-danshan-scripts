@@ -230,10 +230,10 @@ const add_times_flames_odds_to_races = async (raw_data, config) => {
     let odds_ob = {};
     if (!_.isEmpty(config) && config.g_odds_zero == true) {
       if (thisclass == 0) odds_ob = {};
-      else odds_ob = await get_sims_zed_odds(rid);
-    } else odds_ob = await get_sims_zed_odds(rid);
+      else odds_ob = await get_sims_zed_odds(rid, "raw_race", raw_race);
+    } else odds_ob = await get_sims_zed_odds(rid, "raw_race", raw_race);
     // console.log(rid, thisclass, odds_ob);
-
+    // console.log(date, date >= "2021-08-24T00:00:00.000Z");
     let fee_cat = get_fee_cat_on({ date, fee: raw_race[0][3] });
     ret[rid] = _.chain(raw_data[rid])
       .entries()
@@ -250,6 +250,7 @@ const add_times_flames_odds_to_races = async (raw_data, config) => {
       .fromPairs()
       .value();
   }
+  // console.log(raw_data)
   return raw_data;
 };
 
@@ -348,6 +349,7 @@ const zed_race_add_runner = async (mode = "auto", dates, config) => {
     // console.log(races);
 
     races = await add_times_flames_odds_to_races(races, config);
+    // console.log(races)
     await push_races_to_mongo(races);
     console.log("done", _.keys(races).length, "races");
   } catch (err) {
@@ -368,9 +370,11 @@ const zed_races_specific_duration_run = async () => {
 
   // let date_st = "2021-08-24T00:00:00Z";
   // let date_ed = new Date().toISOString();
-  let date = "2021-08-24T15:40:49Z";
+  let date = "2021-09-15T00:00:00Z";
   let date_st = date;
+  date = "2021-09-15T00:05:00Z";
   let date_ed = date;
+  // let date_ed = new Date().toISOString();
 
   from_a = date_st;
   to_a = date_ed;
@@ -398,9 +402,9 @@ const zed_races_since_last_run = async () => {
     .collection("zed")
     .find({})
     .sort({ 2: -1 })
-    .limit(1)
+    .limit(5)
     .toArray();
-  from_a = last_doc[0][2];
+  from_a = last_doc[2][2];
   console.log("last doc date: ", from_a);
 
   from_a = new Date(from_a).getTime() - 10 * mt;
@@ -409,9 +413,9 @@ const zed_races_since_last_run = async () => {
     await zed_race_add_runner("manual", { from_a, to_a }, def_config);
     from_a = to_a;
   }
-  await zed_races_err_runner();
-  await zed_races_g_runner();
-  zed_races_automated_script_run("auto");
+  // await zed_races_err_runner();
+  // await zed_races_g_runner();
+  // zed_races_automated_script_run("auto");
 };
 // zed_races_since_last_run();
 
@@ -690,8 +694,9 @@ const zed_races_automated_script_run = async () => {
     () => zed_race_add_runner("auto", def_config),
     cron_conf
   );
-  zed_races_g_auto_run();
-  zed_races_err_auto_run();
+  // zed_race_add_runner("auto", def_config)
+  // zed_races_g_auto_run();
+  // zed_races_err_auto_run();
 };
 // zed_races_automated_script_run();
 
