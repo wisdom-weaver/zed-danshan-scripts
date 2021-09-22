@@ -1,7 +1,6 @@
 const _ = require("lodash");
 const { MongoClient } = require("mongodb");
 const mongoose = require("mongoose");
-const prompt = require("prompt-sync")();
 const fetch = require("node-fetch");
 
 require("dotenv").config();
@@ -18,7 +17,6 @@ let zed_db = mongoose.createConnection(uri_db + "/zed", options);
 let zed_ch = mongoose.createConnection(uri_ch + "/zed", options);
 
 const init = async () => {
-
   console.log("starting...");
   try {
     await zed_db;

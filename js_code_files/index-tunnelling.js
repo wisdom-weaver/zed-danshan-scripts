@@ -1,7 +1,6 @@
 const _ = require("lodash");
 const { MongoClient } = require("mongodb");
 const mongoose = require("mongoose");
-const prompt = require("prompt-sync")();
 const fetch = require("node-fetch");
 const { from_ch_zed_collection } = require("./index-odds-generator");
 require("dotenv").config();

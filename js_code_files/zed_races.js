@@ -22,7 +22,6 @@ const {
 const { get_sims_zed_odds } = require("./sims");
 const appRootPath = require("app-root-path");
 const { config } = require("dotenv");
-var prompt = require("prompt-sync")();
 
 const zed_gql = "https://zed-ql.zed.run/graphql/getRaceResults";
 

@@ -1,4 +1,4 @@
-const { Browser, Builder, until } = require("selenium-webdriver");
+const { Browser, Builder, until, By } = require("selenium-webdriver");
 const { Options, ServiceBuilder } = require("selenium-webdriver/chrome");
 require("dotenv").config();
 
@@ -41,7 +41,26 @@ const driver_test = async () => {
   }
 };
 
+const elem_by_x = async (driver, x_path) => {
+  return driver.findElement(By.xpath(x_path));
+};
+const elems_by_x = async (driver, x_path) => {
+  return driver.findElements(By.xpath(x_path));
+};
+const elem_by_x_txt = async (driver, x_path) => {
+  try {
+    let elem = await driver.findElement(By.xpath(x_path));
+    let txt = await elem.getText();
+    return txt;
+  } catch (err) {
+    return "";
+  }
+};
+
 module.exports = {
   driver_test,
   get_webdriver,
+  elem_by_x,
+  elem_by_x_txt,
+  elems_by_x,
 };

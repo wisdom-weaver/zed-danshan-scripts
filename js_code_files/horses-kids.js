@@ -1,5 +1,4 @@
 const _ = require("lodash");
-const prompt = require("prompt-sync")();
 const fetch = require("node-fetch");
 const mongoose = require("mongoose");
 const { init, zed_db, zed_ch, run_func } = require("./index-run");
