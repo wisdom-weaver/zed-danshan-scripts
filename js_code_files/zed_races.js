@@ -505,7 +505,7 @@ const zed_race_build_for_mongodb = async (rid, conf = {}) => {
   if (mode == "g" || (mode == "err" && thisclass !== 0)) {
     let odds_ob = await get_sims_zed_odds(rid);
     ar = ar.map((i) => ({ ...i, 11: odds_ob[i[6]] }));
-    console.log(odds_ob);
+    console.log(mode, thisclass, odds_ob);
   }
   if (mode == "err" && thisclass == 0) {
     console.log("G", { rid, date });

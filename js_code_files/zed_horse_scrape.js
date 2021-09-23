@@ -123,7 +123,7 @@ const extract_p_hid = async (p_elem) => {
     hid = parseInt(hid);
     return hid || null;
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     return null;
   }
 };
@@ -203,20 +203,38 @@ const scrape_horse_details = async (hid) => {
 };
 
 const get_n_upload_horse_details = async (hid) => {
-  let data = await scrape_horse_details(hid);
-  console.log(hid, data);
-  await zed_db.db
-    .collection("horse_details")
-    .updateOne({ hid }, { $set: data }, { upsert: true });
+  try {
+    let data = await scrape_horse_details(hid);
+    console.log(hid, data);
+    await zed_db.db
+      .collection("horse_details")
+      .updateOne({ hid }, { $set: data }, { upsert: true });
+  } catch (err) {
+    console.log("mongo err", hid);
+  }
 };
 
 const zed_horses_all_scrape = async () => {
   await init();
   console.log("started");
-  let st = 1;
+  let st = 2750;
   let ed = 111000;
-  let hids = new Array(ed - st + 1).fill(0).map((e, i) => i);
-  let cs = 5;
+  let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
+  let cs = 8;
+  for (let chunk of _.chunk(hids, cs)) {
+    await Promise.all(chunk.map((hid) => get_n_upload_horse_details(hid)));
+    console.log("done", chunk.toString());
+  }
+  console.log("completed");
+};
+
+const zed_add_horses_from_old_collection = async () => {
+  await init();
+  console.log("started");
+  let st = 2750;
+  let ed = 111000;
+  let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
+  let cs = 8;
   for (let chunk of _.chunk(hids, cs)) {
     await Promise.all(chunk.map((hid) => get_n_upload_horse_details(hid)));
     console.log("done", chunk.toString());

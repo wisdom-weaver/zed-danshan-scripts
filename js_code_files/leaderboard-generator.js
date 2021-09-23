@@ -1,7 +1,7 @@
 const _ = require("lodash");
 const { MongoClient } = require("mongodb");
 const mongoose = require("mongoose");
-const prompt = require("prompt-sync")();
+// const prompt = require("prompt-sync")();
 const fetch = require("node-fetch");
 const app_root = require("app-root-path");
 
