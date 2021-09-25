@@ -714,8 +714,8 @@ const add_horse_from_zed_in_bulk = async () => {
   let st = 82000;
   let ed = 110000;
   let cs = 5;
-  // let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
-  let hids = [9000, 9125];
+  let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
+  let hids = [82001, 90125];
   for (let chunk_hids of _.chunk(hids, cs)) {
     let obar = await Promise.all(
       chunk_hids.map((hid) =>
@@ -738,6 +738,7 @@ const add_horse_from_zed_in_bulk = async () => {
       });
     }
     await zed_db.db.collection("horse_details").bulkWrite(mgp);
+    await bulk_write_kid_to_parent(obar);
     console.log("done", chunk_hids.toString());
     await delay(2000);
   }
