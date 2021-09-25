@@ -710,6 +710,7 @@ const struct_zed_horse_doc = ({ hid, doc }) => {
   return ob;
 };
 const add_horse_from_zed_in_bulk = async () => {
+  await init();
   let st = 82000;
   let ed = 110000;
   let cs = 5;
@@ -723,11 +724,11 @@ const add_horse_from_zed_in_bulk = async () => {
           .then(struct_zed_horse_doc)
       )
     );
-    console.log(obar);
     let mgp = [];
     for (let ob of obar) {
       if (_.isEmpty(ob)) continue;
       let { hid } = ob;
+      console.log(hid, ob);
       mgp.push({
         updateOne: {
           filter: { hid },
@@ -738,6 +739,7 @@ const add_horse_from_zed_in_bulk = async () => {
     }
     await zed_db.db.collection("horse_details").bulkWrite(mgp);
     console.log("done", chunk_hids.toString());
+    await delay(2000);
   }
 };
 
