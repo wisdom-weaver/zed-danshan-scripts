@@ -9,11 +9,13 @@ const {
 } = require("./webdriver-utils");
 const kyh_url = (hid) => `https://knowyourhorses.com/horses/${hid}`;
 const hawku_url = (hid) => `https://www.hawku.com/horse/${hid}`;
-const { delay } = require("./utils");
+const { delay, write_to_path, read_from_path } = require("./utils");
+const appRootPath = require("app-root-path");
 
 // X-paths
 // name            /html/body/ul/div/main/main/div[1]/div[1]/div[2]/h1
 // dets            /html/body/ul/div/main/main/div[1]/div[1]/div[2]/p[1]/span
+// color           /html/body/ul/div/main/main/div[1]/div[1]/div[2]/p[2]
 // owner slug      /html/body/ul/div/main/main/div[1]/div[1]/div[2]/p[3]/a
 // birthday        /html/body/ul/div/main/main/div[1]/div[1]/div[2]/p[4]
 // img             /html/body/ul/div/main/main/div[1]/div[1]/div[1]/div/img
@@ -30,6 +32,7 @@ const { delay } = require("./utils");
 let base_x = "/html/body/ul/div/main/main";
 let name_xt = "div[1]/div[1]/div[2]/h1";
 let dets_xt = "div[1]/div[1]/div[2]/p[1]/span";
+let colr_xt = "div[1]/div[1]/div[2]/p[2]";
 let owner_xt = "div[1]/div[1]/div[2]/p[3]/a";
 let bday_xt = "div[1]/div[1]/div[2]/p[4]";
 let img_xt = "div[1]/div[1]/div[1]/div/img";
@@ -79,6 +82,8 @@ const extract_dets = async (cont) => {
       rating,
       tc,
     };
+    let color = await elem_by_x_txt(cont, colr_xt);
+    ob.color = color;
     return ob || {};
   } catch (err) {
     // console.log(err);
@@ -112,6 +117,21 @@ const click_fam_btn = async (cont) => {
     await delay(2000);
   } catch (err) {
     // console.log(err);
+  }
+};
+
+const extract_hex_code = async (cont) => {
+  try {
+    let img_el = await elem_by_x(cont, img_xt);
+    // console.log(img_el);
+    let hex_code = await img_el.getAttribute("src");
+    // console.log(hex_code);
+    hex_code = hex_code.slice(hex_code.lastIndexOf("/") + 1);
+    hex_code = hex_code.replaceAll(".svg", "");
+    return { hex_code };
+  } catch (err) {
+    console.log(err);
+    return { hex_code: null };
   }
 };
 
@@ -189,15 +209,23 @@ const scrape_horse_details = async (hid) => {
     ob.name = await extract_name(page);
     let dets = await extract_dets(page);
     let own = await extract_owner(page);
-    ob = { ...ob, ...dets, ...own };
+    let hx = await extract_hex_code(page);
+    ob = { ...ob, ...dets, ...own, ...hx };
     await click_fam_btn(page);
     let fam = await get_fam_part(page);
     ob = { ...ob, ...fam };
     if (driver && driver.quit) await driver.quit();
+    let parents = ob?.parents;
+    // console.log({ hid, parents });
+    await zed_db
+      .collection("horse_details")
+      .updateOne({ hid }, { $set: ob }, { upsert: true });
+    await upload_kid_id_to_parents({ hid, parents });
+    ob.parents_d = await get_parents_d_for_kid({ hid, parents });
     return ob;
   } catch (err) {
     console.log("err on scrape_horse_details", hid);
-    console.log("err on scrape_horse_details", err);
+    // console.log("err on scrape_horse_details", err);
     if (driver && driver.quit) await driver.quit();
   }
 };
@@ -217,45 +245,515 @@ const get_n_upload_horse_details = async (hid) => {
 const zed_horses_all_scrape = async () => {
   await init();
   console.log("started");
-  let st = 2750;
+  let st = 95566;
   let ed = 111000;
   let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
-  let cs = 8;
+  let cs = 5;
+  let i = 0;
   for (let chunk of _.chunk(hids, cs)) {
     await Promise.all(chunk.map((hid) => get_n_upload_horse_details(hid)));
+    await delay(2000);
+    if (i % 10 == 0) await delay(10000);
     console.log("done", chunk.toString());
+    i++;
   }
   console.log("completed");
+};
+
+const upload_kid_id_to_parents = async ({ hid, parents = {} }) => {
+  try {
+    let { mother, father } = parents || {};
+    if (mother) {
+      mother = parseInt(mother);
+      await zed_db
+        .collection("horse_details")
+        .updateOne(
+          { hid: mother },
+          { $set: { hid: mother }, $addToSet: { offsprings: hid } },
+          { upsert: true }
+        );
+    }
+    if (father) {
+      father = parseInt(father);
+      await zed_db
+        .collection("horse_details")
+        .updateOne(
+          { hid: father },
+          { $set: { hid: father }, $addToSet: { offsprings: hid } },
+          { upsert: true }
+        );
+    }
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const get_parents_d_for_kid = async ({ hid, parents = {} }) => {
+  try {
+    let { mother, father } = parents || {};
+    let parents_d = {};
+    if (mother) {
+      mother = parseInt(mother);
+      let doc = await zed_db.collection("horse_details").findOne(
+        { hid: mother },
+        {
+          projection: {
+            _id: 0,
+            bloodline: 1,
+            breed_type: 1,
+            horse_type: 1,
+            genotype: 1,
+          },
+        }
+      );
+      parents_d.mother = doc;
+    } else {
+      parents_d.mother = null;
+    }
+    if (father) {
+      father = parseInt(father);
+      let doc = await zed_db.collection("horse_details").findOne(
+        { hid: father },
+        {
+          projection: {
+            _id: 0,
+            bloodline: 1,
+            breed_type: 1,
+            horse_type: 1,
+            genotype: 1,
+          },
+        }
+      );
+      parents_d.father = doc;
+    } else {
+      parents_d.father = null;
+    }
+    return parents_d;
+  } catch (err) {
+    console.log(err);
+    return { mother: null, father: null };
+  }
+};
+
+const upload_parents_d_for_kid = async (hid) => {
+  // let doc = zed_db.db.collection.find
+  // get_parents_d_for_kid
+};
+
+const add_horse_dets_old = async (hid) => {
+  hid = parseInt(hid);
+  let blood_doc = await zed_db.db.collection("rating_blood").findOne({ hid });
+  let { rating_blood, name, details, rank } = blood_doc;
+  let {
+    bloodline,
+    thisclass: tc,
+    breed_type,
+    genotype,
+    color,
+    gender,
+    horse_type,
+    hex_code,
+    owner_stable_slug: slug,
+    parents,
+  } = details;
+  let ob = {
+    hid,
+    name,
+    bloodline,
+    tc,
+    breed_type,
+    genotype,
+    color,
+    gender,
+    horse_type,
+    hex_code,
+    slug,
+    parents,
+  };
+
+  await upload_kid_id_to_parents({ hid, parents });
+  console.log({ hid, mother, father });
+};
+
+const get_horses_dets_old = async (hids) => {
+  let blood_docs = await zed_db.db
+    .collection("rating_blood")
+    .find(
+      { hid: { $in: hids } },
+      {
+        projection: {
+          _id: 0,
+          hid: 1,
+          name: 1,
+          "details.bloodline": 1,
+          "details.thisclass": 1,
+          "details.breed_type": 1,
+          "details.genotype": 1,
+          "details.color": 1,
+          "details.gender": 1,
+          "details.horse_type": 1,
+          "details.hex_code": 1,
+          "details.owner_stable_slug": 1,
+          "details.parents": 1,
+          "details.parents_d.mother.bloodline": 1,
+          "details.parents_d.mother.breed_type": 1,
+          "details.parents_d.mother.genotype": 1,
+          "details.parents_d.mother.horse_type": 1,
+          "details.parents_d.father.bloodline": 1,
+          "details.parents_d.father.breed_type": 1,
+          "details.parents_d.father.genotype": 1,
+          "details.parents_d.father.horse_type": 1,
+        },
+      }
+    )
+    .toArray();
+  blood_docs = blood_docs.map((blood_doc) => {
+    let { hid, name, details } = blood_doc;
+    let {
+      bloodline,
+      thisclass: tc,
+      breed_type,
+      genotype,
+      color,
+      gender,
+      horse_type,
+      hex_code,
+      owner_stable_slug: slug,
+      parents = {},
+      parents_d = {},
+    } = details;
+    if (parents?.mother == null) parents_d.mother = null;
+    if (parents?.father == null) parents_d.father = null;
+
+    let ob = {
+      hid,
+      name,
+      bloodline,
+      tc,
+      breed_type,
+      genotype,
+      color,
+      gender,
+      horse_type,
+      hex_code,
+      slug,
+      parents,
+      parents_d,
+    };
+    return ob;
+  });
+  return blood_docs;
+};
+
+const add_horse_rating_blood = async (hid) => {
+  hid = parseInt(hid);
+  let blood_doc = await zed_db.db.collection("rating_blood").findOne({ hid });
+  let { rating_blood = {}, name } = blood_doc;
+  let ob = {
+    hid,
+    name,
+    ...rating_blood,
+  };
+  await zed_db.db
+    .collection("rating_blood2")
+    .updateOne({ hid }, { $set: ob }, { upsert: true });
+};
+
+const add_horse_rating_flames = async (hid) => {
+  hid = parseInt(hid);
+  let doc = await zed_db.db.collection("rating_flames").findOne({ hid });
+  await zed_db.db
+    .collection("rating_flames2")
+    .updateOne({ hid }, { $set: doc }, { upsert: true });
+};
+const add_horse_rating_breed = async (hid) => {
+  hid = parseInt(hid);
+  let doc = await zed_db.db.collection("kids").findOne({ hid });
+  let { avg, gz_med: br, kids_n, odds } = doc;
+  let ob = {
+    avg,
+    br,
+    kids_n,
+    odds,
+  };
+  await zed_db.db
+    .collection("rating_breed2")
+    .updateOne({ hid }, { $set: ob }, { upsert: true });
+};
+
+const add_horse_ratings = async (hid) => {
+  try {
+    await Promise.all([
+      add_horse_rating_blood(hid),
+      add_horse_rating_flames(hid),
+      add_horse_rating_breed(hid),
+    ]);
+    console.log(hid);
+  } catch (err) {
+    console.log("err on ", hid);
+  }
 };
 
 const zed_add_horses_from_old_collection = async () => {
   await init();
-  console.log("started");
-  let st = 2750;
-  let ed = 111000;
+  let st = 17649;
+  let ed = 80000;
   let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
-  let cs = 8;
+  let cs = 50;
   for (let chunk of _.chunk(hids, cs)) {
-    await Promise.all(chunk.map((hid) => get_n_upload_horse_details(hid)));
+    await Promise.all(chunk.map((hid) => add_horse_dets_old(hid)));
+    // await Promise.all(chunk.map((hid) => add_horse_ratings(hid)));
     console.log("done", chunk.toString());
   }
   console.log("completed");
 };
 
+const get_ranks_all_old = async () => {
+  let file_path = `${appRootPath}/data/ranks.json`;
+  // await init();
+  // const docs = await zed_db.db
+  //   .collection("rating_blood")
+  //   .find({}, { projection: { hid: 1, rank: 1, _id: 0 } })
+  //   .toArray();
+  // console.log("ranks got: ", docs.length);
+  // write_to_path({ file_path, data: docs });
+
+  // let docs = read_from_path({ file_path });
+  // let mongo_push = [];
+  // for (let { hid, rank } of docs) {
+  //   mongo_push.push({
+  //     updateOne: {
+  //       filter: { hid },
+  //       update: { $set: { rank } },
+  //       upsert: true,
+  //     },
+  //   });
+  // }
+  // console.log(mongo_push.length);
+  // await zed_db.db.collection("rating_blood2").bulkWrite(mongo_push);
+};
+
+const get_parents_all_old = async () => {
+  let file_path = `${appRootPath}/data/parents_d.json`;
+  // const docs = await zed_db.db
+  //   .collection("rating_blood")
+  //   .find(
+  //     { hid: { $lt: 80001 } },
+  //     {
+  //       projection: {
+  //         hid: 1,
+  //         "details.parents_d.mother.bloodline": 1,
+  //         "details.parents_d.mother.breed_type": 1,
+  //         "details.parents_d.mother.genotype": 1,
+  //         "details.parents_d.mother.horse_type": 1,
+  //         "details.parents_d.father.bloodline": 1,
+  //         "details.parents_d.father.breed_type": 1,
+  //         "details.parents_d.father.genotype": 1,
+  //         "details.parents_d.father.horse_type": 1,
+  //         _id: 0,
+  //       },
+  //     }
+  //   )
+  //   .toArray();
+  // write_to_path({ file_path, data: docs });
+
+  let docs = read_from_path({ file_path });
+  // docs = docs.slice(4, 5);
+  let mgp = [];
+  for (let d of docs) {
+    let { hid, details = {} } = d;
+    let { parents_d } = details;
+    if (_.isEmpty(parents_d)) parents_d = { mother: null, father: null };
+    mgp.push({
+      updateOne: {
+        filter: { hid },
+        update: { $set: { parents_d } },
+        upsert: true,
+      },
+    });
+  }
+  console.log(mgp);
+  await zed_db.db.collection("horse_details").bulkWrite(mgp);
+  await zed_db.db;
+  console.log("done");
+};
+
+const bulk_write_horse_details = async (ob) => {
+  let mgp = [];
+  for (let o of ob) {
+    let { hid } = o;
+    mgp.push({
+      updateOne: {
+        filter: { hid },
+        update: { $set: o },
+        upsert: true,
+      },
+    });
+  }
+  await zed_db.db.collection("horse_details").bulkWrite(mgp);
+};
+const add_horse_dets_old_in_bulk = async () => {
+  let st = 59999;
+  let ed = 82000;
+  let cs = 500;
+  let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
+  // let hids = [3312, 31896];
+  for (let chunk_hids of _.chunk(hids, cs)) {
+    let ob = await get_horses_dets_old(chunk_hids);
+    await bulk_write_horse_details(ob);
+    console.log("done", chunk_hids.toString());
+  }
+};
+
+const bulk_write_kid_to_parent = async (ob) => {
+  let mgp = [];
+  for (let o of ob) {
+    let { hid, parents } = o;
+    if (parents?.mother) {
+      mgp.push({
+        updateOne: {
+          filter: { hid: parents.mother },
+          update: { $addToSet: { offsprings: hid } },
+          upsert: true,
+        },
+      });
+    }
+    if (parents?.father) {
+      mgp.push({
+        updateOne: {
+          filter: { hid: parents.father },
+          update: { $addToSet: { offsprings: hid } },
+          upsert: true,
+        },
+      });
+    }
+  }
+  if (!_.isEmpty(mgp))
+    await zed_db.db.collection("horse_details").bulkWrite(mgp);
+};
+const add_hid_to_parents_doc_in_bulk = async () => {
+  let st = 1;
+  let ed = 82000;
+  let cs = 500;
+  let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
+  // let hids = [31896];
+  for (let chunk_hids of _.chunk(hids, cs)) {
+    let ob = await zed_db.db
+      .collection("horse_details")
+      .find(
+        { hid: { $in: chunk_hids } },
+        {
+          projection: {
+            _id: 0,
+            hid: 1,
+            "parents.mother": 1,
+            "parents.father": 1,
+          },
+        }
+      )
+      .toArray();
+    console.log(ob);
+    await bulk_write_kid_to_parent(ob);
+    console.log("done", chunk_hids.toString());
+  }
+};
+
+const fetch_zed_horse_doc = (hid) => {
+  hid = parseInt(hid);
+  let api = `https://api.zed.run/api/v1/horses/get/${hid}`;
+  let ob = fetch_a(api);
+};
+const struct_zed_horse_doc = ({ hid, doc }) => {
+  hid = parseInt(hid);
+  if (_.isEmpty(doc)) return null;
+  let {
+    bloodline,
+    breed_type,
+    genotype,
+    horse_type,
+    class: tc,
+    hash_info,
+    parents: parents_raw,
+    owner_stable_slug: slug,
+    rating,
+  } = doc;
+  let { color, hex_code, name } = hash_info;
+  let parents = {
+    mother: parents_raw?.mother?.horse_id || null,
+    father: parents_raw?.father?.horse_id || null,
+  };
+  let parents_d = {};
+  if (parents.mother) {
+    let { bloodline, breed_type, genotype, horse_type } = parents_raw?.mother;
+    parents_d.mother = { bloodline, breed_type, genotype, horse_type };
+  } else parents_d.mother = null;
+  if (parents.father) {
+    let { bloodline, breed_type, genotype, horse_type } = parents_raw?.father;
+    parents_d.father = { bloodline, breed_type, genotype, horse_type };
+  } else parents_d.father = null;
+  let ob = {
+    hid,
+    bloodline,
+    breed_type,
+    genotype,
+    horse_type,
+    color,
+    hex_code,
+    name,
+    tc,
+    rating,
+    slug,
+    parent,
+    parents_d,
+  };
+};
+const add_horse_from_zed_in_bulk = async () => {
+  let st = 82000;
+  let ed = 110000;
+  let cs = 5;
+  // let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
+  let hids = [9000, 9125];
+  for (let chunk_hids of _.chunk(hids, cs)) {
+    let obar = await Promise.all(
+      chunk_hids.map((hid) =>
+        fetch_horse_zed_api(hid).then((doc) => ({ hid, doc }))
+      )
+    );
+    console.log(obar);
+    let mgp = [];
+    for (let ob of obar) {
+      ob = struct_zed_horse_doc(ob);
+      if (_.isEmpty(ob)) continue;
+      let { hid } = ob;
+      mgp.push({
+        updateOne: {
+          filter: { hid },
+          update: { $set: ob },
+          upsert: true,
+        },
+      });
+    }
+    // await zed_db.db.collection("horse_details").bulkWrite(mgp);
+    console.log("done", chunk_hids.toString());
+  }
+};
+
 const runner = async () => {
-  // await init();
-  // console.log("runner");
-  // await driver_test();
-  // let hid = 48992;
-  // await console.log(ob);
-  // console.log("done");
-  await zed_horses_all_scrape();
-  // await init();
-  // let doc = await zed_db.db.collection("horse_details").findOne({ hid: 92597 });
-  // console.log(doc);
+  await init();
+  // await add_horse_dets_old_in_bulk();
+  // await add_hid_to_parents_doc_in_bulk();
+  // await zed_db.db
+  //   .collection("horse_details")
+  //   .updateMany(
+  //     { offsprings: { $exists: false } },
+  //     { $set: { offsprings: [] } },
+  //     { upsert: true }
+  //   );
+  console.log("completed");
 };
 // runner();
 
 module.exports = {
   zed_horses_all_scrape,
+  add_horse_from_zed_in_bulk,
 };

@@ -120,6 +120,12 @@ const struct_race_row_data = (data) => {
   return data;
 };
 
+const dec = (n, d = 2) => {
+  if (n === null) return "null";
+  if (!_.isNumber(parseFloat(n))) return;
+  return parseFloat(n).toFixed(d);
+};
+
 module.exports = {
   calc_avg,
   write_to_path,
@@ -131,4 +137,5 @@ module.exports = {
   fetch_r,
   delay,
   struct_race_row_data,
+  dec,
 };

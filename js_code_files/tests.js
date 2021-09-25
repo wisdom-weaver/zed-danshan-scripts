@@ -458,20 +458,20 @@ const script_buckets_count_test = async () => {
     .collection("script")
     .findOne({ id: "err_bucket" });
   err_docs = err_docs?.err_bucket;
-  write_to_path({ file_path: `${app_root}/data/err.json`, data: err_docs });
+  // write_to_path({ file_path: `${app_root}/data/err.json`, data: err_docs });
   console.log("err_bucket: ", err_docs?.length);
   let g_docs = await zed_db.db.collection("script").findOne({ id: "g_bucket" });
-  write_to_path({ file_path: `${app_root}/data/g.json`, data: g_docs });
+  // write_to_path({ file_path: `${app_root}/data/g.json`, data: g_docs });
   g_docs = g_docs?.g_bucket;
   console.log("g_bucket: ", g_docs?.length);
   let need_odds_docs = await zed_db.db
     .collection("script")
     .findOne({ id: "need_odds_bucket" });
   need_odds_docs = need_odds_docs?.need_odds_bucket;
-  write_to_path({
-    file_path: `${app_root}/data/need_odds.json`,
-    data: need_odds_docs,
-  });
+  // write_to_path({
+  //   file_path: `${app_root}/data/need_odds.json`,
+  //   data: need_odds_docs,
+  // });
   console.log("need_odds_bucket: ", need_odds_docs?.length);
 };
 script_buckets_count_test();
