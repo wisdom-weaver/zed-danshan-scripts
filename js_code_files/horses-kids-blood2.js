@@ -79,8 +79,9 @@ const get_breed_rating = async (hid) => {
 
 const get_g_odds = async (hid) => {
   hid = parseInt(hid);
+  let coll = hid <= 8200 ? "odds_overall" : "odds_overall2";
   let ob = await zed_db.db
-    .collection("odds_overall")
+    .collection(coll)
     .findOne({ hid }, { projection: { "odds_overall.0#####": 1, _id: 0 } });
   let { odds_overall = {} } = ob || {};
   let g = odds_overall["0#####"] || null;

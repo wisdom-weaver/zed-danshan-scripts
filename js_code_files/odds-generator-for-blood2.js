@@ -16,7 +16,7 @@ const {
   generate_rating_flames,
 } = require("./update_flame_concentration");
 const { dec } = require("./utils");
-
+import { generate_breed_rating } from "./horses-kids-blood2";
 let mx;
 let st = 1;
 let ed = mx;
@@ -625,11 +625,25 @@ const odds_generator_bulk_push = async (obar) => {
   await zed_db.db.collection("rating_blood2").bulkWrite(rating_blood2_bulk);
   await zed_db.db.collection("rating_flames2").bulkWrite(rating_flames2_bulk);
 };
+const breed_generator_bulk_push = async (obar) => {
+  let rating_breed2_bulk = [];
+  for (let ob of obar) {
+    let { hid } = ob;
+    rating_breed2_bulk.push({
+      updateOne: {
+        filter: { hid },
+        update: { $set: ob },
+        upsert: true,
+      },
+    });
+  }
+  await zed_db.db.collection("rating_breed2").bulkWrite(rating_breed2_bulk);
+};
 
 const odds_generator_all_horses = async () => {
   try {
-    let st = 82000;
-    let ed = 90000;
+    let st = 96000;
+    let ed = 110000;
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
     // let hids = [82001];
     console.log("=> STARTED odds_generator: ", `${st}:${ed}`);
@@ -640,6 +654,31 @@ const odds_generator_all_horses = async () => {
       // console.log("\n=> fetching together:", chunk.toString());
       let obar = await Promise.all(chunk.map((hid) => generate_odds_for(hid)));
       await odds_generator_bulk_push(obar);
+      console.log("! got", chunk[0], " -> ", chunk[chunk.length - 1]);
+      await delay(chunk_delay);
+    }
+  } catch (err) {
+    console.log("ERROR fetch_all_horses\n", err);
+  }
+};
+
+const breed_generator_all_horses = async () => {
+  try {
+    let st = 82000;
+    let ed = 110000;
+    // let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
+    let hids = [82001];
+    console.log("=> STARTED odds_generator: ", `${st}:${ed}`);
+
+    let i = 0;
+    for (let chunk of _.chunk(hids, chunk_size)) {
+      i += chunk_size;
+      // console.log("\n=> fetching together:", chunk.toString());
+      let obar = await Promise.all(
+        chunk.map((hid) => generate_breed_rating(hid))
+      );
+      console.table(obar)
+      await breed_generator_bulk_push(obar);
       console.log("! got", chunk[0], " -> ", chunk[chunk.length - 1]);
       await delay(chunk_delay);
     }
@@ -682,7 +721,8 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const runner = async () => {
   await initiate();
-  // odds_generator_all_horses();
+  odds_generator_all_horses();
+  breed_generator_all_horses();
   // clone_odds_overall();
 };
 runner();
