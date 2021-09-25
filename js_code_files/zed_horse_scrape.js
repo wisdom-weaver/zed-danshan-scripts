@@ -661,7 +661,8 @@ const add_hid_to_parents_doc_in_bulk = async () => {
 const fetch_zed_horse_doc = (hid) => {
   hid = parseInt(hid);
   let api = `https://api.zed.run/api/v1/horses/get/${hid}`;
-  let ob = fetch_a(api);
+  let ob = fetch_a(api) || null;
+  return ob;
 };
 const struct_zed_horse_doc = ({ hid, doc }) => {
   hid = parseInt(hid);
@@ -716,7 +717,7 @@ const add_horse_from_zed_in_bulk = async () => {
   for (let chunk_hids of _.chunk(hids, cs)) {
     let obar = await Promise.all(
       chunk_hids.map((hid) =>
-        fetch_horse_zed_api(hid).then((doc) => ({ hid, doc }))
+        fetch_zed_horse_doc(hid).then((doc) => ({ hid, doc }))
       )
     );
     console.log(obar);
