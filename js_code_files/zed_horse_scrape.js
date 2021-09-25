@@ -11,7 +11,7 @@ const kyh_url = (hid) => `https://knowyourhorses.com/horses/${hid}`;
 const hawku_url = (hid) => `https://www.hawku.com/horse/${hid}`;
 const { delay, write_to_path, read_from_path } = require("./utils");
 const appRootPath = require("app-root-path");
-
+const { fetch_a } = require("./fetch_axios");
 // X-paths
 // name            /html/body/ul/div/main/main/div[1]/div[1]/div[2]/h1
 // dets            /html/body/ul/div/main/main/div[1]/div[1]/div[2]/p[1]/span
@@ -704,9 +704,10 @@ const struct_zed_horse_doc = ({ hid, doc }) => {
     tc,
     rating,
     slug,
-    parent,
+    parents,
     parents_d,
   };
+  return ob;
 };
 const add_horse_from_zed_in_bulk = async () => {
   let st = 82000;
@@ -717,13 +718,14 @@ const add_horse_from_zed_in_bulk = async () => {
   for (let chunk_hids of _.chunk(hids, cs)) {
     let obar = await Promise.all(
       chunk_hids.map((hid) =>
-        fetch_zed_horse_doc(hid).then((doc) => ({ hid, doc }))
+        fetch_zed_horse_doc(hid)
+          .then((doc) => ({ hid, doc }))
+          .then(struct_zed_horse_doc)
       )
     );
     console.log(obar);
     let mgp = [];
     for (let ob of obar) {
-      ob = struct_zed_horse_doc(ob);
       if (_.isEmpty(ob)) continue;
       let { hid } = ob;
       mgp.push({
@@ -734,7 +736,7 @@ const add_horse_from_zed_in_bulk = async () => {
         },
       });
     }
-    // await zed_db.db.collection("horse_details").bulkWrite(mgp);
+    await zed_db.db.collection("horse_details").bulkWrite(mgp);
     console.log("done", chunk_hids.toString());
   }
 };
