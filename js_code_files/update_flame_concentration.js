@@ -4,7 +4,7 @@ const { download_eth_prices, get_fee_cat_on } = require("./base");
 const { ObjectID, ObjectId } = require("mongodb");
 const { delay } = require("./utils");
 const { get_max_horse } = require("./max_horses");
-const { get_races_of_hid } = require("./cyclic_dependency")
+const { get_races_of_hid } = require("./cyclic_dependency");
 
 const add_fee_cat_to_doc = async (doc) => {
   let _id = doc._id;
@@ -111,7 +111,7 @@ const def_rating_flames = {
   flames_per: null,
   avg_points: null,
 };
-const get_rating_flames = async (hid) => {
+const generate_rating_flames = async (hid) => {
   try {
     hid = parseInt(hid);
     let races = await get_races_of_hid(hid);
@@ -169,7 +169,7 @@ const get_rating_flames = async (hid) => {
     // console.table(ob);
     let mx_ob = ob[0];
     // console.table(mx_ob);
-    return mx_ob;
+    return { hid, ...mx_ob };
   } catch (err) {
     console.log("err on get_rating_flames", hid);
     console.log(err);
@@ -178,7 +178,7 @@ const get_rating_flames = async (hid) => {
 const get_n_upload_rating_flames = async (hid) => {
   hid = parseInt(hid);
   if (_.isNaN(hid)) return;
-  let ob = await get_rating_flames(hid);
+  let ob = await generate_rating_flames(hid);
   if (_.isEmpty(ob)) return;
   // console.log(hid, ob);
   await zed_db
@@ -214,4 +214,5 @@ const add_rating_flames_to_all_horses_races = async () => {
 
 module.exports = {
   get_n_upload_rating_flames,
+  generate_rating_flames,
 };

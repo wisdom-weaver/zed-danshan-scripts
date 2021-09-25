@@ -578,14 +578,15 @@ const get_parents_all_old = async () => {
   console.log("done");
 };
 
-const bulk_write_horse_details = async (ob) => {
+const bulk_write_horse_details = async (obar) => {
   let mgp = [];
-  for (let o of ob) {
-    let { hid } = o;
+  for (let ob of obar) {
+    if (_.isEmpty(ob)) continue;
+    let { hid } = ob;
     mgp.push({
       updateOne: {
         filter: { hid },
-        update: { $set: o },
+        update: { $set: ob },
         upsert: true,
       },
     });
@@ -605,10 +606,11 @@ const add_horse_dets_old_in_bulk = async () => {
   }
 };
 
-const bulk_write_kid_to_parent = async (ob) => {
+const bulk_write_kid_to_parent = async (obar) => {
   let mgp = [];
-  for (let o of ob) {
-    let { hid, parents } = o;
+  for (let ob of obar) {
+    if (_.isEmpty(ob)) continue;
+    let { hid, parents } = ob;
     if (parents?.mother) {
       mgp.push({
         updateOne: {
@@ -711,7 +713,7 @@ const struct_zed_horse_doc = ({ hid, doc }) => {
 };
 const add_horse_from_zed_in_bulk = async () => {
   await init();
-  let st = 82000;
+  let st = 96000;
   let ed = 110000;
   let cs = 5;
   let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);

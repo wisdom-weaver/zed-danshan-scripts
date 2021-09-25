@@ -139,3 +139,4 @@ module.exports = {
   struct_race_row_data,
   dec,
 };
+
