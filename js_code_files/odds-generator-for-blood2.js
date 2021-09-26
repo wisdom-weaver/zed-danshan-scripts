@@ -670,7 +670,7 @@ const breed_generator_all_horses = async () => {
     let st = 1;
     let ed = 114000;
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
-    let hids = [20902];
+    // let hids = [20902];
     console.log("=> STARTED breed_generator: ", `${st}:${ed}`);
     let i = 0;
     for (let chunk of _.chunk(hids, 10)) {
