@@ -65,7 +65,7 @@ const upload_horse_dets = async (hid) => {
   await zed_db.db
     .collection("zed_api_cache")
     .updateOne({ id }, { $set: doc }, { upsert: true });
-  console.log("done fatigue", hid, doc.rating);
+  console.log("done rating", hid, doc.rating);
 };
 
 const upload_horse_fatigue = async (hid) => {
