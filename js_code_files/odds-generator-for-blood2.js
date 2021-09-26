@@ -675,8 +675,8 @@ const odds_generator_all_horses = async () => {
 const breed_generator_all_horses = async () => {
   try {
     await initiate()
-    let st = 50000;
-    let ed = 114000;
+    let st = 14700;
+    let ed = 51000;
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
     // let hids = [68404];
     console.log("=> STARTED breed_generator: ", `${st}:${ed}`);
