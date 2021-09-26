@@ -647,8 +647,8 @@ const odds_generator_all_horses = async () => {
   try {
     let st = 1;
     let ed = 114000;
-    // let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
-    let hids = [77052, 78991, 80769, 87790, 88329, 88427];
+    let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
+    // let hids = [77052, 78991, 80769, 87790, 88329, 88427];
     console.log("=> STARTED odds_generator: ", `${st}:${ed}`);
 
     let i = 0;
