@@ -713,8 +713,8 @@ const struct_zed_horse_doc = ({ hid, doc }) => {
 };
 const add_horse_from_zed_in_bulk = async () => {
   await init();
-  let st = 96000;
-  let ed = 110000;
+  let st = 103000;
+  let ed = 114000;
   let cs = 5;
   let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
   // let hids = [82001, 90125];

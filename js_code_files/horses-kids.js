@@ -248,13 +248,13 @@ const get_kg = async (hid) => {
     // });
     // console.table(kids);
 
+    console.table(kids);
     let odds = _.chain(kids).keyBy("hid").mapValues("g").value();
     let kid_scores = _.chain(kids).keyBy("hid").mapValues("kid_score").value();
 
     let vals = _.chain(kid_scores).values().compact().value();
     let avg = calc_avg(vals) ?? null;
     let gz_med = calc_median(vals) ?? null;
-
     let kg = { hid, odds, avg, gz_med, kids_n, is };
     // console.log({ avg: dec2(avg), gz_med: dec2(gz_med) });
     // console.log({ hid, odds, kid_scores, avg, gz_med });

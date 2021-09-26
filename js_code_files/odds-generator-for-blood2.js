@@ -16,7 +16,8 @@ const {
   generate_rating_flames,
 } = require("./update_flame_concentration");
 const { dec } = require("./utils");
-import { generate_breed_rating } from "./horses-kids-blood2";
+const { generate_breed_rating } = require("./horses-kids-blood2");
+
 let mx;
 let st = 1;
 let ed = mx;
@@ -590,6 +591,7 @@ const odds_generator_bulk_push = async (obar) => {
   let rating_blood2_bulk = [];
   let rating_flames2_bulk = [];
   for (let ob of obar) {
+    if (_.isEmpty(ob)) continue;
     let { hid, odds_live, odds_overall, rating_blood, rating_flames } = ob;
     odds_live_bulk.push({
       updateOne: {
@@ -628,6 +630,7 @@ const odds_generator_bulk_push = async (obar) => {
 const breed_generator_bulk_push = async (obar) => {
   let rating_breed2_bulk = [];
   for (let ob of obar) {
+    if (_.isEmpty(ob)) continue;
     let { hid } = ob;
     rating_breed2_bulk.push({
       updateOne: {
@@ -642,10 +645,10 @@ const breed_generator_bulk_push = async (obar) => {
 
 const odds_generator_all_horses = async () => {
   try {
-    let st = 96000;
-    let ed = 110000;
-    let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
-    // let hids = [82001];
+    let st = 1;
+    let ed = 114000;
+    // let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
+    let hids = [77052, 78991, 80769, 87790, 88329, 88427];
     console.log("=> STARTED odds_generator: ", `${st}:${ed}`);
 
     let i = 0;
@@ -664,20 +667,19 @@ const odds_generator_all_horses = async () => {
 
 const breed_generator_all_horses = async () => {
   try {
-    let st = 82000;
-    let ed = 110000;
-    // let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
-    let hids = [82001];
-    console.log("=> STARTED odds_generator: ", `${st}:${ed}`);
-
+    let st = 1;
+    let ed = 114000;
+    let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
+    let hids = [20902];
+    console.log("=> STARTED breed_generator: ", `${st}:${ed}`);
     let i = 0;
-    for (let chunk of _.chunk(hids, chunk_size)) {
+    for (let chunk of _.chunk(hids, 10)) {
       i += chunk_size;
       // console.log("\n=> fetching together:", chunk.toString());
       let obar = await Promise.all(
         chunk.map((hid) => generate_breed_rating(hid))
       );
-      console.table(obar)
+      console.table(obar);
       await breed_generator_bulk_push(obar);
       console.log("! got", chunk[0], " -> ", chunk[chunk.length - 1]);
       await delay(chunk_delay);
@@ -721,8 +723,8 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const runner = async () => {
   await initiate();
-  odds_generator_all_horses();
-  breed_generator_all_horses();
+  await odds_generator_all_horses();
+  await breed_generator_all_horses();
   // clone_odds_overall();
 };
 runner();

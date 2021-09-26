@@ -37,9 +37,10 @@ const get_z = (genotype) => {
 const get_kids_existing = async (hid) => {
   try {
     hid = parseInt(hid);
-    let { offsprings } = await zed_db.db
-      .collection("horse_details")
-      .findOne({ hid: 3312 }, { projection: { _id: 0, offsprings: 1 } });
+    let { offsprings = [] } =
+      (await zed_db.db
+        .collection("horse_details")
+        .findOne({ hid }, { projection: { _id: 0, offsprings: 1 } })) || {};
     let ob = await Promise.all(
       offsprings.map((hid) =>
         zed_db.db.collection("horse_details").findOne(
@@ -79,7 +80,8 @@ const get_breed_rating = async (hid) => {
 
 const get_g_odds = async (hid) => {
   hid = parseInt(hid);
-  let coll = hid <= 8200 ? "odds_overall" : "odds_overall2";
+  // let coll = hid <= 82000 ? "odds_overall" : "odds_overall2";
+  let coll = "odds_overall2";
   let ob = await zed_db.db
     .collection(coll)
     .findOne({ hid }, { projection: { "odds_overall.0#####": 1, _id: 0 } });
@@ -165,7 +167,6 @@ const generate_breed_rating = async (hid) => {
       other_parent: kid.other_parent,
       other_parent_br: other_parent_brs[kid.hid],
     }));
-    console.table(kids);
 
     kids = kids.map((kid) => {
       let { g, z_med, other_parent_br } = kid;
@@ -176,6 +177,8 @@ const generate_breed_rating = async (hid) => {
       // let kid_score = g === null ? null : _.mean([g - z_med]);
       return { ...kid, kid_score };
     });
+
+    console.table(kids);
 
     let odds = _.chain(kids).keyBy("hid").mapValues("g").value();
     let kid_scores = _.chain(kids).keyBy("hid").mapValues("kid_score").value();
@@ -194,6 +197,7 @@ const generate_breed_rating = async (hid) => {
     return null;
   }
 };
+
 
 const get_kids_and_upload = async (hid, print = 0) => {
   try {
