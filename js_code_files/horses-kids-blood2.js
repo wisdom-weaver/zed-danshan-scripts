@@ -129,6 +129,7 @@ const generate_breed_rating = async (hid) => {
         kids_n: 0,
         is: null,
       };
+      console.log(hid, 0, null);
       return empty_kg;
     }
 
@@ -178,7 +179,7 @@ const generate_breed_rating = async (hid) => {
       return { ...kid, kid_score };
     });
 
-    console.table(kids);
+    // console.table(kids);
 
     let odds = _.chain(kids).keyBy("hid").mapValues("g").value();
     let kid_scores = _.chain(kids).keyBy("hid").mapValues("kid_score").value();
@@ -189,15 +190,14 @@ const generate_breed_rating = async (hid) => {
 
     let kg = { hid, odds, avg, br, kids_n, is };
     // console.log({ avg: dec2(avg), br: dec2(br) });
-    // console.log({ hid, odds, kid_scores, avg, br });
+    console.log(hid, kids_n, br);
     return kg;
   } catch (err) {
     console.log("err on horse get_kg", hid);
-    console.log(err);
+    // console.log(err);
     return null;
   }
 };
-
 
 const get_kids_and_upload = async (hid, print = 0) => {
   try {

@@ -626,6 +626,7 @@ const odds_generator_bulk_push = async (obar) => {
   await zed_db.db.collection("odds_overall2").bulkWrite(odds_overall2_bulk);
   await zed_db.db.collection("rating_blood2").bulkWrite(rating_blood2_bulk);
   await zed_db.db.collection("rating_flames2").bulkWrite(rating_flames2_bulk);
+  console.log("wrote bulk", obar.length);
 };
 const breed_generator_bulk_push = async (obar) => {
   let rating_breed2_bulk = [];
@@ -641,22 +642,28 @@ const breed_generator_bulk_push = async (obar) => {
     });
   }
   await zed_db.db.collection("rating_breed2").bulkWrite(rating_breed2_bulk);
+  console.log("wrote bulk");
 };
 
 const odds_generator_all_horses = async () => {
   try {
-    let st = 1;
+    await initiate()
+    let st = 102726;
     let ed = 114000;
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
     // let hids = [77052, 78991, 80769, 87790, 88329, 88427];
     console.log("=> STARTED odds_generator: ", `${st}:${ed}`);
 
     let i = 0;
-    for (let chunk of _.chunk(hids, chunk_size)) {
+    for (let chunk of _.chunk(hids, 100)) {
       i += chunk_size;
       // console.log("\n=> fetching together:", chunk.toString());
       let obar = await Promise.all(chunk.map((hid) => generate_odds_for(hid)));
-      await odds_generator_bulk_push(obar);
+      try {
+        odds_generator_bulk_push(obar);
+      } catch (err) {
+        console.log("mongo err");
+      }
       console.log("! got", chunk[0], " -> ", chunk[chunk.length - 1]);
       await delay(chunk_delay);
     }
@@ -667,20 +674,25 @@ const odds_generator_all_horses = async () => {
 
 const breed_generator_all_horses = async () => {
   try {
-    let st = 1;
+    await initiate()
+    let st = 50000;
     let ed = 114000;
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
-    // let hids = [20902];
+    // let hids = [68404];
     console.log("=> STARTED breed_generator: ", `${st}:${ed}`);
     let i = 0;
-    for (let chunk of _.chunk(hids, 10)) {
+    for (let chunk of _.chunk(hids, 50)) {
       i += chunk_size;
       // console.log("\n=> fetching together:", chunk.toString());
       let obar = await Promise.all(
         chunk.map((hid) => generate_breed_rating(hid))
       );
-      console.table(obar);
-      await breed_generator_bulk_push(obar);
+      // console.table(obar);
+      try {
+        breed_generator_bulk_push(obar);
+      } catch (err) {
+        console.log("mongo err");
+      }
       console.log("! got", chunk[0], " -> ", chunk[chunk.length - 1]);
       await delay(chunk_delay);
     }
@@ -723,10 +735,13 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const runner = async () => {
   await initiate();
-  await odds_generator_all_horses();
+  // await odds_generator_all_horses();
   await breed_generator_all_horses();
   // clone_odds_overall();
 };
-runner();
+// runner();
 
-module.exports = {};
+module.exports = {
+  breed_generator_all_horses,
+  odds_generator_all_horses,
+};
