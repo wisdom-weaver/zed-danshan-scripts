@@ -65,7 +65,7 @@ const upload_horse_dets = async (hid) => {
   await zed_db.db
     .collection("zed_api_cache")
     .updateOne({ id }, { $set: doc }, { upsert: true });
-  console.log("done dets", hid);
+  console.log("done fatigue", hid, doc.rating);
 };
 
 const upload_horse_fatigue = async (hid) => {
@@ -73,11 +73,10 @@ const upload_horse_fatigue = async (hid) => {
   if (doc == null) return console.log("err fatigue", hid);
   let id = `hid-doc-${hid}`;
   doc = { id, ...doc, db_date2: new Date().toISOString() };
-  console.log(hid, doc?.current_fatigue);
   await zed_db.db
     .collection("zed_api_cache")
     .updateOne({ id }, { $set: doc }, { upsert: true });
-  console.log("done fatigue", hid);
+  console.log("done fatigue", hid, doc.current_fatigue);
 };
 
 const horse_update_runner = async () => {
