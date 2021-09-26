@@ -23,6 +23,10 @@ const { get_sims_zed_odds } = require("./sims");
 const appRootPath = require("app-root-path");
 const { config } = require("dotenv");
 const { fetch_a } = require("./fetch_axios");
+const { add_new_horse_from_zed_in_bulk } = require("./zed_horse_scrape");
+const {
+  update_odds_and_breed_for_race_horses,
+} = require("./odds-generator-for-blood2");
 
 const zed_gql = "https://zed-ql.zed.run/graphql/getRaceResults";
 
@@ -188,6 +192,7 @@ const get_zed_raw_data = async (from, to) => {
         let horses_finalPosition = horse.finalPosition;
         let horses_name = horse.name;
         let horses_gate = horse.gate;
+        let horses_class = horse.class;
 
         racesData[node_raceId][horses_horseId] = {
           1: node_length,
@@ -202,6 +207,7 @@ const get_zed_raw_data = async (from, to) => {
           10: horses_gate,
           11: 0,
           12: 0,
+          16: horses_class,
         };
       }
     }
@@ -270,6 +276,36 @@ const push_races_to_mongo = async (races) => {
   }
   // console.log(mongo_push);
   await zed_ch.db.collection("zed").bulkWrite(mongo_push);
+};
+
+const handle_racing_horse = async (horses) => {
+  let hids = _.chain(horses)
+    .keys()
+    .map((i) => parseInt(i))
+    .value();
+  console.log("handle_racing_horse", hids.length);
+  let exst_docs = await zed_db.db
+    .collection("horse_details")
+    .find({ hid: { $in: hids } }, { projection: { hid: 1, _id: 0 } })
+    .toArray();
+  let exst_hids = _.map(exst_docs, "hid") || [];
+  let diff_hids = _.difference(hids, exst_hids);
+  if (!_.isEmpty(diff_hids)) {
+    console.log("new horses:", diff_hids);
+    await add_new_horse_from_zed_in_bulk(diff_hids);
+  }
+};
+
+const preprocess_races_pushing_to_mongo = async (races) => {
+  let ar = {};
+  for (let r in races) {
+    for (let h in races[r]) {
+      ar[races[r][h][6]] = races[r][h][16];
+    }
+  }
+  await handle_racing_horse(ar);
+  await push_races_to_mongo(races);
+  await update_odds_and_breed_for_race_horses(ar);
 };
 
 const zed_race_add_runner = async (mode = "auto", dates, config) => {
@@ -350,7 +386,7 @@ const zed_race_add_runner = async (mode = "auto", dates, config) => {
 
     races = await add_times_flames_odds_to_races(races, config);
     // console.log(races)
-    await push_races_to_mongo(races);
+    await preprocess_races_pushing_to_mongo(races);
     console.log("done", _.keys(races).length, "races");
   } catch (err) {
     console.log("ERROR on zed_race_add_runner", err.message);
@@ -578,7 +614,7 @@ const zed_races_g_runner = async () => {
       let len = data.length;
       if (!_.isEmpty(data)) {
         data = _.fromPairs(data);
-        await push_races_to_mongo(data);
+        await preprocess_races_pushing_to_mongo(data);
         console.log("g_odds", len, "races pushed");
       } else console.log("g_odds", "NO races pushed");
       if (!_.isEmpty(rem_g_s)) {
@@ -645,7 +681,7 @@ const zed_races_err_runner = async () => {
       let len = data.length;
       if (!_.isEmpty(data)) {
         data = _.fromPairs(data);
-        await push_races_to_mongo(data);
+        await preprocess_races_pushing_to_mongo(data);
         console.log(len, "races pushed");
       } else console.log("NO races pushed");
       if (!_.isEmpty(rem_err_s)) {
@@ -713,16 +749,10 @@ const zed_races_automated_script_run = async () => {
 // zed_races_automated_script_run();
 
 const runner = async () => {
-  await zed_races_scripts_init();
-
-  await zed_races_err_runner();
-  await zed_races_g_runner();
-
-  let no = await zed_db.collection("script").findOne({ id: "g_bucket" });
-  no = no.g_bucket;
-  console.log(no.length);
-
-  // zed_races_specific_duration_run();
+  await init();
+  let d = "2021-09-26T00:03:11Z";
+  let dates = { from_a: d, to_a: d };
+  zed_race_add_runner("manual", dates);
   console.log("done");
 };
 // runner();

@@ -129,7 +129,7 @@ const generate_breed_rating = async (hid) => {
         kids_n: 0,
         is: null,
       };
-      console.log(hid, 0, null);
+      console.log("# hid:", hid, 0, "br:", null);
       return empty_kg;
     }
 
@@ -190,7 +190,7 @@ const generate_breed_rating = async (hid) => {
 
     let kg = { hid, odds, avg, br, kids_n, is };
     // console.log({ avg: dec2(avg), br: dec2(br) });
-    console.log(hid, kids_n, br);
+    console.log("# hid:", hid, kids_n, "br:", br);
     return kg;
   } catch (err) {
     console.log("err on horse get_kg", hid);

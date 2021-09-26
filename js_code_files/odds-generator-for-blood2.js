@@ -647,7 +647,7 @@ const breed_generator_bulk_push = async (obar) => {
 
 const odds_generator_all_horses = async () => {
   try {
-    await initiate()
+    await initiate();
     let st = 102726;
     let ed = 114000;
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
@@ -674,7 +674,7 @@ const odds_generator_all_horses = async () => {
 
 const breed_generator_all_horses = async () => {
   try {
-    await initiate()
+    await initiate();
     let st = 14700;
     let ed = 51000;
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
@@ -698,6 +698,49 @@ const breed_generator_all_horses = async () => {
     }
   } catch (err) {
     console.log("ERROR fetch_all_horses\n", err);
+  }
+};
+
+const odds_generator_for_hids = async (hids) => {
+  try {
+    let i = 0;
+    for (let chunk of _.chunk(hids, 100)) {
+      i += chunk_size;
+      // console.log("\n=> fetching together:", chunk.toString());
+      let obar = await Promise.all(chunk.map((hid) => generate_odds_for(hid)));
+      try {
+        odds_generator_bulk_push(obar);
+      } catch (err) {
+        console.log("mongo err");
+      }
+      console.log("! got", chunk[0], " -> ", chunk[chunk.length - 1]);
+      await delay(chunk_delay);
+    }
+  } catch (err) {
+    console.log("ERROR fetch_for_hids\n", err);
+  }
+};
+
+const breed_generator_for_hids = async (hids) => {
+  try {
+    let i = 0;
+    for (let chunk of _.chunk(hids, 50)) {
+      i += chunk_size;
+      // console.log("\n=> fetching together:", chunk.toString());
+      let obar = await Promise.all(
+        chunk.map((hid) => generate_breed_rating(hid))
+      );
+      // console.table(obar);
+      try {
+        breed_generator_bulk_push(obar);
+      } catch (err) {
+        console.log("mongo err");
+      }
+      console.log("! got", chunk[0], " -> ", chunk[chunk.length - 1]);
+      await delay(chunk_delay);
+    }
+  } catch (err) {
+    console.log("ERROR odds_generator_for_hids\n", err);
   }
 };
 
@@ -731,6 +774,46 @@ const clone_odds_overall = async () => {
   }
 };
 
+const update_odds_and_breed_for_race_horses = async (horses_tc_ob) => {
+  let hids = _.chain(horses_tc_ob)
+    .keys()
+    .map((i) => parseInt(i))
+    .value();
+  let parents_docs = await zed_db.db
+    .collection("horse_details")
+    .find(
+      { hid: { $in: hids } },
+      { projection: { hid: 1, parents: 1, _id: 0 } }
+    )
+    .toArray();
+  let all_hids = [];
+  parents_docs.forEach((e) => {
+    let { parents = {} } = e;
+    parents = _.values(parents) || [];
+    all_hids = [...all_hids, ...parents];
+  });
+  all_hids = [...all_hids, ...hids];
+  all_hids = _.compact(all_hids);
+  console.log(all_hids);
+
+  let tc_bulk = [];
+  for (let [hid, tc] of _.entries(horses_tc_ob)) {
+    hid = parseInt(hid);
+    console.log(hid, "tc:", tc);
+    if (tc === null) continue;
+    tc_bulk.push({
+      updateOne: {
+        filter: { hid },
+        update: { $set: { hid, tc } },
+        upsert: true,
+      },
+    });
+  }
+  await zed_db.db.collection("horse_details").bulkWrite(tc_bulk);
+  await odds_generator_for_hids(hids);
+  await breed_generator_for_hids(all_hids);
+};
+
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const runner = async () => {
@@ -744,4 +827,5 @@ const runner = async () => {
 module.exports = {
   breed_generator_all_horses,
   odds_generator_all_horses,
+  update_odds_and_breed_for_race_horses,
 };

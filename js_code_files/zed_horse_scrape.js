@@ -745,6 +745,36 @@ const add_horse_from_zed_in_bulk = async () => {
     await delay(3000);
   }
 };
+const add_new_horse_from_zed_in_bulk = async (hids) => {
+  await init();
+  let cs = 5;
+  for (let chunk_hids of _.chunk(hids, cs)) {
+    let obar = await Promise.all(
+      chunk_hids.map((hid) =>
+        fetch_zed_horse_doc(hid)
+          .then((doc) => ({ hid, doc }))
+          .then(struct_zed_horse_doc)
+      )
+    );
+    let mgp = [];
+    for (let ob of obar) {
+      if (_.isEmpty(ob)) continue;
+      let { hid } = ob;
+      console.log(hid, ob);
+      mgp.push({
+        updateOne: {
+          filter: { hid },
+          update: { $set: ob },
+          upsert: true,
+        },
+      });
+    }
+    await zed_db.db.collection("horse_details").bulkWrite(mgp);
+    await bulk_write_kid_to_parent(obar);
+    console.log("done", chunk_hids.toString());
+    await delay(3000);
+  }
+};
 
 const runner = async () => {
   await init();
@@ -764,4 +794,5 @@ const runner = async () => {
 module.exports = {
   zed_horses_all_scrape,
   add_horse_from_zed_in_bulk,
+  add_new_horse_from_zed_in_bulk,
 };

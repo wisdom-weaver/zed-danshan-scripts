@@ -486,8 +486,10 @@ const clone_db = async () => {
 // clone_db();
 const t2 = async () => {
   await init();
-  let doc = await zed_db.db.collection("kids").findOne({ hid: 150 });
-  console.log(doc);
+  await zed_db.db
+    .collection("horse_details")
+    .updateOne({ hid: 10097 }, { $set: { tc: 3 } });
+  console.log("done");
 };
 t2();
 
