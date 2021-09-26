@@ -60,7 +60,7 @@ const upload_horse_dets = async (hid) => {
   let doc = await fetch_horse_zed_api(hid);
   if (doc == null) return console.log("err dets", hid);
   let id = `hid-doc-${hid}`;
-  doc = { id, ...doc };
+  doc = { id, ...doc, db_date: new Date().toISOString() };
   await zed_db.db
     .collection("zed_api_cache")
     .updateOne({ id }, { $set: doc }, { upsert: true });
@@ -71,7 +71,8 @@ const upload_horse_fatigue = async (hid) => {
   let doc = await fetch_fatigue(hid);
   if (doc == null) return console.log("err fatigue", hid);
   let id = `hid-doc-${hid}`;
-  doc = { id, ...doc };
+  doc = { id, ...doc, db_date2: new Date().toISOString() };
+  console.log(hid, doc?.current_fatigue);
   await zed_db.db
     .collection("zed_api_cache")
     .updateOne({ id }, { $set: doc }, { upsert: true });
@@ -93,10 +94,12 @@ const horse_update_runner = async () => {
 };
 
 const horse_update_cron = async () => {
-  for (let i of _.range(1, 100 + 1)) {
+  let i = 0;
+  while (true) {
     console.log("started horse bunch cycle", i);
     await horse_update_runner();
     console.log("ended horse bunch cycle", i);
+    i++;
   }
 };
 
