@@ -486,6 +486,7 @@ const zed_flames_data = async (rid) => {
 const zed_race_base_data = async (rid) => {
   let api = `https://racing-api.zed.run/api/v1/races?race_id=${rid}`;
   let doc = await fetch_a(api);
+  console.log("base raw", doc);
   if (_.isEmpty(doc)) return null;
   let {
     class: thisclass,
@@ -499,6 +500,7 @@ const zed_race_base_data = async (rid) => {
   let hids = _.values(gates);
   if (!date.endsWith("Z")) date += "Z";
   let ob = { rid, thisclass, hids, entryfee, distance, date };
+  console.log("base struct", ob);
   return ob;
 };
 
