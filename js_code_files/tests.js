@@ -480,39 +480,44 @@ const script_buckets_count_test = async () => {
 
 const clone_db = async () => {
   await init();
-  // let gt = "2021-08-24T00:00:00Z";
-  // let lt = "2021-09-26T00:00:00Z";
-  // let docs = await zed_ch.db
-  //   .collection("zed")
-  //   .find(
-  //     {
-  //       2: { $gt: gt, $lt: lt },
-  //       5: 0 ,
-  //       11: 0,
-  //     },
-  //     {
-  //       projection: {
-  //         2: 1,
-  //         4: 1,
-  //         5: 1,
-  //         _id: 0,
-  //       },
-  //     }
-  //   )
-  //   .toArray();
-  // let p = _.map(docs, (doc) => {
-  //   return { rid: doc[2], date: doc[5] };
-  // });
-  // p = _.uniqBy(p, "rid");
-  // console.log(p.length);
-  // let id = "g_bucket";
-  // await zed_db.db.collection("script").updateOne(
-  //   { id },
-  //   {
-  //     $set: { id },
-  //     $addToSet: { g_bucket: { $each: p } },
-  //   }
-  // );
+  // let id = "err_bucket";
+  let id = "g_bucket";
+  await zed_db.db.collection("script").deleteMany({ id });
+  let gt = "2021-08-24T00:00:00Z";
+  let lt = "2021-09-26T00:00:00Z";
+  let docs = await zed_ch.db
+    .collection("zed")
+    .find(
+      {
+        2: { $gt: gt, $lt: lt },
+        ...(id == "g_bucket"
+          ? { 5: 0 } // g_
+          : { 5: { $ne: 0 } }), // err_
+        11: 0,
+      },
+      {
+        projection: {
+          2: 1,
+          4: 1,
+          5: 1,
+          _id: 0,
+        },
+      }
+    )
+    .toArray();
+  let p = _.map(docs, (doc) => {
+    return { rid: doc[4], date: doc[2] };
+  });
+  p = _.uniqBy(p, "rid");
+  console.log(p.length);
+  await zed_db.db.collection("script").updateOne(
+    { id },
+    {
+      $set: { id },
+      $addToSet: { [id]: { $each: p } },
+    },
+    { upsert: true }
+  );
   console.log("done");
 };
 clone_db();

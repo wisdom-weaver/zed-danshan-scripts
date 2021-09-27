@@ -18,7 +18,7 @@ const fetch_a = async (api) => {
     url: api,
     headers: {
       Cookie:
-        "__cf_bm=2S5SDty6fDmbf0r4_T_0y_te5MWR8mHudEJH2oy0Wuc-1632755152-0-AXdQfsgqmbB47tUWHG8u2s1ewhxUVt46ZYkdZvUoyJ5il9deEAILRsgp6LEtI2jXsE+pjxNb4uzXbTonxpNHjEs=",
+        "__cf_bm=zxEfeYUmwYo7ERlTKPqksfKo2pz5bfpsRrm3agYFzoU-1632757840-0-AZZX3stuxlhZbygzhbdHQDADU4jXBia/N7p8LjLb/HnodNjbYanX0O8jORqdf1aXgqxY3bGVz3ZMykMb5iLzKTw=",
     },
   };
   return axios(config)
@@ -26,7 +26,8 @@ const fetch_a = async (api) => {
       return response.data;
     })
     .catch(function (error) {
-      console.log("err", api, error);
+      // console.log("err", api, error);
+      console.log("err", api);
       return null;
     });
 };
