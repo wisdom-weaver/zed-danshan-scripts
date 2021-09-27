@@ -60,12 +60,12 @@ const fetch_fatigue = async (hid) => {
 const fetch_horse_zed_api = async (hid) => {
   hid = parseInt(hid);
   let api_url = `https://api.zed.run/api/v1/horses/get/${hid}`;
-  let config = {
+  var config = {
     method: "get",
     url: api_url,
     headers: {
       Cookie:
-        "__cf_bm=IjPQYyifL8ZO4TjW1qQ63f.wtKxOx7zB.5g5on9tvoE-1631814461-0-AUuHDD4tjJ+HuyB8gYMoeaCntbxXBHUhCk4vCNNkLUde/d4Fb9lcZ7l147Y8cJVK19/6oYClfcgxfiKkFxjf//c=",
+        "__cf_bm=2S5SDty6fDmbf0r4_T_0y_te5MWR8mHudEJH2oy0Wuc-1632755152-0-AXdQfsgqmbB47tUWHG8u2s1ewhxUVt46ZYkdZvUoyJ5il9deEAILRsgp6LEtI2jXsE+pjxNb4uzXbTonxpNHjEs=",
     },
   };
   return axios(config)
