@@ -8,7 +8,13 @@ const {
 const { init, zed_db, zed_ch } = require("./index-run");
 const _ = require("lodash");
 const mongoose = require("mongoose");
-const { write_to_path, read_from_path, fetch_r, delay } = require("./utils");
+const {
+  write_to_path,
+  read_from_path,
+  fetch_r,
+  delay,
+  struct_race_row_data,
+} = require("./utils");
 const app_root = require("app-root-path");
 const { MongoClient } = require("mongodb");
 const fetch = require("node-fetch");
@@ -520,12 +526,25 @@ const clone_db = async () => {
   );
   console.log("done");
 };
-clone_db();
+// clone_db();
 
-const t2 = async () => {
+const calc_global_mean_sd_all_races = async () => {
   await init();
 };
-// t2();
+// calc_global_mean_sd_all_races();
+
+const dists = [1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600];
+const table_keys = ["count", "min", "mean", "max", "range", "sd"];
+const def_dist_ob = _.chain(table_keys).map(i=>[i,0]).fromPairs().value();
+const def_table = _.chain(dists).map(d=>[d, def_dist_ob]).fromPairs().value()
+const generate_horse_table = () => {
+  await init();
+  let hid = 106746;
+  let races = await zed_ch.db.collection("zed").find({}).toArray();
+  races = struct_race_row_data(races);
+  console.table(def_table);
+};
+generate_horse_table();
 
 module.exports = {
   test1,
