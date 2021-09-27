@@ -8,12 +8,13 @@ const {
 const { init, zed_db, zed_ch } = require("./index-run");
 const _ = require("lodash");
 const mongoose = require("mongoose");
-const { write_to_path, read_from_path, fetch_r } = require("./utils");
+const { write_to_path, read_from_path, fetch_r, delay } = require("./utils");
 const app_root = require("app-root-path");
 const { MongoClient } = require("mongodb");
 const fetch = require("node-fetch");
 const { download_eth_prices } = require("./base");
 const fs = require("fs");
+const { ObjectId } = require("mongodb");
 
 const test1 = async () => {
   await init();
@@ -461,6 +462,7 @@ const script_buckets_count_test = async () => {
   // write_to_path({ file_path: `${app_root}/data/err.json`, data: err_docs });
   console.log("err_bucket: ", err_docs?.length);
   let g_docs = await zed_db.db.collection("script").findOne({ id: "g_bucket" });
+  // console.table(g_docs?.g_bucket);
   // write_to_path({ file_path: `${app_root}/data/g.json`, data: g_docs });
   g_docs = g_docs?.g_bucket;
   console.log("g_bucket: ", g_docs?.length);
@@ -474,24 +476,51 @@ const script_buckets_count_test = async () => {
   // });
   console.log("need_odds_bucket: ", need_odds_docs?.length);
 };
-script_buckets_count_test();
+// script_buckets_count_test();
 
 const clone_db = async () => {
   await init();
-  // await zed_db.db.collection("blood").aggregate([{ $match: {} }, { $out: "collection2" }]);
-  let doc = await zed_db.db.collection("blood").findOne({ id: "blood" });
-  console.log(doc);
-  console.log("ended");
-};
-// clone_db();
-const t2 = async () => {
-  await init();
-  await zed_db.db
-    .collection("horse_details")
-    .updateOne({ hid: 10097 }, { $set: { tc: 3 } });
+  // let gt = "2021-08-24T00:00:00Z";
+  // let lt = "2021-09-26T00:00:00Z";
+  // let docs = await zed_ch.db
+  //   .collection("zed")
+  //   .find(
+  //     {
+  //       2: { $gt: gt, $lt: lt },
+  //       5: 0 ,
+  //       11: 0,
+  //     },
+  //     {
+  //       projection: {
+  //         2: 1,
+  //         4: 1,
+  //         5: 1,
+  //         _id: 0,
+  //       },
+  //     }
+  //   )
+  //   .toArray();
+  // let p = _.map(docs, (doc) => {
+  //   return { rid: doc[2], date: doc[5] };
+  // });
+  // p = _.uniqBy(p, "rid");
+  // console.log(p.length);
+  // let id = "g_bucket";
+  // await zed_db.db.collection("script").updateOne(
+  //   { id },
+  //   {
+  //     $set: { id },
+  //     $addToSet: { g_bucket: { $each: p } },
+  //   }
+  // );
   console.log("done");
 };
-t2();
+clone_db();
+
+const t2 = async () => {
+  await init();
+};
+// t2();
 
 module.exports = {
   test1,

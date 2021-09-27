@@ -297,6 +297,7 @@ const handle_racing_horse = async (horses) => {
 };
 
 const preprocess_races_pushing_to_mongo = async (races) => {
+  if (_.isEmpty(races)) return;
   let ar = {};
   for (let r in races) {
     for (let h in races[r]) {
@@ -750,7 +751,12 @@ const zed_races_automated_script_run = async () => {
 
 const runner = async () => {
   await init();
-  let d = "2021-09-26T00:03:11Z";
+  let rid = "5KTuJ2xy";
+  let doc_r = await zed_ch.db.collection("zed").findOne({ 4: rid });
+  let date = doc_r && doc_r[2];
+  // let d = "2021-09-26T00:03:11Z";
+  if (!date) return;
+  let d = date;
   let dates = { from_a: d, to_a: d };
   zed_race_add_runner("manual", dates);
   console.log("done");
