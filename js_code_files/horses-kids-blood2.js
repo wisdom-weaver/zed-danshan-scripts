@@ -407,38 +407,64 @@ const push_kids_score_all_horses = async () => {
   console.log("ended");
 };
 
+const get_z_table_for_id = async (id) => {
+  let [bl, bt, z] = id.split("-");
+  let ar = await zed_db.db
+    .collection("horse_details")
+    .find(
+      {
+        bloodline: bl,
+        breed_type: bt,
+        genotype: z,
+      },
+      { projection: { _id: 0, hid: 1 } }
+    )
+    .toArray();
+  let hids = _.map(ar, "hid") || [];
+  let scores = await zed_db.db
+    .collection("rating_breed2")
+    .find({ hid: { $in: hids } }, { projection: { _id: 0, kid_score: 1 } })
+    .toArray();
+
+  scores = _.chain(scores).map("kid_score").compact().value();
+  let avg = _.mean(scores);
+  if (_.isNaN(avg)) avg = null;
+  console.log({ id, count: scores.length, avg });
+  return { count_all: ar.length, count: scores.length, avg };
+};
 const blood_breed_z_table = async () => {
-  let ar = {};
+  await init();
+  let ob = {};
+  let keys = [];
   for (let bl of options.bloodline)
     for (let bt of options.breed_type)
       for (let z of options.genotype) {
-        let id = `${bl}${bt}${z}`;
-        let ar = await zed_db.db
-          .collection("horse_details")
-          .find(
-            {
-              bloodline: bl,
-              breed_type: bt,
-              genotype: z,
-            },
-            { projection: { _id: 0, hid: 1 } }
-          )
-          .toArray();
-
-        let scores = await zed_db.db
-          .collection("rating_breed")
-          .find(
-            { hid: { $in: hids } },
-            { projection: { _id: 0, kid_score: 1 } }
-          )
-          .toArray();
-        scores = _.chain(scores).map("kid_score").compact().value();
-        let avg = _.mean(scores);
-        console.log(id, ar.length, scores.length, avg);
+        let id = `${bl}-${bt}-${z}`;
+        keys.push(id);
       }
-  console.log;
+  keys = keys.slice(0, 10);
+  for (let chunk_ids of _.chunk(keys, 10)) {
+    // console.log(chunk_ids);
+    let ar = await Promise.all(
+      chunk_ids.map((id) => get_z_table_for_id(id).then((d) => [id, d]))
+    );
+    for (let row of ar) {
+      if (_.isEmpty(row)) continue;
+      let [id, d] = ar;
+      ob[id] = d;
+    }
+  }
+  let doc_id = "kid-score-global";
+  await zed_db.db
+    .collection("requirements")
+    .updateOne(
+      { id: doc_id },
+      { $set: { id: doc_id, avg_ob: ob } },
+      { upsert: true }
+    );
+  console.log("done");
 };
-// runner();
+// blood_breed_z_table();
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
