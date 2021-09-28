@@ -368,7 +368,7 @@ const get_all_horses_kids = async () => {
   }
 };
 
-const push_kids_score_bulk = (ar) => {
+const push_kids_score_bulk = async (ar) => {
   for (let ea of ar) {
     if (_.isEmpty(ea)) continue;
     let { hid, kid_score } = ea;
