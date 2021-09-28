@@ -408,8 +408,12 @@ const push_kids_score_all_horses = async () => {
 };
 
 const blood_breed_z_table = async () => {
-  for (let bl of options) {
-  }
+  let ar = []
+  for (let bl of options.bloodline)
+    for (let bt of options.breed_type)
+      for (let z of options.genotype);
+
+  
 };
 // runner();
 
