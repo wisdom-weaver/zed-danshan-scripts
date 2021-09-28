@@ -9,6 +9,7 @@ const {
 } = require("./utils");
 const app_root = require("app-root-path");
 const { download_eth_prices, get_at_eth_price_on } = require("./base");
+const { options } = require("./options");
 
 let mx = 11000;
 let st = 1;
@@ -368,7 +369,8 @@ const get_all_horses_kids = async () => {
   }
 };
 
-const push_kids_score_bulk = async (ar) => {
+const push_kids_score_bulk = async ({ ar, chunk_hids }) => {
+  let bulk = [];
   for (let ea of ar) {
     if (_.isEmpty(ea)) continue;
     let { hid, kid_score } = ea;
@@ -389,21 +391,25 @@ const push_kids_score_all_horses = async () => {
   await initiate();
   let st = 1;
   let ed = 104000;
-  let cs = 1000;
+  let cs = 10;
   let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
   // let hids = [1102];
 
   for (let chunk_hids of _.chunk(hids, cs)) {
-    let bulk = [];
     let ar = await Promise.all(
       chunk_hids.map((hid) =>
         get_kids_score(hid).then((kid_score) => ({ hid, kid_score }))
       )
     );
     // console.log(ar);
-    push_kids_score_bulk(ar);
+    push_kids_score_bulk({ ar, chunk_hids });
   }
   console.log("ended");
+};
+
+const blood_breed_z_table = async () => {
+  for (let bl of options) {
+  }
 };
 // runner();
 
