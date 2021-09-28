@@ -408,12 +408,35 @@ const push_kids_score_all_horses = async () => {
 };
 
 const blood_breed_z_table = async () => {
-  let ar = []
+  let ar = {};
   for (let bl of options.bloodline)
     for (let bt of options.breed_type)
-      for (let z of options.genotype);
+      for (let z of options.genotype) {
+        let id = `${bl}${bt}${z}`;
+        let ar = await zed_db.db
+          .collection("horse_details")
+          .find(
+            {
+              bloodline: bl,
+              breed_type: bt,
+              genotype: z,
+            },
+            { projection: { _id: 0, hid: 1 } }
+          )
+          .toArray();
 
-  
+        let scores = await zed_db.db
+          .collection("rating_breed")
+          .find(
+            { hid: { $in: hids } },
+            { projection: { _id: 0, kid_score: 1 } }
+          )
+          .toArray();
+        scores = _.chain(scores).map("kid_score").compact().value();
+        let avg = _.mean(scores);
+        console.log(id, ar.length, scores.length, avg);
+      }
+  console.log;
 };
 // runner();
 
