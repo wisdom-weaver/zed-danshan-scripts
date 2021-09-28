@@ -426,8 +426,8 @@ const gen_and_upload_blood_hr = async ({
 };
 
 const get_side_of_horse = (ea) => {
-  // console.log("EA=>", ea);
-  let { tc, cf, med } = ea;
+  let { tc, cf, med, rated_type } = ea;
+  if (rated_type !== "GH") return "-";
   let rc = parseInt(cf[0]);
   // console.log(tc, rc);
   med = parseFloat(med);

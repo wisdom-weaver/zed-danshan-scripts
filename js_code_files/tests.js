@@ -535,16 +535,43 @@ const calc_global_mean_sd_all_races = async () => {
 
 const dists = [1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600];
 const table_keys = ["count", "min", "mean", "max", "range", "sd"];
-const def_dist_ob = _.chain(table_keys).map(i=>[i,0]).fromPairs().value();
-const def_table = _.chain(dists).map(d=>[d, def_dist_ob]).fromPairs().value()
-const generate_horse_table = () => {
+const def_dist_ob = _.chain(table_keys)
+  .map((i) => [i, 0])
+  .fromPairs()
+  .value();
+const def_table = _.chain(dists)
+  .map((d) => [d, def_dist_ob])
+  .fromPairs()
+  .value();
+const generate_horse_table = async () => {
   await init();
   let hid = 106746;
   let races = await zed_ch.db.collection("zed").find({}).toArray();
   races = struct_race_row_data(races);
   console.table(def_table);
 };
-generate_horse_table();
+// generate_horse_table();
+
+const clear_CH = async () => {
+  await init();
+  let docs = await zed_db.db
+    .collection("rating_blood2")
+    .find({ rated_type: "CH" }, { _id: 0, hid: 1 });
+  let hids = _.map(docs, "hid");
+  console.log(hids.length);
+  let bulk = [];
+  for (let hid of hids) {
+    bulk.push({
+      updateOne: {
+        filter: { hid },
+        update: { $set: { side: "-" } },
+        upsert: true,
+      },
+    });
+  }
+  console.log("done");
+};
+clear_CH();
 
 module.exports = {
   test1,
