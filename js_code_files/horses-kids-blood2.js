@@ -392,9 +392,14 @@ const push_kids_score_all_horses = async () => {
   let st = 1;
   let ed = 104000;
   let cs = 500;
-  let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
+  // let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
   // let hids = [1102];
-
+  let miss = await zed_db.db
+    .collection("rating_breed2")
+    .find({ kid_score: { $exists: false } }, { projection: { hid: 1 } })
+    .toArray();
+  let hids = _.map(miss, "hid");
+  console.log("missing.len", hids.length);
   for (let chunk_hids of _.chunk(hids, cs)) {
     let ar = await Promise.all(
       chunk_hids.map((hid) =>
@@ -442,7 +447,7 @@ const blood_breed_z_table = async () => {
         let id = `${bl}-${bt}-${z}`;
         keys.push(id);
       }
-  keys = keys.slice(0, 10);
+  // keys = keys.slice(0, 10);
   for (let chunk_ids of _.chunk(keys, 10)) {
     // console.log(chunk_ids);
     let ar = await Promise.all(
