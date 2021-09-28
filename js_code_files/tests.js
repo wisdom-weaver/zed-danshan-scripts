@@ -556,18 +556,23 @@ const clear_CH = async () => {
   await init();
   let docs = await zed_db.db
     .collection("rating_blood2")
-    .find({ rated_type: "CH" }, { _id: 0, hid: 1 });
+    .find({ rated_type: "CH" }, { _id: 0, hid: 1 })
+    .toArray();
   let hids = _.map(docs, "hid");
-  console.log(hids.length);
-  let bulk = [];
-  for (let hid of hids) {
-    bulk.push({
-      updateOne: {
-        filter: { hid },
-        update: { $set: { side: "-" } },
-        upsert: true,
-      },
-    });
+  console.log(hids.length, "horses");
+  for (let chunk_hids of _.chunk(hids, 500)) {
+    let bulk = [];
+    for (let hid of chunk_hids) {
+      bulk.push({
+        updateOne: {
+          filter: { hid },
+          update: { $set: { side: "-" } },
+          upsert: true,
+        },
+      });
+    }
+    await zed_db.db.collection("rating_blood2").bulkWrite(bulk);
+    console.log("done part", bulk.length);
   }
   console.log("done");
 };

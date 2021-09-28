@@ -337,8 +337,7 @@ const calc_blood_hr = async ({
     if (override_dist == false) class_hr = await get_class_hr(hid);
     if (_.isEmpty(class_hr)) return { ...null_hr_ob, tc };
     else {
-      let side = get_side_of_horse({ ...class_hr, tc });
-      return { ...class_hr, tc, side };
+      return { ...class_hr, tc };
     }
     return { ...null_hr_ob, tc };
   }
@@ -366,8 +365,6 @@ const calc_blood_hr = async ({
     }
   if (!_.isEmpty(hr)) {
     hr = { ...hr, tc };
-    let side = get_side_of_horse(hr);
-    hr = { ...hr, side };
     return hr;
   }
   // console.log(hr);
@@ -378,14 +375,11 @@ const calc_blood_hr = async ({
     if (override_dist == false) class_hr = await get_class_hr(hid);
     if (_.isEmpty(class_hr)) return { ...null_hr_ob, tc };
     else {
-      let side = get_side_of_horse({ ...class_hr, tc });
-      return { ...class_hr, tc, side };
+      return { ...class_hr, tc };
     }
     return { ...null_hr_ob, tc };
   } else {
     let min_ob = { cf: "5C", d: mm?.d, tc, med: mm?.med || null };
-    let side = get_side_of_horse(min_ob);
-    min_ob = { ...min_ob, side };
     return min_ob;
   }
   return { ...null_hr_ob, tc };
@@ -395,7 +389,8 @@ const gen_rating_blood = async (ob) => {
   let hid = ob.hid;
   let rated_type = get_rated_type(a?.cf);
   a = { hid, ...a, rated_type };
-  // console.log(a);
+  let side = get_side_of_horse(a);
+  a = { ...a, side };
   return a;
 };
 
@@ -819,10 +814,12 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const runner = async () => {
   await initiate();
   // await odds_generator_all_horses();
-  await breed_generator_all_horses();
+  // await breed_generator_all_horses();
   // clone_odds_overall();
+  let hids = [3312, 85220, 1568];
+  await odds_generator_for_hids(hids);
 };
-// runner();
+runner();
 
 module.exports = {
   breed_generator_all_horses,
