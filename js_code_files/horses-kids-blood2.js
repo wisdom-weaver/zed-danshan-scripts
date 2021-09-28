@@ -391,7 +391,7 @@ const push_kids_score_all_horses = async () => {
   await initiate();
   let st = 1;
   let ed = 104000;
-  let cs = 10;
+  let cs = 500;
   let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
   // let hids = [1102];
 
