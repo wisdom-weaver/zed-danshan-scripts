@@ -407,7 +407,7 @@ const push_kids_score_all_horses = async () => {
       )
     );
     // console.log(ar);
-    push_kids_score_bulk({ ar, chunk_hids });
+    await push_kids_score_bulk({ ar, chunk_hids });
   }
   console.log("ended");
 };
