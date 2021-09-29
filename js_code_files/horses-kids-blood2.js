@@ -287,7 +287,7 @@ const generate_breed_rating = async (hid) => {
         "# hid:",
         hid,
         "kids_n:",
-        kids_n,
+        0,
         "br:",
         null,
         "hid_kid_score:",
@@ -562,12 +562,12 @@ const runner2 = async () => {
   await init();
   await init_btbtz();
   // let hid = 21744;
-  let hid = 291;
+  let hid = 95;
   let br = await generate_breed_rating(hid);
   console.log(br);
   console.log("done");
 };
-// runner2();
+runner2();
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
