@@ -643,7 +643,7 @@ const breed_generator_bulk_push = async (obar) => {
 const odds_generator_all_horses = async () => {
   try {
     await initiate();
-    let st = 102726;
+    let st = 1;
     let ed = 114000;
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
     // let hids = [77052, 78991, 80769, 87790, 88329, 88427];
@@ -672,7 +672,7 @@ const breed_generator_all_horses = async () => {
     await initiate();
     await init_btbtz();
     let st = 1;
-    let ed = 104000;
+    let ed = 114000;
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
     // let hids = [26646, 21744, 21512];
     console.log("=> STARTED breed_generator: ", `${st}:${ed}`);
