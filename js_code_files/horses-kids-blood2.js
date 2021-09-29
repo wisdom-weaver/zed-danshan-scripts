@@ -283,7 +283,16 @@ const generate_breed_rating = async (hid) => {
         is: null,
         kid_score: hid_kid_score,
       };
-      console.log("# hid:", hid, 0, "br:", null);
+      console.log(
+        "# hid:",
+        hid,
+        "kids_n:",
+        kids_n,
+        "br:",
+        null,
+        "hid_kid_score:",
+        null
+      );
       return empty_kg;
     }
 
@@ -329,8 +338,13 @@ const generate_breed_rating = async (hid) => {
       else fact = e.kid_score / e.gavg;
       let adj;
       if (fact == null) adj = null;
-      else if (e.op_br == null || _.isNaN(e.op_br)) adj = (2 - 1) * fact;
-      else adj = (2 - e.op_br) * fact;
+
+      if (e.op_br == null || _.isNaN(e.op_br)) {
+        adj = fact;
+      } else {
+        adj = e.op_br > 1.1 ? fact * 0.9 : e.op_br < 0.9 ? fact * 1.1 : fact;
+      }
+
       let good_adj = e.kid_score > e.gavg ? e.kid_score * 0.1 : 0;
       return { ...e, fact, adj, good_adj };
     });
@@ -548,7 +562,7 @@ const runner2 = async () => {
   await init();
   await init_btbtz();
   // let hid = 21744;
-  let hid = 26646;
+  let hid = 291;
   let br = await generate_breed_rating(hid);
   console.log(br);
   console.log("done");
