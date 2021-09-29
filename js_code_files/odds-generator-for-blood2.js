@@ -624,6 +624,7 @@ const odds_generator_bulk_push = async (obar) => {
   console.log("wrote bulk", obar.length);
 };
 const breed_generator_bulk_push = async (obar) => {
+  if (_.isEmpty(obar)) return;
   let rating_breed2_bulk = [];
   for (let ob of obar) {
     if (_.isEmpty(ob)) continue;
@@ -637,7 +638,7 @@ const breed_generator_bulk_push = async (obar) => {
     });
   }
   await zed_db.db.collection("rating_breed2").bulkWrite(rating_breed2_bulk);
-  console.log("wrote bulk");
+  console.log("wrote bulk", obar.length, "..", obar[obar.length - 1].hid);
 };
 
 const odds_generator_all_horses = async () => {
@@ -675,23 +676,26 @@ const breed_generator_all_horses = async () => {
     let ed = 114000;
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
     // let hids = [26646, 21744, 21512];
-    console.log("=> STARTED breed_generator: ", `${st}:${ed}`);
-    let i = 0;
-    for (let chunk of _.chunk(hids, 50)) {
-      i += chunk_size;
-      // console.log("\n=> fetching together:", chunk.toString());
-      let obar = await Promise.all(
-        chunk.map((hid) => generate_breed_rating(hid))
-      );
-      // console.table(obar);
-      try {
-        breed_generator_bulk_push(obar);
-      } catch (err) {
-        console.log("mongo err");
+    for (let r of _.range(0, 5)) {
+      console.log("=> STARTED breed_generator: ", `${st}:${ed}`, "run:", r);
+      let i = 0;
+      for (let chunk of _.chunk(hids, 50)) {
+        i += chunk_size;
+        // console.log("\n=> fetching together:", chunk.toString());
+        let obar = await Promise.all(
+          chunk.map((hid) => generate_breed_rating(hid))
+        );
+        // console.table(obar);
+        try {
+          breed_generator_bulk_push(obar);
+        } catch (err) {
+          console.log("mongo err");
+        }
+        console.log("! got", chunk[0], " -> ", chunk[chunk.length - 1]);
+        await delay(chunk_delay);
       }
-      console.log("! got", chunk[0], " -> ", chunk[chunk.length - 1]);
-      await delay(chunk_delay);
     }
+    console.log("breed_generator_all_horses");
   } catch (err) {
     console.log("ERROR fetch_all_horses\n", err);
   }
@@ -818,9 +822,10 @@ const runner = async () => {
   // await odds_generator_all_horses();
   // await breed_generator_all_horses();
   // clone_odds_overall();
-  let hids = [26646, 21744, 21512];
-  await odds_generator_for_hids(hids);
-  await breed_generator_for_hids(hids);
+  // let hids = [3312];
+  // await odds_generator_for_hids(hids);
+  // await breed_generator_for_hids(hids);
+  breed_generator_all_horses();
 };
 // runner();
 

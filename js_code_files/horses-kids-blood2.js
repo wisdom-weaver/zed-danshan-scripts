@@ -6,6 +6,7 @@ const {
   calc_median,
   fetch_r,
   struct_race_row_data,
+  dec,
 } = require("./utils");
 const app_root = require("app-root-path");
 const { download_eth_prices, get_at_eth_price_on } = require("./base");
@@ -301,10 +302,20 @@ const generate_breed_rating = async (hid) => {
     );
     gavg_ob = Object.fromEntries(gavg_ob);
 
+    let op_br_ob = await Promise.all(
+      kids.map((kid) => {
+        let { father, mother } = kid.parents;
+        let op = hid == father ? mother : father;
+        return get_breed_rating(op).then((op_br) => [kid.hid, op_br]);
+      })
+    );
+    op_br_ob = Object.fromEntries(op_br_ob);
+
     kids = kids.map((e) => ({
       ...e,
       kid_score: kids_scores_ob[e.hid],
       gavg: gavg_ob[e.hid],
+      op_br: op_br_ob[e.hid],
     }));
     kids = kids.map((e) => {
       let fact;
@@ -316,14 +327,21 @@ const generate_breed_rating = async (hid) => {
       )
         fact = null;
       else fact = e.kid_score / e.gavg;
-      return { ...e, fact };
+      let adj;
+      if (fact == null) adj = null;
+      else if (e.op_br == null || _.isNaN(e.op_br)) adj = (2 - 1) * fact;
+      else adj = (2 - e.op_br) * fact;
+      let good_adj = e.kid_score > e.gavg ? e.kid_score * 0.1 : 0;
+      return { ...e, fact, adj, good_adj };
     });
     // console.table(kids);
 
     let avg = _.chain(kids_scores_ob).values().compact().mean().value();
-    let br = _.chain(kids).map("fact").values().compact().value();
+    let br = _.chain(kids).map("adj").values().compact().value();
     if (br.length == 0) br = null;
     else br = _.mean(br);
+
+    br += _.chain(kids).map("good_adj").compact().sum().value();
 
     let kg = {
       hid,
@@ -340,9 +358,9 @@ const generate_breed_rating = async (hid) => {
       "kids_n:",
       kids_n,
       "br:",
-      br,
+      dec(br, 2),
       "hid_kid_score:",
-      hid_kid_score
+      dec(hid_kid_score, 2)
     );
     return kg;
   } catch (err) {
@@ -530,7 +548,7 @@ const runner2 = async () => {
   await init();
   await init_btbtz();
   // let hid = 21744;
-  let hid = 21512;
+  let hid = 26646;
   let br = await generate_breed_rating(hid);
   console.log(br);
   console.log("done");
