@@ -16,7 +16,7 @@ const {
   generate_rating_flames,
 } = require("./update_flame_concentration");
 const { dec } = require("./utils");
-const { generate_breed_rating } = require("./horses-kids-blood2");
+const { generate_breed_rating, init_btbtz } = require("./horses-kids-blood2");
 
 let mx;
 let st = 1;
@@ -670,10 +670,11 @@ const odds_generator_all_horses = async () => {
 const breed_generator_all_horses = async () => {
   try {
     await initiate();
+    await init_btbtz();
     let st = 14700;
     let ed = 51000;
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
-    // let hids = [68404];
+    // let hids = [26646, 21744, 21512];
     console.log("=> STARTED breed_generator: ", `${st}:${ed}`);
     let i = 0;
     for (let chunk of _.chunk(hids, 50)) {
@@ -718,6 +719,7 @@ const odds_generator_for_hids = async (hids) => {
 
 const breed_generator_for_hids = async (hids) => {
   try {
+    await init_btbtz();
     let i = 0;
     for (let chunk of _.chunk(hids, 50)) {
       i += chunk_size;
@@ -816,10 +818,11 @@ const runner = async () => {
   // await odds_generator_all_horses();
   // await breed_generator_all_horses();
   // clone_odds_overall();
-  let hids = [3312, 85220, 1568];
+  let hids = [26646, 21744, 21512];
   await odds_generator_for_hids(hids);
+  await breed_generator_for_hids(hids);
 };
-runner();
+// runner();
 
 module.exports = {
   breed_generator_all_horses,

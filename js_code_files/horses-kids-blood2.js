@@ -19,6 +19,7 @@ let chunk_delay = 100;
 
 //global
 let z_ALL = {};
+let blbtz = {};
 let tot_runs = 1;
 
 const initiate = async () => {
@@ -119,6 +120,11 @@ const get_z_ALL_meds = async () => {
   let doc = await zed_db.db.collection("z_meds").findOne({ id: "z_ALL" });
   let ob = _.chain(doc.ar).keyBy("id").mapValues("med").value();
   return ob;
+};
+
+const get_blbtz_global_avg = async ({ bloodline, breed_type, genotype }) => {
+  let id = `${bloodline}-${breed_type}-${genotype}`;
+  return blbtz[id]?.avg || null;
 };
 
 const generate_breed_rating_old = async (hid) => {
@@ -252,7 +258,7 @@ const get_kids_score = async (hid) => {
     kid_score =
       (flames_per + p_1_2_11_12_per + entryfee_avg + races_Nx20 + win_by2) /
       100;
-    console.log(hid, kid_score);
+    // console.log(hid, kid_score);
     return kid_score;
   } catch (err) {
     console.log("err in get_kids_score", err);
@@ -261,10 +267,11 @@ const get_kids_score = async (hid) => {
 
 const generate_breed_rating = async (hid) => {
   try {
+    let hid_kid_score = await get_kids_score(hid);
     hid = parseInt(hid);
     if (hid == null || isNaN(hid)) return null;
     let kids = (await get_kids_existing(hid)) || [];
-    console.log({ hid, kids });
+    // console.log({ hid, kids });
     if (_.isEmpty(kids)) {
       let empty_kg = {
         hid,
@@ -273,6 +280,7 @@ const generate_breed_rating = async (hid) => {
         br: null,
         kids_n: 0,
         is: null,
+        kid_score: hid_kid_score,
       };
       console.log("# hid:", hid, 0, "br:", null);
       return empty_kg;
@@ -286,23 +294,56 @@ const generate_breed_rating = async (hid) => {
     );
     kids_scores_ob = Object.fromEntries(kids_scores_ob);
 
-    let z_ob = await Promise.all(
-      kids.map((kid) => get_z_med_kid_score(kid).then((z) => [kid.hid, z]))
+    let gavg_ob = await Promise.all(
+      kids.map((kid) =>
+        get_blbtz_global_avg(kid).then((gavg) => [kid.hid, gavg])
+      )
     );
-    z_ob = Object.fromEntries(z_ob);
+    gavg_ob = Object.fromEntries(gavg_ob);
 
     kids = kids.map((e) => ({
       ...e,
       kid_score: kids_scores_ob[e.hid],
-      z_med: z_ob[e.hid],
+      gavg: gavg_ob[e.hid],
     }));
-    console.table(kids);
-    let avg = null;
-    let br = _.chain(kids_scores_ob).values().compact().mean().value();
+    kids = kids.map((e) => {
+      let fact;
+      if (
+        e.kid_score == 0 ||
+        e.gavg == 0 ||
+        _.isNaN(e.kid_score) ||
+        _.isNaN(e.gavg)
+      )
+        fact = null;
+      else fact = e.kid_score / e.gavg;
+      return { ...e, fact };
+    });
+    // console.table(kids);
 
-    let kg = { hid, odds: kids_scores_ob, avg, br, kids_n };
+    let avg = _.chain(kids_scores_ob).values().compact().mean().value();
+    let br = _.chain(kids).map("fact").values().compact().value();
+    if (br.length == 0) br = null;
+    else br = _.mean(br);
+
+    let kg = {
+      hid,
+      odds: kids_scores_ob,
+      avg,
+      br,
+      kids_n,
+      kid_score: hid_kid_score,
+    };
     // console.log({ avg: dec2(avg), br: dec2(br) });
-    console.log("# hid:", hid, kids_n, "br:", br);
+    console.log(
+      "# hid:",
+      hid,
+      "kids_n:",
+      kids_n,
+      "br:",
+      br,
+      "hid_kid_score:",
+      hid_kid_score
+    );
     return kg;
   } catch (err) {
     console.log("err on horse get_kg", hid);
@@ -411,6 +452,7 @@ const push_kids_score_all_horses = async () => {
   }
   console.log("ended");
 };
+// push_kids_score_all_horses();
 
 const get_z_table_for_id = async (id) => {
   let [bl, bt, z] = id.split("-");
@@ -447,18 +489,12 @@ const blood_breed_z_table = async () => {
         let id = `${bl}-${bt}-${z}`;
         keys.push(id);
       }
-  // keys = keys.slice(0, 10);
-  for (let chunk_ids of _.chunk(keys, 10)) {
-    // console.log(chunk_ids);
-    let ar = await Promise.all(
-      chunk_ids.map((id) => get_z_table_for_id(id).then((d) => [id, d]))
-    );
-    for (let row of ar) {
-      if (_.isEmpty(row)) continue;
-      let [id, d] = ar;
-      ob[id] = d;
-    }
+
+  // keys = keys.slice(0, 5);
+  for (let id of keys) {
+    ob[id] = await get_z_table_for_id(id);
   }
+
   let doc_id = "kid-score-global";
   await zed_db.db
     .collection("requirements")
@@ -471,10 +507,42 @@ const blood_breed_z_table = async () => {
 };
 // blood_breed_z_table();
 
+const init_btbtz = async () => {
+  let doc_id = "kid-score-global";
+  let doc = await zed_db.db.collection("requirements").findOne({ id: doc_id });
+  blbtz = doc.avg_ob;
+  console.log("#done init_btbtz");
+};
+
+const runner = async () => {
+  await init();
+  let doc_id = "kid-score-global";
+  let doc = await zed_db.db.collection("requirements").findOne({ id: doc_id });
+  let ob = doc.avg_ob;
+  ob = _.entries(ob).map((i) => {
+    return { id: i[0], ...i[1] };
+  });
+  console.table(ob);
+};
+// runner();
+
+const runner2 = async () => {
+  await init();
+  await init_btbtz();
+  // let hid = 21744;
+  let hid = 21512;
+  let br = await generate_breed_rating(hid);
+  console.log(br);
+  console.log("done");
+};
+// runner2();
+
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 module.exports = {
   push_kids_score_all_horses,
   generate_breed_rating,
   push_kids_score_all_horses,
+  blood_breed_z_table,
+  init_btbtz,
 };
