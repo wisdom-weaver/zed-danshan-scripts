@@ -132,6 +132,7 @@ const generate_rating_blood = async ({ hid, races, tc }) => {
     if (rc == tc) side = "C";
     else if (rc < tc) side = "B";
     else if (rc > tc) side = "A";
+    if (side == "C" && tc == 1) side = "B";
     ob.side = side;
   }
   console.log(hid, ob.rated_type, side_text(ob.side), get_blood_str(ob));

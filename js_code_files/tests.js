@@ -576,7 +576,16 @@ const clear_CH = async () => {
   }
   console.log("done");
 };
-clear_CH();
+// clear_CH();
+const a = async () => {
+  await init();
+  console.log("start")
+  await zed_db.db
+    .collection("rating_breed2")
+    .updateMany({}, { $set: { br: 1 } });
+  console.log("done");
+};
+// a();
 
 module.exports = {
   test1,
