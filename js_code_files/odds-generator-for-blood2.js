@@ -767,7 +767,8 @@ const breed_generator_errs = async () => {
 const odds_generator_for_hids = async (hids) => {
   try {
     let i = 0;
-    for (let chunk of _.chunk(hids, 100)) {
+    let cs = 500;
+    for (let chunk of _.chunk(hids, cs)) {
       i += chunk_size;
       // console.log("\n=> fetching together:", chunk.toString());
       let obar = await Promise.all(chunk.map((hid) => generate_odds_for(hid)));
