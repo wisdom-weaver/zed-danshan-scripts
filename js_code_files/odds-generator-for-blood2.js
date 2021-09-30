@@ -696,19 +696,24 @@ const breed_generator_all_horses = async () => {
   try {
     await initiate();
     await init_btbtz();
-    let st = 16000;
-    let ed = 26500;
+    let st = 1;
+    let ed = 2000000;
+    let cs = 500;
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
     // let hids = [26646, 21744, 21512];
-    for (let i = 0; i < 5; i++) {
+    outer: while (true) {
       console.log("=> STARTED breed_generator: ", `${st}:${ed}`);
-      let i = 0;
-      for (let chunk of _.chunk(hids, 500)) {
-        i += chunk_size;
+      for (let chunk of _.chunk(hids, cs)) {
         // console.log("\n=> fetching together:", chunk.toString());
         let obar = await Promise.all(
           chunk.map((hid) => generate_breed_rating(hid))
         );
+        let emps = _.filter(obar, { kids_n: 0, kid_score: null });
+        console.log("emptys len:", emps.length);
+        if (emps.length == chunk.length) {
+          console.log("starting from initial");
+          continue outer;
+        }
         // console.table(obar);
         try {
           await breed_generator_bulk_push(obar);

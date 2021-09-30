@@ -291,7 +291,7 @@ const generate_breed_rating = async (hid, p = 0) => {
         "br:",
         null,
         "hid_kid_score:",
-        null
+        dec(hid_kid_score, 2)
       );
       return empty_kg;
     }
@@ -562,7 +562,7 @@ const runner = async () => {
 const runner2 = async () => {
   await init();
   await init_btbtz();
-  let hids = [348];
+  let hids = [91288];
   // let hids = [24865, 22558, 20501, 24538, 26646, 24865, 22558, 20501, 24538];
   for (let hid of hids) {
     let br = await generate_breed_rating(hid, 1);
