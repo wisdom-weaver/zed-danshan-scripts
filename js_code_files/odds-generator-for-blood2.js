@@ -696,14 +696,14 @@ const breed_generator_all_horses = async () => {
   try {
     await initiate();
     await init_btbtz();
-    let st = 80000;
-    let ed = 120000;
+    let st = 16000;
+    let ed = 26500;
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
     // let hids = [26646, 21744, 21512];
-    for (let r of _.range(0, 5)) {
-      console.log("=> STARTED breed_generator: ", `${st}:${ed}`, "run:", r);
+    for (let i = 0; i < 5; i++) {
+      console.log("=> STARTED breed_generator: ", `${st}:${ed}`);
       let i = 0;
-      for (let chunk of _.chunk(hids, 100)) {
+      for (let chunk of _.chunk(hids, 500)) {
         i += chunk_size;
         // console.log("\n=> fetching together:", chunk.toString());
         let obar = await Promise.all(
@@ -723,6 +723,40 @@ const breed_generator_all_horses = async () => {
   } catch (err) {
     console.log("ERROR fetch_all_horses\n", err);
   }
+};
+
+const breed_generator_errs = async () => {
+  await init();
+  let docs1 =
+    (await zed_db.db
+      .collection("rating_breed2")
+      .find({ br: { $ne: null, $lt: 0 } }, { projection: { hid: 1, _id: 0 } })
+      .toArray()) || [];
+  let docs2 =
+    (await zed_db.db
+      .collection("rating_breed2")
+      .find({ br: { $ne: null, $gt: 3 } }, { projection: { hid: 1, _id: 0 } })
+      .toArray()) || [];
+  let hids = [..._.map(docs1, "hid"), ..._.map(docs2, "hid")];
+  console.log("breed errs:", hids.length);
+  await breed_generator_for_hids(hids);
+  console.log("check again");
+  let docs3 =
+    (await zed_db.db
+      .collection("rating_breed2")
+      .find({ br: { $ne: null, $lt: 0 } }, { projection: { hid: 1, _id: 0 } })
+      .toArray()) || [];
+  let docs4 =
+    (await zed_db.db
+      .collection("rating_breed2")
+      .find({ br: { $ne: null, $gt: 3 } }, { projection: { hid: 1, _id: 0 } })
+      .toArray()) || [];
+  hids = [..._.map(docs3, "hid"), ..._.map(docs4, "hid")];
+  console.log("breed errs:", hids.length);
+  await breed_generator_for_hids(hids);
+  console.log("done");
+  await delay(1000 * 60 * 60);
+  return await breed_generator_errs();
 };
 
 const odds_generator_for_hids = async (hids) => {
@@ -858,4 +892,5 @@ module.exports = {
   odds_generator_all_horses,
   update_odds_and_breed_for_race_horses,
   odds_generator_for_hids,
+  breed_generator_errs,
 };
