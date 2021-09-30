@@ -630,21 +630,39 @@ const odds_generator_bulk_push = async (obar) => {
   console.log("wrote bulk", obar.length);
 };
 const breed_generator_bulk_push = async (obar) => {
-  if (_.isEmpty(obar)) return;
-  let rating_breed2_bulk = [];
-  for (let ob of obar) {
-    if (_.isEmpty(ob)) continue;
-    let { hid } = ob;
-    rating_breed2_bulk.push({
-      updateOne: {
-        filter: { hid },
-        update: { $set: ob },
-        upsert: true,
-      },
-    });
+  try {
+    if (_.isEmpty(obar)) return;
+    let rating_breed2_bulk = [];
+    for (let ob of obar) {
+      if (_.isEmpty(ob)) continue;
+      let { hid } = ob;
+      rating_breed2_bulk.push({
+        updateOne: {
+          filter: { hid },
+          update: { $set: ob },
+          upsert: true,
+        },
+      });
+    }
+    await zed_db.db.collection("rating_breed2").bulkWrite(rating_breed2_bulk);
+    console.log(
+      "wrote bulk",
+      obar.length,
+      "..",
+      obar[0].hid,
+      "->",
+      obar[obar.length - 1].hid
+    );
+  } catch (err) {
+    console.log(
+      "mongo err",
+      obar.length,
+      "..",
+      obar[0].hid,
+      "->",
+      obar[obar.length - 1].hid
+    );
   }
-  await zed_db.db.collection("rating_breed2").bulkWrite(rating_breed2_bulk);
-  console.log("wrote bulk", obar.length, "..", obar[obar.length - 1].hid);
 };
 
 const odds_generator_all_horses = async () => {
@@ -693,7 +711,7 @@ const breed_generator_all_horses = async () => {
         );
         // console.table(obar);
         try {
-          breed_generator_bulk_push(obar);
+          await breed_generator_bulk_push(obar);
         } catch (err) {
           console.log("mongo err");
         }
@@ -825,8 +843,9 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const runner = async () => {
   await initiate();
-  let hids = [3312, 21888, 7090, 1102, 85223];
-  await odds_generator_for_hids(hids);
+  let hids = [21888];
+  // await odds_generator_for_hids(hids);
+  await breed_generator_for_hids(hids);
   console.log("done");
 };
 // runner();

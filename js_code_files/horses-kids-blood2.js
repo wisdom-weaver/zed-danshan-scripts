@@ -563,7 +563,7 @@ const runner2 = async () => {
   await init();
   await init_btbtz();
   // let hid = 21744;
-  let hid = 26646;
+  let hid = 21888;
   let br = await generate_breed_rating(hid);
   console.log(br);
   console.log("done");
