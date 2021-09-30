@@ -779,14 +779,20 @@ const add_new_horse_from_zed_in_bulk = async (hids) => {
 
 const missing_zed_horse_tc_update = async () => {
   await init();
+  // let docs = await zed_db.db
+  //   .collection("horse_details")
+  //   .find({ tc: null }, { projection: { tc: 1, hid: 1, _id: 0 } })
+  //   .toArray();
   let docs = await zed_db.db
-    .collection("horse_details")
-    .find({ tc: null }, { projection: { tc: 1, hid: 1, _id: 0 } })
+    .collection("rating_blood2")
+    .find({ tc: null }, { projection: { _id: 0, hid: 1 } })
     .toArray();
+  
   let hids = _.map(docs, "hid");
   console.log("got missing", hids.length);
   if (_.isEmpty(hids)) return;
-  await add_new_horse_from_zed_in_bulk(hids);
+
+  // await add_new_horse_from_zed_in_bulk(hids);
   await odds_generator_for_hids(hids);
   console.log("missing_zed_horse_tc_update");
 };

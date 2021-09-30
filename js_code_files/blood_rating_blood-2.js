@@ -123,7 +123,8 @@ const generate_rating_blood_calc = async ({ hid, races = [] }) => {
 };
 const generate_rating_blood = async ({ hid, races, tc }) => {
   let ob = await generate_rating_blood_calc({ hid, races });
-  // console.log(hid, ob);
+  ob.hid = hid;
+  ob.tc = tc;
   let side;
   if (ob.rated_type === "NR") side = "-";
   else if (ob.rated_type === "CH") side = "A";

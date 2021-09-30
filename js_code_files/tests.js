@@ -21,6 +21,10 @@ const fetch = require("node-fetch");
 const { download_eth_prices } = require("./base");
 const fs = require("fs");
 const { ObjectId } = require("mongodb");
+const {
+  generate_rating_blood,
+  generate_rating_blood_from_hid,
+} = require("./blood_rating_blood-2");
 
 const test1 = async () => {
   await init();
@@ -579,10 +583,16 @@ const clear_CH = async () => {
 // clear_CH();
 const a = async () => {
   await init();
-  console.log("start")
-  await zed_db.db
-    .collection("rating_breed2")
-    .updateMany({}, { $set: { br: 1 } });
+  console.log("start");
+  let docs = await zed_db.db
+    .collection("rating_blood2")
+    .find({ tc: null }, { projection: { _id: 0, hid: 1 } })
+    .toArray();
+  let hids = _.map(docs, "hid");
+  console.log(hids.length, hids);
+  let ob = await generate_rating_blood_from_hid(hids[0]);
+  console.log(ob);
+
   console.log("done");
 };
 // a();
