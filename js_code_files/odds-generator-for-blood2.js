@@ -696,8 +696,8 @@ const breed_generator_all_horses = async () => {
   try {
     await initiate();
     await init_btbtz();
-    let st = 1;
-    let ed = 114000;
+    let st = 26500;
+    let ed = 32000;
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
     // let hids = [26646, 21744, 21512];
     for (let r of _.range(0, 5)) {

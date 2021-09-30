@@ -414,34 +414,34 @@ const get_kids_and_upload = async (hid, print = 0) => {
   }
 };
 
-const get_all_horses_kids = async () => {
-  try {
-    await initiate();
-    z_ALL = await get_z_ALL_meds();
-    console.log("z_ALL loaded");
+// const get_all_horses_kids = async () => {
+//   try {
+//     await initiate();
+//     z_ALL = await get_z_ALL_meds();
+//     console.log("z_ALL loaded");
 
-    console.log("=> STARTED horses_kids: ", `${st}:${ed}`);
-    let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
+//     console.log("=> STARTED horses_kids: ", `${st}:${ed}`);
+//     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
 
-    for (let run = 1; run <= tot_runs; run++) {
-      let i = 0;
-      for (let chunk of _.chunk(hids, chunk_size)) {
-        await Promise.all(chunk.map((hid) => get_kids_and_upload(hid, 1)));
-        await delay(chunk_delay);
-        console.log(`#RUN${run}`, chunk[0], " -> ", chunk[chunk.length - 1]);
-        i++;
-        if (i % 10 == 0) {
-          console.log("------");
-          await delay(1000);
-          i = 0;
-        }
-      }
-    }
-    console.log("## Fetch completed");
-  } catch (err) {
-    console.log("ERROR get_all_horses_kids\n", err);
-  }
-};
+//     for (let run = 1; run <= tot_runs; run++) {
+//       let i = 0;
+//       for (let chunk of _.chunk(hids, chunk_size)) {
+//         await Promise.all(chunk.map((hid) => get_kids_and_upload(hid, 1)));
+//         await delay(chunk_delay);
+//         console.log(`#RUN${run}`, chunk[0], " -> ", chunk[chunk.length - 1]);
+//         i++;
+//         if (i % 10 == 0) {
+//           console.log("------");
+//           await delay(1000);
+//           i = 0;
+//         }
+//       }
+//     }
+//     console.log("## Fetch completed");
+//   } catch (err) {
+//     console.log("ERROR get_all_horses_kids\n", err);
+//   }
+// };
 
 const push_kids_score_bulk = async ({ ar, chunk_hids }) => {
   let bulk = [];
@@ -563,7 +563,20 @@ const runner2 = async () => {
   await init();
   await init_btbtz();
   // let hid = 21744;
-  let hid = 1102;
+  let hids = [
+    24865,
+    22558,
+    20501,
+    24538,
+    26646,
+    24865,
+    22558,
+    20501,
+    24538,
+  ];
+  for(let hid of hids){
+    
+  }
   let br = await generate_breed_rating(hid, 1);
   console.log(br);
   console.log("done");
