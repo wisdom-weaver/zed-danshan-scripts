@@ -176,6 +176,6 @@ const runner = async () => {
     console.log(hid, get_blood_str(ob));
   }
 };
-runner();
+// runner();
 
 module.exports = {};
