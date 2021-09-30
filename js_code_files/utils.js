@@ -126,6 +126,12 @@ const dec = (n, d = 2) => {
   return parseFloat(n).toFixed(d);
 };
 
+const side_text = (side) =>
+  (side == "B" && "good") ||
+  (side == "A" && "bad") ||
+  (side == "C" && "avg") ||
+  "na";
+
 module.exports = {
   calc_avg,
   write_to_path,
@@ -138,5 +144,5 @@ module.exports = {
   delay,
   struct_race_row_data,
   dec,
+  side_text,
 };
-

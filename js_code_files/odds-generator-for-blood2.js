@@ -17,6 +17,7 @@ const {
 } = require("./update_flame_concentration");
 const { dec } = require("./utils");
 const { generate_breed_rating, init_btbtz } = require("./horses-kids-blood2");
+const { generate_rating_blood } = require("./blood_rating_blood-2");
 
 let mx;
 let st = 1;
@@ -562,11 +563,16 @@ const generate_odds_for = async (hid) => {
     });
     // console.log(or_map[1]);
     let races_n = races?.length || 0;
-    let rating_blood = await gen_rating_blood({
+    // let rating_blood = await gen_rating_blood({
+    //   hid,
+    //   odds_live,
+    //   tc,
+    //   races_n,
+    // });
+    let rating_blood = await generate_rating_blood({
       hid,
-      odds_live,
+      races,
       tc,
-      races_n,
     });
     let rating_flames = await generate_rating_flames(hid);
     let blood_str = get_blood_str(rating_blood);
@@ -819,13 +825,9 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const runner = async () => {
   await initiate();
-  // await odds_generator_all_horses();
-  // await breed_generator_all_horses();
-  // clone_odds_overall();
-  // let hids = [3312];
-  // await odds_generator_for_hids(hids);
-  // await breed_generator_for_hids(hids);
-  breed_generator_all_horses();
+  let hids = [3312, 21888, 7090, 1102, 85223];
+  await odds_generator_for_hids(hids);
+  console.log("done");
 };
 // runner();
 

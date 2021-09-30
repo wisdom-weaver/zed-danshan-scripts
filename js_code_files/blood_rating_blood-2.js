@@ -6,6 +6,7 @@ const {
   write_to_path,
   read_from_path,
   struct_race_row_data,
+  side_text,
 } = require("./utils");
 const app_root = require("app-root-path");
 const {
@@ -45,7 +46,7 @@ let fee_tags_ob = {
 let rat_bl_seq = {
   cls: [1, 2, 3, 4, 5],
   fee: ["A", "B", "C", "D", "E"],
-  dists: [1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400],
+  dists: [1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600],
 };
 
 const get_fee_tag = (entryfee_usd) => {
@@ -73,11 +74,8 @@ const get_rat_score = ({ c, f, d, races }) => {
   return perf;
 };
 
-const generate_rating_blood_calc = async (hid) => {
+const generate_rating_blood_calc = async ({ hid, races = [] }) => {
   hid = parseInt(hid);
-  let races = await zed_ch.db.collection("zed").find({ 6: hid }).toArray();
-  races = struct_race_row_data(races);
-  // console.table(races);
   races = races.map((e) => {
     let entryfee_usd = parseFloat(e.entryfee) * get_at_eth_price_on(e.date);
     let fee_tag = get_fee_tag(entryfee_usd);
@@ -85,7 +83,7 @@ const generate_rating_blood_calc = async (hid) => {
   });
 
   if (_.isEmpty(races)) {
-    let nr_ob = { cf: null, d, med: null, rated_type: "NR" };
+    let nr_ob = { cf: null, d: null, med: null, rated_type: "NR" };
     return nr_ob;
   }
 
@@ -104,53 +102,50 @@ const generate_rating_blood_calc = async (hid) => {
         let key = `C${c}-D${d.toString().slice(0, 2)}-$${fee_tag_price}${f}`;
 
         if (fr.length >= 3) {
-          console.log(key);
-          let disp_fr = fr.map((e) => {
-            let { thisclass, distance, entryfee_usd, flame } = e;
-            return {
-              thisclass,
-              distance,
-              entryfee_usd,
-              flame,
-              fee_tag: f,
-              fee_tag_price,
-            };
-          });
-          // console.table(disp_fr);
           rat_score = get_rat_score({ c, f, d, races: fr });
         } else rat_score = null;
 
         if (rat_score !== null) {
           // console.log({ key, rat_score });
-          ar.push({ key, rat_score, c, f, d });
+          ar.push({ key, rat_score, c, f, d, len: fr.length });
         }
       }
       if (!_.isEmpty(ar)) {
-        let mi = _.minBy(ar, "rat_score");
-        let { c, f, d, rat_score } = mi;
+        let mx = _.maxBy(ar, "rat_score");
+        let { c, f, d, rat_score } = mx;
         let ob = { cf: `${c}${f}`, d, med: rat_score, rated_type: "GH" };
         return ob;
       }
     }
   }
-  let ch_ob = { cf: null, d, med: null, rated_type: "CH" };
+  let ch_ob = { cf: null, d: null, med: null, rated_type: "CH" };
   return ch_ob;
 };
-const generate_rating_blood = async (hid) => {
-  let ob = await generate_rating_blood_calc(hid);
+const generate_rating_blood = async ({ hid, races, tc }) => {
+  let ob = await generate_rating_blood_calc({ hid, races });
+  // console.log(hid, ob);
   let side;
   if (ob.rated_type === "NR") side = "-";
   else if (ob.rated_type === "CH") side = "A";
-  else if (ob.rated_type === "CH") {
+  else if (ob.rated_type === "GH") {
     let rc = parseInt(ob.cf[0]);
-    let { tc } = await zed_db.db
-      .collection("horse_details")
-      .findOne({ hid }, { projection: { tc: 1, _id: 0 } });
     if (rc == tc) side = "C";
     else if (rc < tc) side = "B";
     else if (rc > tc) side = "A";
     ob.side = side;
   }
+  console.log(hid, ob.rated_type, side_text(ob.side), get_blood_str(ob));
+  return ob;
+};
+const generate_rating_blood_from_hid = async (hid) => {
+  hid = parseInt(hid);
+  let { tc } = await zed_db.db
+    .collection("horse_details")
+    .findOne({ hid }, { projection: { _id: 0, tc: 1 } });
+  let races = await zed_ch.db.collection("zed").find({ 6: hid }).toArray();
+  races = struct_race_row_data(races);
+  // console.log({ hid, tc, len: races.length });
+  let ob = await generate_rating_blood({ hid, races, tc });
   return ob;
 };
 const get_blood_str = (ob) => {
@@ -169,13 +164,16 @@ const runner = async () => {
   // await odds_generator_all_horses();
   // await breed_generator_all_horses();
   // clone_odds_overall();
-  let hids = [3312, 3406, 20347];
+  let hids = [3312, 21888, 7090, 1102, 85223];
   // await odds_generator_for_hids(hids);
   for (let hid of hids) {
-    let ob = await generate_rating_blood(hid);
-    console.log(hid, get_blood_str(ob));
+    let ob = await generate_rating_blood_from_hid(hid);
+    // console.log(hid, ob);
   }
 };
 // runner();
 
-module.exports = {};
+module.exports = {
+  generate_rating_blood,
+  generate_rating_blood_from_hid,
+};
