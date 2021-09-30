@@ -12,6 +12,7 @@ const hawku_url = (hid) => `https://www.hawku.com/horse/${hid}`;
 const { delay, write_to_path, read_from_path } = require("./utils");
 const appRootPath = require("app-root-path");
 const { fetch_a } = require("./fetch_axios");
+const { odds_generator_for_hids } = require("./odds-generator-for-blood2");
 // X-paths
 // name            /html/body/ul/div/main/main/div[1]/div[1]/div[2]/h1
 // dets            /html/body/ul/div/main/main/div[1]/div[1]/div[2]/p[1]/span
@@ -776,23 +777,23 @@ const add_new_horse_from_zed_in_bulk = async (hids) => {
   }
 };
 
-const runner = async () => {
+const missing_zed_horse_tc_update = async () => {
   await init();
-  // await add_horse_dets_old_in_bulk();
-  // await add_hid_to_parents_doc_in_bulk();
-  // await zed_db.db
-  //   .collection("horse_details")
-  //   .updateMany(
-  //     { offsprings: { $exists: false } },
-  //     { $set: { offsprings: [] } },
-  //     { upsert: true }
-  //   );
-  console.log("completed");
+  let docs = await zed_db.db
+    .collection("horse_details")
+    .find({ tc: null }, { projection: { tc: 1, hid: 1, _id: 0 } })
+    .toArray();
+  let hids = _.map(docs, "hid");
+  console.log("got missing", hids.length);
+  if (_.isEmpty(hids)) return;
+  await add_new_horse_from_zed_in_bulk(hids);
+  await odds_generator_for_hids(hids);
+  console.log("missing_zed_horse_tc_update");
 };
-// runner();
 
 module.exports = {
   zed_horses_all_scrape,
   add_horse_from_zed_in_bulk,
   add_new_horse_from_zed_in_bulk,
+  missing_zed_horse_tc_update,
 };

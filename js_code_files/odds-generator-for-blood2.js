@@ -680,7 +680,7 @@ const odds_generator_all_horses = async () => {
       // console.log("\n=> fetching together:", chunk.toString());
       let obar = await Promise.all(chunk.map((hid) => generate_odds_for(hid)));
       try {
-        odds_generator_bulk_push(obar);
+        await odds_generator_bulk_push(obar);
       } catch (err) {
         console.log("mongo err");
       }
@@ -733,7 +733,7 @@ const odds_generator_for_hids = async (hids) => {
       // console.log("\n=> fetching together:", chunk.toString());
       let obar = await Promise.all(chunk.map((hid) => generate_odds_for(hid)));
       try {
-        odds_generator_bulk_push(obar);
+        await odds_generator_bulk_push(obar);
       } catch (err) {
         console.log("mongo err");
       }
@@ -757,7 +757,7 @@ const breed_generator_for_hids = async (hids) => {
       );
       // console.table(obar);
       try {
-        breed_generator_bulk_push(obar);
+        await breed_generator_bulk_push(obar);
       } catch (err) {
         console.log("mongo err");
       }
@@ -825,7 +825,7 @@ const update_odds_and_breed_for_race_horses = async (horses_tc_ob) => {
   for (let [hid, tc] of _.entries(horses_tc_ob)) {
     hid = parseInt(hid);
     console.log(hid, "tc:", tc);
-    if (tc === null) continue;
+    if (tc === null || tc === undefined) continue;
     tc_bulk.push({
       updateOne: {
         filter: { hid },
@@ -843,9 +843,12 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const runner = async () => {
   await initiate();
-  let hids = [21888];
+  let hids = [1307];
   // await odds_generator_for_hids(hids);
-  await breed_generator_for_hids(hids);
+  // await breed_generator_for_hids(hids);
+  await zed_db.db
+    .collection("rating_breed2")
+    .updateOne({ hid: 16010 }, { $set: { br: 1 } });
   console.log("done");
 };
 // runner();
@@ -854,4 +857,5 @@ module.exports = {
   breed_generator_all_horses,
   odds_generator_all_horses,
   update_odds_and_breed_for_race_horses,
+  odds_generator_for_hids,
 };

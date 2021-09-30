@@ -266,7 +266,7 @@ const get_kids_score = async (hid) => {
   }
 };
 
-const generate_breed_rating = async (hid) => {
+const generate_breed_rating = async (hid, p = 0) => {
   try {
     let hid_kid_score = await get_kids_score(hid);
     hid = parseInt(hid);
@@ -349,7 +349,7 @@ const generate_breed_rating = async (hid) => {
       else good_adj = e.kid_score > e.gavg ? 0.1 : -0.1;
       return { ...e, fact, adj, good_adj };
     });
-    // console.table(kids);
+    if (p) console.table(kids);
 
     let avg = _.chain(kids_scores_ob).values().compact().mean().value();
     let br = _.chain(kids).map("adj").values().compact().value();
@@ -563,8 +563,8 @@ const runner2 = async () => {
   await init();
   await init_btbtz();
   // let hid = 21744;
-  let hid = 21888;
-  let br = await generate_breed_rating(hid);
+  let hid = 1102;
+  let br = await generate_breed_rating(hid, 1);
   console.log(br);
   console.log("done");
 };

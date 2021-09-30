@@ -755,32 +755,29 @@ const zed_races_automated_script_run = async () => {
 
 const runner = async () => {
   await init();
-  let rid = "RqXAacU";
-  let doc_r = await zed_ch.db.collection("zed").findOne({ 4: rid });
-  let date = doc_r && doc_r[2];
-  // let d = "2021-09-26T00:03:11Z";
-  if (!date) return;
-  let d = date;
-  let dates = { from_a: d, to_a: d };
-  zed_race_add_runner("manual", dates);
 
-  // let [base, results, flames] = await Promise.all([
-  //   zed_race_base_data(rid),
-  //   zed_results_data(rid),
-  //   zed_flames_data(rid),
-  // ]);
-
-  // let base = await zed_race_base_data(rid);
-  // let results = await zed_results_data(rid);
-  // let flames = await zed_flames_data(rid);
-
-  // console.log(base);
-  // console.log(results);
-  // console.log(flames);
+  // let hids = read_from_path({
+  //   file_path: `${appRootPath}/data/hids_tc_null.json`,
+  // });
+  // for (let hid of hids) {
+  //   let doc = await zed_ch.db
+  //     .collection("zed")
+  //     .find({ 6: hid }, { projection: { _id: 0, 2: 1 } })
+  //     .sort({ 2: -1 })
+  //     .limit(1)
+  //     .toArray();
+  //   if (_.isEmpty(doc)) continue;
+  //   let d = doc[0][2];
+  //   console.log(hid, d);
+  //   let from_a = d;
+  //   let to_a = d;
+  //   // await zed_race_add_runner("manual", { from_a, to_a }, def_config);
+  //   await get_zed_raw_data(from, to);
+  // }
 
   console.log("done");
 };
-runner();
+// runner();
 
 module.exports = {
   zed_secret_key,
