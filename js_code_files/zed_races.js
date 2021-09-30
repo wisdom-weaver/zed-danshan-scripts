@@ -42,6 +42,7 @@ const cron_conf = {
 
 const def_config = {
   g_odds_zero: true,
+  upd_horses: true,
 };
 
 const nano_diff = (d1, d2) => {
@@ -296,7 +297,7 @@ const handle_racing_horse = async (horses) => {
   }
 };
 
-const preprocess_races_pushing_to_mongo = async (races) => {
+const preprocess_races_pushing_to_mongo = async (races, config) => {
   if (_.isEmpty(races)) return;
   let ar = {};
   for (let r in races) {
@@ -306,10 +307,15 @@ const preprocess_races_pushing_to_mongo = async (races) => {
   }
   await handle_racing_horse(ar);
   await push_races_to_mongo(races);
-  await update_odds_and_breed_for_race_horses(ar);
+  if (config.upd_horses == true)
+    await update_odds_and_breed_for_race_horses(ar);
 };
 
-const zed_race_add_runner = async (mode = "auto", dates, config) => {
+const zed_race_add_runner = async (
+  mode = "auto",
+  dates,
+  config = def_config
+) => {
   // console.log(mode);
   let err_bucket = [];
   let g_bucket = [];
@@ -387,7 +393,7 @@ const zed_race_add_runner = async (mode = "auto", dates, config) => {
 
     races = await add_times_flames_odds_to_races(races, config);
     // console.log(races)
-    await preprocess_races_pushing_to_mongo(races);
+    await preprocess_races_pushing_to_mongo(races, config);
     console.log("done", _.keys(races).length, "races");
   } catch (err) {
     console.log("ERROR on zed_race_add_runner", err.message);
@@ -444,10 +450,14 @@ const zed_races_since_last_run = async () => {
   from_a = last_doc[2][2];
   console.log("last doc date: ", from_a);
 
-  from_a = new Date(from_a).getTime() - 10 * mt;
+  from_a = new Date(from_a).getTime() - 5 * mt;
   while (from_a < Date.now() - mt) {
-    to_a = from_a + 10 * mt;
-    await zed_race_add_runner("manual", { from_a, to_a }, def_config);
+    to_a = from_a + 5 * mt - 1;
+    await zed_race_add_runner(
+      "manual",
+      { from_a, to_a },
+      { ...def_config, upd_horses: false }
+    );
     from_a = to_a;
   }
   // await zed_races_err_runner();
@@ -744,7 +754,7 @@ const zed_races_automated_script_run = async () => {
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
   cron.schedule(
     cron_str,
-    () => zed_race_add_runner("auto", def_config),
+    () => zed_race_add_runner("auto", {}, def_config),
     cron_conf
   );
   // zed_race_add_runner("auto", def_config)
