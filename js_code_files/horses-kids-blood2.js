@@ -344,8 +344,9 @@ const generate_breed_rating = async (hid) => {
       } else {
         adj = e.op_br > 1.1 ? fact * 0.9 : e.op_br < 0.9 ? fact * 1.1 : fact;
       }
-
-      let good_adj = e.kid_score > e.gavg ? e.kid_score * 0.1 : 0;
+      let good_adj;
+      if (adj == 0) good_adj = 0;
+      else good_adj = e.kid_score > e.gavg ? 0.1 : -0.1;
       return { ...e, fact, adj, good_adj };
     });
     // console.table(kids);
@@ -562,12 +563,12 @@ const runner2 = async () => {
   await init();
   await init_btbtz();
   // let hid = 21744;
-  let hid = 95;
+  let hid = 26646;
   let br = await generate_breed_rating(hid);
   console.log(br);
   console.log("done");
 };
-// runner2();
+runner2();
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
