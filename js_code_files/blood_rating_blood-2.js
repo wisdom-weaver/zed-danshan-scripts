@@ -169,11 +169,12 @@ const runner = async () => {
   // await odds_generator_all_horses();
   // await breed_generator_all_horses();
   // clone_odds_overall();
-  let hids = [15393];
+  let hids = [3312, 3406, 20347];
   // await odds_generator_for_hids(hids);
-  let hid = hids[0];
-  let ob = await generate_rating_blood(hid);
-  console.log(hid, get_blood_str(ob));
+  for (let hid of hids) {
+    let ob = await generate_rating_blood(hid);
+    console.log(hid, get_blood_str(ob));
+  }
 };
 runner();
 
