@@ -703,7 +703,7 @@ const breed_generator_all_horses = async () => {
     for (let r of _.range(0, 5)) {
       console.log("=> STARTED breed_generator: ", `${st}:${ed}`, "run:", r);
       let i = 0;
-      for (let chunk of _.chunk(hids, 50)) {
+      for (let chunk of _.chunk(hids, 100)) {
         i += chunk_size;
         // console.log("\n=> fetching together:", chunk.toString());
         let obar = await Promise.all(
