@@ -562,24 +562,13 @@ const runner = async () => {
 const runner2 = async () => {
   await init();
   await init_btbtz();
-  // let hid = 21744;
-  let hids = [
-    24865,
-    22558,
-    20501,
-    24538,
-    26646,
-    24865,
-    22558,
-    20501,
-    24538,
-  ];
-  for(let hid of hids){
-    
+  let hids = [9761];
+  // let hids = [24865, 22558, 20501, 24538, 26646, 24865, 22558, 20501, 24538];
+  for (let hid of hids) {
+    let br = await generate_breed_rating(hid, 1);
+    console.log(br);
+    console.log("done");
   }
-  let br = await generate_breed_rating(hid, 1);
-  console.log(br);
-  console.log("done");
 };
 // runner2();
 
