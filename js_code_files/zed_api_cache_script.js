@@ -1,6 +1,6 @@
 const _ = require("lodash");
 const { zed_db, init } = require("./index-run");
-const { fetch_r, delay, read_from_path } = require("./utils");
+const { fetch_r, delay, read_from_path, write_to_path } = require("./utils");
 const axios = require("axios");
 const {
   fetch_a,
@@ -111,21 +111,22 @@ const studs_api = (z) =>
 const studs_api_cacher = async () => {
   // let apis = [1, 2, 3].map((z) => test_api(z));
   let apis = [1].map((z) => studs_api(z));
+
   let prev_datas = await Promise.all(
-    apis.map((api) => zed_db.db.collection("zed_api_cache").find({ id: api }))
+    apis.map((api) =>
+      zed_db.db.collection("zed_api_cache").findOne({ id: api })
+    )
   );
   let datas = await Promise.all(apis.map((api) => fetch_a(api)));
   let db_date = new Date().toISOString();
 
-  for (let [i, data] of _.entries(prev_datas)) {
-    if (_.isEmpty(data)) {
+  for (let [i, doc] of _.entries(prev_datas)) {
+    if (_.isEmpty(doc)) {
       console.log("ERROR prev_data", apis[i]);
       continue;
     }
-    data = struct_studs_api_data(data);
-    let doc = { id: apis[i], data, db_date };
     write_to_path({
-      file_path: `${appRootPath}/data/studs/prev_data-${apis[i]}`,
+      file_path: `${appRootPath}/data/studs/prev_data-${apis[i]}.json`,
       data: doc,
     });
     console.log("SUCCESS prev_data", apis[i]);
@@ -190,7 +191,7 @@ const zed_api_cache_runner = async () => {
 
 const studs_api_cache_runner = async () => {
   await init();
-  await delay(3000)
+  await delay(3000);
   console.log("\n## studs_api_cache_runner started");
   let cron_str = "*/6 * * * * *";
   const c_itvl = cron_parser.parseExpression(cron_str);
