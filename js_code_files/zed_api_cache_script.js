@@ -1,6 +1,6 @@
 const _ = require("lodash");
 const { zed_db, init } = require("./index-run");
-const { fetch_r, delay } = require("./utils");
+const { fetch_r, delay, read_from_path } = require("./utils");
 const axios = require("axios");
 const {
   fetch_a,
@@ -9,6 +9,7 @@ const {
 } = require("./fetch_axios");
 const cron = require("node-cron");
 const cron_parser = require("cron-parser");
+const appRootPath = require("app-root-path");
 
 const cron_conf = { scheduled: true };
 
@@ -103,13 +104,77 @@ const horse_update_cron = async () => {
   }
 };
 
+const test_api = (z) => `https://jsonplaceholder.typicode.com/todos/${z}`;
+
+const studs_api = (z) =>
+  `https://api.zed.run/api/v1/stud/horses?offset=0&gen[]=${z}&gen[]=${z}`;
+const studs_api_cacher = async () => {
+  // let apis = [1, 2, 3].map((z) => test_api(z));
+  let apis = [1, 2, 3].map((z) => studs_api(z));
+  let datas = await Promise.all(apis.map((api) => fetch_a(api)));
+  let db_date = new Date().toISOString();
+  let bulk = [];
+  for (let [i, data] of _.entries(datas)) {
+    if (_.isEmpty(data)) {
+      console.log("ERROR", apis[i]);
+      continue;
+    }
+    data = struct_studs_api_data(data);
+    let doc = { id: apis[i], data, db_date };
+    console.log("SUCCESS", apis[i]);
+    bulk.push({
+      updateOne: {
+        filter: { id: apis[i] },
+        update: { $set: doc },
+        upsert: true,
+      },
+    });
+  }
+  if (_.isEmpty(bulk)) return;
+  await zed_db.db.collection("zed_api_cache").bulkWrite(bulk);
+  console.log("# studs_api_cacher", bulk.length, "written");
+};
+const struct_studs_api_data = (data) => {
+  data = data.map((e) => {
+    let { bloodline, breed_type, genotype, horse_id: hid, mating_price } = e;
+    let name = e.hash_info.name;
+    mating_price = parseFloat(mating_price) / 1000000000000000000;
+    return {
+      hid,
+      bloodline,
+      breed_type,
+      genotype,
+      name,
+      mating_price,
+    };
+  });
+  return data;
+};
+
 const zed_api_cache_runner = async () => {
   await init();
   live_cron();
   horse_update_cron();
 };
+
+const studs_api_cache_runner = async () => {
+  await studs_api_cacher();
+};
+
 // zed_api_cache_runner();
+
+const runner = async () => {
+  await init();
+  await studs_api_cacher();
+  // let file_path = `${appRootPath}/data/test_studs_data.json`;
+  // let data = read_from_path({ file_path });
+  // data = struct_studs_api_data(data);
+  // console.table(data);
+  // console.log("done");
+};
+// runner();
 
 module.exports = {
   zed_api_cache_runner,
+  studs_api_cache_runner,
 };

@@ -590,12 +590,10 @@ const a = async () => {
     .toArray();
   let hids = _.map(docs, "hid");
   console.log(hids.length, hids);
-  let ob = await generate_rating_blood_from_hid(hids[0]);
-  console.log(ob);
 
   console.log("done");
 };
-// a();
+a();
 
 module.exports = {
   test1,

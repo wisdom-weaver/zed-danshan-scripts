@@ -784,10 +784,10 @@ const missing_zed_horse_tc_update = async () => {
   //   .find({ tc: null }, { projection: { tc: 1, hid: 1, _id: 0 } })
   //   .toArray();
   let docs = await zed_db.db
-    .collection("rating_blood2")
-    .find({ tc: null }, { projection: { _id: 0, hid: 1 } })
-    .toArray();
-  
+  .collection("rating_blood2")
+  .find({ tc: null }, { projection: { _id: 0, hid: 1 } })
+  .toArray();
+
   let hids = _.map(docs, "hid");
   console.log("got missing", hids.length);
   if (_.isEmpty(hids)) return;
