@@ -159,19 +159,27 @@ const zed_api_cache_runner = async () => {
 
 const studs_api_cache_runner = async () => {
   await init();
-  await studs_api_cacher();
+  console.log("\n## studs_api_cache_runner started");
+  let cron_str = "*/6 * * * * *";
+  const c_itvl = cron_parser.parseExpression(cron_str);
+  console.log("Next run:", c_itvl.next().toISOString(), "\n");
+  cron.schedule(cron_str, () => studs_api_cacher(), cron_conf);
 };
 
 // zed_api_cache_runner();
 
 const runner = async () => {
   await init();
-  await studs_api_cacher();
+  // await studs_api_cacher();
   // let file_path = `${appRootPath}/data/test_studs_data.json`;
   // let data = read_from_path({ file_path });
   // data = struct_studs_api_data(data);
   // console.table(data);
   // console.log("done");
+
+  let id = `https://api.zed.run/api/v1/stud/horses?offset=0&gen[]=1&gen[]=1`;
+  let doc = await zed_db.db.collection("zed_api_cache").findOne({ id });
+  console.log(doc);
 };
 // runner();
 
