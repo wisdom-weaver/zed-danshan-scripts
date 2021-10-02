@@ -190,6 +190,7 @@ const zed_api_cache_runner = async () => {
 
 const studs_api_cache_runner = async () => {
   await init();
+  await delay(3000)
   console.log("\n## studs_api_cache_runner started");
   let cron_str = "*/6 * * * * *";
   const c_itvl = cron_parser.parseExpression(cron_str);
