@@ -110,29 +110,60 @@ const studs_api = (z) =>
   `https://api.zed.run/api/v1/stud/horses?offset=0&gen[]=${z}&gen[]=${z}`;
 const studs_api_cacher = async () => {
   // let apis = [1, 2, 3].map((z) => test_api(z));
-  let apis = [1, 2, 3].map((z) => studs_api(z));
+  let apis = [1].map((z) => studs_api(z));
+  let prev_datas = await Promise.all(
+    apis.map((api) => zed_db.db.collection("zed_api_cache").find({ id: api }))
+  );
   let datas = await Promise.all(apis.map((api) => fetch_a(api)));
   let db_date = new Date().toISOString();
-  let bulk = [];
-  for (let [i, data] of _.entries(datas)) {
+
+  for (let [i, data] of _.entries(prev_datas)) {
     if (_.isEmpty(data)) {
-      console.log("ERROR", apis[i]);
+      console.log("ERROR prev_data", apis[i]);
       continue;
     }
     data = struct_studs_api_data(data);
     let doc = { id: apis[i], data, db_date };
-    console.log("SUCCESS", apis[i]);
-    bulk.push({
-      updateOne: {
-        filter: { id: apis[i] },
-        update: { $set: doc },
-        upsert: true,
-      },
+    write_to_path({
+      file_path: `${appRootPath}/data/studs/prev_data-${apis[i]}`,
+      data: doc,
     });
+    console.log("SUCCESS prev_data", apis[i]);
   }
-  if (_.isEmpty(bulk)) return;
-  await zed_db.db.collection("zed_api_cache").bulkWrite(bulk);
-  console.log("# studs_api_cacher", bulk.length, "written");
+  for (let [i, data] of _.entries(datas)) {
+    if (_.isEmpty(data)) {
+      console.log("ERROR data", apis[i]);
+      continue;
+    }
+    data = struct_studs_api_data(data);
+    let doc = { id: apis[i], data, db_date };
+    write_to_path({
+      file_path: `${appRootPath}/data/studs/data-${apis[i]}`,
+      data: doc,
+    });
+    console.log("SUCCESS data", apis[i]);
+  }
+
+  // let bulk = [];
+  // for (let [i, data] of _.entries(datas)) {
+  //   if (_.isEmpty(data)) {
+  //     console.log("ERROR", apis[i]);
+  //     continue;
+  //   }
+  //   data = struct_studs_api_data(data);
+  //   let doc = { id: apis[i], data, db_date };
+  //   console.log("SUCCESS", apis[i]);
+  //   bulk.push({
+  //     updateOne: {
+  //       filter: { id: apis[i] },
+  //       update: { $set: doc },
+  //       upsert: true,
+  //     },
+  //   });
+  // }
+  // if (_.isEmpty(bulk)) return;
+  // await zed_db.db.collection("zed_api_cache").bulkWrite(bulk);
+  // console.log("# studs_api_cacher", bulk.length, "written");
 };
 const struct_studs_api_data = (data) => {
   data = data.map((e) => {
@@ -166,7 +197,7 @@ const studs_api_cache_runner = async () => {
   cron.schedule(cron_str, () => studs_api_cacher(), cron_conf);
 };
 
-// zed_api_cache_runner();
+// zed_api_cache_runner()z;
 
 const runner = async () => {
   await init();
