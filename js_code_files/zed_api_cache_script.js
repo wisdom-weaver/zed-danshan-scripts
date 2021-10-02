@@ -158,6 +158,7 @@ const zed_api_cache_runner = async () => {
 };
 
 const studs_api_cache_runner = async () => {
+  await init();
   await studs_api_cacher();
 };
 
