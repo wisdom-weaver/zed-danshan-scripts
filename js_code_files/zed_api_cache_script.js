@@ -168,7 +168,7 @@ const studs_api_cacher_test = async () => {
   console.log("------------");
   ar = process_prev_curr_studs(ar, c);
   let doc = { ...ar };
-  let id = "zed-studs-sniper";
+  let id = "zed-studs-sniper2";
   doc.id = id;
   await zed_db.db
     .collection("zed_api_cache")
@@ -177,7 +177,7 @@ const studs_api_cacher_test = async () => {
 const studs_api_cacher = async (z) => {
   try {
     console.log("START studs_api_cacher");
-    let id = "zed-studs-sniper";
+    let id = "zed-studs-sniper2";
     let z_apis = [1, 2, 3].map((z) => studs_api(z));
     let api_doc = await Promise.all(z_apis.map((z_api) => fetch_a(z_api)));
     console.log("fetched", api_doc.length);
@@ -224,7 +224,7 @@ const zed_api_cache_runner = async () => {
 };
 
 const studs_clear = async () => {
-  let id = "zed-studs-sniper";
+  let id = "zed-studs-sniper2";
   let doc = {};
   doc.id = id;
   doc.new = [];
@@ -236,7 +236,7 @@ const studs_clear = async () => {
 const studs_print = async () => {
   let doc = await zed_db.db
     .collection("zed_api_cache")
-    .findOne({ id: "zed-studs-sniper" });
+    .findOne({ id: "zed-studs-sniper2" });
   console.log(doc);
 };
 const studs_api_cache_runner = async () => {
