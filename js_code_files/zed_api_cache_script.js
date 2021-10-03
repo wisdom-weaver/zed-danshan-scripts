@@ -167,6 +167,12 @@ const studs_api_cacher_test = async () => {
   await delay(2000);
   console.log("------------");
   ar = process_prev_curr_studs(ar, c);
+  let doc = { ...ar };
+  let id = "zed-studs-sniper";
+  doc.id = id;
+  await zed_db.db
+    .collection("zed_api_cache")
+    .updateOne({ id }, { $set: doc }, { upsert: true });
 };
 const studs_api_cacher = async (z) => {
   try {
@@ -219,12 +225,13 @@ const studs_api_cache_runner = async () => {
   await init();
   await delay(3000);
   // studs_api_cacher();
+  // studs_api_cacher_test();
   console.log("\n## studs_api_cache_runner started");
-  let cron_str = "*/6 * * * * *";
+  let cron_str = "*/10 * * * * *";
   const c_itvl = cron_parser.parseExpression(cron_str);
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
   cron.schedule(cron_str, () => studs_api_cacher(), cron_conf);
-  console.log("done")
+  console.log("done");
 };
 
 // zed_api_cache_runner()z;
