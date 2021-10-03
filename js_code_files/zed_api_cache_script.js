@@ -179,7 +179,8 @@ const studs_api_cacher = async (z) => {
     console.log("START studs_api_cacher");
     let id = "zed-studs-sniper";
     let z_apis = [1, 2, 3].map((z) => studs_api(z));
-    let api_doc = await Promise.all(z_apis.map((z_api) => studs_api(z_api)));
+    let api_doc = await Promise.all(z_apis.map((z_api) => fetch_a(z_api)));
+    console.log("fetched", api_doc.length);
     api_doc = _.chain(api_doc).compact().flatten().value() || [];
     api_doc = struct_studs_api_data(api_doc);
     if (_.isEmpty(api_doc)) return;
