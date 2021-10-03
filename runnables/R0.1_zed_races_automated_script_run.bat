@@ -1,0 +1,2 @@
+npm run zed_races_automated_script_run
+PAUSE
