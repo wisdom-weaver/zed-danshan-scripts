@@ -225,7 +225,7 @@ const zed_api_cache_runner = async () => {
 
 const studs_clear = async () => {
   let id = "zed-studs-sniper";
-  let doc = {}
+  let doc = {};
   doc.id = id;
   doc.new = [];
   doc.old = [];
@@ -240,8 +240,12 @@ const studs_api_cache_runner = async () => {
   // studs_api_cacher();
   // studs_api_cacher_test();
   // studs_clear();
+  // let doc = await zed_db.db
+  //   .collection("zed_api_cache")
+  //   .findOne({ id: "zed-studs-sniper" });
+  // console.log(doc);
   // console.log("done");
-  
+
   console.log("\n## studs_api_cache_runner started");
   let cron_str = "*/10 * * * * *";
   const c_itvl = cron_parser.parseExpression(cron_str);
