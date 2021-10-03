@@ -245,15 +245,15 @@ const studs_api_cache_runner = async () => {
   // studs_api_cacher();
   // studs_api_cacher_test();
   // studs_clear();
-  // studs_print();
+  studs_print();
 
   // console.log("done");
 
-  console.log("\n## studs_api_cache_runner started");
-  let cron_str = "*/10 * * * * *";
-  const c_itvl = cron_parser.parseExpression(cron_str);
-  console.log("Next run:", c_itvl.next().toISOString(), "\n");
-  cron.schedule(cron_str, () => studs_api_cacher(), cron_conf);
+  // console.log("\n## studs_api_cache_runner started");
+  // let cron_str = "*/10 * * * * *";
+  // const c_itvl = cron_parser.parseExpression(cron_str);
+  // console.log("Next run:", c_itvl.next().toISOString(), "\n");
+  // cron.schedule(cron_str, () => studs_api_cacher(), cron_conf);
 };
 
 // zed_api_cache_runner()z;

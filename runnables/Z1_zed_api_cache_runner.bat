@@ -1,0 +1,2 @@
+npm run zed_api_cache_runner
+PAUSE
