@@ -194,6 +194,7 @@ const studs_api_cacher = async (z) => {
     console.log("DONE  studs_api_cacher");
   } catch (err) {
     console.log("ERROR studs_api_cacher");
+    console.log(err);
   }
 };
 const struct_studs_api_data = (data) => {
