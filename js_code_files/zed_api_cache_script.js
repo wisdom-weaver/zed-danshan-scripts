@@ -107,7 +107,7 @@ const horse_update_cron = async () => {
 const test_api = (z) => `https://jsonplaceholder.typicode.com/todos/${z}`;
 
 const studs_api = (z) =>
-  `https://api.zed.run/api/v1/stud/horses?offset=0&gen[]=${z}&gen[]=${z}`;
+  `https://api.zed.run/api/v1/stud/horses?offset=0&gen[]=${z}&gen[]=${z}&breed_type=${"genesis"}`;
 
 let process_prev_curr_studs = (prev, curr) => {
   if (_.isEmpty(prev)) prev = { new: [], old: [] };
@@ -120,7 +120,7 @@ let process_prev_curr_studs = (prev, curr) => {
 
     if (_.map(prev.new, "hid").includes(hid)) {
       let { date: dpn } = _.find(prev.new, { hid });
-      if (new Date(date).getTime() - new Date(dpn).getTime() < 10 * 60000)
+      if (new Date(date).getTime() - new Date(dpn).getTime() < 2 * 60000)
         new_horses.push({ ...h, date: dpn });
       else old_horses.push({ ...h, date: dpn });
     }
