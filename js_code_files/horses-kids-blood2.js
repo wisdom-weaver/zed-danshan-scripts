@@ -261,7 +261,7 @@ const get_kids_score = async (hid, p = 0) => {
       (flames_per + p_1_2_11_12_per + entryfee_avg + races_Nx20 + win_by2) /
       100;
 
-    if (p) console.log(hid, kid_score);
+    console.log(hid, kid_score);
     return kid_score;
   } catch (err) {
     console.log("err in get_kids_score", err);
@@ -468,14 +468,14 @@ const push_kids_score_all_horses = async () => {
   let st = 1;
   let ed = 150000;
   let cs = 500;
-  // let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
+  let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
   // let hids = [1102];
-  let miss = await zed_db.db
-    .collection("rating_breed2")
-    .find({ kid_score: { $exists: false } }, { projection: { hid: 1 } })
-    .toArray();
-  let hids = _.map(miss, "hid");
-  console.log("missing.len", hids.length);
+  // let miss = await zed_db.db
+  //   .collection("rating_breed2")
+  //   .find({ kid_score: { $exists: false } }, { projection: { hid: 1 } })
+  //   .toArray();
+  // let hids = _.map(miss, "hid");
+  // console.log("missing.len", hids.length);
   for (let chunk_hids of _.chunk(hids, cs)) {
     let ar = await Promise.all(
       chunk_hids.map((hid) =>
