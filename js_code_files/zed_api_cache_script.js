@@ -120,7 +120,7 @@ let process_prev_curr_studs = (prev, curr) => {
 
     if (_.map(prev.new, "hid").includes(hid)) {
       let { date: dpn } = _.find(prev.new, { hid });
-      if (new Date(date).getTime() - new Date(dpn).getTime() < 2 * 60000)
+      if (new Date(date).getTime() - new Date(dpn).getTime() < 60000)
         new_horses.push({ ...h, date: dpn });
       else old_horses.push({ ...h, date: dpn });
     }
