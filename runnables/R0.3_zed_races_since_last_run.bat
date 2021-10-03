@@ -1,0 +1,2 @@
+npm run zed_races_since_last_run
+PAUSE
