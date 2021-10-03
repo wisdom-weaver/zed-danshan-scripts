@@ -251,7 +251,7 @@ const get_kids_score = async (hid, p = 0) => {
     win_by2 = ((win_by2?.length || 0) * 100) / races_n / 2;
 
     let races_Nx20 = races_n * 20;
-
+    if (entryfee_avg > 30) entryfee_avg = 30;
     let kid_score = 0;
     if (p)
       console.table([
@@ -466,7 +466,7 @@ const push_kids_score_bulk = async ({ ar, chunk_hids }) => {
 const push_kids_score_all_horses = async () => {
   await initiate();
   let st = 1;
-  let ed = 104000;
+  let ed = 150000;
   let cs = 500;
   // let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
   // let hids = [1102];

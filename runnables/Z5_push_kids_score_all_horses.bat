@@ -1,0 +1,2 @@
+npm run push_kids_score_all_horses
+PAUSE
