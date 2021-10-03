@@ -213,7 +213,7 @@ const generate_breed_rating_old = async (hid) => {
   }
 };
 
-const get_kids_score = async (hid) => {
+const get_kids_score = async (hid, p = 0) => {
   try {
     hid = parseInt(hid);
     let races = await zed_ch.db
@@ -225,7 +225,7 @@ const get_kids_score = async (hid) => {
     if (_.isEmpty(races)) return null;
     // console.log(hid);
     races = struct_race_row_data(races);
-    // console.table(races);
+    if (p) console.table(races);
 
     let races_n = races.length;
     let flames_per = _.filter(races, { flame: 1 });
@@ -253,13 +253,15 @@ const get_kids_score = async (hid) => {
     let races_Nx20 = races_n * 20;
 
     let kid_score = 0;
-    // console.table([
-    //   { flames_per, p_1_2_11_12_per, entryfee_avg, races_Nx20, win_by2 },
-    // ]);
+    if (p)
+      console.table([
+        { flames_per, p_1_2_11_12_per, entryfee_avg, races_Nx20, win_by2 },
+      ]);
     kid_score =
       (flames_per + p_1_2_11_12_per + entryfee_avg + races_Nx20 + win_by2) /
       100;
-    // console.log(hid, kid_score);
+
+    if (p) console.log(hid, kid_score);
     return kid_score;
   } catch (err) {
     console.log("err in get_kids_score", err);
@@ -571,6 +573,14 @@ const runner2 = async () => {
   }
 };
 // runner2();
+const runner3 = async () => {
+  await init();
+  let hid = 34972;
+  let ks = await get_kids_score(hid, 1);
+  console.log(ks);
+  console.log("done");
+};
+// runner3();
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
