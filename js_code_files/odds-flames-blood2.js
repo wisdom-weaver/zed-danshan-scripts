@@ -4,7 +4,7 @@ const { get_at_eth_price_on } = require("./base");
 const { zed_db, zed_ch, init } = require("./index-run");
 
 const classes = ["#", 0, 1, 2, 3, 4, 5];
-const fees = ["#", "A", "B", "C", "F"];
+const fees = ["#", "A", "B", "C", "D", "E", "F"];
 const dists = ["####", 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600];
 const keys = (() => {
   let ar = [];
@@ -88,7 +88,14 @@ const generate_odds_flames_hid = async (hid) => {
   races = struct_race_row_data(races);
   let ob = await generate_odds_flames({ hid, races });
   // console.log(ob);
-  console.log("#", hid, "len:", races.length, "fl_all%", ob?.odds_flames["######"]);
+  console.log(
+    "#",
+    hid,
+    "len:",
+    races.length,
+    "fl_all%",
+    ob?.odds_flames["######"]
+  );
   return ob;
 };
 
