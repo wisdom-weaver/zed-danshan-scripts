@@ -225,42 +225,70 @@ const get_kids_score = async (hid, p = 0) => {
     if (_.isEmpty(races)) return null;
     // console.log(hid);
     races = struct_race_row_data(races);
+    races = races.map((i) => {
+      let eth_price = get_at_eth_price_on(i.date);
+      let entryfee_usd = parseFloat(i.entryfee) * eth_price;
+      return { ...i, entryfee_usd, eth_price };
+    });
     if (p) console.table(races);
 
     let races_n = races.length;
     let flames_per = _.filter(races, { flame: 1 });
-    // console.log(flames_per.length);
-    flames_per = ((flames_per?.length || 0) * 100) / races_n;
+    flames_per = (1.5 * ((flames_per?.length || 0) * 100)) / races_n;
 
-    let p_1_2_11_12_per = _.filter(races, (i) =>
-      ["1", "2", "11", "12"].includes(i.place?.toString())
-    );
-    // console.log(p_1_2_11_12_per.length);
-    p_1_2_11_12_per = ((p_1_2_11_12_per?.length || 0) * 100) / races_n;
+    let entryfee_2xsum = _.chain(races).map("entryfee_usd").sum().value();
+    entryfee_2xsum = entryfee_2xsum * 2;
+    entryfee_2xsum = Math.min(entryfee_2xsum, 50);
 
-    let entryfee_avg = _.chain(races)
-      .map((i) => {
-        let price = get_at_eth_price_on(i.date);
-        return parseFloat(i.entryfee) * price;
-      })
-      .mean()
-      .value();
+    if (p)
+      console.table(
+        races.map((e) => {
+          let { entryfee, entryfee_usd, eth_price, flame, place } = e;
+          return { entryfee, entryfee_usd, eth_price, flame, place };
+        })
+      );
 
-    let win_by2 = _.filter(races, (i) => i.place?.toString() === "1");
-    // console.log(win_by2.length);
-    win_by2 = ((win_by2?.length || 0) * 100) / races_n / 2;
+    let p1_count =
+      _.filter(races, (i) => i.place?.toString() === "1")?.length || 0;
+    let p1_calc = (1 * (p1_count * 100)) / races_n;
+    let p2_count =
+      _.filter(races, (i) => i.place?.toString() === "2")?.length || 0;
+    let p2_calc = (0.65 * (p2_count * 100)) / races_n;
+    let p11_count =
+      _.filter(races, (i) => i.place?.toString() === "11")?.length || 0;
+    let p11_calc = (0.3 * (p11_count * 100)) / races_n;
+    let p12_count =
+      _.filter(races, (i) => i.place?.toString() === "12")?.length || 0;
+    let p12_calc = (0.4 * (p12_count * 100)) / races_n;
 
-    let races_Nx20 = races_n * 20;
-    if (entryfee_avg > 30) entryfee_avg = 30;
+    let races_Nx8 = races_n * 8;
     let kid_score = 0;
     if (p)
       console.table([
-        { flames_per, p_1_2_11_12_per, entryfee_avg, races_Nx20, win_by2 },
+        {
+          races_n,
+          races_Nx8,
+          flames_per,
+          entryfee_2xsum,
+          p1_count,
+          p1_calc,
+          p2_count,
+          p2_calc,
+          p11_count,
+          p11_calc,
+          p12_count,
+          p12_calc,
+        },
       ]);
     kid_score =
-      (flames_per + p_1_2_11_12_per + entryfee_avg + races_Nx20 + win_by2) /
+      (races_Nx8 +
+        flames_per +
+        entryfee_2xsum +
+        p1_calc +
+        p2_calc +
+        p11_calc +
+        p12_calc) /
       100;
-
     console.log(hid, kid_score);
     return kid_score;
   } catch (err) {
@@ -575,7 +603,8 @@ const runner2 = async () => {
 // runner2();
 const runner3 = async () => {
   await init();
-  let hid = 34972;
+  await download_eth_prices();
+  let hid = 114851;
   let ks = await get_kids_score(hid, 1);
   console.log(ks);
   console.log("done");

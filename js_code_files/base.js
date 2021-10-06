@@ -68,6 +68,7 @@ const get_date = (date) => {
   }
 };
 const get_at_eth_price_on = (date) => {
+  date = new Date(date).toISOString().slice(0, 10);
   let price = eth_prices.data[date];
   return price || _.values(eth_prices.data)[0];
 };
