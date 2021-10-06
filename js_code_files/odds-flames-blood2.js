@@ -1,6 +1,8 @@
-const { initiate } = require("./odds-generator-for-blood2");
-const { struct_race_row_data } = require("./cyclic_dependency");
+const _ = require("lodash");
+const { struct_race_row_data, initiate } = require("./cyclic_dependency");
+const { get_at_eth_price_on } = require("./base");
 const { zed_db, zed_ch, init } = require("./index-run");
+
 const classes = ["#", 0, 1, 2, 3, 4, 5];
 const fees = ["#", "A", "B", "C", "F"];
 const dists = ["####", 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600];
@@ -41,36 +43,68 @@ const filter_acc_to_criteria = ({
     return b;
   });
   if (criteria?.min !== undefined && fr?.length < criteria.min) return [];
-  return races;
+  return fr;
 };
 
-const odds_flames_generator = async ({ hid, races = [] }) => {
-  races = struct_race_row_data(races);
-  races = races.map((r) => {
-    let entryfee_usd = parseFloat(r.entryfee) * get_at_eth_price_on(r.date);
-    return { ...r, entryfee_usd };
-  });
-  races = races.map((r) => {
-    return { ...r, fee_tag: get_fee_tag(r.entryfee_usd) };
-  });
-  let ob = {};
-  for (let k of keys) {
-    let c = k[0];
-    let f = k[1];
-    let d = k.slice(2);
-    if (c !== "#") c = parseInt(c);
-    if (d !== "####") d = parseInt(d);
-    let fr = filter_acc_to_criteria({ races, criteria: { c, f, d } });
-    ob[k] = fr.length;
+const f_crit_min = 3;
+const generate_odds_flames = async ({ hid, races = [] }) => {
+  try {
+    races = races.map((r) => {
+      let entryfee_usd = parseFloat(r.entryfee) * get_at_eth_price_on(r.date);
+      return { ...r, entryfee_usd };
+    });
+    races = races.map((r) => {
+      return { ...r, fee_tag: get_fee_tag(r.entryfee_usd) };
+    });
+    let ob = {};
+    for (let k of keys) {
+      let c = k[0];
+      let f = k[1];
+      let d = k.slice(2);
+      if (c !== "#") c = parseInt(c);
+      if (d !== "####") d = parseInt(d);
+      let fr = filter_acc_to_criteria({
+        races,
+        criteria: { c, f, d, is_paid: true },
+      });
+      let flames_n = _.filter(fr, { flame: 1 })?.length || 0;
+      let len = fr.length || 0;
+      let flames_per = flames_n < f_crit_min ? null : (flames_n * 100) / len;
+      // if (k == "#B2200") {
+      // console.table(fr);
+      // console.log({ len, flames_n, flames_per });
+      // }
+      // ob[k] = { len, flames_n, flames_per };
+      ob[k] = flames_per;
+    }
+    return { hid, races_n: races.length, odds_flames: ob };
+  } catch (err) {
+    console.log("ERROR odds_flames", hid);
+    return null;
   }
+};
+const generate_odds_flames_hid = async (hid) => {
+  let races = await zed_ch.db.collection("zed").find({ 6: hid }).toArray();
+  races = struct_race_row_data(races);
+  let ob = await generate_odds_flames({ hid, races });
+  // console.log(ob);
+  console.log("#", hid, "len:", races.length, "fl_all%", ob?.odds_flames["######"]);
   return ob;
 };
 
 const runner = async () => {
   await initiate();
   let hid = 3312;
-  let races = await zed_ch.db.collection("zed").find({ 6: hid }).toArray();
-  let odds_flames = await odds_flames_generator({ hid, races });
-  console.table(odds_flames);
+  let odds_flames = await generate_odds_flames_hid(hid);
+  console.log(odds_flames);
+  // await zed_db.db
+  //   .collection("rating_breed2")
+  //   .updateOne({ hid: 2202 }, { $set: { br: 1 } }, { upsert: true });
+  console.log("done");
 };
 // runner();
+
+module.exports = {
+  generate_odds_flames,
+  generate_odds_flames_hid,
+};

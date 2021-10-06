@@ -1,0 +1,2 @@
+npm run odds_flames_generator_all_horses
+PAUSE

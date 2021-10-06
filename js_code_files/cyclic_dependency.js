@@ -1,6 +1,6 @@
-const { get_fee_cat_on } = require("./base");
+const { get_fee_cat_on, download_eth_prices } = require("./base");
 const _ = require("lodash");
-const { zed_ch } = require("./index-run");
+const { zed_ch, init } = require("./index-run");
 
 const key_mapping_bs_zed = [
   ["_id", "_id"],
@@ -57,7 +57,7 @@ const struct_race_row_data = (data) => {
 };
 
 const get_races_of_hid = async (hid) => {
-  hid = parseInt(hid)
+  hid = parseInt(hid);
   if (isNaN(hid)) return [];
   hid = parseInt(hid);
   let query = { 6: hid };
@@ -79,9 +79,15 @@ const progress_bar = (a, b) => {
   return `[${eqs}>${dts}] ${per}%| ${a}/${b}`;
 };
 
+const initiate = async () => {
+  await init();
+  await download_eth_prices();
+};
+
 module.exports = {
   get_races_of_hid,
   from_ch_zed_collection,
   struct_race_row_data,
   progress_bar,
+  initiate,
 };

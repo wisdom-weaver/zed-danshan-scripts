@@ -26,6 +26,7 @@
     "missing_zed_horse_tc_update": "run-func js_code_files/zed_horse_scrape.js missing_zed_horse_tc_update",
     "odds_generator_all_horses": "run-func js_code_files/odds-generator-for-blood2.js odds_generator_all_horses",
     "breed_generator_all_horses": "run-func js_code_files/odds-generator-for-blood2.js breed_generator_all_horses",
+    "odds_flames_generator_all_horses": "run-func js_code_files/odds-generator-for-blood2.js odds_flames_generator_all_horses",
     "breed_generator_errs": "run-func js_code_files/odds-generator-for-blood2.js breed_generator_errs",
     "push_kids_score_all_horses": "run-func js_code_files/horses-kids-blood2.js push_kids_score_all_horses",
     "blood_breed_z_table": "run-func js_code_files/horses-kids-blood2.js blood_breed_z_table",

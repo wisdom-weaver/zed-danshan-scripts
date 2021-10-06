@@ -18,6 +18,7 @@ const {
 const { dec } = require("./utils");
 const { generate_breed_rating, init_btbtz } = require("./horses-kids-blood2");
 const { generate_rating_blood } = require("./blood_rating_blood-2");
+const { generate_odds_flames_hid } = require("./odds-flames-blood2");
 
 let mx;
 let st = 1;
@@ -665,6 +666,31 @@ const breed_generator_bulk_push = async (obar) => {
   }
 };
 
+const general_bulk_push = async (coll, obar) => {
+  try {
+    if (_.isEmpty(obar)) return;
+    let bulk = [];
+    for (let ob of obar) {
+      if (_.isEmpty(ob)) continue;
+      let { hid } = ob;
+      bulk.push({
+        updateOne: {
+          filter: { hid },
+          update: { $set: ob },
+          upsert: true,
+        },
+      });
+    }
+    await zed_db.db.collection(coll).bulkWrite(bulk);
+    let len = obar.length;
+    let sth = obar[0].hid;
+    let edh = obar[obar.length - 1].hid;
+    console.log("wrote bulk", len, "..", sth, "->", edh);
+  } catch (err) {
+    console.log("err mongo bulk", coll, obar && obar[0]?.hid);
+  }
+};
+
 const odds_generator_all_horses = async () => {
   try {
     await initiate();
@@ -726,6 +752,45 @@ const breed_generator_all_horses = async () => {
       }
     }
     console.log("breed_generator_all_horses");
+  } catch (err) {
+    console.log("ERROR fetch_all_horses\n", err);
+  }
+};
+
+const odds_flames_generator_all_horses = async () => {
+  try {
+    console.log("breed_generator_all_horses");
+    await initiate();
+    let st = 1;
+    let ed = 2000000;
+    let cs = 500;
+    let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
+    // let hids = [3312];
+    // outer: while (true) {
+    console.log("=> STARTED odds_flames_generator: ", `${st}:${ed}`);
+    for (let chunk of _.chunk(hids, cs)) {
+      // console.log("\n=> fetching together:", chunk.toString());
+      let obar = await Promise.all(
+        chunk.map((hid) => generate_odds_flames_hid(hid))
+      );
+      let emps = _.filter(obar, { races_n: 0 });
+      console.log("emptys len:", emps.length);
+      if (emps.length == chunk.length) {
+        console.log("reached end");
+        // continue outer;
+        break;
+      }
+      // console.table(obar);
+      try {
+        await general_bulk_push("odds_flames2", obar);
+      } catch (err) {
+        console.log("mongo err");
+      }
+      console.log("! got", chunk[0], " -> ", chunk[chunk.length - 1]);
+      await delay(chunk_delay);
+    }
+    // }
+    console.log("odds_flames_generator_all_horses completed");
   } catch (err) {
     console.log("ERROR fetch_all_horses\n", err);
   }
@@ -892,9 +957,11 @@ const runner = async () => {
 // runner();
 
 module.exports = {
+  initiate,
   breed_generator_all_horses,
   odds_generator_all_horses,
   update_odds_and_breed_for_race_horses,
   odds_generator_for_hids,
   breed_generator_errs,
+  odds_flames_generator_all_horses,
 };
