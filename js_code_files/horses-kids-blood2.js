@@ -493,8 +493,8 @@ const push_kids_score_bulk = async ({ ar, chunk_hids }) => {
 
 const push_kids_score_all_horses = async () => {
   await initiate();
-  let st = 1;
-  let ed = 150000;
+  let st = 40000;
+  let ed = 130000;
   let cs = 500;
   let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
   // let hids = [1102];
