@@ -694,11 +694,12 @@ const odds_generator_all_horses = async () => {
 
 const breed_generator_all_horses = async () => {
   try {
+    console.log("breed_generator_all_horses");
     await initiate();
     await init_btbtz();
     let st = 1;
     let ed = 2000000;
-    let cs = 1;
+    let cs = 500;
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
     // let hids = [26646, 21744, 21512];
     outer: while (true) {
@@ -879,20 +880,11 @@ const update_odds_and_breed_for_race_horses = async (horses_tc_ob) => {
   await breed_generator_for_hids(all_hids);
 };
 
-const odds_flames_generator = async ({ hid, races = [] }) => {
-  races = struct_race_row_data(races);
-  races = races.map((r) => {
-    let entryfee_usd = parseFloat(r.entryfee) * get_at_eth_price_on(r.date);
-    return { ...r, entryfee_usd };
-  });
-
-};
-
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const runner = async () => {
   await initiate();
-  let hids = 3312;
+  let hid = 3312;
   let races = await zed_ch.db.collection("zed").find({ 6: hid }).toArray();
   let odds_flames = await odds_flames_generator({ hid, races });
   console.log(odds_flames);

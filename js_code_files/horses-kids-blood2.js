@@ -289,7 +289,7 @@ const get_kids_score = async (hid, p = 0) => {
         p11_calc +
         p12_calc) /
       100;
-    console.log(hid, kid_score);
+    if (p) console.log(hid, kid_score);
     return kid_score;
   } catch (err) {
     console.log("err in get_kids_score", err);
