@@ -45,13 +45,13 @@ const live_upload = async () => {
   console.log(new Date().toISOString());
   for (let api_url of api_urls) {
     await cache_url(api_url);
-    await delay(3000);
+    await delay(2500);
   }
 };
 
 const live_cron = () => {
   console.log("\n## live_cron started");
-  let cron_str = "*/20 * * * * *";
+  let cron_str = "*/18 * * * * *";
   const c_itvl = cron_parser.parseExpression(cron_str);
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
   cron.schedule(cron_str, () => live_upload(), cron_conf);
@@ -90,6 +90,8 @@ const horse_update_runner = async () => {
     await upload_horse_dets(hid);
     await delay(5 * 1000);
     await upload_horse_fatigue(hid);
+    await delay(5 * 1000);
+    await upload_horse_dets(hid);
     await delay(5 * 1000);
   }
 };
