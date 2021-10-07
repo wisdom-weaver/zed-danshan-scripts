@@ -45,13 +45,13 @@ const live_upload = async () => {
   console.log(new Date().toISOString());
   for (let api_url of api_urls) {
     await cache_url(api_url);
-    await delay(2500);
+    await delay(1000);
   }
 };
 
 const live_cron = () => {
   console.log("\n## live_cron started");
-  let cron_str = "*/18 * * * * *";
+  let cron_str = "*/8 * * * * *";
   const c_itvl = cron_parser.parseExpression(cron_str);
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
   cron.schedule(cron_str, () => live_upload(), cron_conf);
@@ -80,7 +80,7 @@ const upload_horse_fatigue = async (hid) => {
   console.log("done fatigue", hid, doc.current_fatigue);
 };
 
-const horse_update_runner = async () => {
+const horse_dets_update_runner = async () => {
   let doc = await zed_db.db
     .collection("zed_api_cache")
     .findOne({ id: "live_my_horses" });
@@ -88,20 +88,36 @@ const horse_update_runner = async () => {
   console.log("live_my_horses len:", hids.length);
   for (let hid of hids) {
     await upload_horse_dets(hid);
-    await delay(3 * 1000);
+    await delay(2 * 1000);
+  }
+};
+const horse_fatigue_update_runner = async () => {
+  let doc = await zed_db.db
+    .collection("zed_api_cache")
+    .findOne({ id: "live_my_horses" });
+  let { hids = [] } = doc;
+  console.log("live_my_horses len:", hids.length);
+  for (let hid of hids) {
     await upload_horse_fatigue(hid);
-    await delay(3 * 1000);
-    await upload_horse_dets(hid);
-    await delay(3 * 1000);
+    await delay(10 * 1000);
   }
 };
 
-const horse_update_cron = async () => {
+const horse_rating_update_cron = async () => {
   let i = 0;
   while (true) {
-    console.log("started horse bunch cycle", i);
-    await horse_update_runner();
-    console.log("ended horse bunch cycle", i);
+    console.log("started horse rating bunch cycle", i);
+    await horse_dets_update_runner();
+    console.log("ended horse rating bunch cycle", i);
+    i++;
+  }
+};
+const horse_fatigue_update_cron = async () => {
+  let i = 0;
+  while (true) {
+    console.log("started horse fatigue bunch cycle", i);
+    await horse_fatigue_update_runner();
+    console.log("ended horse fatigue bunch cycle", i);
     i++;
   }
 };
@@ -227,7 +243,8 @@ const struct_studs_api_data = (data) => {
 const zed_api_cache_runner = async () => {
   await init();
   live_cron();
-  horse_update_cron();
+  horse_rating_update_cron();
+  horse_fatigue_update_cron();
 };
 
 const studs_clear = async () => {
