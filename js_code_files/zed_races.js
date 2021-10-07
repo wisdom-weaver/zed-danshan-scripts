@@ -297,7 +297,10 @@ const handle_racing_horse = async (horses) => {
   }
 };
 
-const preprocess_races_pushing_to_mongo = async (races, config) => {
+const preprocess_races_pushing_to_mongo = async (
+  races,
+  config = def_config
+) => {
   if (_.isEmpty(races)) return;
   let ar = {};
   for (let r in races) {
@@ -307,7 +310,7 @@ const preprocess_races_pushing_to_mongo = async (races, config) => {
   }
   await handle_racing_horse(ar);
   await push_races_to_mongo(races);
-  if (config.upd_horses == true)
+  if (config?.upd_horses == true)
     await update_odds_and_breed_for_race_horses(ar);
 };
 
@@ -627,7 +630,7 @@ const zed_races_g_runner = async () => {
       let len = data.length;
       if (!_.isEmpty(data)) {
         data = _.fromPairs(data);
-        await preprocess_races_pushing_to_mongo(data);
+        await preprocess_races_pushing_to_mongo(data, def_config);
         console.log("g_odds", len, "races pushed");
       } else console.log("g_odds", "NO races pushed");
       if (!_.isEmpty(rem_g_s)) {
@@ -696,7 +699,7 @@ const zed_races_err_runner = async () => {
       let len = data.length;
       if (!_.isEmpty(data)) {
         data = _.fromPairs(data);
-        await preprocess_races_pushing_to_mongo(data);
+        await preprocess_races_pushing_to_mongo(data, def_config);
         console.log(len, "races pushed");
       } else console.log("NO races pushed");
       if (!_.isEmpty(rem_err_s)) {
