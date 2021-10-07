@@ -88,11 +88,11 @@ const horse_update_runner = async () => {
   console.log("live_my_horses len:", hids.length);
   for (let hid of hids) {
     await upload_horse_dets(hid);
-    await delay(5 * 1000);
+    await delay(3 * 1000);
     await upload_horse_fatigue(hid);
-    await delay(5 * 1000);
+    await delay(3 * 1000);
     await upload_horse_dets(hid);
-    await delay(5 * 1000);
+    await delay(3 * 1000);
   }
 };
 
