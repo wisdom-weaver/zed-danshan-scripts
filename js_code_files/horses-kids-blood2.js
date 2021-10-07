@@ -493,8 +493,8 @@ const push_kids_score_bulk = async ({ ar, chunk_hids }) => {
 
 const push_kids_score_all_horses = async () => {
   await initiate();
-  let st = 40000;
-  let ed = 130000;
+  let st = 1;
+  let ed = 135000;
   let cs = 500;
   let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
   // let hids = [1102];
@@ -604,7 +604,7 @@ const runner2 = async () => {
 const runner3 = async () => {
   await init();
   await download_eth_prices();
-  let hid = 114851;
+  let hid = 122536;
   let ks = await get_kids_score(hid, 1);
   console.log(ks);
   console.log("done");
