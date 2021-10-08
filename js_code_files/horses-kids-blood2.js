@@ -516,7 +516,10 @@ const push_kids_score_all_horses = async () => {
   console.log("ended");
 };
 // push_kids_score_all_horses();
-
+const geno = (z) => {
+  if (z.startsWith("Z")) z = z.slice(1);
+  return parseFloat(z);
+};
 const get_z_table_for_id = async (id) => {
   let [bl, bt, z] = id.split("-");
   let ar = await zed_db.db
@@ -580,6 +583,11 @@ const blood_breed_z_table = async () => {
   for (let bl of options.bloodline)
     for (let bt of options.breed_type)
       for (let z of options.genotype) {
+        if (bt == "genesis" && geno(z) > 10) continue;
+        if (bl == "Nakamoto" && bt == "legendary" && geno(z) > 4) continue;
+        if (bl == "Szabo" && bt == "legendary" && geno(z) > 8) continue;
+        if (bl == "Finney" && bt == "legendary" && geno(z) > 14) continue;
+        if (bl == "Buterin" && bt == "legendary" && geno(z) > 20) continue;
         let id = `${bl}-${bt}-${z}`;
         keys.push(id);
       }
