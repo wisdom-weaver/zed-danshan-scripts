@@ -25,6 +25,11 @@ const get_fee_tag = (entryfee_usd) => {
   for (let [tag, [rep, mi, mx]] of _.entries(fee_tags_ob))
     if (_.inRange(entryfee_usd, mi, mx + 1e-3)) return tag;
 };
+const disp_fee_tag = (fee_tag) => {
+  let pr =
+    fee_tags_ob && fee_tags_ob[fee_tag] && fee_tags_ob[fee_tag][0] && "-";
+  return `$${pr}`;
+};
 
 const filter_acc_to_criteria = ({
   races = [],

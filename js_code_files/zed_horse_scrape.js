@@ -718,7 +718,7 @@ const add_horse_from_zed_in_bulk = async () => {
     // let doc = await zed_db.db.collection("horse_details").find({}).max({}).toArray();
     // doc_hid = doc[0]?.hid;
     // let st = doc_hid;
-    let st = 110000;
+    let st = 124300;
     let ed = 128000;
     let cs = 5;
     let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
@@ -745,7 +745,7 @@ const add_horse_from_zed_in_bulk = async () => {
         });
       }
       console.log(mgp.length)
-      if (_.isEmpty(mgp))
+      if (!_.isEmpty(mgp))
         await zed_db.db.collection("horse_details").bulkWrite(mgp);
       await bulk_write_kid_to_parent(obar);
       console.log("done", chunk_hids.toString());

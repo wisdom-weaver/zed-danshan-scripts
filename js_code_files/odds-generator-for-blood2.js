@@ -940,7 +940,8 @@ const update_odds_and_breed_for_race_horses = async (horses_tc_ob) => {
       },
     });
   }
-  await zed_db.db.collection("horse_details").bulkWrite(tc_bulk);
+  if (!_.isEmpty(tc_bulk))
+    await zed_db.db.collection("horse_details").bulkWrite(tc_bulk);
   await odds_generator_for_hids(hids);
   await breed_generator_for_hids(all_hids);
 };
