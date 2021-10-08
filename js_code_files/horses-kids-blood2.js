@@ -652,7 +652,7 @@ const runner3 = async () => {
   // await zed_db.db.collection("rating_breed2").updateOne({ hid }, { $set: { br: 1 } });
   console.log("done");
 };
-runner3();
+// runner3();
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
