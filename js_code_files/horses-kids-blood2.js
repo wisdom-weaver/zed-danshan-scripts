@@ -531,16 +531,47 @@ const get_z_table_for_id = async (id) => {
     )
     .toArray();
   let hids = _.map(ar, "hid") || [];
-  let scores = await zed_db.db
+  let docs = await zed_db.db
     .collection("rating_breed2")
-    .find({ hid: { $in: hids } }, { projection: { _id: 0, kid_score: 1 } })
+    .find(
+      { hid: { $in: hids } },
+      { projection: { _id: 0, kid_score: 1, br: 1 } }
+    )
     .toArray();
 
-  scores = _.chain(scores).map("kid_score").compact().value();
+  let scores = _.chain(docs).map("kid_score").compact().value();
+  let brs = _.chain(docs).map("br").compact().value();
+
   let avg = _.mean(scores);
-  if (_.isNaN(avg)) avg = null;
-  console.log({ id, count: scores.length, avg });
-  return { count_all: ar.length, count: scores.length, avg };
+  if (!avg || _.isNaN(avg)) avg = null;
+  let ks_min = _.min(scores);
+  if (!ks_min || _.isNaN(ks_min)) ks_min = null;
+  let ks_max = _.max(scores);
+  if (!ks_max || _.isNaN(ks_max)) ks_max = null;
+
+  let br_avg = _.mean(brs);
+  if (!br_avg || _.isNaN(br_avg)) br_avg = null;
+  let br_min = _.min(brs);
+  if (!br_min || _.isNaN(br_min)) br_min = null;
+  let br_max = _.max(brs);
+  if (!br_max || _.isNaN(br_max)) br_max = null;
+
+  let str = [ks_min, avg, ks_max, br_min, br_avg, br_max]
+    .map((e) => dec(e))
+    .join(" ");
+
+  console.log({ id, count: scores.length }, str);
+  return {
+    count_all: ar.length,
+    count: scores.length,
+    count_: brs.length,
+    ks_min,
+    avg,
+    ks_max,
+    br_min,
+    br_avg,
+    br_max,
+  };
 };
 const blood_breed_z_table = async () => {
   await init();
