@@ -717,7 +717,7 @@ const add_horse_from_zed_in_bulk = async () => {
   // let doc = await zed_db.db.collection("horse_details").find({}).max({}).toArray();
   // doc_hid = doc[0]?.hid;
   // let st = doc_hid;
-  let st = 125000;
+  let st = 127000;
   let ed = 140000;
   let cs = 5;
   let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
