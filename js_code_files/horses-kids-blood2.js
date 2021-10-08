@@ -68,9 +68,11 @@ const get_kids_existing = async (hid) => {
       )
     );
     ob = ob.map((e) => {
+      if (_.isEmpty(e)) return null;
       let z = get_z(e.genotype);
       return { ...e, z, ...e.parents };
     });
+    ob = _.compact(ob);
     return ob;
   } catch (err) {
     console.log(err);
@@ -644,13 +646,13 @@ const runner3 = async () => {
   await init();
   await download_eth_prices();
   await init_btbtz();
-  let hid = 1102;
-  // let ks = await generate_breed_rating(hid, 1);
-  // console.log(ks);
-  await zed_db.db.collection("rating_breed2").updateOne({ hid }, { $set: { br: 1 } });
+  let hid = 1109;
+  let ks = await generate_breed_rating(hid, 1);
+  console.log(ks);
+  // await zed_db.db.collection("rating_breed2").updateOne({ hid }, { $set: { br: 1 } });
   console.log("done");
 };
-// runner3();
+runner3();
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
