@@ -669,7 +669,7 @@ const fetch_zed_horse_doc = (hid) => {
 };
 const struct_zed_horse_doc = ({ hid, doc }) => {
   hid = parseInt(hid);
-  if (_.isEmpty(doc)) return null;
+  if (_.isEmpty(doc) || doc?.err) return null;
   let {
     bloodline,
     breed_type,
@@ -714,8 +714,11 @@ const struct_zed_horse_doc = ({ hid, doc }) => {
 };
 const add_horse_from_zed_in_bulk = async () => {
   await init();
-  let st = 103000;
-  let ed = 114000;
+  // let doc = await zed_db.db.collection("horse_details").find({}).max({}).toArray();
+  // doc_hid = doc[0]?.hid;
+  // let st = doc_hid;
+  let st = 125000;
+  let ed = 140000;
   let cs = 5;
   let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
   // let hids = [82001, 90125];
@@ -784,9 +787,9 @@ const missing_zed_horse_tc_update = async () => {
   //   .find({ tc: null }, { projection: { tc: 1, hid: 1, _id: 0 } })
   //   .toArray();
   let docs = await zed_db.db
-  .collection("rating_blood2")
-  .find({ tc: null }, { projection: { _id: 0, hid: 1 } })
-  .toArray();
+    .collection("rating_blood2")
+    .find({ tc: null }, { projection: { _id: 0, hid: 1 } })
+    .toArray();
 
   let hids = _.map(docs, "hid");
   console.log("got missing", hids.length);

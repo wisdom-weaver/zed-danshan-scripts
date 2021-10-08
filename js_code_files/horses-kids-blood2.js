@@ -643,12 +643,14 @@ const runner2 = async () => {
 const runner3 = async () => {
   await init();
   await download_eth_prices();
-  let hid = 122536;
-  let ks = await get_kids_score(hid, 1);
-  console.log(ks);
+  await init_btbtz();
+  let hid = 1102;
+  // let ks = await generate_breed_rating(hid, 1);
+  // console.log(ks);
+  await zed_db.db.collection("rating_breed2").updateOne({ hid }, { $set: { br: 1 } });
   console.log("done");
 };
-// runner3();
+runner3();
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
