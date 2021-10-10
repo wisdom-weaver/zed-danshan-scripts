@@ -23,7 +23,10 @@ const { get_sims_zed_odds } = require("./sims");
 const appRootPath = require("app-root-path");
 const { config } = require("dotenv");
 const { fetch_a } = require("./fetch_axios");
-const { add_new_horse_from_zed_in_bulk } = require("./zed_horse_scrape");
+const {
+  add_new_horse_from_zed_in_bulk,
+  add_to_new_horses_bucket,
+} = require("./zed_horse_scrape");
 const {
   update_odds_and_breed_for_race_horses,
 } = require("./odds-generator-for-blood2");
@@ -293,7 +296,8 @@ const handle_racing_horse = async (horses) => {
   let diff_hids = _.difference(hids, exst_hids);
   if (!_.isEmpty(diff_hids)) {
     console.log("new horses:", diff_hids);
-    await add_new_horse_from_zed_in_bulk(diff_hids);
+    // await add_new_horse_from_zed_in_bulk(diff_hids);
+    await add_to_new_horses_bucket(diff_hids);
   }
 };
 

@@ -57,7 +57,6 @@ const get_class = (rating) => {
 
   return null;
 };
-
 const extract_name = async (cont) => {
   try {
     let name = await elem_by_x_txt(cont, name_xt);
@@ -66,7 +65,6 @@ const extract_name = async (cont) => {
     return "";
   }
 };
-
 const extract_dets = async (cont) => {
   try {
     let dets = await elem_by_x_txt(cont, dets_xt);
@@ -91,7 +89,6 @@ const extract_dets = async (cont) => {
     return {};
   }
 };
-
 const extract_owner = async (cont) => {
   try {
     let dets = await elem_by_x(cont, owner_xt);
@@ -109,7 +106,6 @@ const extract_owner = async (cont) => {
     return {};
   }
 };
-
 const click_fam_btn = async (cont) => {
   try {
     let elem = await elem_by_x(cont, fam_btn);
@@ -120,7 +116,6 @@ const click_fam_btn = async (cont) => {
     // console.log(err);
   }
 };
-
 const extract_hex_code = async (cont) => {
   try {
     let img_el = await elem_by_x(cont, img_xt);
@@ -135,7 +130,6 @@ const extract_hex_code = async (cont) => {
     return { hex_code: null };
   }
 };
-
 const extract_p_hid = async (p_elem) => {
   try {
     let a_tag = await elem_by_x(p_elem, fam_p_hid);
@@ -148,7 +142,6 @@ const extract_p_hid = async (p_elem) => {
     return null;
   }
 };
-
 const def_fam_ob = {
   parents: { mother: null, father: null },
   offsprings: [],
@@ -195,7 +188,6 @@ const get_fam_part = async (cont) => {
     return def_fam_ob;
   }
 };
-
 const scrape_horse_details = async (hid) => {
   let driver;
   try {
@@ -744,7 +736,7 @@ const add_horse_from_zed_in_bulk = async () => {
           },
         });
       }
-      console.log(mgp.length)
+      console.log(mgp.length);
       if (!_.isEmpty(mgp))
         await zed_db.db.collection("horse_details").bulkWrite(mgp);
       await bulk_write_kid_to_parent(obar);
@@ -786,7 +778,6 @@ const add_new_horse_from_zed_in_bulk = async (hids) => {
     await delay(3000);
   }
 };
-
 const missing_zed_horse_tc_update = async () => {
   await init();
   // let docs = await zed_db.db
@@ -807,9 +798,48 @@ const missing_zed_horse_tc_update = async () => {
   console.log("missing_zed_horse_tc_update");
 };
 
+const add_to_new_horses_bucket = async (hids) => {
+  let id = "new_horses_bucket";
+  hids = _.compact(hids);
+  await zed_db.db
+    .collection("script")
+    .updateOne({ id }, { $addToSet: hids }, { upsert: true });
+  console.log("pushed", hids.length, "horses to new_horses_bucket");
+};
+const rem_from_new_horses_bucket = async (hids) => {
+  let id = "new_horses_bucket";
+  hids = _.compact(hids);
+  await zed_db.db
+    .collection("script")
+    .updateOne({ id }, { $pull: hids }, { upsert: true });
+  console.log("removed", hids.length, "horses from new_horses_bucket");
+};
+
+const zed_horses_needed_bucket_using_hawku = async () => {
+  await init();
+  while (true) {
+    let id = "new_horses_bucket";
+    let docs = (await zed_db.db.collection("script").findOne({ id })) || {};
+    let { hids = [] } = docs;
+    console.log("hids:", hids?.length);
+    let cs = 2;
+    for (let chunk_hids of _.chunk(hids, cs)) {
+      await Promise.all(chunk_hids.map((hid) => scrape_horse_details(hid)));
+      await rem_from_new_horses_bucket(chunk_hids);
+      console.log("done", chunk_hids.length);
+      await delay(500);
+    }
+    console.log("completed zed_horses_needed_bucket_using_hawku ");
+    await delay(5000);
+  }
+};
+
 module.exports = {
   zed_horses_all_scrape,
   add_horse_from_zed_in_bulk,
   add_new_horse_from_zed_in_bulk,
   missing_zed_horse_tc_update,
+  add_to_new_horses_bucket,
+  rem_from_new_horses_bucket,
+  zed_horses_needed_bucket_using_hawku,
 };
