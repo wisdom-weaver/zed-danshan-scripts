@@ -803,7 +803,11 @@ const add_to_new_horses_bucket = async (hids) => {
   hids = _.compact(hids);
   await zed_db.db
     .collection("script")
-    .updateOne({ id }, { $addToSet: hids }, { upsert: true });
+    .updateOne(
+      { id },
+      { $set: { id }, $addToSet: { hids: { $each: hids } } },
+      { upsert: true }
+    );
   console.log("pushed", hids.length, "horses to new_horses_bucket");
 };
 const rem_from_new_horses_bucket = async (hids) => {
@@ -811,7 +815,7 @@ const rem_from_new_horses_bucket = async (hids) => {
   hids = _.compact(hids);
   await zed_db.db
     .collection("script")
-    .updateOne({ id }, { $pull: hids }, { upsert: true });
+    .updateOne({ id }, { $pullAll: { hids: hids } }, { upsert: true });
   console.log("removed", hids.length, "horses from new_horses_bucket");
 };
 
@@ -821,12 +825,12 @@ const zed_horses_needed_bucket_using_hawku = async () => {
     let id = "new_horses_bucket";
     let docs = (await zed_db.db.collection("script").findOne({ id })) || {};
     let { hids = [] } = docs;
-    console.log("hids:", hids?.length);
+    console.log("new hids:", hids?.length);
     let cs = 2;
     for (let chunk_hids of _.chunk(hids, cs)) {
       await Promise.all(chunk_hids.map((hid) => scrape_horse_details(hid)));
       await rem_from_new_horses_bucket(chunk_hids);
-      console.log("done", chunk_hids.length);
+      console.log("done", chunk_hids.toString());
       await delay(500);
     }
     console.log("completed zed_horses_needed_bucket_using_hawku ");

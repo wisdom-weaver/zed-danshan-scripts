@@ -294,8 +294,9 @@ const handle_racing_horse = async (horses) => {
     .toArray();
   let exst_hids = _.map(exst_docs, "hid") || [];
   let diff_hids = _.difference(hids, exst_hids);
+  console.log("new horses:", diff_hids);
   if (!_.isEmpty(diff_hids)) {
-    console.log("new horses:", diff_hids);
+    // console.log("new horses:", diff_hids);
     // await add_new_horse_from_zed_in_bulk(diff_hids);
     await add_to_new_horses_bucket(diff_hids);
   }
