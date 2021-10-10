@@ -529,6 +529,10 @@ const zed_race_build_for_mongodb = async (rid, conf = {}) => {
     zed_results_data(rid),
     zed_flames_data(rid),
   ]);
+  if (_.isEmpty(base)) {
+    console.log("couldnt get race", rid);
+    return [];
+  }
   let { hids, thisclass, entryfee, distance, date } = base;
   let fee_cat = get_fee_cat_on({ date, fee: entryfee });
   let ar = hids.map((hid) => {
