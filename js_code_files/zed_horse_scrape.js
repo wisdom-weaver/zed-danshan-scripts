@@ -12,7 +12,10 @@ const hawku_url = (hid) => `https://www.hawku.com/horse/${hid}`;
 const { delay, write_to_path, read_from_path } = require("./utils");
 const appRootPath = require("app-root-path");
 const { fetch_a } = require("./fetch_axios");
-const { odds_generator_for_hids } = require("./odds-generator-for-blood2");
+const {
+  odds_generator_for_hids,
+  update_odds_and_breed_for_race_horses,
+} = require("./odds-generator-for-blood2");
 // X-paths
 // name            /html/body/ul/div/main/main/div[1]/div[1]/div[2]/h1
 // dets            /html/body/ul/div/main/main/div[1]/div[1]/div[2]/p[1]/span
@@ -825,10 +828,16 @@ const zed_horses_needed_bucket_using_hawku = async () => {
     let id = "new_horses_bucket";
     let docs = (await zed_db.db.collection("script").findOne({ id })) || {};
     let { hids = [] } = docs;
+    // hids = [126921];
     console.log("new hids:", hids?.length);
     let cs = 2;
     for (let chunk_hids of _.chunk(hids, cs)) {
       await Promise.all(chunk_hids.map((hid) => scrape_horse_details(hid)));
+      let hids_ob = _.chain(hids)
+        .map((i) => [i, null])
+        .fromPairs()
+        .value();
+      await update_odds_and_breed_for_race_horses(hids_ob);
       await rem_from_new_horses_bucket(chunk_hids);
       console.log("done", chunk_hids.toString());
       await delay(500);

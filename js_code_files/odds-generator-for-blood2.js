@@ -923,15 +923,15 @@ const update_odds_and_breed_for_race_horses = async (horses_tc_ob) => {
     parents = _.values(parents) || [];
     all_hids = [...all_hids, ...parents];
   });
-  all_hids = [...all_hids, ...hids];
+  all_hids = [...hids, ...all_hids];
   all_hids = _.compact(all_hids);
   console.log(all_hids);
 
   let tc_bulk = [];
   for (let [hid, tc] of _.entries(horses_tc_ob)) {
     hid = parseInt(hid);
-    console.log(hid, "tc:", tc);
     if (tc === null || tc === undefined) continue;
+    console.log(hid, "tc:", tc);
     tc_bulk.push({
       updateOne: {
         filter: { hid },
