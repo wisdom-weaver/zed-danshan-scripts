@@ -584,10 +584,13 @@ const clear_CH = async () => {
 const a = async () => {
   await init();
   console.log("start");
-  let docs = await zed_db.db
-    .collection("rating_blood2")
-    .find({ tc: null }, { projection: { _id: 0, hid: 1 } })
+  let docs = await zed_ch.db
+    .collection("zed")
+    .find({}, { projection: { _id: 0, 2: 1, 4: 1, 6: 1 } })
+    .sort({ 2: -1, 6: -1 })
+    .limit(50)
     .toArray();
+  console.table(docs);
   let hids = _.map(docs, "hid");
   console.log(hids.length, hids);
 

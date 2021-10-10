@@ -828,7 +828,7 @@ const zed_horses_needed_bucket_using_hawku = async () => {
     let id = "new_horses_bucket";
     let docs = (await zed_db.db.collection("script").findOne({ id })) || {};
     let { hids = [] } = docs;
-    // hids = [126921];
+    // hids = [126901];
     console.log("new hids:", hids?.length);
     let cs = 2;
     for (let chunk_hids of _.chunk(hids, cs)) {
