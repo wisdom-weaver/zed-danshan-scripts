@@ -296,7 +296,16 @@ const runner = async () => {
 };
 // runner();
 
+const horse_dets_test = async () => {
+  let hid = 3312;
+  console.log("hid: ", hid);
+  let doc = await fetch_horse_zed_api(hid);
+  console.log("doc->", doc);
+  console.log("done");
+};
+
 module.exports = {
   zed_api_cache_runner,
   studs_api_cache_runner,
+  horse_dets_test
 };

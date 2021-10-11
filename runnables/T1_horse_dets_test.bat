@@ -1,0 +1,2 @@
+npm run horse_dets_test
+PAUSE

@@ -22,6 +22,7 @@
     "zed_horses_all_scrape": "run-func js_code_files/zed_horse_scrape.js zed_horses_all_scrape",
     "zed_horses_needed_bucket_using_hawku": "run-func js_code_files/zed_horse_scrape.js zed_horses_needed_bucket_using_hawku",
     "zed_horses_needed_manual_using_hawku": "run-func js_code_files/zed_horse_scrape.js zed_horses_needed_manual_using_hawku",
+    "horse_dets_test": "run-func js_code_files/zed_api_cache_script.js horse_dets_test",
     "zed_api_cache_runner": "run-func js_code_files/zed_api_cache_script.js zed_api_cache_runner",
     "studs_api_cache_runner": "run-func js_code_files/zed_api_cache_script.js studs_api_cache_runner",
     "add_horse_from_zed_in_bulk": "run-func js_code_files/zed_horse_scrape.js add_horse_from_zed_in_bulk",

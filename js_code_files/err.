@@ -1,0 +1,36 @@
+starting...
+# MONGO connected zed_db
+# MONGO connected zed_ch
+downloading races
+1489914 docs downloaded
+
+<--- Last few GCs --->
+
+[134409:0x55e7e224c550]  5045957 ms: Mark-sweep 1926.9 (2080.9) -> 1923.3 (2095.4) MB, 794.9 / 0.0 ms  (average mu = 0.989, current mu = 0.331) allocation failure scavenge might not succeed
+[134409:0x55e7e224c550]  5047198 ms: Mark-sweep 1939.0 (2095.4) -> 1934.2 (2107.9) MB, 1196.5 / 0.0 ms  (average mu = 0.973, current mu = 0.036) allocation failure scavenge might not succeed
+
+
+<--- JS stacktrace --->
+
+FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory
+ 1: 0x55e7def59991 node::Abort() [node]
+ 2: 0x55e7dee60c95 node::FatalError(char const*, char const*) [node]
+ 3: 0x55e7df131b72 v8::Utils::ReportOOMFailure(v8::internal::Isolate*, char const*, bool) [node]
+ 4: 0x55e7df131dd8 v8::internal::V8::FatalProcessOutOfMemory(v8::internal::Isolate*, char const*, bool) [node]
+ 5: 0x55e7df2ef826  [node]
+ 6: 0x55e7df3007f0 v8::internal::Heap::CollectAllGarbage(int, v8::internal::GarbageCollectionReason, v8::GCCallbackFlags) [node]
+ 7: 0x55e7df3027cd v8::internal::Heap::AllocateRawWithLightRetrySlowPath(int, v8::internal::AllocationType, v8::internal::AllocationOrigin, v8::internal::AllocationAlignment) [node]
+ 8: 0x55e7df302835 v8::internal::Heap::AllocateRawWithRetryOrFailSlowPath(int, v8::internal::AllocationType, v8::internal::AllocationOrigin, v8::internal::AllocationAlignment) [node]
+ 9: 0x55e7df2c7ebf v8::internal::Factory::AllocateRaw(int, v8::internal::AllocationType, v8::internal::AllocationAlignment) [node]
+10: 0x55e7df2c1414 v8::internal::FactoryBase<v8::internal::Factory>::AllocateRawWithImmortalMap(int, v8::internal::AllocationType, v8::internal::Map, v8::internal::AllocationAlignment) [node]
+11: 0x55e7df2c32d0 v8::internal::FactoryBase<v8::internal::Factory>::NewRawTwoByteString(int, v8::internal::AllocationType) [node]
+12: 0x55e7df64863e v8::internal::IncrementalStringBuilder::Extend() [node]
+13: 0x55e7df3f5a81 v8::internal::JsonStringifier::SerializeJSReceiverSlow(v8::internal::Handle<v8::internal::JSReceiver>) [node]
+14: 0x55e7df3f675b v8::internal::JsonStringifier::Result v8::internal::JsonStringifier::Serialize_<false>(v8::internal::Handle<v8::internal::Object>, bool, v8::internal::Handle<v8::internal::Object>) [node]
+15: 0x55e7df3f75e3 v8::internal::JsonStringifier::Result v8::internal::JsonStringifier::Serialize_<false>(v8::internal::Handle<v8::internal::Object>, bool, v8::internal::Handle<v8::internal::Object>) [node]
+16: 0x55e7df3f87ce v8::internal::JsonStringifier::Stringify(v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::Object>) [node]
+17: 0x55e7df3f88c2 v8::internal::JsonStringify(v8::internal::Isolate*, v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::Object>) [node]
+18: 0x55e7df1cc0c2  [node]
+19: 0x55e7df1cc706 v8::internal::Builtin_JsonStringify(int, unsigned long*, v8::internal::Isolate*) [node]
+20: 0x55e7df98c4b9  [node]
+Aborted (core dumped)
