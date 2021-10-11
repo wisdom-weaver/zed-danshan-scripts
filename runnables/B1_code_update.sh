@@ -1,7 +1,7 @@
 #!/bin/bash
 
 git checkout -f main;
-git pull;
+git pull -f origin;
 echo \#completed;
 echo
 echo ------------
