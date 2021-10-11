@@ -540,7 +540,7 @@ const generate_odds_for = async (hid) => {
       .findOne({ hid }, { projection: { _id: 1, tc: 1 } });
 
     if (_.isEmpty(doc)) {
-      console.log("horse details not present yet");
+      // console.log("horse details not present yet");
       return null;
     }
 

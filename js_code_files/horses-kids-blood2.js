@@ -38,9 +38,9 @@ const get_parents_hids = async (hid) => {
   return parents;
 };
 
-const get_z = (genotype) => {
-  if (genotype.startsWith("Z")) genotype = genotype.slice(1);
-  return parseInt(genotype);
+const get_z = (genotype = "") => {
+  if (genotype?.startsWith("Z")) genotype = genotype.slice(1);
+  return parseInt(genotype) ?? null;
 };
 
 const get_kids_existing = async (hid) => {

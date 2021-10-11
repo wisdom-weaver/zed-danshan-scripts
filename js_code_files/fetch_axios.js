@@ -7,11 +7,13 @@ const headers = {
     "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjcnlwdG9maWVsZF9hcGkiLCJleHAiOjE2MzYyMDk4NDMsImlhdCI6MTYzMzc5MDY0MywiaXNzIjoiY3J5cHRvZmllbGRfYXBpIiwianRpIjoiMTY5MzViODgtZWQ1MS00NzlkLThkMWQtMzRlNmFhZTVkYmU0IiwibmJmIjoxNjMzNzkwNjQyLCJzdWIiOnsiZXh0ZXJuYWxfaWQiOiIzMjA4YmVmNy01OTRjLTRhYTgtOGU2YS0zNzJkMTNkY2I2NjMiLCJpZCI6MTQzNzAsInB1YmxpY19hZGRyZXNzIjoiMHhhMGQ5NjY1RTE2M2Y0OTgwODJDZDczMDQ4REExN2U3ZDY5RmQ5MjI0Iiwic3RhYmxlX25hbWUiOiJEYW5zaGFuIn0sInR5cCI6ImFjY2VzcyJ9.b3lw8F5a2BWI3gD3K5ELNc1uBbWp2MVljLFxcrommGCpHG5s1Ue1M19MRu1yVnZc4sgQ4ETa0a3YvsqDjTCwAQ",
   Cookie:
     "__cf_bm=YFcBLkPRQ7B2WCXO.yMyAL4rDzE7lh3Hl_EaIjAqO1Y-1633791139-0-AYlVVK3DoG3mCmyiTQiM1NhrEDiyrAu6sq1pINEDkn8aoJT5juu/wQqd7Z8fP6EOoTCIEJzIpT0pb5sS+s1YD4E=",
+  "Access-Control-Allow-Origin": "*",
 };
 const fetch_a = async (api) => {
   var config = {
     method: "get",
     url: api,
+    withCredentials: true,
     headers,
   };
   return axios(config)
@@ -32,6 +34,7 @@ const fetch_fatigue = async (hid) => {
     var config = {
       method: "get",
       url: api_url,
+      withCredentials: true,
       headers,
     };
 
@@ -56,6 +59,7 @@ const fetch_horse_zed_api = async (hid) => {
   var config = {
     method: "get",
     url: api_url,
+    withCredentials: true,
     headers,
   };
   return axios(config)
