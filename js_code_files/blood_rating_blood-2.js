@@ -68,9 +68,22 @@ const get_rat_score = ({ c, f, d, races }) => {
   let tag_price = fee_tags_ob[f][0];
   let feeX4 = tag_price * 4;
 
+  console.table([
+    {
+      c,
+      f,
+      d,
+      p_1_2_11_12_per,
+      win_by,
+      tag_price,
+      feeX4,
+      races_n,
+      races_Nx,
+    },
+  ]);
+
   let perf = 0;
   perf = (p_1_2_11_12_per + feeX4 + races_Nx + win_by) / 100;
-
   return perf;
 };
 
@@ -106,7 +119,7 @@ const generate_rating_blood_calc = async ({ hid, races = [] }) => {
         } else rat_score = null;
 
         if (rat_score !== null) {
-          // console.log({ key, rat_score });
+          console.log({ key, rat_score });
           ar.push({ key, rat_score, c, f, d, len: fr.length });
         }
       }
@@ -166,11 +179,11 @@ const runner = async () => {
   // await odds_generator_all_horses();
   // await breed_generator_all_horses();
   // clone_odds_overall();
-  let hids = [3312, 21888, 7090, 1102, 85223];
+  let hids = [21888];
   // await odds_generator_for_hids(hids);
   for (let hid of hids) {
     let ob = await generate_rating_blood_from_hid(hid);
-    // console.log(hid, ob);
+    console.log(hid, ob);
   }
 };
 // runner();

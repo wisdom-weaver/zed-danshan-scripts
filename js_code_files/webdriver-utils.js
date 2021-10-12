@@ -24,6 +24,7 @@ const get_webdriver = async () => {
     return driver;
   } catch (err) {
     console.log("err in get_webdriver");
+    console.log(err);
     return null;
   }
 };
