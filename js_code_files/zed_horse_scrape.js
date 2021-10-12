@@ -221,7 +221,7 @@ const scrape_horse_details = async (hid) => {
     return ob;
   } catch (err) {
     console.log("err on scrape_horse_details", hid);
-    // console.log("err on scrape_horse_details", err);
+    console.log("err on scrape_horse_details", err);
     if (driver && driver.quit) await driver.quit();
     return null;
   }
