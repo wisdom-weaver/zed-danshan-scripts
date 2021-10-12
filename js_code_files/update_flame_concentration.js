@@ -64,7 +64,7 @@ const add_fee_cat_to_all_horses_races = async () => {
 let keys = (() => {
   let classes = [1, 2, 3, 4, 5];
   let dists = [1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600];
-  let fee_tags = ["A", "B", "C", "D", "E", "F"];
+  let fee_tags = ["A", "B", "C", "D", "E"];
   let keys = [];
   for (let c of classes)
     for (let f of fee_tags) for (let d of dists) keys.push(`${c}${f}${d}`);

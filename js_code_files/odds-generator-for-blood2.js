@@ -1008,11 +1008,11 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const runner = async () => {
   await initiate();
-  let hid = 3312;
+  let hid = 2;
   let ob = await generate_odds_for(hid);
-  console.log(ob)
+  // console.log(ob)
 };
-runner();
+// runner();
 
 module.exports = {
   initiate,
