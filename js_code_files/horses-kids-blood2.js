@@ -6,6 +6,7 @@ const {
   calc_median,
   fetch_r,
   struct_race_row_data,
+  write_to_path,
   dec,
 } = require("./utils");
 const app_root = require("app-root-path");
@@ -654,6 +655,47 @@ const runner3 = async () => {
 };
 // runner3();
 
+const download_hids_br_ymca = async () => {
+  await init();
+  let st = 1;
+  let ed = 2000000;
+  let cs = 2000;
+  let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
+  let i = 0;
+  for (let chunk_hids of _.chunk(hids, cs)) {
+    let docs_a = await zed_db.db
+      .collection("rating_breed2")
+      .find(
+        { hid: { $in: chunk_hids } },
+        { projection: { hid: 1, _id: 0, kid_score: 1, br: 1 } }
+      )
+      .toArray();
+    let docs_b = await zed_db.db
+      .collection("horse_details")
+      .find(
+        { hid: { $in: chunk_hids } },
+        { projection: { hid: 1, _id: 0, parents: 1 } }
+      )
+      .toArray();
+    let this_hids = _.map(docs_a, "hid");
+    if (_.isEmpty(this_hids)) {
+      console.log("empty");
+      continue;
+    }
+    let ob = {};
+    for (let hid of this_hids)
+      ob[hid] = { ..._.find(docs_a, { hid }), ..._.find(docs_b, { hid }) };
+
+    let file_path = `${app_root}/data/rating_breed2/rating_breed2-${
+      chunk_hids[0]
+    }-${chunk_hids[chunk_hids.length - 1]}.json`;
+    write_to_path({ file_path, data: ob });
+    console.log("chunk", chunk_hids[0], chunk_hids[chunk_hids.length - 1]);
+    i++;
+  }
+};
+// download_hids_br_ymca();
+
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 module.exports = {
@@ -662,4 +704,5 @@ module.exports = {
   push_kids_score_all_horses,
   blood_breed_z_table,
   init_btbtz,
+  download_hids_br_ymca,
 };

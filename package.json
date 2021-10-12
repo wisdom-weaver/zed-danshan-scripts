@@ -33,6 +33,7 @@
     "breed_generator_errs": "run-func js_code_files/odds-generator-for-blood2.js breed_generator_errs",
     "push_kids_score_all_horses": "run-func js_code_files/horses-kids-blood2.js push_kids_score_all_horses",
     "blood_breed_z_table": "run-func js_code_files/horses-kids-blood2.js blood_breed_z_table",
+    "download_hids_br_ymca": "run-func js_code_files/horses-kids-blood2.js download_hids_br_ymca",
     "test1": "run-func js_code_files/tests.js test1",
     "test2": "run-func js_code_files/tests.js test2",
     "test3": "run-func js_code_files/tests.js test3",
