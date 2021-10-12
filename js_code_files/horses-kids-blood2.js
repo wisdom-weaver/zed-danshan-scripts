@@ -6,6 +6,7 @@ const {
   calc_median,
   fetch_r,
   struct_race_row_data,
+  read_from_path,
   write_to_path,
   dec,
 } = require("./utils");
@@ -667,7 +668,7 @@ const download_hids_br_ymca = async () => {
       .collection("rating_breed2")
       .find(
         { hid: { $in: chunk_hids } },
-        { projection: { hid: 1, _id: 0, kid_score: 1, br: 1 } }
+        { projection: { hid: 1, _id: 0, kid_score: 1, br: 1, kids_n: 1 } }
       )
       .toArray();
     let docs_b = await zed_db.db
@@ -695,6 +696,72 @@ const download_hids_br_ymca = async () => {
   }
 };
 // download_hids_br_ymca();
+
+const ymca_cont = {
+  a: [4, 100],
+  b: [3.8, 4],
+  c: [3.6, 3.8],
+  d: [3.4, 3.6],
+  e: [3.2, 3.4],
+  f: [3, 3.2],
+  g: [2.7, 3],
+  h: [2.5, 2.7],
+  i: [2.2, 2.5],
+  j: [2.0, 2.2],
+  k: [1.8, 2.0],
+  l: [1.6, 1.8],
+  m: [1.4, 1.6],
+  n: [1.2, 1.4],
+  o: [1, 1.2],
+  p: [0.8, 1],
+  q: [0.6, 0.8],
+  r: [0.4, 0.6],
+  s: [0.2, 0.4],
+  t: [0, 0.2],
+  u: [-100, 1],
+};
+const get_ymca_tag = (val) => {
+  for (let [tag, [mi, mx]] of _.entries(ymca_cont))
+    if (_.inRange(val, mi, mx)) return tag;
+};
+const tabulate_hids_br_ymca = async () => {
+  // await init();
+  let st = 1;
+  let ed = 2000000;
+  let cs = 2000;
+  let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
+  let i = 0;
+  let mapped = {};
+  for (let chunk_hids of _.chunk(hids, cs)) {
+    let file_path = `${app_root}/data/rating_breed2/rating_breed2-${
+      chunk_hids[0]
+    }-${chunk_hids[chunk_hids.length - 1]}.json`;
+    let ob = read_from_path({ file_path });
+    // console.log("got chunk", chunk_hids[0], chunk_hids[chunk_hids.length - 1]);
+    mapped = { ...mapped, ...ob };
+    i++;
+  }
+  for (let hid in mapped) {
+    let { parents } = mapped[hid];
+    let br_f = mapped[parents?.father]?.br || 0;
+    let br_m = mapped[parents?.mother]?.br || 0;
+    let tot_pbr = parseFloat(br_f + br_m);
+    mapped[hid].tot_pbr = tot_pbr;
+    mapped[hid].ymca_tag = get_ymca_tag(tot_pbr);
+  }
+  let ymca_ob = _.chain(mapped)
+    .groupBy("ymca_tag")
+    .entries()
+    .map(([tag, vals]) => {
+      let n = vals.length;
+      let mean = _.chain(vals).map("kid_score").mean().value();
+      return [tag, { mean, count: n }];
+    })
+    .fromPairs()
+    .value();
+  console.table(ymca_ob);
+};
+tabulate_hids_br_ymca();
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
