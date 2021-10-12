@@ -198,6 +198,7 @@ const scrape_horse_details = async (hid) => {
     let url = hawku_url(hid);
     // console.log(url);
     driver = await get_webdriver();
+    if (driver == null) return null;
     await driver.get(url);
     await driver.sleep(3000);
     let ob = { hid };
