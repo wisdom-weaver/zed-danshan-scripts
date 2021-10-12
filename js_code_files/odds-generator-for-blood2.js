@@ -14,15 +14,19 @@ const { generate_max_horse } = require("./max_horses");
 const {
   get_n_upload_rating_flames,
   generate_rating_flames,
+  generate_rating_flames_wraces,
 } = require("./update_flame_concentration");
-const { dec } = require("./utils");
+const { dec, get_fee_tag } = require("./utils");
 const {
   generate_breed_rating,
   generate_breed_rating_m1,
   init_btbtz,
 } = require("./horses-kids-blood2");
 const { generate_rating_blood } = require("./blood_rating_blood-2");
-const { generate_odds_flames_hid } = require("./odds-flames-blood2");
+const {
+  generate_odds_flames_hid,
+  generate_odds_flames,
+} = require("./odds-flames-blood2");
 
 let mx;
 let st = 1;
@@ -147,8 +151,9 @@ const get_races_of_hid = async (hid) => {
   data = struct_race_row_data(data);
   data = data.map((e) => {
     let { entryfee: fee, date } = e;
-    let fee_cat = get_fee_cat_on({ fee, date });
-    return { ...e, fee_cat };
+    let entryfee_usd = get_at_eth_price_on(date) * parseFloat(fee);
+    let fee_tag = get_fee_tag(entryfee_usd);
+    return { ...e, fee_tag, entryfee_usd };
   });
   return data;
 };
@@ -224,7 +229,7 @@ const calc_median = (array = []) => {
 
 const cls = ["#", 0, 1, 2, 3, 4, 5];
 const dists = ["####", 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600];
-const fee_cats = ["#", "A", "B", "C", "F"];
+const fee_tags = ["#", "A", "B", "C", "D", "E", "F"];
 
 const get_rated_type = (cf = null) => {
   // console.log(cf);
@@ -234,10 +239,10 @@ const get_rated_type = (cf = null) => {
   return "NR";
 };
 
-const get_keys_map = ({ cls, dists, fee_cats }) => {
+const get_keys_map = ({ cls, dists, fee_tags }) => {
   let odds_modes = [];
   for (let c of cls)
-    for (let f of fee_cats)
+    for (let f of fee_tags)
       for (let d of dists) odds_modes.push(`${c}${f}${d}`);
   odds_modes = _.uniq(odds_modes);
   return odds_modes;
@@ -245,11 +250,11 @@ const get_keys_map = ({ cls, dists, fee_cats }) => {
 const get_odds_map = ({
   cls,
   dists,
-  fee_cats,
+  fee_tags,
   races = [],
   extra_criteria = {},
 }) => {
-  let odds_modes = get_keys_map({ cls, dists, fee_cats });
+  let odds_modes = get_keys_map({ cls, dists, fee_tags });
   let ob = {};
   odds_modes.forEach((o) => {
     let c = o[0];
@@ -267,7 +272,7 @@ const get_odds_map = ({
 };
 
 const gen_odds_coll = ({ coll, races = [], extra_criteria = {} }) => {
-  let odds_map = get_odds_map({ cls, dists, fee_cats, races, extra_criteria });
+  let odds_map = get_odds_map({ cls, dists, fee_tags, races, extra_criteria });
   let ob = {};
   // console.log(odds_map);
   for (let key in odds_map) {
@@ -350,7 +355,7 @@ const calc_blood_hr = async ({
 
   let keys = get_keys_map({
     cls: cls.slice(2),
-    fee_cats: fee_cats.slice(1),
+    fee_tags: fee_tags.slice(1),
     dists: override_dist != false ? [override_dist] : dists.slice(1),
   });
   let ol = keys.map((k) => ({
@@ -561,29 +566,24 @@ const generate_odds_for = async (hid) => {
       ...or_map[0],
     });
     // console.log(odds_overall);
-    let odds_live = await gen_odds_coll({
-      hid,
-      races,
-      ...or_map[1],
-    });
+    let odds_live = await gen_odds_coll({ hid, races, ...or_map[1] });
     // console.log(or_map[1]);
     let races_n = races?.length || 0;
-    // let rating_blood = await gen_rating_blood({
-    //   hid,
-    //   odds_live,
-    //   tc,
-    //   races_n,
-    // });
-    let rating_blood = await generate_rating_blood({
-      hid,
-      races,
-      tc,
-    });
-    let rating_flames = await generate_rating_flames(hid);
+
+    let rating_blood = await generate_rating_blood({ hid, races, tc });
+    let rating_flames = await generate_rating_flames_wraces({ hid, races });
+    let odds_flames = await generate_odds_flames({ hid, races });
     let blood_str = get_blood_str(rating_blood);
     let flames_str = get_flames_str(rating_flames);
     console.log(`# hid:`, hid, "len:", races.length, blood_str, flames_str);
-    return { hid, odds_live, odds_overall, rating_blood, rating_flames };
+    return {
+      hid,
+      odds_live,
+      odds_overall,
+      rating_blood,
+      rating_flames,
+      odds_flames,
+    };
   } catch (err) {
     console.log("ERROR generate_odds_for", hid);
     console.log("ERROR generate_odds_for", hid, err);
@@ -596,9 +596,17 @@ const odds_generator_bulk_push = async (obar) => {
   let odds_overall2_bulk = [];
   let rating_blood2_bulk = [];
   let rating_flames2_bulk = [];
+  let odds_flames2_bulk = [];
   for (let ob of obar) {
     if (_.isEmpty(ob)) continue;
-    let { hid, odds_live, odds_overall, rating_blood, rating_flames } = ob;
+    let {
+      hid,
+      odds_live,
+      odds_overall,
+      rating_blood,
+      rating_flames,
+      odds_flames,
+    } = ob;
     odds_live_bulk.push({
       updateOne: {
         filter: { hid },
@@ -627,11 +635,19 @@ const odds_generator_bulk_push = async (obar) => {
         upsert: true,
       },
     });
+    odds_flames2_bulk.push({
+      updateOne: {
+        filter: { hid },
+        update: { $set: odds_flames },
+        upsert: true,
+      },
+    });
   }
   await zed_db.db.collection("odds_live").bulkWrite(odds_live_bulk);
   await zed_db.db.collection("odds_overall2").bulkWrite(odds_overall2_bulk);
   await zed_db.db.collection("rating_blood2").bulkWrite(rating_blood2_bulk);
   await zed_db.db.collection("rating_flames2").bulkWrite(rating_flames2_bulk);
+  await zed_db.db.collection("odds_flames2").bulkWrite(odds_flames2_bulk);
   console.log("wrote bulk", obar.length);
 };
 const breed_generator_bulk_push = async (obar) => {
@@ -993,11 +1009,10 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const runner = async () => {
   await initiate();
   let hid = 3312;
-  let races = await zed_ch.db.collection("zed").find({ 6: hid }).toArray();
-  let odds_flames = await odds_flames_generator({ hid, races });
-  console.log(odds_flames);
+  let ob = await generate_odds_for(hid);
+  console.log(ob)
 };
-// runner();
+runner();
 
 module.exports = {
   initiate,

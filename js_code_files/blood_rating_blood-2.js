@@ -68,19 +68,19 @@ const get_rat_score = ({ c, f, d, races }) => {
   let tag_price = fee_tags_ob[f][0];
   let feeX4 = tag_price * 4;
 
-  console.table([
-    {
-      c,
-      f,
-      d,
-      p_1_2_11_12_per,
-      win_by,
-      tag_price,
-      feeX4,
-      races_n,
-      races_Nx,
-    },
-  ]);
+  // console.table([
+  //   {
+  //     c,
+  //     f,
+  //     d,
+  //     p_1_2_11_12_per,
+  //     win_by,
+  //     tag_price,
+  //     feeX4,
+  //     races_n,
+  //     races_Nx,
+  //   },
+  // ]);
 
   let perf = 0;
   perf = (p_1_2_11_12_per + feeX4 + races_Nx + win_by) / 100;
@@ -119,7 +119,7 @@ const generate_rating_blood_calc = async ({ hid, races = [] }) => {
         } else rat_score = null;
 
         if (rat_score !== null) {
-          console.log({ key, rat_score });
+          // console.log({ key, rat_score });
           ar.push({ key, rat_score, c, f, d, len: fr.length });
         }
       }
@@ -149,7 +149,7 @@ const generate_rating_blood = async ({ hid, races, tc }) => {
     if (side == "C" && tc == 1) side = "B";
     ob.side = side;
   }
-  console.log(hid, ob.rated_type, side_text(ob.side), get_blood_str(ob));
+  // console.log(hid, ob.rated_type, side_text(ob.side), get_blood_str(ob));
   return ob;
 };
 const generate_rating_blood_from_hid = async (hid) => {

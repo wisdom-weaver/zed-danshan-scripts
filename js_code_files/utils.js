@@ -133,6 +133,36 @@ const side_text = (side) =>
   (side == "C" && "avg") ||
   "na";
 
+const fee_tags_ob = {
+  A: [25.0, 17.5, 5000],
+  B: [15.0, 12.5, 17.5],
+  C: [10.0, 7.5, 12.5],
+  D: [5.0, 3.75, 7.5],
+  E: [2.5, 1.25, 3.75],
+  F: [0.0, 0.0, 0.0],
+};
+const get_fee_tag = (entryfee_usd, f = 1) => {
+  for (let [tag, [rep, mi, mx]] of _.entries(fee_tags_ob))
+    if (_.inRange(entryfee_usd, mi, mx + 1e-3)) {
+      if (f == 2) return rep;
+      return tag;
+    }
+};
+const disp_fee_tag = (tag) => {
+  return "$" + dec2(fee_tags_ob[tag][0]);
+};
+
+const get_fee_tag_color = (fee) => {
+  return (
+    (fee == "A" && get_color("red")) ||
+    (fee == "B" && get_color("pink")) ||
+    (fee == "C" && get_color("blue")) ||
+    (fee == "D" && get_color("fire")) ||
+    (fee == "E" && get_color("green")) ||
+    get_color("yellow")
+  );
+};
+
 module.exports = {
   calc_avg,
   write_to_path,
@@ -146,4 +176,8 @@ module.exports = {
   struct_race_row_data,
   dec,
   side_text,
+  fee_tags_ob,
+  get_fee_tag,
+  disp_fee_tag,
+  get_fee_tag_color,
 };

@@ -64,10 +64,10 @@ const add_fee_cat_to_all_horses_races = async () => {
 let keys = (() => {
   let classes = [1, 2, 3, 4, 5];
   let dists = [1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600];
-  let fee_cats = ["A", "B", "C"];
+  let fee_tags = ["A", "B", "C", "D", "E", "F"];
   let keys = [];
   for (let c of classes)
-    for (let f of fee_cats) for (let d of dists) keys.push(`${c}${f}${d}`);
+    for (let f of fee_tags) for (let d of dists) keys.push(`${c}${f}${d}`);
   return keys;
 })();
 
@@ -125,10 +125,70 @@ const generate_rating_flames = async (hid) => {
       let F = 1;
       let d = parseInt(key.slice(2));
       let fr = races.filter((r) => {
-        let fee_cat = get_fee_cat_on({ date: r.date, fee: r.entryfee });
         if (r.thisclass !== c) return false;
-        // if (r.fee_cat !== f) return false;
+        if (r.fee_tag !== f) return false;
         if (fee_cat !== f) return false;
+        if (r.distance !== d) return false;
+        return true;
+      });
+      let fr_F = fr.filter((r) => r.flame == F);
+      if (fr_F.length <= 2) continue;
+
+      let points_ar = fr_F.map((e) => get_points_from_place(e.place));
+      let tot_points = _.sum(points_ar);
+      let avg_points = _.mean(points_ar);
+      // console.log(key, avg_points)
+      ob[key] = {
+        cf: `${c}${f}`,
+        races_n,
+        cfd_n: fr.length,
+        flames_n: fr_F.length,
+        tot_points,
+        avg_points,
+      };
+    }
+    ob = _.entries(ob).map(([key, e]) => ({
+      key,
+      ...e,
+    }));
+    ob = ob.map((ea) => {
+      let flames_per = (ea.flames_n * 100) / ea.cfd_n;
+      flames_per = parseFloat(flames_per).toFixed(2);
+      flames_per = parseFloat(flames_per);
+
+      return { ...ea, flames_per };
+    });
+    ob = _.orderBy(
+      ob,
+      ["cf", "flames_per", "avg_points"],
+      ["asc", "desc", "desc"]
+    );
+
+    if (_.isEmpty(ob)) return { ...def_rating_flames, hid, races_n };
+    // console.table(ob);
+    let mx_ob = ob[0];
+    // console.table(mx_ob);
+    return { hid, ...mx_ob };
+  } catch (err) {
+    console.log("err on get_rating_flames", hid);
+    console.log(err);
+  }
+};
+const generate_rating_flames_wraces = async ({ hid, races = [] }) => {
+  try {
+    hid = parseInt(hid);
+    if (races?.length == 0) return { hid, ...def_rating_flames, races_n: 0 };
+    // console.table(races);
+    let races_n = races.length;
+    let ob = {};
+    for (let key of keys) {
+      let c = parseInt(key[0]);
+      let f = key[1];
+      let F = 1;
+      let d = parseInt(key.slice(2));
+      let fr = races.filter((r) => {
+        if (r.thisclass !== c) return false;
+        if (r.fee_tag !== f) return false;
         if (r.distance !== d) return false;
         return true;
       });
@@ -215,4 +275,5 @@ const add_rating_flames_to_all_horses_races = async () => {
 module.exports = {
   get_n_upload_rating_flames,
   generate_rating_flames,
+  generate_rating_flames_wraces,
 };

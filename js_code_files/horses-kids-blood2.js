@@ -766,7 +766,7 @@ const runner2 = async () => {
     console.log("done");
   }
 };
-runner2();
+// runner2();
 
 const runner3 = async () => {
   await init();
