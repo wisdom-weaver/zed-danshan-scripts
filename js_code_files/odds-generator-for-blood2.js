@@ -16,7 +16,11 @@ const {
   generate_rating_flames,
 } = require("./update_flame_concentration");
 const { dec } = require("./utils");
-const { generate_breed_rating, init_btbtz } = require("./horses-kids-blood2");
+const {
+  generate_breed_rating,
+  generate_breed_rating_m1,
+  init_btbtz,
+} = require("./horses-kids-blood2");
 const { generate_rating_blood } = require("./blood_rating_blood-2");
 const { generate_odds_flames_hid } = require("./odds-flames-blood2");
 
@@ -756,6 +760,44 @@ const breed_generator_all_horses = async () => {
     console.log("ERROR fetch_all_horses\n", err);
   }
 };
+const breed_generator_m1_all_horses = async () => {
+  try {
+    console.log("breed_generator_m1_all_horses");
+    await initiate();
+    await init_btbtz();
+    let st = 1;
+    let ed = 2000000;
+    let cs = 500;
+    let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
+    // let hids = [26646, 21744, 21512];
+    outer: while (true) {
+      console.log("=> STARTED breed_generator: ", `${st}:${ed}`);
+      for (let chunk of _.chunk(hids, cs)) {
+        // console.log("\n=> fetching together:", chunk.toString());
+        let obar = await Promise.all(
+          chunk.map((hid) => generate_breed_rating_m1(hid))
+        );
+        let emps = _.filter(obar, { kids_n: 0, kid_score: null });
+        console.log("emptys len:", emps.length);
+        if (emps.length == chunk.length) {
+          console.log("starting from initial");
+          continue outer;
+        }
+        // console.table(obar);
+        try {
+          await general_bulk_push("rating_breed_m1", obar);
+        } catch (err) {
+          console.log("mongo err");
+        }
+        console.log("! got", chunk[0], " -> ", chunk[chunk.length - 1]);
+        await delay(chunk_delay);
+      }
+    }
+    console.log("breed_generator_m1_all_horses");
+  } catch (err) {
+    console.log("ERROR fetch_all_horses\n", err);
+  }
+};
 
 const odds_flames_generator_all_horses = async () => {
   try {
@@ -965,4 +1007,5 @@ module.exports = {
   odds_generator_for_hids,
   breed_generator_errs,
   odds_flames_generator_all_horses,
+  breed_generator_m1_all_horses,
 };

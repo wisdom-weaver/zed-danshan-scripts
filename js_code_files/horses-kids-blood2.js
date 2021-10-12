@@ -419,6 +419,129 @@ const generate_breed_rating = async (hid, p = 0) => {
   }
 };
 
+const generate_breed_rating_m1 = async (hid, p = 0) => {
+  try {
+    let hid_kid_score = await get_kids_score(hid);
+    hid = parseInt(hid);
+    if (hid == null || isNaN(hid)) return null;
+    let kids = (await get_kids_existing(hid)) || [];
+    kids = _.sortBy(kids, (i) => +parseInt(i.hid));
+    if (p) console.table(kids);
+    if (kids.length >= 1) kids = kids.slice(0, kids.length - 1);
+    if (p) console.table(kids);
+    // console.log({ hid, kids });
+    if (_.isEmpty(kids)) {
+      let empty_kg = {
+        hid,
+        odds: {},
+        avg: null,
+        br: null,
+        kids_n: 0,
+        is: null,
+        kid_score: hid_kid_score,
+      };
+      console.log(
+        "# hid:",
+        hid,
+        "kids_n:",
+        0,
+        "br:",
+        null,
+        "hid_kid_score:",
+        dec(hid_kid_score, 2)
+      );
+      return empty_kg;
+    }
+
+    let kids_n = _.isEmpty(kids) ? 0 : kids.length;
+    let kids_hids = _.map(kids, "hid");
+
+    let kids_scores_ob = await Promise.all(
+      kids.map((kid) => get_kids_score(kid.hid).then((z) => [kid.hid, z]))
+    );
+    kids_scores_ob = Object.fromEntries(kids_scores_ob);
+
+    let gavg_ob = await Promise.all(
+      kids.map((kid) =>
+        get_blbtz_global_avg(kid).then((gavg) => [kid.hid, gavg])
+      )
+    );
+    gavg_ob = Object.fromEntries(gavg_ob);
+
+    let op_br_ob = await Promise.all(
+      kids.map((kid) => {
+        let { father, mother } = kid.parents;
+        let op = hid == father ? mother : father;
+        return get_breed_rating(op).then((op_br) => [kid.hid, op_br]);
+      })
+    );
+    op_br_ob = Object.fromEntries(op_br_ob);
+
+    kids = kids.map((e) => ({
+      ...e,
+      kid_score: kids_scores_ob[e.hid],
+      gavg: gavg_ob[e.hid],
+      op_br: op_br_ob[e.hid],
+    }));
+    kids = kids.map((e) => {
+      let fact;
+      if (
+        e.kid_score == 0 ||
+        e.gavg == 0 ||
+        _.isNaN(e.kid_score) ||
+        _.isNaN(e.gavg)
+      )
+        fact = null;
+      else fact = e.kid_score / e.gavg;
+      let adj;
+      if (fact == null) adj = null;
+
+      if (e.op_br == null || _.isNaN(e.op_br)) {
+        adj = fact;
+      } else {
+        adj = e.op_br > 1.1 ? fact * 0.9 : e.op_br < 0.9 ? fact * 1.1 : fact;
+      }
+      let good_adj;
+      if (adj == 0) good_adj = 0;
+      else good_adj = e.kid_score > e.gavg ? 0.1 : -0.1;
+      return { ...e, fact, adj, good_adj };
+    });
+    if (p) console.table(kids);
+
+    let avg = _.chain(kids_scores_ob).values().compact().mean().value();
+    let br = _.chain(kids).map("adj").values().compact().value();
+    if (br.length == 0) br = null;
+    else br = _.mean(br);
+
+    br += _.chain(kids).map("good_adj").compact().sum().value();
+
+    let kg = {
+      hid,
+      odds: kids_scores_ob,
+      avg,
+      br,
+      kids_n,
+      kid_score: hid_kid_score,
+    };
+    // console.log({ avg: dec2(avg), br: dec2(br) });
+    console.log(
+      "# hid:",
+      hid,
+      "kids_n:",
+      kids_n,
+      "br:",
+      dec(br, 2),
+      "hid_kid_score:",
+      dec(hid_kid_score, 2)
+    );
+    return kg;
+  } catch (err) {
+    console.log("err on horse get_kg", hid);
+    console.log(err);
+    return null;
+  }
+};
+
 const get_kids_and_upload = async (hid, print = 0) => {
   try {
     hid = parseInt(hid);
@@ -635,15 +758,16 @@ const runner = async () => {
 const runner2 = async () => {
   await init();
   await init_btbtz();
-  let hids = [91288];
+  let hids = [3312];
   // let hids = [24865, 22558, 20501, 24538, 26646, 24865, 22558, 20501, 24538];
   for (let hid of hids) {
-    let br = await generate_breed_rating(hid, 1);
+    let br = await generate_breed_rating_m1(hid, 1);
     console.log(br);
     console.log("done");
   }
 };
-// runner2();
+runner2();
+
 const runner3 = async () => {
   await init();
   await download_eth_prices();
@@ -735,7 +859,7 @@ const tabulate_hids_br_ymca = async () => {
   for (let chunk_hids of _.chunk(hids, cs)) {
     let file_path = `${app_root}/data/rating_breed2/rating_breed2-${
       chunk_hids[0]
-    }-${chunk_hids[chunk_hids.length - 1]}.json`;
+    }-${chunk_hids[chunk_hids.length - 1]} (1).json`;
     let ob = read_from_path({ file_path });
     // console.log("got chunk", chunk_hids[0], chunk_hids[chunk_hids.length - 1]);
     mapped = { ...mapped, ...ob };
@@ -753,11 +877,13 @@ const tabulate_hids_br_ymca = async () => {
     .groupBy("ymca_tag")
     .entries()
     .map(([tag, vals]) => {
+      vals = vals.filter((ea) => ea.kids_n > 5);
       let n = vals.length;
-      let mean = _.chain(vals).map("kid_score").mean().value();
-      return [tag, { mean, count: n }];
+      let mean2 = _.chain(vals).map("kid_score").mean().value();
+      return { mean: mean2, count2: n, tag };
     })
-    .fromPairs()
+    .sortBy("tag")
+    .keyBy("tag")
     .value();
   console.table(ymca_ob);
 };
@@ -772,4 +898,5 @@ module.exports = {
   blood_breed_z_table,
   init_btbtz,
   download_hids_br_ymca,
+  generate_breed_rating_m1,
 };
