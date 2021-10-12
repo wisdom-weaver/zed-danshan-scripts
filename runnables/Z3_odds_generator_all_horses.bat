@@ -1,0 +1,2 @@
+npm run odds_generator_all_horses
+PAUSE
