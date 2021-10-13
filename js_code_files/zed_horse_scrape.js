@@ -129,7 +129,7 @@ const extract_hex_code = async (cont) => {
     hex_code = hex_code.replaceAll(".svg", "");
     return { hex_code };
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     return { hex_code: null };
   }
 };
