@@ -12,7 +12,7 @@ console.log(chromedriver.path);
 chrome.setDefaultService(new chrome.ServiceBuilder(chromedriver.path).build());
 
 // These options are necessary if you'd like to deploy to Heroku
-// options.addArguments("--headless");
+options.addArguments("--headless");
 options.addArguments("--disable-gpu");
 options.addArguments("--no-sandbox");
 options.addArguments("start-maximized");
