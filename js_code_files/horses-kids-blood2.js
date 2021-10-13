@@ -779,49 +779,7 @@ const runner3 = async () => {
   console.log("done");
 };
 // runner3();
-
-const download_hids_br_ymca = async () => {
-  await init();
-  let st = 1;
-  let ed = 2000000;
-  let cs = 2000;
-  let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
-  let i = 0;
-  for (let chunk_hids of _.chunk(hids, cs)) {
-    let docs_a = await zed_db.db
-      .collection("rating_breed2")
-      .find(
-        { hid: { $in: chunk_hids } },
-        { projection: { hid: 1, _id: 0, kid_score: 1, br: 1, kids_n: 1 } }
-      )
-      .toArray();
-    let docs_b = await zed_db.db
-      .collection("horse_details")
-      .find(
-        { hid: { $in: chunk_hids } },
-        { projection: { hid: 1, _id: 0, parents: 1 } }
-      )
-      .toArray();
-    let this_hids = _.map(docs_a, "hid");
-    if (_.isEmpty(this_hids)) {
-      console.log("empty");
-      continue;
-    }
-    let ob = {};
-    for (let hid of this_hids)
-      ob[hid] = { ..._.find(docs_a, { hid }), ..._.find(docs_b, { hid }) };
-
-    let file_path = `${app_root}/data/rating_breed2/rating_breed2-${
-      chunk_hids[0]
-    }-${chunk_hids[chunk_hids.length - 1]}.json`;
-    write_to_path({ file_path, data: ob });
-    console.log("chunk", chunk_hids[0], chunk_hids[chunk_hids.length - 1]);
-    i++;
-  }
-};
-// download_hids_br_ymca();
-
-const ymca_cont = {
+const ymca_cont1 = {
   a: [4, 100],
   b: [3.8, 4],
   c: [3.6, 3.8],
@@ -844,10 +802,93 @@ const ymca_cont = {
   t: [0, 0.2],
   u: [-100, 1],
 };
+const ymca_cont2 = {
+  a: [3, 4],
+  b: [2, 3],
+  c: [1, 2],
+  d: [-10, 1],
+};
+const ymca_cont3 = {
+  a: [3, 4],
+  b: [2.5, 3],
+  c: [2, 2.5],
+  d: [1.5, 2],
+  e: [1, 1.5],
+  f: [0.5, 1],
+  g: [-20, 0.5],
+};
+const ymca_cont = ymca_cont2;
 const get_ymca_tag = (val) => {
   for (let [tag, [mi, mx]] of _.entries(ymca_cont))
     if (_.inRange(val, mi, mx)) return tag;
 };
+const download_hids_br_ymca = async () => {
+  await init();
+  let st = 112001;
+  let ed = 200000;
+  let cs = 2000;
+  let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
+  let i = 0;
+  for (let chunk_hids of _.chunk(hids, cs)) {
+    let docs_a = await zed_db.db
+      .collection("rating_breed_m1")
+      .find(
+        { hid: { $in: chunk_hids } },
+        { projection: { hid: 1, _id: 0, kid_score: 1, br: 1, kids_n: 1 } }
+      )
+      .toArray();
+    let docs_b = await zed_db.db
+      .collection("rating_breed2")
+      .find(
+        { hid: { $in: chunk_hids } },
+        { projection: { hid: 1, _id: 0, kid_score: 1, br: 1, kids_n: 1 } }
+      )
+      .toArray();
+    let docs_c = await zed_db.db
+      .collection("horse_details")
+      .find(
+        { hid: { $in: chunk_hids } },
+        { projection: { hid: 1, _id: 0, parents: 1, offsprings: 1 } }
+      )
+      .toArray();
+    let this_hids = _.map(docs_c, "hid");
+    if (_.isEmpty(this_hids)) {
+      console.log(docs_c);
+      console.log("empty");
+      continue;
+    }
+    let ob = {};
+    for (let hid of this_hids) {
+      let doc_a = _.find(docs_a, { hid });
+      let doc_b = _.find(docs_b, { hid });
+      let doc_c = _.find(docs_c, { hid });
+      let dc = { hid };
+      if (_.isEmpty(doc_a)) continue;
+      dc.br_m1 = doc_a.br;
+      dc.br = doc_b.br;
+      dc.kids_n_m1 = doc_a.kids_n;
+      dc.kids_n = doc_b.kids_n;
+      dc.kid_score = doc_b.kid_score;
+      dc.parents = doc_c?.parents || { mother: null, father: null };
+      let [offs, last_kid] = ((offs = []) => {
+        if (_.isEmpty(offs)) return [[], null];
+        offs = offs.sort((a, b) => a - b);
+        let last_kid = offs[offs.length - 1];
+        return [offs, last_kid];
+      })(doc_c?.offsprings);
+      dc.offsprings = offs;
+      dc.last_kid = last_kid;
+      ob[hid] = dc;
+    }
+
+    let [st_h, ed_h] = [chunk_hids[0], chunk_hids[chunk_hids.length - 1]];
+    let file_path = `${app_root}/data/breed_testing/br_test-${st_h}-${ed_h}.json`;
+    write_to_path({ file_path, data: ob });
+    console.log("chunk", chunk_hids[0], chunk_hids[chunk_hids.length - 1]);
+    i++;
+  }
+};
+// download_hids_br_ymca();
 const tabulate_hids_br_ymca = async () => {
   // await init();
   let st = 1;
@@ -857,30 +898,88 @@ const tabulate_hids_br_ymca = async () => {
   let i = 0;
   let mapped = {};
   for (let chunk_hids of _.chunk(hids, cs)) {
-    let file_path = `${app_root}/data/rating_breed2/rating_breed2-${
-      chunk_hids[0]
-    }-${chunk_hids[chunk_hids.length - 1]} (1).json`;
+    let [st_h, ed_h] = [chunk_hids[0], chunk_hids[chunk_hids.length - 1]];
+    let file_path = `${app_root}/data/breed_testing/br_test-${st_h}-${ed_h}.json`;
     let ob = read_from_path({ file_path });
     // console.log("got chunk", chunk_hids[0], chunk_hids[chunk_hids.length - 1]);
     mapped = { ...mapped, ...ob };
     i++;
   }
+  console.log(_.keys(mapped).length, "horses");
+
+  let last_kids_ob = {};
   for (let hid in mapped) {
-    let { parents } = mapped[hid];
-    let br_f = mapped[parents?.father]?.br || 0;
-    let br_m = mapped[parents?.mother]?.br || 0;
-    let tot_pbr = parseFloat(br_f + br_m);
-    mapped[hid].tot_pbr = tot_pbr;
-    mapped[hid].ymca_tag = get_ymca_tag(tot_pbr);
+    hid = parseInt(hid);
+    let h_doc = mapped[hid];
+    let { parents, kid_score } = h_doc;
+    let { father = null, mother = null } = parents || {};
+
+    let {
+      last_kid: last_kid1,
+      br_m1: br_m1_f,
+      br: br_f,
+    } = (father && mapped[father]) || { last_kid: null, br_m1: 0, br: 0 };
+    let {
+      last_kid: last_kid2,
+      br_m1: br_m1_m,
+      br: br_m,
+    } = (mother && mapped[mother]) || { last_kid: null, br_m1: 0, br: 0 };
+    if (hid !== last_kid1) continue;
+    if (hid !== last_kid2) continue;
+    console.log("last kid", hid);
+
+    let brs = [br_f, br_m];
+    let brs_m1 = [br_m1_f, br_m1_m];
+    let comb_p_br = _.sum(brs);
+    let comb_p_br_m1 = _.sum(brs_m1);
+    let doc = {
+      hid,
+      comb_p_br,
+      comb_p_br_m1,
+      kid_score,
+      ymca_tag: get_ymca_tag(comb_p_br_m1),
+      comb_p_br_m1,
+    };
+    last_kids_ob[hid] = doc;
   }
-  let ymca_ob = _.chain(mapped)
+  console.log("last_kids", _.keys(last_kids_ob).length);
+  let file_path = `${app_root}/data/breed_testing/last_kids_doc.json`;
+  write_to_path({ file_path, data: last_kids_ob });
+
+  let [global_avg_br, global_avg_kids_score] = ((vals) => {
+    let mean_kid_score = _.chain(vals)
+      .map("kid_score")
+      .compact()
+      .mean()
+      .value();
+    let mean_br = _.chain(vals).map("br_m1").compact().mean().value();
+    return [mean_br, mean_kid_score];
+  })(mapped);
+  console.log({ global_avg_br, global_avg_kids_score });
+
+  let ymca_ob = _.chain(last_kids_ob)
+    .values()
     .groupBy("ymca_tag")
     .entries()
     .map(([tag, vals]) => {
-      vals = vals.filter((ea) => ea.kids_n > 5);
-      let n = vals.length;
-      let mean2 = _.chain(vals).map("kid_score").mean().value();
-      return { mean: mean2, count2: n, tag };
+      let count = vals.length;
+      vals = _.compact(vals);
+      let mean_kid_score = _.chain(vals)
+        .map("kid_score")
+        .compact()
+        .mean()
+        .value();
+      let mean_comb_p_br_m1 = _.chain(vals)
+        .map("comb_p_br_m1")
+        .compact()
+        .mean()
+        .value();
+      let mean_comb_p_br = _.chain(vals)
+        .map("comb_p_br")
+        .compact()
+        .mean()
+        .value();
+      return { tag, count, mean_kid_score, mean_comb_p_br_m1, mean_comb_p_br };
     })
     .sortBy("tag")
     .keyBy("tag")
@@ -898,5 +997,6 @@ module.exports = {
   blood_breed_z_table,
   init_btbtz,
   download_hids_br_ymca,
+  tabulate_hids_br_ymca,
   generate_breed_rating_m1,
 };
