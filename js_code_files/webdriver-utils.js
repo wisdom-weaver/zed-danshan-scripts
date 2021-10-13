@@ -25,7 +25,7 @@ const get_webdriver = async () => {
       .setChromeOptions(options)
       .setChromeService(serviceBuilder)
       .build();
-    await delay(2000);
+    // await delay(2000);
     return driver;
   } catch (err) {
     console.log("err in get_webdriver");
