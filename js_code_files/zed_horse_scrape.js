@@ -127,6 +127,7 @@ const extract_hex_code = async (cont) => {
     // console.log(hex_code);
     hex_code = hex_code.slice(hex_code.lastIndexOf("/") + 1);
     hex_code = hex_code.replaceAll(".svg", "");
+    // console.log(hex_code)
     return { hex_code };
   } catch (err) {
     // console.log(err);
@@ -222,7 +223,7 @@ const scrape_horse_details = async (hid) => {
     return ob;
   } catch (err) {
     console.log("err on scrape_horse_details", hid);
-    console.log("err on scrape_horse_details", err);
+    // console.log("err on scrape_horse_details", err);
     if (driver && driver.quit) await driver.quit();
     return null;
   }
