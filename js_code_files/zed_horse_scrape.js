@@ -261,7 +261,7 @@ const zed_horses_all_scrape = async () => {
 
 const upload_kid_id_to_parents = async ({ hid, parents = {} }) => {
   try {
-    let { mother, father } = parents || {};
+    let { mother = null, father = null } = parents || {};
     if (mother) {
       mother = parseInt(mother);
       await zed_db
@@ -283,7 +283,7 @@ const upload_kid_id_to_parents = async ({ hid, parents = {} }) => {
         );
     }
   } catch (err) {
-    console.log(err);
+    console.log("err upload_kid_id_to_parents", err.message);
   }
 };
 

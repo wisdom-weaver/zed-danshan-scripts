@@ -54,40 +54,64 @@ const get_fee_tag = (entryfee_usd) => {
     if (_.inRange(entryfee_usd, mi, mx + 1e-3)) return tag;
 };
 
-const get_rat_score = ({ c, f, d, races }) => {
+const place_fact = {
+  1: 1,
+  2: 0.6,
+  3: 0.45,
+  11: 0.2,
+  12: 0.3,
+};
+
+const get_rat_score = ({ c, f, d, races, cf_fee }, p) => {
   let races_n = races.length;
-  let p_1_2_11_12_per = _.filter(races, (i) =>
-    ["1", "2", "11", "12"].includes(i.place?.toString())
-  );
-  p_1_2_11_12_per = ((p_1_2_11_12_per?.length || 0) * 100) / races_n;
 
-  let win_by = _.filter(races, (i) => i.place?.toString() === "1");
-  win_by = ((win_by?.length || 0) * 100) / races_n;
-
-  let races_Nx = races_n * 0.01;
   let tag_price = fee_tags_ob[f][0];
-  let feeX4 = tag_price * 4;
 
-  // console.table([
-  //   {
-  //     c,
-  //     f,
-  //     d,
-  //     p_1_2_11_12_per,
-  //     win_by,
-  //     tag_price,
-  //     feeX4,
-  //     races_n,
-  //     races_Nx,
-  //   },
-  // ]);
+  // 1st WIn % *1
+  // 2nd Win % *.6
+  // 3rd win % *.45
+  // 11th Win % *.2
+  // 12th WIn % .3
+  let p_nums = _.chain(place_fact)
+    .entries()
+    .map(([p, fact]) => {
+      p = p.toString();
+      let per = _.filter(races, (i) => i.place?.toString() == p);
+      per = ((per?.length || 0) * 100) / races_n;
+      per *= fact;
+      if (!per || _.isNaN(per)) per = 0;
+      return [`#${p}`, per];
+    })
+    .fromPairs()
+    .value();
+
+  // Entry Fee X4 (max 200)
+  let feeX4 = cf_fee * 4;
+  if (feeX4 > 200) feeX4 = 200;
+
+  // Number of Races X 1 (max10)
+  let races_Nx = races_n;
+  if (races_Nx > 10) races_Nx = 10;
+
+  if (p)
+    console.table([
+      {
+        key: `${c}${f}${d}`,
+        races_n,
+        tag_price,
+        ...p_nums,
+        cf_fee,
+        feeX4,
+        races_Nx,
+      },
+    ]);
 
   let perf = 0;
-  perf = (p_1_2_11_12_per + feeX4 + races_Nx + win_by) / 100;
+  perf = _.sum([..._.values(p_nums), feeX4, races_Nx]) / 100;
   return perf;
 };
 
-const generate_rating_blood_calc = async ({ hid, races = [] }) => {
+const generate_rating_blood_calc = async ({ hid, races = [] }, p) => {
   hid = parseInt(hid);
   races = races.map((e) => {
     let entryfee_usd = parseFloat(e.entryfee) * get_at_eth_price_on(e.date);
@@ -104,6 +128,12 @@ const generate_rating_blood_calc = async ({ hid, races = [] }) => {
   for (let c of rat_bl_seq.cls) {
     for (let f of rat_bl_seq.fee) {
       let ar = [];
+      let cf_fee = _.chain(races)
+        .filter({ thisclass: c, fee_tag: f })
+        .map((i) => parseFloat(i?.entryfee_usd))
+        .compact()
+        .mean()
+        .value();
       for (let d of rat_bl_seq.dists) {
         let fr = _.filter(races, {
           thisclass: c,
@@ -115,11 +145,11 @@ const generate_rating_blood_calc = async ({ hid, races = [] }) => {
         let key = `C${c}-D${d.toString().slice(0, 2)}-$${fee_tag_price}${f}`;
 
         if (fr.length >= 3) {
-          rat_score = get_rat_score({ c, f, d, races: fr });
+          rat_score = get_rat_score({ c, f, d, races: fr, cf_fee }, p);
         } else rat_score = null;
 
         if (rat_score !== null) {
-          // console.log({ key, rat_score });
+          if (p) console.log({ key, rat_score });
           ar.push({ key, rat_score, c, f, d, len: fr.length });
         }
       }
@@ -134,8 +164,8 @@ const generate_rating_blood_calc = async ({ hid, races = [] }) => {
   let ch_ob = { cf: null, d: null, med: null, rated_type: "CH" };
   return ch_ob;
 };
-const generate_rating_blood = async ({ hid, races, tc }) => {
-  let ob = await generate_rating_blood_calc({ hid, races });
+const generate_rating_blood = async ({ hid, races, tc }, p) => {
+  let ob = await generate_rating_blood_calc({ hid, races }, p);
   ob.hid = hid;
   ob.tc = tc;
   let side;
@@ -154,13 +184,14 @@ const generate_rating_blood = async ({ hid, races, tc }) => {
 };
 const generate_rating_blood_from_hid = async (hid) => {
   hid = parseInt(hid);
-  let { tc } = await zed_db.db
+  let { tc, name } = await zed_db.db
     .collection("horse_details")
     .findOne({ hid }, { projection: { _id: 0, tc: 1 } });
   let races = await zed_ch.db.collection("zed").find({ 6: hid }).toArray();
   races = struct_race_row_data(races);
   // console.log({ hid, tc, len: races.length });
   let ob = await generate_rating_blood({ hid, races, tc });
+  ob.name = name;
   return ob;
 };
 const get_blood_str = (ob) => {

@@ -302,7 +302,7 @@ const get_kids_score = async (hid, p = 0) => {
 
 const generate_breed_rating = async (hid, p = 0) => {
   try {
-    let hid_kid_score = await get_kids_score(hid);
+    let hid_kid_score = await get_kids_score(hid, p);
     hid = parseInt(hid);
     if (hid == null || isNaN(hid)) return null;
     let kids = (await get_kids_existing(hid)) || [];
@@ -421,7 +421,7 @@ const generate_breed_rating = async (hid, p = 0) => {
 
 const generate_breed_rating_m1 = async (hid, p = 0) => {
   try {
-    let hid_kid_score = await get_kids_score(hid);
+    let hid_kid_score = await get_kids_score(hid, p);
     hid = parseInt(hid);
     if (hid == null || isNaN(hid)) return null;
     let kids = (await get_kids_existing(hid)) || [];

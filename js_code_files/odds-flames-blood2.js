@@ -82,7 +82,7 @@ const generate_odds_flames = async ({ hid, races = [] }) => {
       // ob[k] = { len, flames_n, flames_per };
       ob[k] = flames_per;
     }
-    return { hid, races_n: races.length, odds_flames: ob };
+    return { hid, races_n: races.length, odds_flames: ob };r
   } catch (err) {
     console.log("ERROR odds_flames", hid);
     return null;

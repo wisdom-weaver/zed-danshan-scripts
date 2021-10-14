@@ -111,7 +111,7 @@ const def_rating_flames = {
   flames_per: null,
   avg_points: null,
 };
-const generate_rating_flames = async (hid) => {
+const generate_rating_flames = async (hid, p) => {
   try {
     hid = parseInt(hid);
     let races = await get_races_of_hid(hid);
@@ -165,9 +165,9 @@ const generate_rating_flames = async (hid) => {
     );
 
     if (_.isEmpty(ob)) return { ...def_rating_flames, hid, races_n };
-    // console.table(ob);
+    if (p) console.table(ob);
     let mx_ob = ob[0];
-    // console.table(mx_ob);
+    if (p) console.table(mx_ob);
     return { hid, ...mx_ob };
   } catch (err) {
     console.log("err on get_rating_flames", hid);

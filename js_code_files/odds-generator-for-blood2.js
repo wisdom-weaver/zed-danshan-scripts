@@ -22,7 +22,10 @@ const {
   generate_breed_rating_m1,
   init_btbtz,
 } = require("./horses-kids-blood2");
-const { generate_rating_blood } = require("./blood_rating_blood-2");
+const {
+  generate_rating_blood,
+  generate_rating_blood_from_hid,
+} = require("./blood_rating_blood-2");
 const {
   generate_odds_flames_hid,
   generate_odds_flames,
@@ -553,7 +556,7 @@ const generate_odds_for = async (hid) => {
       return null;
     }
 
-    let { tc } = doc;
+    let { tc, name } = doc;
     let races = await get_races_of_hid(hid);
 
     let or_map = [
@@ -571,6 +574,7 @@ const generate_odds_for = async (hid) => {
     let races_n = races?.length || 0;
 
     let rating_blood = await generate_rating_blood({ hid, races, tc });
+    rating_blood.name = name;
     let rating_flames = await generate_rating_flames_wraces({ hid, races });
     let odds_flames = await generate_odds_flames({ hid, races });
     let blood_str = get_blood_str(rating_blood);
@@ -727,6 +731,34 @@ const odds_generator_all_horses = async () => {
       let obar = await Promise.all(chunk.map((hid) => generate_odds_for(hid)));
       try {
         await odds_generator_bulk_push(obar);
+      } catch (err) {
+        console.log("mongo err");
+      }
+      console.log("! got", chunk[0], " -> ", chunk[chunk.length - 1]);
+      await delay(chunk_delay);
+    }
+  } catch (err) {
+    console.log("ERROR fetch_all_horses\n", err);
+  }
+};
+const blood_generator_all_horses = async () => {
+  try {
+    await initiate();
+    let st = 1;
+    let ed = 114000;
+    // let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
+    let hids = [21888];
+    console.log("=> STARTED blood_generator: ", `${st}:${ed}`);
+
+    let i = 0;
+    for (let chunk of _.chunk(hids, 100)) {
+      i += chunk_size;
+      // console.log("\n=> fetching together:", chunk.toString());
+      let obar = await Promise.all(
+        chunk.map((hid) => generate_rating_blood_from_hid(hid))
+      );
+      try {
+        await general_bulk_push("rating_blood2", obar);
       } catch (err) {
         console.log("mongo err");
       }
@@ -1008,9 +1040,22 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const runner = async () => {
   await initiate();
-  let hid = 2;
-  let ob = await generate_odds_for(hid);
-  // console.log(ob)
+  await init_btbtz();
+  let hid = 1102;
+  let doc = await zed_db.db
+    .collection("horse_details")
+    .findOne({ hid }, { projection: { _id: 1, tc: 1 } });
+
+  if (_.isEmpty(doc)) {
+    // console.log("horse details not present yet");
+    return null;
+  }
+
+  let { tc } = doc;
+  let races = await get_races_of_hid(hid);
+  let ob = await generate_rating_blood({ hid, races, tc }, 1);
+  console.log(hid);
+  console.log(ob);
 };
 // runner();
 
@@ -1023,4 +1068,5 @@ module.exports = {
   breed_generator_errs,
   odds_flames_generator_all_horses,
   breed_generator_m1_all_horses,
+  blood_generator_all_horses,
 };

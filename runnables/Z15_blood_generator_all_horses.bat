@@ -1,0 +1,2 @@
+npm run blood_generator_all_horses
+PAUSE

@@ -163,6 +163,12 @@ const get_fee_tag_color = (fee) => {
   );
 };
 
+const dec_per = (a, b) => {
+  if (b == 0) return `${dec(0)}%`;
+  let per = (a * 100) / b;
+  return `${dec(per)}%`;
+};
+
 module.exports = {
   calc_avg,
   write_to_path,
@@ -180,4 +186,5 @@ module.exports = {
   get_fee_tag,
   disp_fee_tag,
   get_fee_tag_color,
+  dec_per,
 };
