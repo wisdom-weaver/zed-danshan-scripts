@@ -1,11 +1,15 @@
 const { Browser, Builder, until, By } = require("selenium-webdriver");
-const { Options, ServiceBuilder } = require("selenium-webdriver/chrome");
+const chrome = require('selenium-webdriver/chrome');
+const chromedriver = require("chromedriver");
+const { Options, ServiceBuilder } = chrome;
 require("dotenv").config();
 
 let options = new Options();
 
 // This tells Selenium where to find your Chrome browser executable
-options.setChromeBinaryPath(process.env.CHROME_BINARY_PATH);
+// options.setChromeBinaryPath(process.env.CHROME_BINARY_PATH);
+console.log(chromedriver.path);
+chrome.setDefaultService(new chrome.ServiceBuilder(chromedriver.path).build());
 
 // These options are necessary if you'd like to deploy to Heroku
 options.addArguments("--headless");
@@ -38,7 +42,8 @@ const driver_test = async () => {
     else console.log("# webdriver active");
     await driver.quit();
   } catch (err) {
-    console.log("# webdriver not working", err);
+    console.log("# webdriver not working");
+    console.log(err);
   }
 };
 
