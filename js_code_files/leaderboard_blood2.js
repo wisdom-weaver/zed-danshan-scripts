@@ -21,7 +21,7 @@ const download_horses_data = async () => {
   let i = 0;
   for (let chunk_hids of _.chunk(hids, cs)) {
     let docs_a = await zed_db.db
-      .collection("rating_blood2")
+      .collection("rating_blood_dist")
       .find({ hid: { $in: chunk_hids } })
       .toArray();
     let this_hids = _.map(docs_a, "hid");
@@ -39,7 +39,7 @@ const download_horses_data = async () => {
     }
 
     let [st_h, ed_h] = [chunk_hids[0], chunk_hids[chunk_hids.length - 1]];
-    let file_path = `${app_root}/data/rating_blood2/rb2-${st_h}-${ed_h}.json`;
+    let file_path = `${app_root}/data/rating_blood_dist/rbd-${st_h}-${ed_h}.json`;
     write_to_path({ file_path, data: ob });
     console.log("chunk", chunk_hids[0], chunk_hids[chunk_hids.length - 1]);
     i++;
@@ -55,7 +55,7 @@ const get_downloaded_horses_data = async () => {
   for (let chunk_hids of _.chunk(hids, cs)) {
     let [st_h, ed_h] = [chunk_hids[0], chunk_hids[chunk_hids.length - 1]];
     let file_path =
-      `${app_root}/data/rating_blood2/rb2-${st_h}-${ed_h}.json` || {};
+      `${app_root}/data/rating_blood_dist/rbd-${st_h}-${ed_h}.json` || {};
     let ob = read_from_path({ file_path });
     if (_.isEmpty(ob)) break;
     mapped = { ...mapped, ...ob };
@@ -68,11 +68,28 @@ const generate_leaderboard_b2 = async () => {
   await fix_empty_names();
   await download_horses_data();
   let mapped = await get_downloaded_horses_data();
-  mapped = _.values(mapped);
+  console.log(mapped[3]);
+  let dists = [1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600, "All"];
+  for (let dist of dists) {
+    await generate_leaderboard_b2_each_dist({ mapped, dist });
+  }
+};
+const generate_leaderboard_b2_each_dist = async ({ mapped, dist }) => {
+  console.log("#DIST", dist);
+  mapped = _.chain(mapped)
+    .values()
+    .map((i) => {
+      if (_.isEmpty(i) || _.isEmpty(i[dist])) return null;
+      let { hid, name } = i;
+      let ob = { hid, name, ...i[dist] };
+      return ob;
+    })
+    .value();
+
   let gh_s = _.filter(mapped, { rated_type: "GH" });
   let ch_s = _.filter(mapped, { rated_type: "CH" });
   let nr_s = _.filter(mapped, { rated_type: "NR" });
-  console.log(_.find(mapped, { hid: 12315 }));
+
   let ar = [];
   ar = _.chain(gh_s)
     .groupBy("cf")
@@ -103,10 +120,10 @@ const generate_leaderboard_b2 = async () => {
         return { rank, hid, name, cf, med };
       })
       .value()
-    // .slice(0, 50)
+      .slice(0, 100)
   );
 
-  let leader_all = _.map(ar.slice(0, 100), (i) => {
+  let leader_ar = _.map(ar.slice(0, 100), (i) => {
     let { rank, hid, cf, d, med, name } = i;
     return {
       hid,
@@ -116,42 +133,46 @@ const generate_leaderboard_b2 = async () => {
         cf,
         d,
         med,
-        type: "all",
+        type: dist == "All" ? "all" : "dist",
       },
     };
   });
   let now = Date.now();
   let leader_doc = {
-    id: "leaderboard-All",
+    id: `leaderboard-${dist}`,
     date: now,
     date_str: new Date(now).toISOString(),
-    "leaderboard-dist": "All",
-    leaderboard: leader_all,
+    db_date: new Date(now).toISOString(),
+    "leaderboard-dist": dist.toString(),
+    leaderboard: leader_ar,
   };
-  console.log(leader_doc);
+  // console.log(leader_doc);
   await zed_db.db
     .collection("leaderboard")
     .updateOne({ id: leader_doc.id }, { $set: leader_doc }, { upsert: true });
+  console.log("written", dist, "leaderboard\n----------------\n");
 
-  let bulk = [];
-  for (let doc of ar) {
-    let { hid, rank } = doc;
-    if (!hid) continue;
-    bulk.push({
-      updateOne: {
-        filter: { hid },
-        update: { $set: { hid, rank } },
-      },
-    });
-  }
+  if (dist == "All") {
+    let bulk = [];
+    for (let doc of ar) {
+      let { hid, rank } = doc;
+      if (!hid) continue;
+      bulk.push({
+        updateOne: {
+          filter: { hid },
+          update: { $set: { hid, rank } },
+        },
+      });
+    }
 
-  let i = 0;
-  console.log("staring writing ", bulk.length, "ranks");
-  for (let mini_bulk of _.chunk(bulk, 2000)) {
-    if (_.isEmpty(bulk)) continue;
-    await zed_db.db.collection("rating_blood2").bulkWrite(mini_bulk);
-    i += mini_bulk.length;
-    console.log("writing ranks", dec_per(i, bulk.length));
+    let i = 0;
+    console.log("staring writing ", bulk.length, "ranks");
+    for (let mini_bulk of _.chunk(bulk, 2000)) {
+      if (_.isEmpty(bulk)) continue;
+      await zed_db.db.collection("rating_blood2").bulkWrite(mini_bulk);
+      i += mini_bulk.length;
+      console.log("writing ranks", dec_per(i, bulk.length));
+    }
   }
 };
 
