@@ -184,14 +184,20 @@ const generate_rating_blood = async ({ hid, races, tc }, p) => {
 };
 const generate_rating_blood_from_hid = async (hid) => {
   hid = parseInt(hid);
-  let { tc, name } = await zed_db.db
+  let doc = await zed_db.db
     .collection("horse_details")
-    .findOne({ hid }, { projection: { _id: 0, tc: 1 } });
+    .findOne({ hid }, { projection: { _id: 0, tc: 1, name: 1 } });
+  if (_.isEmpty(doc)) {
+    console.log("emp horse", hid);
+    return null;
+  }
+  let { tc, name } = doc;
   let races = await zed_ch.db.collection("zed").find({ 6: hid }).toArray();
   races = struct_race_row_data(races);
   // console.log({ hid, tc, len: races.length });
   let ob = await generate_rating_blood({ hid, races, tc });
   ob.name = name;
+  console.log("#hid:", hid, ob.rated_type, get_blood_str(ob));
   return ob;
 };
 const get_blood_str = (ob) => {

@@ -9,7 +9,7 @@ const {
   side_text,
 } = require("./utils");
 const app_root = require("app-root-path");
-const { dec } = require("./utils");
+const { dec, dec_per } = require("./utils");
 const { initiate } = require("./odds-generator-for-blood2");
 
 const download_horses_data = async () => {
