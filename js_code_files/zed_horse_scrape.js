@@ -861,7 +861,7 @@ const zed_horses_needed_manual_using_hawku = async () => {
   st = st - 10000;
   let ed = 200000;
   console.log({ st, ed });
-  let cs = 3;
+  let cs = 1;
   let hids_all = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
   let continue_thresh = 50;
   let null_resps = 0;
