@@ -211,21 +211,40 @@ const get_blood_str = (ob) => {
   }
 };
 
-const runner = async () => {
-  await initiate();
-  // await odds_generator_all_horses();
-  // await breed_generator_all_horses();
-  // clone_odds_overall();
-  let hids = [21888];
-  // await odds_generator_for_hids(hids);
-  for (let hid of hids) {
-    let ob = await generate_rating_blood_from_hid(hid);
-    console.log(hid, ob);
+const generate_rating_blood_dist_for_hid = async (hid) => {
+  hid = parseInt(hid);
+  let doc = await zed_db.db
+    .collection("horse_details")
+    .findOne({ hid }, { projection: { _id: 0, tc: 1, name: 1 } });
+  if (_.isEmpty(doc)) {
+    console.log("emp horse", hid);
+    return null;
   }
+  let { tc, name } = doc;
+  let races = await zed_ch.db.collection("zed").find({ 6: hid }).toArray();
+  races = struct_race_row_data(races);
+  let ob = {};
+  ob.hid = hid;
+  ob.name = name;
+  for (let dist of ["All", ...rat_bl_seq.dists]) {
+    let fr = dist == "All" ? races : _.filter(races, { distance: dist });
+    ob[dist] = await generate_rating_blood_calc({ hid, races: fr });
+  }
+  console.log("done hid:", hid);
+  return ob;
+};
+
+const runner = async () => {
+  await init();
+  let hid = 3312;
+  let ob = await generate_rating_blood_dist_for_hid(hid);
+  console.log(ob);
 };
 // runner();
 
 module.exports = {
   generate_rating_blood,
   generate_rating_blood_from_hid,
+  generate_rating_blood_calc,
+  generate_rating_blood_dist_for_hid,
 };
