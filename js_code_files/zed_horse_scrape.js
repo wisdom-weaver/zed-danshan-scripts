@@ -1004,7 +1004,7 @@ const zed_horses_needed_manual_using_api = async () => {
       // await update_odds_and_breed_for_race_horses(hids_ob);
       // await rem_from_new_horses_bucket(chunk_hids);
       console.log("## DONE SCRAPE ", chunk_hids.toString(), "\n");
-      await delay(1000);
+      await delay(2000);
     }
     console.log("completed zed_horses_needed_bucket_using_hawku ");
     await delay(120000);
