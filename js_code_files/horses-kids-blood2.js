@@ -772,13 +772,14 @@ const runner3 = async () => {
   await init();
   await download_eth_prices();
   await init_btbtz();
-  let hid = 1109;
+  let hid = 73778;
   let ks = await generate_breed_rating(hid, 1);
   console.log(ks);
   // await zed_db.db.collection("rating_breed2").updateOne({ hid }, { $set: { br: 1 } });
   console.log("done");
 };
 // runner3();
+
 const ymca_cont1 = {
   a: [4, 100],
   b: [3.8, 4],

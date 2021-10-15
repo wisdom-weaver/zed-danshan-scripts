@@ -758,9 +758,8 @@ const add_horse_from_zed_in_bulk = async () => {
     console.log("err on ", err.message);
   }
 };
-const add_new_horse_from_zed_in_bulk = async (hids) => {
+const add_new_horse_from_zed_in_bulk = async (hids, cs = 5) => {
   await init();
-  let cs = 5;
   for (let chunk_hids of _.chunk(hids, cs)) {
     let obar = await Promise.all(
       chunk_hids.map((hid) =>
@@ -786,7 +785,11 @@ const add_new_horse_from_zed_in_bulk = async (hids) => {
       await zed_db.db.collection("horse_details").bulkWrite(mgp);
     await bulk_write_kid_to_parent(obar);
     console.log("done", chunk_hids.toString());
-    await delay(3000);
+    // await delay(3000);
+    return _.chain(obar)
+      .map((i) => i && i.bloodline && i.hid)
+      .compact()
+      .value();
   }
 };
 const missing_zed_horse_tc_update = async () => {
@@ -930,8 +933,8 @@ const zed_horses_needed_bucket_using_api = async () => {
     console.log("new hids:", hids?.length);
     let cs = 2;
     for (let chunk_hids of _.chunk(hids, cs)) {
-      await Promise.all(chunk_hids.map((hid) => zed_horse_data_from_api(hid)));
-      let hids_ob = _.chain(chunk_hids)
+      let resps = await add_new_horse_from_zed_in_bulk(hids, cs);
+      let hids_ob = _.chain(resps)
         .map((i) => [i, null])
         .fromPairs()
         .value();
@@ -954,12 +957,12 @@ const zed_horses_needed_manual_using_api = async () => {
     .toArray();
   end_doc = end_doc && end_doc[0];
   let st = end_doc?.hid || 1;
-  st = st - 10000;
-  st = 1;
+  st = st - 3000;
+  // st = 1;
   // let ed = 131000;
   let ed = 200000;
   console.log({ st, ed });
-  let cs = 3;
+  let cs = 10;
   let hids_all = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
   let continue_thresh = 50;
   let null_resps = 0;
@@ -979,50 +982,24 @@ const zed_horses_needed_manual_using_api = async () => {
     hid_exists = _.compact(hids_exists);
     // let hids_exists = [];
     let hids = _.difference(hids_all, hids_exists);
+
     // console.log(hids.toString());
-    // hids = [126901];
+    // hids = [129714];
     // console.log("new hids:", hids?.length);
 
     for (let chunk_hids of _.chunk(hids, cs)) {
       console.log("GETTING", chunk_hids);
-      let resps = await Promise.all(
-        chunk_hids.map((hid) =>
-          zed_horse_data_from_api(hid).then((d) => [hid, d])
-        )
-      );
-      resps = _.fromPairs(resps);
-      let this_resps = _.values(resps);
+      let resps = await add_new_horse_from_zed_in_bulk(hids, cs);
 
-      if ((this_resps.length = this_resps.filter((e) => e == null).length))
-        null_resps += this_resps.length;
-      else null_resps = 0;
-      if (null_resps >= continue_thresh) {
-        console.log("found consec", continue_thresh, "empty horses");
+      if (resps?.length == 0) {
+        console.log("found consec", this_resps.length, "empty horses");
         console.log("continue from start");
         await delay(120000);
         continue outer;
       }
+      console.log("wrote", resps.length, "to horse_details");
 
-      let bulk = [];
-      for (let [hid, doc] of _.entries(resps)) {
-        hid = parseInt(hid);
-        bulk.push({
-          updateOne: {
-            filter: { hid },
-            update: { $set: doc },
-            upsert: true,
-          },
-        });
-      }
-      if (!_.isEmpty(bulk))
-        await zed_db.db.collection("horse_details").bulkWrite(bulk);
-      console.log("wrote", bulk.length, "to horse_details");
-
-      chunk_hids = _.chain(resps)
-        .entries()
-        .filter((e) => e[1] !== null)
-        .map(0)
-        .value();
+      chunk_hids = resps;
 
       let hids_ob = _.chain(chunk_hids)
         .map((i) => [i, null])
@@ -1031,7 +1008,7 @@ const zed_horses_needed_manual_using_api = async () => {
       await update_odds_and_breed_for_race_horses(hids_ob);
       // await rem_from_new_horses_bucket(chunk_hids);
       console.log("## DONE SCRAPE ", chunk_hids.toString(), "\n");
-      await delay(500);
+      await delay(1000);
     }
     console.log("completed zed_horses_needed_bucket_using_hawku ");
     await delay(120000);

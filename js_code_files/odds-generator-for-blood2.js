@@ -1051,6 +1051,7 @@ const clone_odds_overall = async () => {
 };
 
 const update_odds_and_breed_for_race_horses = async (horses_tc_ob) => {
+  // console.log(horses_tc_ob);
   let hids = _.chain(horses_tc_ob)
     .keys()
     .map((i) => parseInt(i))
@@ -1124,5 +1125,5 @@ module.exports = {
   odds_flames_generator_all_horses,
   breed_generator_m1_all_horses,
   blood_generator_all_horses,
-  blood_generator_dist_all_horses
+  blood_generator_dist_all_horses,
 };
