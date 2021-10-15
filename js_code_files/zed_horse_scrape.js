@@ -992,6 +992,21 @@ const zed_horses_needed_manual_using_api = async () => {
         continue outer;
       }
 
+      let bulk = [];
+      for (let [hid, doc] of _.entries(resps)) {
+        hid = parseInt(hid);
+        bulk.push({
+          updateOne: {
+            filter: { hid },
+            update: { $set: doc },
+            upsert: true,
+          },
+        });
+      }
+      if (!_.isEmpty(bulk))
+        await zed_db.db.collection("horse_details").bulkWrite(bulk);
+      console.log("wrote", bulk.length, "to horse_details");
+
       chunk_hids = _.chain(resps)
         .entries()
         .filter((e) => e[1] !== null)
