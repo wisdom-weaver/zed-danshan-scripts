@@ -956,6 +956,7 @@ const zed_horses_needed_manual_using_api = async () => {
   let st = end_doc?.hid || 1;
   st = st - 10000;
   st = 1;
+  // let ed = 131000;
   let ed = 200000;
   console.log({ st, ed });
   let cs = 3;
@@ -966,15 +967,24 @@ const zed_horses_needed_manual_using_api = async () => {
     let docs_exists =
       (await zed_db.db
         .collection("horse_details")
-        .find({ hid: { $gt: st - 1 } }, { projection: { _id: 0, hid: 1 } })
+        .find(
+          { hid: { $gt: st - 1 } },
+          { projection: { _id: 0, hid: 1, bloodline: 1 } }
+        )
         .toArray()) || {};
-    let hids_exists = _.map(docs_exists, "hid");
+    let hids_exists = _.map(docs_exists, (i) => {
+      if (i?.bloodline) return i.hid;
+      return null;
+    });
+    hid_exists = _.compact(hids_exists);
     // let hids_exists = [];
     let hids = _.difference(hids_all, hids_exists);
+    // console.log(hids.toString());
     // hids = [126901];
     // console.log("new hids:", hids?.length);
 
     for (let chunk_hids of _.chunk(hids, cs)) {
+      console.log("GETTING", chunk_hids);
       let resps = await Promise.all(
         chunk_hids.map((hid) =>
           zed_horse_data_from_api(hid).then((d) => [hid, d])
