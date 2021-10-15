@@ -653,7 +653,7 @@ const add_hid_to_parents_doc_in_bulk = async () => {
         }
       )
       .toArray();
-    console.log(ob);
+    // console.log(ob);
     await bulk_write_kid_to_parent(ob);
     console.log("done", chunk_hids.toString());
   }
@@ -738,7 +738,7 @@ const add_horse_from_zed_in_bulk = async () => {
       for (let ob of obar) {
         if (_.isEmpty(ob)) continue;
         let { hid } = ob;
-        console.log(hid, ob);
+        // console.log(hid, ob);
         mgp.push({
           updateOne: {
             filter: { hid },
@@ -772,7 +772,7 @@ const add_new_horse_from_zed_in_bulk = async (hids, cs = 5) => {
     for (let ob of obar) {
       if (_.isEmpty(ob)) continue;
       let { hid } = ob;
-      console.log(hid, ob);
+      // console.log(hid, ob);
       mgp.push({
         updateOne: {
           filter: { hid },
@@ -958,7 +958,7 @@ const zed_horses_needed_manual_using_api = async () => {
   end_doc = end_doc && end_doc[0];
   let st = end_doc?.hid || 1;
   st = st - 3000;
-  // st = 1;
+  st = 1;
   // let ed = 131000;
   let ed = 200000;
   console.log({ st, ed });
@@ -967,32 +967,37 @@ const zed_horses_needed_manual_using_api = async () => {
   let continue_thresh = 50;
   let null_resps = 0;
   outer: while (true) {
+    // let docs_exists =
+    //   (await zed_db.db
+    //     .collection("horse_details")
+    //     .find(
+    //       { hid: { $gt: st - 1 } },
+    //       { projection: { _id: 0, hid: 1, bloodline: 1 } }
+    //     )
+    //     .toArray()) || {};
+    // let hids_exists = _.map(docs_exists, (i) => {
+    //   if (i?.bloodline) return i.hid;
+    //   return null;
+    // });
+    // hid_exists = _.compact(hids_exists);
+    // let hids = _.difference(hids_all, hids_exists);
     let docs_exists =
       (await zed_db.db
-        .collection("horse_details")
+        .collection("rating_flames2")
         .find(
-          { hid: { $gt: st - 1 } },
-          { projection: { _id: 0, hid: 1, bloodline: 1 } }
+          { hid: { $gt: st - 1 }, races_n: 0 },
+          { projection: { _id: 0, hid: 1 } }
         )
         .toArray()) || {};
-    let hids_exists = _.map(docs_exists, (i) => {
-      if (i?.bloodline) return i.hid;
-      return null;
-    });
-    hid_exists = _.compact(hids_exists);
-    // let hids_exists = [];
-    let hids = _.difference(hids_all, hids_exists);
-
-    // console.log(hids.toString());
-    // hids = [129714];
-    // console.log("new hids:", hids?.length);
+    let hids = _.map(docs_exists, "hid");
+    console.log("hids.len: ", hids.length);
 
     for (let chunk_hids of _.chunk(hids, cs)) {
       console.log("GETTING", chunk_hids);
       let resps = await add_new_horse_from_zed_in_bulk(hids, cs);
 
       if (resps?.length == 0) {
-        console.log("found consec", this_resps.length, "empty horses");
+        console.log("found consec", chunk_hids.length, "empty horses");
         console.log("continue from start");
         await delay(120000);
         continue outer;
