@@ -759,7 +759,7 @@ const add_horse_from_zed_in_bulk = async () => {
   }
 };
 const add_new_horse_from_zed_in_bulk = async (hids, cs = 5) => {
-  await init();
+  // await init();
   for (let chunk_hids of _.chunk(hids, cs)) {
     let obar = await Promise.all(
       chunk_hids.map((hid) =>
@@ -958,7 +958,7 @@ const zed_horses_needed_manual_using_api = async () => {
   end_doc = end_doc && end_doc[0];
   let st = end_doc?.hid || 1;
   st = st - 3000;
-  st = 1;
+  st = 114000;
   // let ed = 131000;
   let ed = 200000;
   console.log({ st, ed });
@@ -990,6 +990,7 @@ const zed_horses_needed_manual_using_api = async () => {
         )
         .toArray()) || {};
     let hids = _.map(docs_exists, "hid");
+    hids = hids.sort((a, b) => a - b);
     console.log("hids.len: ", hids.length);
 
     for (let chunk_hids of _.chunk(hids, cs)) {
