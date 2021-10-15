@@ -99,7 +99,7 @@ const horse_fatigue_update_runner = async () => {
   console.log("live_my_horses len:", hids.length);
   for (let hid of hids) {
     await upload_horse_fatigue(hid);
-    await delay(10 * 1000);
+    await delay(30 * 1000);
   }
 };
 
@@ -307,5 +307,5 @@ const horse_dets_test = async () => {
 module.exports = {
   zed_api_cache_runner,
   studs_api_cache_runner,
-  horse_dets_test
+  horse_dets_test,
 };
