@@ -710,6 +710,11 @@ const struct_zed_horse_doc = ({ hid, doc }) => {
   };
   return ob;
 };
+const zed_horse_data_from_api = async (hid) => {
+  return fetch_zed_horse_doc(hid)
+    .then((doc) => ({ hid, doc }))
+    .then(struct_zed_horse_doc);
+};
 const add_horse_from_zed_in_bulk = async () => {
   try {
     await init();
@@ -915,6 +920,98 @@ const zed_horses_needed_manual_using_hawku = async () => {
   }
 };
 
+const zed_horses_needed_bucket_using_api = async () => {
+  await init();
+  while (true) {
+    let id = "new_horses_bucket";
+    let docs = (await zed_db.db.collection("script").findOne({ id })) || {};
+    let { hids = [] } = docs;
+    // hids = [126901];
+    console.log("new hids:", hids?.length);
+    let cs = 2;
+    for (let chunk_hids of _.chunk(hids, cs)) {
+      await Promise.all(chunk_hids.map((hid) => zed_horse_data_from_api(hid)));
+      let hids_ob = _.chain(chunk_hids)
+        .map((i) => [i, null])
+        .fromPairs()
+        .value();
+      await update_odds_and_breed_for_race_horses(hids_ob);
+      await rem_from_new_horses_bucket(chunk_hids);
+      console.log("done", chunk_hids.toString());
+      await delay(500);
+    }
+    console.log("completed zed_horses_needed_bucket_using_hawku ");
+    await delay(5000);
+  }
+};
+const zed_horses_needed_manual_using_api = async () => {
+  await init();
+  let end_doc = await zed_db.db
+    .collection("horse_details")
+    .find({ hid: { $type: 16 } }, { projection: { _id: 0, hid: 1 } })
+    .sort({ hid: -1 })
+    .limit(1)
+    .toArray();
+  end_doc = end_doc && end_doc[0];
+  let st = end_doc?.hid || 125000;
+  st = st - 10000;
+  let ed = 200000;
+  console.log({ st, ed });
+  let cs = 3;
+  let hids_all = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
+  let continue_thresh = 50;
+  let null_resps = 0;
+  outer: while (true) {
+    let docs_exists =
+      (await zed_db.db
+        .collection("horse_details")
+        .find({ hid: { $gt: st - 1 } }, { projection: { _id: 0, hid: 1 } })
+        .toArray()) || {};
+    let hids_exists = _.map(docs_exists, "hid");
+    // let hids_exists = [];
+    let hids = _.difference(hids_all, hids_exists);
+    // hids = [126901];
+    // console.log("new hids:", hids?.length);
+
+    for (let chunk_hids of _.chunk(hids, cs)) {
+      let resps = await Promise.all(
+        chunk_hids.map((hid) =>
+          zed_horse_data_from_api(hid).then((d) => [hid, d])
+        )
+      );
+      resps = _.fromPairs(resps);
+      let this_resps = _.values(resps);
+
+      if ((this_resps.length = this_resps.filter((e) => e == null).length))
+        null_resps += this_resps.length;
+      else null_resps = 0;
+      if (null_resps >= continue_thresh) {
+        console.log("found consec", continue_thresh, "empty horses");
+        console.log("continue from start");
+        await delay(120000);
+        continue outer;
+      }
+
+      chunk_hids = _.chain(resps)
+        .entries()
+        .filter((e) => e[1] !== null)
+        .map(0)
+        .value();
+
+      let hids_ob = _.chain(chunk_hids)
+        .map((i) => [i, null])
+        .fromPairs()
+        .value();
+      await update_odds_and_breed_for_race_horses(hids_ob);
+      // await rem_from_new_horses_bucket(chunk_hids);
+      console.log("## DONE SCRAPE ", chunk_hids.toString(), "\n");
+      await delay(500);
+    }
+    console.log("completed zed_horses_needed_bucket_using_hawku ");
+    await delay(120000);
+  }
+};
+
 module.exports = {
   zed_horses_all_scrape,
   add_horse_from_zed_in_bulk,
@@ -924,4 +1021,6 @@ module.exports = {
   rem_from_new_horses_bucket,
   zed_horses_needed_bucket_using_hawku,
   zed_horses_needed_manual_using_hawku,
+  zed_horses_needed_bucket_using_api,
+  zed_horses_needed_manual_using_api,
 };
