@@ -979,18 +979,8 @@ const zed_horses_needed_manual_using_api = async () => {
     //   if (i?.bloodline) return i.hid;
     //   return null;
     // });
-    // hid_exists = _.compact(hids_exists);
-    // let hids = _.difference(hids_all, hids_exists);
-    let docs_exists =
-      (await zed_db.db
-        .collection("rating_flames2")
-        .find(
-          { hid: { $gt: st - 1 }, races_n: 0 },
-          { projection: { _id: 0, hid: 1 } }
-        )
-        .toArray()) || {};
-    let hids = _.map(docs_exists, "hid");
-    hids = hids.sort((a, b) => a - b);
+
+    hids = hids_all;
     console.log("hids.len: ", hids.length);
 
     for (let chunk_hids of _.chunk(hids, cs)) {
@@ -1001,7 +991,7 @@ const zed_horses_needed_manual_using_api = async () => {
         console.log("found consec", chunk_hids.length, "empty horses");
         console.log("continue from start");
         await delay(120000);
-        continue outer;
+        break outer;
       }
       console.log("wrote", resps.length, "to horse_details");
 
@@ -1011,7 +1001,7 @@ const zed_horses_needed_manual_using_api = async () => {
         .map((i) => [i, null])
         .fromPairs()
         .value();
-      await update_odds_and_breed_for_race_horses(hids_ob);
+      // await update_odds_and_breed_for_race_horses(hids_ob);
       // await rem_from_new_horses_bucket(chunk_hids);
       console.log("## DONE SCRAPE ", chunk_hids.toString(), "\n");
       await delay(1000);
