@@ -958,7 +958,7 @@ const zed_horses_needed_manual_using_api = async () => {
   end_doc = end_doc && end_doc[0];
   let st = end_doc?.hid || 1;
   st = st - 3000;
-  st = 114000;
+  st = 128300;
   // let ed = 131000;
   let ed = 200000;
   console.log({ st, ed });
@@ -1001,10 +1001,10 @@ const zed_horses_needed_manual_using_api = async () => {
         .map((i) => [i, null])
         .fromPairs()
         .value();
-      // await update_odds_and_breed_for_race_horses(hids_ob);
+      await update_odds_and_breed_for_race_horses(hids_ob);
       // await rem_from_new_horses_bucket(chunk_hids);
       console.log("## DONE SCRAPE ", chunk_hids.toString(), "\n");
-      await delay(2000);
+      // await delay(2000);
     }
     console.log("completed zed_horses_needed_bucket_using_hawku ");
     await delay(120000);
