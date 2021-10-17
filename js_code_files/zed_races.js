@@ -307,16 +307,24 @@ const preprocess_races_pushing_to_mongo = async (
   config = def_config
 ) => {
   if (_.isEmpty(races)) return;
-  let ar = {};
+  let ar = [];
   for (let r in races) {
     for (let h in races[r]) {
-      ar[races[r][h][6]] = races[r][h][16];
+      ar.push([races[r][h][6], races[r][h][16]]);
     }
   }
-  await handle_racing_horse(ar);
+  // await handle_racing_horse(ar);
   await push_races_to_mongo(races);
-  if (config?.upd_horses == true)
-    await update_odds_and_breed_for_race_horses(ar);
+  await zed_db.db
+    .collection("script")
+    .updateOne(
+      { id: "racing_horses" },
+      {
+        $set: { id: "racing_horses" },
+        $addToSet: { racing_horses: { $each: ar } },
+      },
+      { upsert: true }
+    );
 };
 
 const zed_race_add_runner = async (
@@ -355,20 +363,21 @@ const zed_race_add_runner = async (
     let rids = _.keys(races);
     console.log("fetched", rids.length, "race ids");
     let doc_exists = [];
-    if (mode == "auto")
+    if (mode == "auto2")
       doc_exists = await Promise.all(
-        rids.map((rid) => zed_ch.db.collection("zed").findOne({ 4: rid }))
+        rids.map((rid) =>
+          zed_ch.db.collection("zed").findOne({ 4: rid }, { _id: 0, 4: 1 })
+        )
       );
-
+    // console.log(doc_exists);
     doc_exists = _.chain(doc_exists)
       .map((it, idx) => {
-        let rid = rids[idx];
-        if (_.isEmpty(it)) return [rid, false];
-        else return [rid, true];
+        if (_.isEmpty(it)) return [rids[idx], false];
+        else return [rids[idx], true];
       })
       .fromPairs()
       .value();
-    // console.log(doc_exists);
+    console.log(doc_exists);
 
     for (let [rid, r] of _.entries(races)) {
       if (_.isEmpty(r)) {
@@ -775,31 +784,84 @@ const zed_races_automated_script_run = async () => {
 };
 // zed_races_automated_script_run();
 
+const get_zed_gql_rids = async (from, to) => {
+  try {
+    let arr = [];
+    let json = {};
+    let headers = {
+      "x-developer-secret": zed_secret_key,
+      "Content-Type": "application/json",
+    };
+
+    let payload = {
+      query: `query ($input: GetRaceResultsInput, $before: String, $after: String, $first: Int, $last: Int) {
+  getRaceResults(before: $before, after: $after, first: $first, last: $last, input: $input) {
+    edges {
+      cursor
+      node {
+        startTime
+        raceId
+      }
+    }
+  }
+}`,
+      variables: {
+        first: 50000,
+        input: {
+          dates: {
+            from: from,
+            to: to,
+          },
+        },
+      },
+    };
+
+    let axios_config = {
+      method: "post",
+      url: zed_gql,
+      headers: headers,
+      data: JSON.stringify(payload),
+    };
+    let result = await axios(axios_config);
+    let edges = result?.data?.data?.getRaceResults?.edges || [];
+    let rids = [];
+    for (let edgeIndex in edges) {
+      let edge = edges[edgeIndex];
+      let node = edge.node;
+      let node_raceId = node.raceId;
+      rids.push(node_raceId);
+    }
+    return rids;
+  } catch (err) {
+    console.log("err", err);
+    return [];
+  }
+};
+
+const zed_races_get_missings = async () => {
+  let now = Date.now() - 5 * 60 * 1000;
+  let from = new Date(now - day_diff).toISOString();
+  let to = new Date(now).toISOString();
+  const rids_all = await get_zed_gql_rids(from, to);
+  console.log("#", from, "->", to);
+  console.log("total   :", rids_all.length);
+  let docs = await zed_ch.db
+    .collection("zed")
+    .find({ 2: { $gt: from, $lt: to } }, { projection: { _id: 0, 4: 1 } })
+    .toArray();
+  let rids_exists = _.chain(docs).map("4").uniq().compact().value();
+  console.log("existing:", rids_exists.length);
+  let rids = _.difference(rids_all, rids_exists);
+  console.log("missing :", rids.length);
+};
+
 const runner = async () => {
   await init();
-
-  // let hids = read_from_path({
-  //   file_path: `${appRootPath}/data/hids_tc_null.json`,
-  // });
-  // for (let hid of hids) {
-  //   let doc = await zed_ch.db
-  //     .collection("zed")
-  //     .find({ 6: hid }, { projection: { _id: 0, 2: 1 } })
-  //     .sort({ 2: -1 })
-  //     .limit(1)
-  //     .toArray();
-  //   if (_.isEmpty(doc)) continue;
-  //   let d = doc[0][2];
-  //   console.log(hid, d);
-  //   let from_a = d;
-  //   let to_a = d;
-  //   // await zed_race_add_runner("manual", { from_a, to_a }, def_config);
-  //   await get_zed_raw_data(from, to);
-  // }
-
+  // await zed_races_get_missings();
+  zed_race_add_runner("auto", {}, def_config);
   console.log("done");
 };
-// runner();
+runner();
 
 module.exports = {
   zed_secret_key,

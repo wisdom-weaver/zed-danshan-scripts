@@ -1011,6 +1011,31 @@ const zed_horses_needed_manual_using_api = async () => {
   }
 };
 
+const zed_horses_racing_update_odds = async () => {
+  await init();
+  let cs = 10;
+  outer: while (true) {
+    let hids =
+      (await zed_db.db.collection("script").findOne({ id: "racing_horses" })) ||
+      [];
+    if (!_.isEmpty(hids)) hids = hids?.racing_horses || [];
+    for (let chunk_hids of _.chunk(hids, cs)) {
+      let ob = _.fromPairs(chunk_hids);
+      await update_odds_and_breed_for_race_horses(ob);
+      await zed_db.db.collection("script").updateOne(
+        { id: "racing_horses" },
+        {
+          $pullAll: { racing_horses: chunk_hids },
+        },
+        { upsert: true }
+      );
+    }
+    console.log("-------");
+    delay(1000);
+  }
+};
+// zed_horses_racing_update_odds();
+
 module.exports = {
   zed_horses_all_scrape,
   add_horse_from_zed_in_bulk,
@@ -1022,4 +1047,5 @@ module.exports = {
   zed_horses_needed_manual_using_hawku,
   zed_horses_needed_bucket_using_api,
   zed_horses_needed_manual_using_api,
+  zed_horses_racing_update_odds,
 };
