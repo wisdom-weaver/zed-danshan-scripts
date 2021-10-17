@@ -315,16 +315,14 @@ const preprocess_races_pushing_to_mongo = async (
   }
   // await handle_racing_horse(ar);
   await push_races_to_mongo(races);
-  await zed_db.db
-    .collection("script")
-    .updateOne(
-      { id: "racing_horses" },
-      {
-        $set: { id: "racing_horses" },
-        $addToSet: { racing_horses: { $each: ar } },
-      },
-      { upsert: true }
-    );
+  await zed_db.db.collection("script").updateOne(
+    { id: "racing_horses" },
+    {
+      $set: { id: "racing_horses" },
+      $addToSet: { racing_horses: { $each: ar } },
+    },
+    { upsert: true }
+  );
 };
 
 const zed_race_add_runner = async (
@@ -575,7 +573,7 @@ const zed_race_build_for_mongodb = async (rid, conf = {}) => {
   if (mode == "g" || (mode == "err" && thisclass !== 0)) {
     let odds_ob = await get_sims_zed_odds(rid);
     ar = ar.map((i) => ({ ...i, 11: odds_ob[i[6]] }));
-    console.log(mode, thisclass, odds_ob);
+    // console.log(mode, thisclass, odds_ob);
   }
   if (mode == "err" && thisclass == 0) {
     console.log("G", { rid, date });
@@ -839,6 +837,8 @@ const get_zed_gql_rids = async (from, to) => {
 };
 
 const zed_races_get_missings = async () => {
+  await init();
+  let cs = 5;
   let now = Date.now() - 5 * 60 * 1000;
   let from = new Date(now - day_diff).toISOString();
   let to = new Date(now).toISOString();
@@ -852,16 +852,49 @@ const zed_races_get_missings = async () => {
   let rids_exists = _.chain(docs).map("4").uniq().compact().value();
   console.log("existing:", rids_exists.length);
   let rids = _.difference(rids_all, rids_exists);
-  console.log("missing :", rids.length);
+  // let rids = ["c6laoIZ", "zKEDb9my", "7XPm0eN6", "LpynTBUq", "UxYk4KWO"];
+  console.log("missing:", rids.length);
+  for (let chunk of _.chunk(rids, cs)) {
+    let err_s = [];
+    let rem_err_s = [];
+    console.log(chunk);
+    let data = await Promise.all(
+      chunk.map((rid) => {
+        return zed_err_runner_single_race(rid).then((d) => [rid, d]);
+      })
+    );
+
+    // console.log(data);
+
+    data = data.filter(([rid, r]) => {
+      let this_doc = _.find(chunk, { rid });
+      let this_len = _.values(r).length;
+      console.log("missing_race", rid, `${this_len}_h`);
+      if (_.isEmpty(r) || this_len < 12) {
+        err_s.push(this_doc);
+        return false;
+      } else {
+        rem_err_s.push(this_doc);
+        return true;
+      }
+    });
+    let len = data.length;
+    if (!_.isEmpty(data)) {
+      data = _.fromPairs(data);
+      await preprocess_races_pushing_to_mongo(data, def_config);
+      console.log(len, "races pushed");
+    } else console.log("NO races pushed");
+  }
+  console.log("completed");
 };
 
 const runner = async () => {
   await init();
-  // await zed_races_get_missings();
-  zed_race_add_runner("auto", {}, def_config);
+  await zed_races_get_missings();
+  // zed_race_add_runner("auto", {}, def_config);
   console.log("done");
 };
-runner();
+// runner();
 
 module.exports = {
   zed_secret_key,
@@ -870,4 +903,5 @@ module.exports = {
   zed_races_since_last_run,
   zed_races_err_manual_run,
   zed_races_g_manual_run,
+  zed_races_get_missings,
 };

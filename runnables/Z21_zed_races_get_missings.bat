@@ -1,0 +1,2 @@
+npm run zed_races_get_missings
+PAUSE
