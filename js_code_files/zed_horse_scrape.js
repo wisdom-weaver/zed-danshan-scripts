@@ -989,8 +989,8 @@ const zed_horses_needed_manual_using_api = async () => {
 
       if (resps?.length == 0) {
         console.log("found consec", chunk_hids.length, "empty horses");
-        console.log("continue from start");
-        await delay(120000);
+        console.log("continue from start after 5 minutes");
+        await delay(300000);
         break outer;
       }
       console.log("wrote", resps.length, "to horse_details");
