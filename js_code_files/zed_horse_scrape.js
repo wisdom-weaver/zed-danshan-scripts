@@ -958,7 +958,7 @@ const zed_horses_needed_manual_using_api = async () => {
   end_doc = end_doc && end_doc[0];
   let st = end_doc?.hid || 1;
   st = st - 3000;
-  st = 128479;
+  // st = 128479;
   // let ed = 131000;
   let ed = 200000;
   console.log({ st, ed });
@@ -967,20 +967,20 @@ const zed_horses_needed_manual_using_api = async () => {
   let continue_thresh = 50;
   let null_resps = 0;
   outer: while (true) {
-    // let docs_exists =
-    //   (await zed_db.db
-    //     .collection("horse_details")
-    //     .find(
-    //       { hid: { $gt: st - 1 } },
-    //       { projection: { _id: 0, hid: 1, bloodline: 1 } }
-    //     )
-    //     .toArray()) || {};
-    // let hids_exists = _.map(docs_exists, (i) => {
-    //   if (i?.bloodline) return i.hid;
-    //   return null;
-    // });
+    let docs_exists =
+      (await zed_db.db
+        .collection("horse_details")
+        .find(
+          { hid: { $gt: st - 1 } },
+          { projection: { _id: 0, hid: 1, bloodline: 1 } }
+        )
+        .toArray()) || {};
+    let hids_exists = _.map(docs_exists, (i) => {
+      if (i?.bloodline) return i.hid;
+      return null;
+    });
 
-    hids = hids_all;
+    let hids = _.difference(hids_all, hids_exists);
     console.log("hids.len: ", hids.length);
 
     for (let chunk_hids of _.chunk(hids, cs)) {
