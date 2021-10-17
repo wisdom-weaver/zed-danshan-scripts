@@ -571,7 +571,7 @@ const zed_race_build_for_mongodb = async (rid, conf = {}) => {
 
   ar = ar.map((i) => ({ ...i, 15: adj_ob[i[6]] }));
   if (mode == "g" || (mode == "err" && thisclass !== 0)) {
-    let odds_ob = await get_sims_zed_odds(rid);
+    let odds_ob = await get_sims_zed_odds(rid, "raw_race", ar);
     ar = ar.map((i) => ({ ...i, 11: odds_ob[i[6]] }));
     // console.log(mode, thisclass, odds_ob);
   }
@@ -838,21 +838,21 @@ const get_zed_gql_rids = async (from, to) => {
 
 const zed_races_get_missings = async () => {
   await init();
-  let cs = 5;
+  let cs = 10;
   let now = Date.now() - 5 * 60 * 1000;
   let from = new Date(now - day_diff).toISOString();
   let to = new Date(now).toISOString();
   const rids_all = await get_zed_gql_rids(from, to);
   console.log("#", from, "->", to);
   console.log("total   :", rids_all.length);
-  let docs = await zed_ch.db
-    .collection("zed")
-    .find({ 2: { $gt: from, $lt: to } }, { projection: { _id: 0, 4: 1 } })
-    .toArray();
-  let rids_exists = _.chain(docs).map("4").uniq().compact().value();
-  console.log("existing:", rids_exists.length);
-  let rids = _.difference(rids_all, rids_exists);
-  // let rids = ["c6laoIZ", "zKEDb9my", "7XPm0eN6", "LpynTBUq", "UxYk4KWO"];
+  // let docs = await zed_ch.db
+  //   .collection("zed")
+  //   .find({ 2: { $gt: from, $lt: to } }, { projection: { _id: 0, 4: 1 } })
+  //   .toArray();
+  // let rids_exists = _.chain(docs).map("4").uniq().compact().value();
+  // console.log("existing:", rids_exists.length);
+  // let rids = _.difference(rids_all, rids_exists);
+  let rids = ["c6laoIZ", "zKEDb9my", "7XPm0eN6", "LpynTBUq", "UxYk4KWO"];
   console.log("missing:", rids.length);
   for (let chunk of _.chunk(rids, cs)) {
     let err_s = [];
