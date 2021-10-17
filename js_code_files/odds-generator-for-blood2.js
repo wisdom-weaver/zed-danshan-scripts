@@ -1063,15 +1063,15 @@ const update_odds_and_breed_for_race_horses = async (horses_tc_ob) => {
       { projection: { hid: 1, parents: 1, _id: 0 } }
     )
     .toArray();
-  let all_hids = [];
+  let parents_hids = [];
   parents_docs.forEach((e) => {
     let { parents = {} } = e;
     parents = _.values(parents) || [];
-    all_hids = [...all_hids, ...parents];
+    parents_hids = [...parents_hids, ...parents];
   });
-  all_hids = [...hids, ...all_hids];
-  all_hids = _.compact(all_hids);
-  console.log(all_hids);
+  parents_hids = _.compact(parents_hids);
+  console.log(hids);
+  console.log(parents_hids);
 
   let tc_bulk = [];
   for (let [hid, tc] of _.entries(horses_tc_ob)) {
@@ -1089,7 +1089,8 @@ const update_odds_and_breed_for_race_horses = async (horses_tc_ob) => {
   if (!_.isEmpty(tc_bulk))
     await zed_db.db.collection("horse_details").bulkWrite(tc_bulk);
   await odds_generator_for_hids(hids);
-  await breed_generator_for_hids(all_hids);
+  await breed_generator_for_hids(hids);
+  await breed_generator_for_hids(parents_hids);
 };
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

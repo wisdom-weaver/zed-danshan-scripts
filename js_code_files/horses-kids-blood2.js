@@ -737,6 +737,7 @@ const blood_breed_z_table = async () => {
 // blood_breed_z_table();
 
 const init_btbtz = async () => {
+  if (!_.isEmpty(blbtz)) return;
   let doc_id = "kid-score-global";
   let doc = await zed_db.db.collection("requirements").findOne({ id: doc_id });
   blbtz = doc.avg_ob;

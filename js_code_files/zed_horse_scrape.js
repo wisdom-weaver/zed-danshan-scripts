@@ -958,7 +958,7 @@ const zed_horses_needed_manual_using_api = async () => {
   end_doc = end_doc && end_doc[0];
   let st = end_doc?.hid || 1;
   st = st - 3000;
-  st = 128300;
+  st = 128479;
   // let ed = 131000;
   let ed = 200000;
   console.log({ st, ed });
@@ -985,7 +985,7 @@ const zed_horses_needed_manual_using_api = async () => {
 
     for (let chunk_hids of _.chunk(hids, cs)) {
       console.log("GETTING", chunk_hids);
-      let resps = await add_new_horse_from_zed_in_bulk(hids, cs);
+      let resps = await add_new_horse_from_zed_in_bulk(chunk_hids, cs);
 
       if (resps?.length == 0) {
         console.log("found consec", chunk_hids.length, "empty horses");
