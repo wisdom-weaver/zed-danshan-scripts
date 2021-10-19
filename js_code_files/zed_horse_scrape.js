@@ -666,6 +666,7 @@ const fetch_zed_horse_doc = (hid) => {
   return ob;
 };
 const struct_zed_horse_doc = ({ hid, doc }) => {
+  // console.log(hid, doc);
   hid = parseInt(hid);
   if (_.isEmpty(doc) || doc?.err) return null;
   let {
@@ -708,6 +709,7 @@ const struct_zed_horse_doc = ({ hid, doc }) => {
     parents,
     parents_d,
   };
+  // console.log(hid, ob);
   return ob;
 };
 const zed_horse_data_from_api = async (hid) => {
@@ -1036,6 +1038,62 @@ const zed_horses_racing_update_odds = async () => {
 };
 // zed_horses_racing_update_odds();
 
+const zed_horses_fix_unnamed_foal = async () => {
+  await init();
+  let cs = 10;
+
+  let end_doc = await zed_db.db
+    .collection("horse_details")
+    .find({ hid: { $type: 16 } }, { projection: { _id: 0, hid: 1 } })
+    .sort({ hid: -1 })
+    .limit(1)
+    .toArray();
+  end_doc = end_doc && end_doc[0];
+  let st = end_doc?.hid || 1;
+  st = st - 20000;
+  // st = 1;
+
+  let docs = await zed_db.db
+    .collection("horse_details")
+    .find(
+      { hid: { $gt: st }, name: "Unnamed Foal" },
+      { projection: { hid: 1, _id: 1 } }
+    )
+    .toArray();
+  let hids = _.map(docs, "hid");
+  console.log("got", hids.length, "Unnamed Foal");
+  for (let chunk of _.chunk(hids, cs)) {
+    let data = await Promise.all(
+      chunk.map((hid) => zed_horse_data_from_api(hid))
+    );
+    console.log(chunk.toString());
+    data = _.chain(data)
+      .compact()
+      .map((i) => {
+        let { hid, name } = i;
+        if (name == "Unnamed Foal") return null;
+        return [hid, name];
+      })
+      .compact()
+      .value();
+
+    let bulk = [];
+    for (let [hid, name] of data) {
+      bulk.push({
+        updateOne: {
+          filter: { hid },
+          update: { $set: { name } },
+        },
+      });
+    }
+    if (!_.isEmpty(bulk))
+      await zed_db.db.collection("horse_details").bulkWrite(bulk);
+    console.log("named:", data.length, _.map(data, 1).toString());
+  }
+  console.log("completed zed_horses_fix_unnamed_foal");
+};
+// zed_horses_fix_unnamed_foal();
+
 module.exports = {
   zed_horses_all_scrape,
   add_horse_from_zed_in_bulk,
@@ -1048,4 +1106,5 @@ module.exports = {
   zed_horses_needed_bucket_using_api,
   zed_horses_needed_manual_using_api,
   zed_horses_racing_update_odds,
+  zed_horses_fix_unnamed_foal,
 };
