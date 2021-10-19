@@ -1050,7 +1050,7 @@ const zed_horses_fix_unnamed_foal = async () => {
     .toArray();
   end_doc = end_doc && end_doc[0];
   let st = end_doc?.hid || 1;
-  st = st - 20000;
+  st = st - 50000;
   // st = 1;
 
   let docs = await zed_db.db
