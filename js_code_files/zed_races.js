@@ -317,14 +317,15 @@ const preprocess_races_pushing_to_mongo = async (
   }
   // await handle_racing_horse(ar);
   await push_races_to_mongo(races);
-  await zed_db.db.collection("script").updateOne(
-    { id: "racing_horses" },
-    {
-      $set: { id: "racing_horses" },
-      $addToSet: { racing_horses: { $each: ar } },
-    },
-    { upsert: true }
-  );
+  if (config.upd_horses)
+    await zed_db.db.collection("script").updateOne(
+      { id: "racing_horses" },
+      {
+        $set: { id: "racing_horses" },
+        $addToSet: { racing_horses: { $each: ar } },
+      },
+      { upsert: true }
+    );
 };
 
 const zed_race_add_runner = async (
@@ -430,9 +431,9 @@ const zed_races_specific_duration_run = async () => {
 
   // let date_st = "2021-08-24T00:00:00Z";
   // let date_ed = new Date().toISOString();
-  let date = "2021-09-15T00:00:00Z";
-  let date_st = date;
-  date = "2021-09-15T00:05:00Z";
+  let date = "2021-10-18Z";
+  let date_st = "2021-10-18Z";
+  date = "2021-10-22T18:18:37.796Z";
   let date_ed = date;
   // let date_ed = new Date().toISOString();
 
@@ -443,8 +444,10 @@ const zed_races_specific_duration_run = async () => {
   to_a = new Date(to_a).getTime() + 1;
 
   while (from_a < to_a) {
-    let to_a_2 = Math.min(to_a, from_a + 30 * mt);
-    await zed_race_add_runner("manual", { from_a, to_a: to_a_2 }, def_config);
+    let to_a_2 = Math.min(to_a, from_a + 10 * mt);
+    let conf = def_config;
+    conf.upd_horses = false;
+    await zed_race_add_runner("manual", { from_a, to_a: to_a_2 }, conf);
     from_a = to_a_2;
   }
   console.log("ended");
@@ -778,7 +781,7 @@ const zed_races_automated_script_run = async () => {
     () => zed_race_add_runner("auto", {}, def_config),
     cron_conf
   );
-  zed_race_add_runner("auto", def_config)
+  zed_race_add_runner("auto", def_config);
   zed_races_g_auto_run();
   zed_races_err_auto_run();
 };
@@ -806,7 +809,7 @@ const get_zed_gql_rids = async (from, to) => {
   }
 }`,
       variables: {
-        first: 50000,
+        first: 5000000,
         input: {
           dates: {
             from: from,
@@ -842,19 +845,19 @@ const zed_races_get_missings = async () => {
   await init();
   let cs = 10;
   let now = Date.now() - 5 * 60 * 1000;
-  let from = new Date(now - day_diff).toISOString();
+  let from = new Date(now - 3 * day_diff).toISOString();
   let to = new Date(now).toISOString();
   const rids_all = await get_zed_gql_rids(from, to);
   console.log("#", from, "->", to);
   console.log("total   :", rids_all.length);
-  // let docs = await zed_ch.db
-  //   .collection("zed")
-  //   .find({ 2: { $gt: from, $lt: to } }, { projection: { _id: 0, 4: 1 } })
-  //   .toArray();
-  // let rids_exists = _.chain(docs).map("4").uniq().compact().value();
-  // console.log("existing:", rids_exists.length);
-  // let rids = _.difference(rids_all, rids_exists);
-  let rids = ["c6laoIZ", "zKEDb9my", "7XPm0eN6", "LpynTBUq", "UxYk4KWO"];
+  let docs = await zed_ch.db
+    .collection("zed")
+    .find({ 2: { $gt: from, $lt: to } }, { projection: { _id: 0, 4: 1 } })
+    .toArray();
+  let rids_exists = _.chain(docs).map("4").uniq().compact().value();
+  console.log("existing:", rids_exists.length);
+  let rids = _.difference(rids_all, rids_exists);
+  // let rids = ["c6laoIZ", "zKEDb9my", "7XPm0eN6", "LpynTBUq", "UxYk4KWO"];
   console.log("missing:", rids.length);
   for (let chunk of _.chunk(rids, cs)) {
     let err_s = [];
