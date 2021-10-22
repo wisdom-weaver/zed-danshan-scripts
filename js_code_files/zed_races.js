@@ -333,9 +333,9 @@ const zed_race_add_runner = async (
   // console.log(mode);
   let err_bucket = [];
   let g_bucket = [];
-
+  let offset_delay = 5 * 60 * 1000;
   let ob = {};
-  let now = Date.now();
+  let now = Date.now() - offset_delay;
   let from, to;
   if (mode == "auto") {
     from = new Date(now - mt * 5).toISOString();
