@@ -33,7 +33,9 @@ const {
 
 const zed_gql = "https://zed-ql.zed.run/graphql/getRaceResults";
 
-const zed_secret_key = process.env.zed_secret_key;
+// const zed_secret_key = process.env.zed_secret_key;
+const zed_secret_key =
+  "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjcnlwdG9maWVsZF9hcGkiLCJleHAiOjE2MzYyMDk4NDMsImlhdCI6MTYzMzc5MDY0MywiaXNzIjoiY3J5cHRvZmllbGRfYXBpIiwianRpIjoiMTY5MzViODgtZWQ1MS00NzlkLThkMWQtMzRlNmFhZTVkYmU0IiwibmJmIjoxNjMzNzkwNjQyLCJzdWIiOnsiZXh0ZXJuYWxfaWQiOiIzMjA4YmVmNy01OTRjLTRhYTgtOGU2YS0zNzJkMTNkY2I2NjMiLCJpZCI6MTQzNzAsInB1YmxpY19hZGRyZXNzIjoiMHhhMGQ5NjY1RTE2M2Y0OTgwODJDZDczMDQ4REExN2U3ZDY5RmQ5MjI0Iiwic3RhYmxlX25hbWUiOiJEYW5zaGFuIn0sInR5cCI6ImFjY2VzcyJ9.b3lw8F5a2BWI3gD3K5ELNc1uBbWp2MVljLFxcrommGCpHG5s1Ue1M19MRu1yVnZc4sgQ4ETa0a3YvsqDjTCwAQ";
 const mt = 60 * 1000;
 const hr = 1000 * 60 * 60;
 const day_diff = 1000 * 60 * 60 * 24 * 1;
@@ -776,7 +778,7 @@ const zed_races_automated_script_run = async () => {
     () => zed_race_add_runner("auto", {}, def_config),
     cron_conf
   );
-  // zed_race_add_runner("auto", def_config)
+  zed_race_add_runner("auto", def_config)
   zed_races_g_auto_run();
   zed_races_err_auto_run();
 };
