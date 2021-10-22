@@ -1127,4 +1127,5 @@ module.exports = {
   breed_generator_m1_all_horses,
   blood_generator_all_horses,
   blood_generator_dist_all_horses,
+  general_bulk_push,
 };

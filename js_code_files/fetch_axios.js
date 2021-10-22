@@ -67,7 +67,7 @@ const fetch_horse_zed_api = async (hid) => {
   return axios(config)
     .then(function (response) {
       let ob = response.data;
-      console.log("resp doc raw", ob);
+      // console.log("resp doc raw", ob);
       let { class: thisclass, hash_info, rating, win_rate } = ob;
       let { name } = hash_info;
       ob = { hid, thisclass, name, rating, win_rate };

@@ -1094,6 +1094,17 @@ const zed_horses_fix_unnamed_foal = async () => {
 };
 // zed_horses_fix_unnamed_foal();
 
+const get_ed_horse = async () => {
+  let end_doc = await zed_db.db
+    .collection("horse_details")
+    .find({ hid: { $type: 16 } }, { projection: { _id: 0, hid: 1 } })
+    .sort({ hid: -1 })
+    .limit(1)
+    .toArray();
+  end_doc = end_doc && end_doc[0];
+  return end_doc?.hid;
+};
+
 module.exports = {
   zed_horses_all_scrape,
   add_horse_from_zed_in_bulk,
@@ -1107,4 +1118,5 @@ module.exports = {
   zed_horses_needed_manual_using_api,
   zed_horses_racing_update_odds,
   zed_horses_fix_unnamed_foal,
+  get_ed_horse,
 };
