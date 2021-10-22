@@ -768,7 +768,7 @@ const zed_races_err_auto_run = async () => {
 const zed_races_automated_script_run = async () => {
   await zed_races_scripts_init();
   console.log("\n## zed_races_script_run started");
-  let cron_str = "*/2 * * * *";
+  let cron_str = "* * * * *";
   const c_itvl = cron_parser.parseExpression(cron_str);
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
   cron.schedule(
