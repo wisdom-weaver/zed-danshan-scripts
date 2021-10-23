@@ -23,19 +23,19 @@ const generate_oblood_tag = async (hid) => {
       .findOne({ hid }, { hid: 1, parents: 1, _id: 0, bloodline: 1 });
     let { parents, bloodline } = doc;
     parents = _.chain(parents).values().compact().value();
-    let oblood = {};
+    let oblood = def_obl;
     if (_.isEmpty(parents)) {
-      oblood = def_obl;
       oblood[bloodline.slice(0, 1)] = 100;
     } else {
       let oblood_s = await Promise.all(parents.map(get_oblood_tag));
       oblood_s = _.compact(oblood_s);
-      if (_.isEmpty(oblood_s) || oblood_s.length == 1) continue
-      oblood = ["N", "S", "F", "B"].map((b) => {
-        let val = (oblood_s[0][b] + oblood_s[1][b]) / 2;
-        return [b, val];
-      });
-      oblood = _.fromPairs(oblood);
+      if (oblood_s.length == 2) {
+        oblood = ["N", "S", "F", "B"].map((b) => {
+          let val = (oblood_s[0][b] + oblood_s[1][b]) / 2;
+          return [b, val];
+        });
+        oblood = _.fromPairs(oblood);
+      }
     }
     console.log(hid, parents, oblood);
     return { hid, oblood };
@@ -50,8 +50,8 @@ const oblood_tag_generator_all_horses = async () => {
   let [st, ed] = [1, ed_hid];
   // let [st, ed] = [19671, 19680];
   console.log(st, ed);
-  let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
-  let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
+  // let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
+  let hids = [31896];
   let cs = 10;
   for (let chunk_hids of _.chunk(hids, cs)) {
     let obar = await Promise.all(chunk_hids.map(generate_oblood_tag));
@@ -67,6 +67,6 @@ const runner = async () => {
   await oblood_tag_generator_all_horses();
   console.log("done");
 };
-// runner();
+runner();
 
 module.exports = {};

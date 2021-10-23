@@ -25,6 +25,9 @@ const {
   generate_rating_blood,
   generate_rating_blood_from_hid,
 } = require("./blood_rating_blood-2");
+const {
+  update_odds_and_breed_for_race_horses,
+} = require("./odds-generator-for-blood2");
 
 const test1 = async () => {
   await init();
@@ -583,17 +586,34 @@ const clear_CH = async () => {
 // clear_CH();
 const a = async () => {
   await init();
-  console.log("start");
-  let docs = await zed_ch.db
-    .collection("zed")
-    .find({}, { projection: { _id: 0, 2: 1, 4: 1, 6: 1 } })
-    .sort({ 2: -1, 6: -1 })
-    .limit(50)
-    .toArray();
-  console.table(docs);
-  let hids = _.map(docs, "hid");
-  console.log(hids.length, hids);
+  let file_path = `${app_root}/data/racing.json`;
+  // let { racing_horses } = await zed_db.db
+  // .collection("script")
+  // .findOne({ id: "racing_horses" });
+  // console.log(racing_horses.length);
+  // write_to_path({ file_path, data: racing_horses });
 
+  // let racing_horses = read_from_path({ file_path });
+  let { racing_horses = [] } =
+    (await zed_db.db
+      .collection("script")
+      .findOne({ id: "racing_horses_man" })) || {};
+  console.log(racing_horses.length);
+  racing_horses = _.chain([...racing_horses].reverse())
+    .uniqBy((i) => i[0])
+    .fromPairs()
+    .value();
+
+  let i = 0;
+  for (let chunk of _.chunk(_.entries(racing_horses), 20)) {
+    await update_odds_and_breed_for_race_horses(_.fromPairs(chunk));
+    await zed_db.db
+      .collection("script")
+      .updateOne(
+        { id: "racing_horses_man" },
+        { $pullAll: { racing_horses: chunk } }
+      );
+  }
   console.log("done");
 };
 a();

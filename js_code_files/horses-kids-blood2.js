@@ -670,7 +670,11 @@ const get_z_table_for_id = async (id) => {
     .toArray();
 
   let scores = _.chain(docs).map("kid_score").compact().value();
-  let brs = _.chain(docs).map("br").compact().value();
+  let brs = _.chain(docs)
+    .map("br")
+    .filter((i) => i !== Infinity)
+    .compact()
+    .value();
 
   let avg = _.mean(scores);
   if (!avg || _.isNaN(avg)) avg = null;
@@ -718,12 +722,12 @@ const blood_breed_z_table = async () => {
         let id = `${bl}-${bt}-${z}`;
         keys.push(id);
       }
-
+  // keys = ["Buterin-cross-Z13"];
   // keys = keys.slice(0, 5);
   for (let id of keys) {
     ob[id] = await get_z_table_for_id(id);
   }
-
+  // return;
   let doc_id = "kid-score-global";
   await zed_db.db
     .collection("requirements")
