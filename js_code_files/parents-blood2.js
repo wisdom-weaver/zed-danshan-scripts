@@ -32,17 +32,20 @@ const validate_kid_parents = (doc) => {
   let f_z = z(f_d.genotype);
   // console.log({ k_z, m_z, f_z });
   if (!k_z || !m_z || !f_z) return false;
-  return m_z + f_z == k_z;
+  return Math.min(m_z + f_z, 268) == k_z;
 };
 
 const validate_kids_n_parents = async () => {
+  let id = "invalid_kids";
   await init();
+  await zed_db.db
+    .collection("script")
+    .updateOne({ id }, { $set: { id, invalid_kids: [] } }, { upsert: true });
   console.log("validate_kids_n_parents");
   let cs = 500;
-  let id = "invalid_kids";
   let ed_hid = await get_ed_horse();
   let [st, ed] = [1, ed_hid];
-  // let h = 128220;
+  // let h = 130000;
   // let [st, ed] = [h, ed_hid];
   console.log("getting", st, "->", ed);
   let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
@@ -69,7 +72,7 @@ const validate_kids_n_parents = async () => {
       .map((i) => parseInt(i[0]))
       .compact()
       .value();
-    // console.log(invalid_kids);
+    console.log(invalid_kids);
     console.log(st_h, "->", ed_h, "found", invalid_kids.length, "invalid kids");
     await zed_db.db
       .collection("script")
