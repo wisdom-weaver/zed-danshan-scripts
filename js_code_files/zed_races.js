@@ -816,7 +816,7 @@ const zed_races_scripts_init = async () => {
 };
 
 const zed_races_g_auto_run = async () => {
-  // await zed_races_scripts_init();
+  await zed_races_scripts_init();
   console.log("\n## zed_races_g_auto_run started");
 
   let cron_str_1 = "0 0 * * *";
@@ -826,7 +826,7 @@ const zed_races_g_auto_run = async () => {
 };
 
 const zed_races_err_auto_run = async () => {
-  // await zed_races_scripts_init();
+  await zed_races_scripts_init();
   console.log("\n## zed_races_err_auto_run started");
 
   let cron_str_1 = "*/20 * * * *";
@@ -847,8 +847,8 @@ const zed_races_automated_script_run = async () => {
     cron_conf
   );
   // zed_race_add_runner("auto", def_config);
-  zed_races_g_auto_run();
-  zed_races_err_auto_run();
+  // zed_races_g_auto_run();
+  // zed_races_err_auto_run();
 };
 // zed_races_automated_script_run();
 
@@ -974,4 +974,6 @@ module.exports = {
   zed_races_err_manual_run,
   zed_races_g_manual_run,
   zed_races_get_missings,
+  zed_races_g_auto_run,
+  zed_races_err_auto_run,
 };
