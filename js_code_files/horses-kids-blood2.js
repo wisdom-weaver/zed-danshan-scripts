@@ -631,7 +631,7 @@ const push_kids_score_all_horses = async () => {
   //   .find({ kid_score: { $exists: false } }, { projection: { hid: 1 } })
   //   .toArray();
   // let hids = _.map(miss, "hid");
-  // console.log("missing.len", hids.length);
+  console.log("#push_kids_score_all_horses", `${st}->${ed}`);
   for (let chunk_hids of _.chunk(hids, cs)) {
     let ar = await Promise.all(
       chunk_hids.map((hid) =>
