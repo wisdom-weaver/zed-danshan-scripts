@@ -225,50 +225,59 @@ const get_zed_raw_data = async (from, to) => {
   }
 };
 
+const add_times_flames_odds_to_1race = async ([rid, race], config) => {
+  let raw_race = _.values(race);
+  if (_.isEmpty(race)) {
+    return [rid, null];
+  }
+
+  let date = raw_race[0][2];
+  let thisclass = raw_race[0][5];
+  // console.log(rid, 1);
+  let adj_ob = await get_adjusted_finish_times(rid, "raw_data", raw_race);
+  // console.log(rid, 2);
+  let flames_ob = await get_flames(rid);
+  // console.log(rid, 3);
+  let odds_ob = {};
+  if (!_.isEmpty(config) && config.g_odds_zero == true) {
+    if (thisclass == 0) odds_ob = {};
+    else odds_ob = await get_sims_zed_odds(rid, "raw_race", raw_race);
+  } else odds_ob = await get_sims_zed_odds(rid, "raw_race", raw_race);
+  // console.log(rid, 4);
+  // console.log(rid, thisclass, odds_ob);
+  // console.log(date, date >= "2021-08-24T00:00:00.000Z");
+  let fee_cat = get_fee_cat_on({ date, fee: raw_race[0][3] });
+  let modified = _.chain(race)
+    .entries()
+    .map(([hid, e]) => {
+      if (date >= "2021-08-24T00:00:00.000Z") {
+        // console.log(hid, thisclass, odds_ob[hid]);
+        e[11] = odds_ob[hid] || 0;
+      } else delete e[11];
+      e[13] = flames_ob[hid];
+      e[14] = fee_cat;
+      e[15] = adj_ob[hid];
+      return [hid, e];
+    })
+    .fromPairs()
+    .value();
+  return [rid, modified];
+};
+
 const add_times_flames_odds_to_races = async (raw_data, config) => {
   // let ret = {};
   if (_.isEmpty(raw_data)) return {};
-
-  let ret = await Promise.all(
-    _.entries(raw_data).map(async ([rid, race]) => {
-      let raw_race = _.values(race);
-      if (_.isEmpty(race)) {
-        return [rid, null];
-      }
-
-      let date = raw_race[0][2];
-      let thisclass = raw_race[0][5];
-      // console.log(rid, 1);
-      let adj_ob = await get_adjusted_finish_times(rid, "raw_data", raw_race);
-      // console.log(rid, 2);
-      let flames_ob = await get_flames(rid);
-      // console.log(rid, 3);
-      let odds_ob = {};
-      if (!_.isEmpty(config) && config.g_odds_zero == true) {
-        if (thisclass == 0) odds_ob = {};
-        else odds_ob = await get_sims_zed_odds(rid, "raw_race", raw_race);
-      } else odds_ob = await get_sims_zed_odds(rid, "raw_race", raw_race);
-      // console.log(rid, 4);
-      // console.log(rid, thisclass, odds_ob);
-      // console.log(date, date >= "2021-08-24T00:00:00.000Z");
-      let fee_cat = get_fee_cat_on({ date, fee: raw_race[0][3] });
-      let modified = _.chain(raw_data[rid])
-        .entries()
-        .map(([hid, e]) => {
-          if (date >= "2021-08-24T00:00:00.000Z") {
-            // console.log(hid, thisclass, odds_ob[hid]);
-            e[11] = odds_ob[hid] || 0;
-          } else delete e[11];
-          e[13] = flames_ob[hid];
-          e[14] = fee_cat;
-          e[15] = adj_ob[hid];
-          return [hid, e];
-        })
-        .fromPairs()
-        .value();
-      return [rid, modified];
-    })
-  );
+  let ret = [];
+  let cs = 5;
+  for (let data_chunk of _.chunk(_.entries(raw_data), cs)) {
+    let this_chunk = await Promise.all(
+      data_chunk.map(([rid, race]) =>
+        add_times_flames_odds_to_1race([rid, race], config)
+      )
+    );
+    // console.log(this_chunk)
+    ret = [...ret, ...this_chunk];
+  }
   ret = _.chain(ret)
     .filter((i) => i[1] !== null)
     .fromPairs()
