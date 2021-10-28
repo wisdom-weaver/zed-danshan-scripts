@@ -621,7 +621,7 @@ const push_kids_score_bulk = async ({ ar, chunk_hids }) => {
 
 const push_kids_score_all_horses = async () => {
   await initiate();
-  let st = 135000;
+  let st = 1;
   let ed = await get_ed_horse();
   let cs = 500;
   let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
