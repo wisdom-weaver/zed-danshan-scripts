@@ -226,44 +226,97 @@ const get_zed_raw_data = async (from, to) => {
 };
 
 const add_times_flames_odds_to_races = async (raw_data, config) => {
-  let ret = {};
+  // let ret = {};
   if (_.isEmpty(raw_data)) return {};
-  for (let [rid, race] of _.entries(raw_data)) {
-    let raw_race = _.values(race);
-    if (_.isEmpty(race)) {
-      continue;
-    }
 
-    let date = raw_race[0][2];
-    let thisclass = raw_race[0][5];
+  let ret = await Promise.all(
+    _.entries(raw_data).map(async ([rid, race]) => {
+      let raw_race = _.values(race);
+      if (_.isEmpty(race)) {
+        return [rid, null];
+      }
 
-    let adj_ob = await get_adjusted_finish_times(rid, "raw_data", raw_race);
-    let flames_ob = await get_flames(rid);
-    let odds_ob = {};
-    if (!_.isEmpty(config) && config.g_odds_zero == true) {
-      if (thisclass == 0) odds_ob = {};
-      else odds_ob = await get_sims_zed_odds(rid, "raw_race", raw_race);
-    } else odds_ob = await get_sims_zed_odds(rid, "raw_race", raw_race);
-    // console.log(rid, thisclass, odds_ob);
-    // console.log(date, date >= "2021-08-24T00:00:00.000Z");
-    let fee_cat = get_fee_cat_on({ date, fee: raw_race[0][3] });
-    ret[rid] = _.chain(raw_data[rid])
-      .entries()
-      .map(([hid, e]) => {
-        if (date >= "2021-08-24T00:00:00.000Z") {
-          // console.log(hid, thisclass, odds_ob[hid]);
-          e[11] = odds_ob[hid] || 0;
-        } else delete e[11];
-        e[13] = flames_ob[hid];
-        e[14] = fee_cat;
-        e[15] = adj_ob[hid];
-        return [hid, e];
-      })
-      .fromPairs()
-      .value();
-  }
+      let date = raw_race[0][2];
+      let thisclass = raw_race[0][5];
+      // console.log(rid, 1);
+      let adj_ob = await get_adjusted_finish_times(rid, "raw_data", raw_race);
+      // console.log(rid, 2);
+      let flames_ob = await get_flames(rid);
+      // console.log(rid, 3);
+      let odds_ob = {};
+      if (!_.isEmpty(config) && config.g_odds_zero == true) {
+        if (thisclass == 0) odds_ob = {};
+        else odds_ob = await get_sims_zed_odds(rid, "raw_race", raw_race);
+      } else odds_ob = await get_sims_zed_odds(rid, "raw_race", raw_race);
+      // console.log(rid, 4);
+      // console.log(rid, thisclass, odds_ob);
+      // console.log(date, date >= "2021-08-24T00:00:00.000Z");
+      let fee_cat = get_fee_cat_on({ date, fee: raw_race[0][3] });
+      let modified = _.chain(raw_data[rid])
+        .entries()
+        .map(([hid, e]) => {
+          if (date >= "2021-08-24T00:00:00.000Z") {
+            // console.log(hid, thisclass, odds_ob[hid]);
+            e[11] = odds_ob[hid] || 0;
+          } else delete e[11];
+          e[13] = flames_ob[hid];
+          e[14] = fee_cat;
+          e[15] = adj_ob[hid];
+          return [hid, e];
+        })
+        .fromPairs()
+        .value();
+      return [rid, modified];
+    })
+  );
+  ret = _.chain(ret)
+    .filter((i) => i[1] !== null)
+    .fromPairs()
+    .value();
+  // console.log(ret);
+
+  // for (let [rid, race] of _.entries(raw_data)) {
+  //   let raw_race = _.values(race);
+  //   if (_.isEmpty(race)) {
+  //     continue;
+  //   }
+
+  //   let date = raw_race[0][2];
+  //   let thisclass = raw_race[0][5];
+  //   console.log(rid, 1);
+  //   let adj_ob = await get_adjusted_finish_times(rid, "raw_data", raw_race);
+  //   console.log(rid, 2);
+  //   let flames_ob = await get_flames(rid);
+  //   console.log(rid, 3);
+  //   let odds_ob = {};
+  //   if (!_.isEmpty(config) && config.g_odds_zero == true) {
+  //     if (thisclass == 0) odds_ob = {};
+  //     else odds_ob = await get_sims_zed_odds(rid, "raw_race", raw_race);
+  //   } else odds_ob = await get_sims_zed_odds(rid, "raw_race", raw_race);
+  //   console.log(rid, 4);
+  //   // console.log(rid, thisclass, odds_ob);
+  //   // console.log(date, date >= "2021-08-24T00:00:00.000Z");
+  //   let fee_cat = get_fee_cat_on({ date, fee: raw_race[0][3] });
+  //   ret[rid] = _.chain(raw_data[rid])
+  //     .entries()
+  //     .map(([hid, e]) => {
+  //       if (date >= "2021-08-24T00:00:00.000Z") {
+  //         // console.log(hid, thisclass, odds_ob[hid]);
+  //         e[11] = odds_ob[hid] || 0;
+  //       } else delete e[11];
+  //       e[13] = flames_ob[hid];
+  //       e[14] = fee_cat;
+  //       e[15] = adj_ob[hid];
+  //       return [hid, e];
+  //     })
+  //     .fromPairs()
+  //     .value();
+  //   console.log("raw_data", rid, raw_data[rid]);
+  //   console.log("ret", rid, ret[rid]);
+  // }
   // console.log(raw_data)
-  return raw_data;
+  // return raw_data;
+  return ret;
 };
 
 const push_races_to_mongo = async (races) => {
@@ -317,7 +370,8 @@ const preprocess_races_pushing_to_mongo = async (
   }
   // await handle_racing_horse(ar);
   await push_races_to_mongo(races);
-  if (config.upd_horses)
+  console.log("PUSHED", _.keys(races).length, "races to mongo");
+  if (config.upd_horses) {
     await zed_db.db.collection("script").updateOne(
       { id: "racing_horses" },
       {
@@ -326,6 +380,8 @@ const preprocess_races_pushing_to_mongo = async (
       },
       { upsert: true }
     );
+    console.log(ar.length, "race_horses to be eval");
+  }
 };
 
 const zed_race_add_runner = async (
@@ -336,12 +392,12 @@ const zed_race_add_runner = async (
   // console.log(mode);
   let err_bucket = [];
   let g_bucket = [];
-  let offset_delay = 5 * 60 * 1000;
+  let offset_delay = 3 * 60 * 1000;
   let ob = {};
   let now = Date.now() - offset_delay;
   let from, to;
   if (mode == "auto") {
-    from = new Date(now - mt * 5).toISOString();
+    from = new Date(now - mt * 1.2).toISOString();
     to = new Date(now).toISOString();
   } else if (mode == "manual") {
     let { from_a, to_a } = dates || {};
@@ -412,7 +468,7 @@ const zed_race_add_runner = async (
     races = await add_times_flames_odds_to_races(races, config);
     // console.log(races)
     await preprocess_races_pushing_to_mongo(races, config);
-    console.log("done", _.keys(races).length, "races");
+    console.log("#DONE", _.keys(races).length, "races\n---");
   } catch (err) {
     console.log("ERROR on zed_race_add_runner", err.message);
   }
@@ -773,7 +829,7 @@ const zed_races_err_auto_run = async () => {
 const zed_races_automated_script_run = async () => {
   await zed_races_scripts_init();
   console.log("\n## zed_races_script_run started");
-  let cron_str = "*/2 * * * *";
+  let cron_str = "*/1 * * * *";
   const c_itvl = cron_parser.parseExpression(cron_str);
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
   cron.schedule(
@@ -781,7 +837,7 @@ const zed_races_automated_script_run = async () => {
     () => zed_race_add_runner("auto", {}, def_config),
     cron_conf
   );
-  zed_race_add_runner("auto", def_config);
+  // zed_race_add_runner("auto", def_config);
   zed_races_g_auto_run();
   zed_races_err_auto_run();
 };
