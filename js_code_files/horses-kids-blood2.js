@@ -13,6 +13,7 @@ const {
 const app_root = require("app-root-path");
 const { download_eth_prices, get_at_eth_price_on } = require("./base");
 const { options } = require("./options");
+const { get_ed_horse } = require("./zed_horse_scrape");
 
 let mx = 11000;
 let st = 1;
@@ -621,7 +622,7 @@ const push_kids_score_bulk = async ({ ar, chunk_hids }) => {
 const push_kids_score_all_horses = async () => {
   await initiate();
   let st = 1;
-  let ed = 135000;
+  let ed = await get_ed_horse();
   let cs = 500;
   let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
   // let hids = [1102];
