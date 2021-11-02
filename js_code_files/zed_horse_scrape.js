@@ -959,7 +959,7 @@ const zed_horses_needed_manual_using_api = async () => {
     .toArray();
   end_doc = end_doc && end_doc[0];
   let st = end_doc?.hid || 1;
-  st = st - 3000;
+  st = st - 15000;
   // st = 128479;
   // let ed = 131000;
   let ed = 200000;

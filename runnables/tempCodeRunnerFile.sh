@@ -1,1 +1,1 @@
-missing_zed_horse_tc_update
+npm run zed_races_err_auto_run;
