@@ -133,9 +133,81 @@ const update_invalid_kids_n_parents = async () => {
 const fix_parents_kids_mismatch = async () => {
   await validate_kids_n_parents();
   await update_invalid_kids_n_parents();
+  await fix_horse_type_all();
   console.log("done");
+};
+
+const fix_horse_type_after_kids = async (hids_) => {
+  // await init();
+  let docs_a = await zed_db.db
+    .collection("rating_breed2")
+    .find(
+      {
+        hid: { $in: hids_ },
+      },
+      { projection: { _id: 0, kids_n: 1, hid: 1 } }
+    )
+    .limit(10)
+    .toArray();
+  // console.table(docs_a);
+  let hids = _.map(docs_a, "hid");
+  let docs_b =
+    (await zed_db.db
+      .collection("horse_details")
+      .find(
+        { hid: { $in: hids } },
+        { projection: { _id: 0, hid: 1, horse_type: 1 } }
+      )
+      .toArray()) || [];
+  // console.table(docs_b);
+  docs_a = _.chain(docs_a).keyBy("hid").mapValues("kids_n").value();
+  // console.log(docs_b);
+  let bulk = docs_b.map((doc) => {
+    let { hid = null, horse_type = null } = doc || {};
+    if (!hid || !horse_type) return null;
+    let kids_n = docs_a[hid];
+    let n_horse_type = null;
+    // ["Stallion", "Colt", "Mare", "Filly"],
+    if (["Filly", "Mare"].includes(horse_type))
+      n_horse_type = kids_n >= 1 ? "Mare" : "Filly";
+    if (["Colt", "Stallion"].includes(horse_type))
+      n_horse_type = kids_n >= 1 ? "Stallion" : "Colt";
+    if (!n_horse_type || horse_type === n_horse_type) return null;
+    console.log(hid, n_horse_type);
+    return {
+      updateOne: {
+        filter: { hid },
+        update: { $set: { horse_type: n_horse_type } },
+      },
+    };
+  });
+  bulk = _.compact(bulk);
+  if (!_.isEmpty(bulk))
+    await zed_db.db.collection("horse_details").bulkWrite(bulk);
+  console.log(
+    hids_[0],
+    "->",
+    hids_[hids_.length - 1],
+    `update horse_type`,
+    bulk.length,
+    "horses"
+  );
+};
+const fix_horse_type_all = async () => {
+  await init();
+  let cs = 2000;
+  let ed_hid = await get_ed_horse();
+  let [st, ed] = [1, ed_hid];
+  // let h = 130000;
+  // let [st, ed] = [h, ed_hid];
+  console.log("getting", st, "->", ed);
+  let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
+  for (let chunk_hids of _.chunk(hids, cs)) {
+    await fix_horse_type_after_kids(chunk_hids);
+  }
 };
 
 module.exports = {
   fix_parents_kids_mismatch,
+  fix_horse_type_all,
 };
