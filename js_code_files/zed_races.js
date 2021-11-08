@@ -30,12 +30,13 @@ const {
 const {
   update_odds_and_breed_for_race_horses,
 } = require("./odds-generator-for-blood2");
+const prompt = require("prompt");
 
 const zed_gql = "https://zed-ql.zed.run/graphql/getRaceResults";
 
-// const zed_secret_key = process.env.zed_secret_key;
-const zed_secret_key =
-  "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjcnlwdG9maWVsZF9hcGkiLCJleHAiOjE2MzYyMDk4NDMsImlhdCI6MTYzMzc5MDY0MywiaXNzIjoiY3J5cHRvZmllbGRfYXBpIiwianRpIjoiMTY5MzViODgtZWQ1MS00NzlkLThkMWQtMzRlNmFhZTVkYmU0IiwibmJmIjoxNjMzNzkwNjQyLCJzdWIiOnsiZXh0ZXJuYWxfaWQiOiIzMjA4YmVmNy01OTRjLTRhYTgtOGU2YS0zNzJkMTNkY2I2NjMiLCJpZCI6MTQzNzAsInB1YmxpY19hZGRyZXNzIjoiMHhhMGQ5NjY1RTE2M2Y0OTgwODJDZDczMDQ4REExN2U3ZDY5RmQ5MjI0Iiwic3RhYmxlX25hbWUiOiJEYW5zaGFuIn0sInR5cCI6ImFjY2VzcyJ9.b3lw8F5a2BWI3gD3K5ELNc1uBbWp2MVljLFxcrommGCpHG5s1Ue1M19MRu1yVnZc4sgQ4ETa0a3YvsqDjTCwAQ";
+const zed_secret_key = process.env.zed_secret_key;
+// const zed_secret_key =
+  // "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjcnlwdG9maWVsZF9hcGkiLCJleHAiOjE2MzYyMDk4NDMsImlhdCI6MTYzMzc5MDY0MywiaXNzIjoiY3J5cHRvZmllbGRfYXBpIiwianRpIjoiMTY5MzViODgtZWQ1MS00NzlkLThkMWQtMzRlNmFhZTVkYmU0IiwibmJmIjoxNjMzNzkwNjQyLCJzdWIiOnsiZXh0ZXJuYWxfaWQiOiIzMjA4YmVmNy01OTRjLTRhYTgtOGU2YS0zNzJkMTNkY2I2NjMiLCJpZCI6MTQzNzAsInB1YmxpY19hZGRyZXNzIjoiMHhhMGQ5NjY1RTE2M2Y0OTgwODJDZDczMDQ4REExN2U3ZDY5RmQ5MjI0Iiwic3RhYmxlX25hbWUiOiJEYW5zaGFuIn0sInR5cCI6ImFjY2VzcyJ9.b3lw8F5a2BWI3gD3K5ELNc1uBbWp2MVljLFxcrommGCpHG5s1Ue1M19MRu1yVnZc4sgQ4ETa0a3YvsqDjTCwAQ";
 const mt = 60 * 1000;
 const hr = 1000 * 60 * 60;
 const day_diff = 1000 * 60 * 60 * 24 * 1;
@@ -127,11 +128,11 @@ const get_zed_raw_data = async (from, to) => {
   try {
     let arr = [];
     let json = {};
-    let headers = {
-      "x-developer-secret": zed_secret_key,
-      "Content-Type": "application/json",
-    };
-
+    let  headers = { 
+      'Content-Type': 'application/json', 
+      'Authorization': `Bearer ${zed_secret_key}`, 
+      'Cookie': '__cf_bm=tEjKpZDvjFiRn.tUIx1TbiSLPLfAmtzyUWnQo6VHP7I-1636398985-0-ARRsf8lodPXym9lS5lNpyUbf3Hz4a6TJovc1m+sRottgtEN/MoOiOpoNcpW4I0wcA0q4VwQdEKi7Q8VeW8amlWA='
+    }
     let payload = {
       query: `query ($input: GetRaceResultsInput, $before: String, $after: String, $first: Int, $last: Int) {
   getRaceResults(before: $before, after: $after, first: $first, last: $last, input: $input) {
@@ -483,30 +484,33 @@ const zed_race_add_runner = async (
   }
 };
 
-const zed_races_specific_duration_run = async () => {
+const zed_races_specific_duration_run = async (from_a, to_a) => {
   await init();
   await auto_eth_cron();
   await delay(1000);
   console.log("\n## zed_races_specific_duration_run started");
 
-  let from_a, to_a;
+  // let from_a, to_a;
   // console.log("Enter date in format Eg: 2021-09-11T00:13Z: ");
   // from_a = prompt("from: ");
-  // to_a = prompt("to  : ");
+  // to_a = process.argv[]
 
   // let date_st = "2021-08-24T00:00:00Z";
   // let date_ed = new Date().toISOString();
-  let date = "2021-10-18Z";
-  let date_st = "2021-10-18Z";
-  date = "2021-10-22T18:18:37.796Z";
-  let date_ed = date;
+  // let date = "2021-10-18Z";
+  // let date_st = "2021-10-18Z";
+  // date = "2021-10-22T18:18:37.796Z";
+  // let date_ed = date;
   // let date_ed = new Date().toISOString();
 
-  from_a = date_st;
-  to_a = date_ed;
+  // from_a = date_st;
+  // to_a = date_ed;
 
   from_a = new Date(from_a).getTime() - 1;
   to_a = new Date(to_a).getTime() + 1;
+
+  console.log("from_a: ", new Date(from_a).toISOString());
+  console.log("to_a  : ", new Date(to_a).toISOString());
 
   while (from_a < to_a) {
     let to_a_2 = Math.min(to_a, from_a + 10 * mt);

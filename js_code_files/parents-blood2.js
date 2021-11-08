@@ -161,6 +161,7 @@ const fix_horse_type_after_kids = async (hids_) => {
       .toArray()) || [];
   // console.table(docs_b);
   docs_a = _.chain(docs_a).keyBy("hid").mapValues("kids_n").value();
+  // console.log(docs_a);
   // console.log(docs_b);
   let bulk = docs_b.map((doc) => {
     let { hid = null, horse_type = null } = doc || {};
@@ -195,7 +196,7 @@ const fix_horse_type_after_kids = async (hids_) => {
 };
 const fix_horse_type_all = async () => {
   await init();
-  let cs = 2000;
+  let cs = 500;
   let ed_hid = await get_ed_horse();
   let [st, ed] = [1, ed_hid];
   // let h = 130000;
@@ -206,6 +207,12 @@ const fix_horse_type_all = async () => {
     await fix_horse_type_after_kids(chunk_hids);
   }
 };
+const runner = async () => {
+  await init();
+  // fix_horse_type_after_kids([62411]);
+  fix_horse_type_all();
+};
+runner();
 
 module.exports = {
   fix_parents_kids_mismatch,
