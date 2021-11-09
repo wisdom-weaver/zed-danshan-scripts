@@ -16,14 +16,15 @@ const cron_conf = { scheduled: true };
 
 const cache_url = async (api_url) => {
   // let doc = (await fetch_a(api_url)) || null;
-  let doc = zedf.get(api_url);
-  console.log(new Date().toISOString(), "caching", api_url);
+  let doc = await zedf.get(api_url);
+  // console.log(new Date().toISOString(), "caching", api_url);
   // console.log(doc);
+  let ext_url = api_url.slice(api_url.lastIndexOf("/"));
   if (doc == null) {
-    console.log("err");
+    console.log("err", _.keys(doc).length, ext_url);
     return;
   } else {
-    console.log("got data");
+    console.log("got", _.keys(doc).length, ext_url);
     doc = {
       id: api_url,
       data: doc,
@@ -49,6 +50,7 @@ const live_upload = async () => {
     await cache_url(api_url);
     await delay(1000);
   }
+  console.log("\n");
 };
 
 const live_cron = () => {
