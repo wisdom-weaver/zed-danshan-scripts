@@ -10,11 +10,13 @@ const {
 const cron = require("node-cron");
 const cron_parser = require("cron-parser");
 const appRootPath = require("app-root-path");
+const zedf = require("./zedf");
 
 const cron_conf = { scheduled: true };
 
 const cache_url = async (api_url) => {
-  let doc = (await fetch_a(api_url)) || null;
+  // let doc = (await fetch_a(api_url)) || null;
+  let doc = zedf.get(api_url);
   console.log(new Date().toISOString(), "caching", api_url);
   // console.log(doc);
   if (doc == null) {
@@ -58,7 +60,8 @@ const live_cron = () => {
 };
 
 const upload_horse_dets = async (hid) => {
-  let doc = await fetch_horse_zed_api(hid);
+  // let doc = await fetch_horse_zed_api(hid);
+  let doc = await zedf.horse(hid);
   if (doc == null) return console.log("err dets", hid);
   let id = `hid-doc-${hid}`;
   doc = { id, ...doc, db_date: new Date().toISOString() };
@@ -69,7 +72,8 @@ const upload_horse_dets = async (hid) => {
 };
 
 const upload_horse_fatigue = async (hid) => {
-  let doc = await fetch_fatigue(hid);
+  // let doc = await fetch_fatigue(hid);
+  let doc = await zedf.fatigue(hid);
   if (doc == null) return console.log("err fatigue", hid);
   let id = `hid-doc-${hid}`;
   doc = { id, ...doc, db_date2: new Date().toISOString() };
@@ -196,7 +200,7 @@ const studs_api_cacher = async (z) => {
     console.log("START studs_api_cacher");
     let id = "zed-studs-sniper";
     let z_apis = [1, 2, 3].map((z) => studs_api(z));
-    let api_doc = await Promise.all(z_apis.map((z_api) => fetch_a(z_api)));
+    let api_doc = await Promise.all(z_apis.map((z_api) => zedf.get(z_api)));
     if (api_doc.includes(null)) {
       console.log("SKIPPED either api gave null");
       return;
@@ -242,8 +246,14 @@ const struct_studs_api_data = (data) => {
 const zed_api_cache_runner = async () => {
   await init();
   live_cron();
-  horse_rating_update_cron();
-  horse_fatigue_update_cron();
+  // horse_rating_update_cron();
+  // horse_fatigue_update_cron();
+};
+const live_api_cache_runner = async () => {
+  await init();
+  live_cron();
+  // horse_rating_update_cron();
+  // horse_fatigue_update_cron();
 };
 
 const studs_clear = async () => {
@@ -282,16 +292,7 @@ const studs_api_cache_runner = async () => {
 
 const runner = async () => {
   await init();
-  // await studs_api_cacher();
-  // let file_path = `${appRootPath}/data/test_studs_data.json`;
-  // let data = read_from_path({ file_path });
-  // data = struct_studs_api_data(data);
-  // console.table(data);
-  // console.log("done");
-
-  let id = `https://api.zed.run/api/v1/stud/horses?offset=0&gen[]=1&gen[]=1`;
-  let doc = await zed_db.db.collection("zed_api_cache").findOne({ id });
-  console.log(doc);
+  console.log(await zedf.fatigue(3312));
 };
 // runner();
 
@@ -305,6 +306,7 @@ const horse_dets_test = async () => {
 
 module.exports = {
   zed_api_cache_runner,
+  live_api_cache_runner,
   studs_api_cache_runner,
   horse_dets_test,
 };
