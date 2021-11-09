@@ -16,6 +16,8 @@ const {
   odds_generator_for_hids,
   update_odds_and_breed_for_race_horses,
 } = require("./odds-generator-for-blood2");
+const zedf = require("./zedf");
+
 // X-paths
 // name            /html/body/ul/div/main/main/div[1]/div[1]/div[2]/h1
 // dets            /html/body/ul/div/main/main/div[1]/div[1]/div[2]/p[1]/span
@@ -765,7 +767,9 @@ const add_new_horse_from_zed_in_bulk = async (hids, cs = 5) => {
   for (let chunk_hids of _.chunk(hids, cs)) {
     let obar = await Promise.all(
       chunk_hids.map((hid) =>
-        fetch_zed_horse_doc(hid)
+        // fetch_zed_horse_doc(hid)
+        zedf
+          .horse(hid)
           .then((doc) => ({ hid, doc }))
           .then(struct_zed_horse_doc)
       )
@@ -964,7 +968,7 @@ const zed_horses_needed_manual_using_api = async () => {
   // let ed = 131000;
   let ed = 200000;
   console.log({ st, ed });
-  let cs = 10;
+  let cs = 5;
   let hids_all = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
   let continue_thresh = 50;
   let null_resps = 0;
@@ -1008,7 +1012,7 @@ const zed_horses_needed_manual_using_api = async () => {
       console.log("## DONE SCRAPE ", chunk_hids.toString(), "\n");
       // await delay(2000);
     }
-    console.log("completed zed_horses_needed_bucket_using_hawku ");
+    console.log("completed zed_horses_needed_bucket_using_zed_api ");
     await delay(120000);
   }
 };
