@@ -1103,7 +1103,7 @@ const zed_horses_fix_unnamed_foal = async () => {
 };
 const zed_horses_fix_unnamed_foal_cron = async () => {
   let runner = zed_horses_fix_unnamed_foal;
-  let cron_str = "* * */2 * *";
+  let cron_str = "0 0 */3 * *";
   const c_itvl = cron_parser.parseExpression(cron_str);
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
   cron.schedule(cron_str, () => runner(), { scheduled: true });
