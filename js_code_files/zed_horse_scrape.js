@@ -715,7 +715,8 @@ const struct_zed_horse_doc = ({ hid, doc }) => {
   return ob;
 };
 const zed_horse_data_from_api = async (hid) => {
-  return fetch_zed_horse_doc(hid)
+  // return fetch_zed_horse_doc(hid)
+  return zedf.horse(hid)
     .then((doc) => ({ hid, doc }))
     .then(struct_zed_horse_doc);
 };
