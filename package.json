@@ -28,6 +28,7 @@
     "zed_horses_needed_bucket_using_api": "run-func js_code_files/zed_horse_scrape.js zed_horses_needed_bucket_using_api",
     "zed_horses_needed_manual_using_api": "run-func js_code_files/zed_horse_scrape.js zed_horses_needed_manual_using_api",
     "zed_horses_fix_unnamed_foal": "run-func js_code_files/zed_horse_scrape.js zed_horses_fix_unnamed_foal",
+    "zed_horses_fix_unnamed_foal_cron": "run-func js_code_files/zed_horse_scrape.js zed_horses_fix_unnamed_foal_cron",
     "horse_dets_test": "run-func js_code_files/zed_api_cache_script.js horse_dets_test",
     "zed_api_cache_runner": "run-func js_code_files/zed_api_cache_script.js zed_api_cache_runner",
     "live_api_cache_runner": "run-func js_code_files/zed_api_cache_script.js zed_api_cache_runner",

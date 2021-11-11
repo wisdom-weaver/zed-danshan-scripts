@@ -17,6 +17,8 @@ const {
   update_odds_and_breed_for_race_horses,
 } = require("./odds-generator-for-blood2");
 const zedf = require("./zedf");
+const cron_parser = require("cron-parser");
+const cron = require("node-cron");
 
 // X-paths
 // name            /html/body/ul/div/main/main/div[1]/div[1]/div[2]/h1
@@ -716,7 +718,8 @@ const struct_zed_horse_doc = ({ hid, doc }) => {
 };
 const zed_horse_data_from_api = async (hid) => {
   // return fetch_zed_horse_doc(hid)
-  return zedf.horse(hid)
+  return zedf
+    .horse(hid)
     .then((doc) => ({ hid, doc }))
     .then(struct_zed_horse_doc);
 };
@@ -1098,6 +1101,13 @@ const zed_horses_fix_unnamed_foal = async () => {
   }
   console.log("completed zed_horses_fix_unnamed_foal");
 };
+const zed_horses_fix_unnamed_foal_cron = async () => {
+  let runner = zed_horses_fix_unnamed_foal;
+  let cron_str = "* * */2 * *";
+  const c_itvl = cron_parser.parseExpression(cron_str);
+  console.log("Next run:", c_itvl.next().toISOString(), "\n");
+  cron.schedule(cron_str, () => runner(), { scheduled: true });
+};
 // zed_horses_fix_unnamed_foal();
 
 const get_ed_horse = async () => {
@@ -1124,5 +1134,6 @@ module.exports = {
   zed_horses_needed_manual_using_api,
   zed_horses_racing_update_odds,
   zed_horses_fix_unnamed_foal,
+  zed_horses_fix_unnamed_foal_cron,
   get_ed_horse,
 };
