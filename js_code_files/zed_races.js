@@ -230,6 +230,8 @@ const get_zed_raw_data = async (from, to) => {
 };
 const get_zed_rids_only = async (from, to) => {
   try {
+    from = iso(from);
+    to = iso(to);
     let arr = [];
     let json = {};
     let headers = {
