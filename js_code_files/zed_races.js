@@ -282,6 +282,8 @@ const get_zed_rids_only = async (from, to) => {
 };
 const get_zed_ch_rids_only = async (from, to) => {
   try {
+    from = iso(from);
+    to = iso(to);
     let docs =
       (await zed_ch.db
         .collection("zed")
