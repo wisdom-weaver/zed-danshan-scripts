@@ -586,34 +586,41 @@ const clear_CH = async () => {
 // clear_CH();
 const a = async () => {
   await init();
-  let file_path = `${app_root}/data/racing.json`;
-  // let { racing_horses } = await zed_db.db
-  // .collection("script")
-  // .findOne({ id: "racing_horses" });
-  // console.log(racing_horses.length);
-  // write_to_path({ file_path, data: racing_horses });
-
-  // let racing_horses = read_from_path({ file_path });
-  let { racing_horses = [] } =
-    (await zed_db.db
-      .collection("script")
-      .findOne({ id: "racing_horses_man" })) || {};
-  console.log(racing_horses.length);
-  racing_horses = _.chain([...racing_horses].reverse())
-    .uniqBy((i) => i[0])
-    .fromPairs()
-    .value();
-
-  let i = 0;
-  for (let chunk of _.chunk(_.entries(racing_horses), 20)) {
-    await update_odds_and_breed_for_race_horses(_.fromPairs(chunk));
-    await zed_db.db
-      .collection("script")
-      .updateOne(
-        { id: "racing_horses_man" },
-        { $pullAll: { racing_horses: chunk } }
-      );
-  }
+  let ar = {
+    "2021-11-11": 4730.38,
+    "2021-11-10": 4636.17,
+    "2021-11-09": 4735.07,
+    "2021-11-08": 4812.09,
+    "2021-11-07": 4620.55,
+    "2021-11-06": 4521.58,
+    "2021-11-05": 4486.24,
+    "2021-11-04": 4537.32,
+    "2021-11-03": 4607.19,
+    "2021-11-02": 4584.8,
+    "2021-11-01": 4324.63,
+    "2021-10-31": 4288.07,
+    "2021-10-30": 4325.65,
+    "2021-10-29": 4414.75,
+    "2021-10-28": 4287.32,
+    "2021-10-27": 3930.26,
+    "2021-10-26": 4131.1,
+    "2021-10-25": 4217.88,
+    "2021-10-24": 4087.9,
+    "2021-10-23": 4171.66,
+    "2021-10-22": 3970.18,
+    "2021-10-21": 4054.32,
+  };
+  let bulk = [];
+  bulk = _.entries(ar).map(([date, val]) => {
+    return {
+      updateOne: {
+        filter: { id: "eth_prices" },
+        update: { $set: { [`data.${date}`]: val } },
+        upsert: true,
+      },
+    };
+  });
+  zed_db.db.collection("base").bulkWrite(bulk);
   console.log("done");
 };
 a();

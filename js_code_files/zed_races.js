@@ -7,6 +7,7 @@ const {
   write_to_path,
   fetch_r,
   read_from_path,
+  iso,
 } = require("./utils");
 const {
   get_adjusted_finish_times,
@@ -31,12 +32,13 @@ const {
   update_odds_and_breed_for_race_horses,
 } = require("./odds-generator-for-blood2");
 const prompt = require("prompt");
+const zedf = require("./zedf");
 
 const zed_gql = "https://zed-ql.zed.run/graphql/getRaceResults";
 
 const zed_secret_key = process.env.zed_secret_key;
 // const zed_secret_key =
-  // "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjcnlwdG9maWVsZF9hcGkiLCJleHAiOjE2MzYyMDk4NDMsImlhdCI6MTYzMzc5MDY0MywiaXNzIjoiY3J5cHRvZmllbGRfYXBpIiwianRpIjoiMTY5MzViODgtZWQ1MS00NzlkLThkMWQtMzRlNmFhZTVkYmU0IiwibmJmIjoxNjMzNzkwNjQyLCJzdWIiOnsiZXh0ZXJuYWxfaWQiOiIzMjA4YmVmNy01OTRjLTRhYTgtOGU2YS0zNzJkMTNkY2I2NjMiLCJpZCI6MTQzNzAsInB1YmxpY19hZGRyZXNzIjoiMHhhMGQ5NjY1RTE2M2Y0OTgwODJDZDczMDQ4REExN2U3ZDY5RmQ5MjI0Iiwic3RhYmxlX25hbWUiOiJEYW5zaGFuIn0sInR5cCI6ImFjY2VzcyJ9.b3lw8F5a2BWI3gD3K5ELNc1uBbWp2MVljLFxcrommGCpHG5s1Ue1M19MRu1yVnZc4sgQ4ETa0a3YvsqDjTCwAQ";
+// "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJjcnlwdG9maWVsZF9hcGkiLCJleHAiOjE2MzYyMDk4NDMsImlhdCI6MTYzMzc5MDY0MywiaXNzIjoiY3J5cHRvZmllbGRfYXBpIiwianRpIjoiMTY5MzViODgtZWQ1MS00NzlkLThkMWQtMzRlNmFhZTVkYmU0IiwibmJmIjoxNjMzNzkwNjQyLCJzdWIiOnsiZXh0ZXJuYWxfaWQiOiIzMjA4YmVmNy01OTRjLTRhYTgtOGU2YS0zNzJkMTNkY2I2NjMiLCJpZCI6MTQzNzAsInB1YmxpY19hZGRyZXNzIjoiMHhhMGQ5NjY1RTE2M2Y0OTgwODJDZDczMDQ4REExN2U3ZDY5RmQ5MjI0Iiwic3RhYmxlX25hbWUiOiJEYW5zaGFuIn0sInR5cCI6ImFjY2VzcyJ9.b3lw8F5a2BWI3gD3K5ELNc1uBbWp2MVljLFxcrommGCpHG5s1Ue1M19MRu1yVnZc4sgQ4ETa0a3YvsqDjTCwAQ";
 const mt = 60 * 1000;
 const hr = 1000 * 60 * 60;
 const day_diff = 1000 * 60 * 60 * 24 * 1;
@@ -128,11 +130,12 @@ const get_zed_raw_data = async (from, to) => {
   try {
     let arr = [];
     let json = {};
-    let  headers = { 
-      'Content-Type': 'application/json', 
-      'Authorization': `Bearer ${zed_secret_key}`, 
-      'Cookie': '__cf_bm=tEjKpZDvjFiRn.tUIx1TbiSLPLfAmtzyUWnQo6VHP7I-1636398985-0-ARRsf8lodPXym9lS5lNpyUbf3Hz4a6TJovc1m+sRottgtEN/MoOiOpoNcpW4I0wcA0q4VwQdEKi7Q8VeW8amlWA='
-    }
+    let headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${zed_secret_key}`,
+      Cookie:
+        "__cf_bm=tEjKpZDvjFiRn.tUIx1TbiSLPLfAmtzyUWnQo6VHP7I-1636398985-0-ARRsf8lodPXym9lS5lNpyUbf3Hz4a6TJovc1m+sRottgtEN/MoOiOpoNcpW4I0wcA0q4VwQdEKi7Q8VeW8amlWA=",
+    };
     let payload = {
       query: `query ($input: GetRaceResultsInput, $before: String, $after: String, $first: Int, $last: Int) {
   getRaceResults(before: $before, after: $after, first: $first, last: $last, input: $input) {
@@ -220,6 +223,69 @@ const get_zed_raw_data = async (from, to) => {
     }
 
     return racesData;
+  } catch (err) {
+    console.log("err", err);
+    return [];
+  }
+};
+const get_zed_rids_only = async (from, to) => {
+  try {
+    let arr = [];
+    let json = {};
+    let headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${zed_secret_key}`,
+      Cookie:
+        "__cf_bm=tEjKpZDvjFiRn.tUIx1TbiSLPLfAmtzyUWnQo6VHP7I-1636398985-0-ARRsf8lodPXym9lS5lNpyUbf3Hz4a6TJovc1m+sRottgtEN/MoOiOpoNcpW4I0wcA0q4VwQdEKi7Q8VeW8amlWA=",
+    };
+    let payload = {
+      query: `query ($input: GetRaceResultsInput, $before: String, $after: String, $first: Int, $last: Int) {
+  getRaceResults(before: $before, after: $after, first: $first, last: $last, input: $input) {
+    edges {
+      cursor
+      node {
+        startTime
+        raceId
+        status
+      }
+    }
+  }
+}`,
+      variables: {
+        first: 20000,
+        input: {
+          dates: {
+            from: from,
+            to: to,
+          },
+        },
+      },
+    };
+
+    let axios_config = {
+      method: "post",
+      url: zed_gql,
+      headers: headers,
+      data: JSON.stringify(payload),
+    };
+    let result = await axios(axios_config);
+    let edges = result?.data?.data?.getRaceResults?.edges || [];
+    let racesData = [];
+    racesData = _.map(edges, (e) => e.node.raceId);
+    return racesData;
+  } catch (err) {
+    console.log("err", err);
+    return [];
+  }
+};
+const get_zed_ch_rids_only = async (from, to) => {
+  try {
+    let docs =
+      (await zed_ch.db
+        .collection("zed")
+        .find({ 2: { $gte: from, $lte: to } }, { projection: { _id: 0, 4: 1 } })
+        .toArray()) || [];
+    return _.chain(docs).map(4).uniq().compact().value();
   } catch (err) {
     console.log("err", err);
     return [];
@@ -556,8 +622,9 @@ const zed_races_since_last_run = async () => {
 // zed_races_since_last_run();
 
 const zed_results_data = async (rid) => {
-  let api = `https://racing-api.zed.run/api/v1/races/result/${rid}`;
-  let doc = await fetch_a(api);
+  // let api = `https://racing-api.zed.run/api/v1/races/result/${rid}`;
+  // let doc = await fetch_a(api);
+  let doc = await zedf.race_results(rid);
   if (_.isEmpty(doc)) return null;
   let { horse_list = [] } = doc;
   let ob = _.chain(horse_list)
@@ -576,15 +643,17 @@ const zed_results_data = async (rid) => {
   return ob;
 };
 const zed_flames_data = async (rid) => {
-  let api = `https://rpi.zed.run/?race_id=${rid}`;
-  let doc = await fetch_a(api);
+  // let api = `https://rpi.zed.run/?race_id=${rid}`;
+  // let doc = await fetch_a(api);
+  let doc = await zedf.race_flames(rid);
   if (_.isEmpty(doc)) return null;
   let { rpi } = doc;
   return rpi;
 };
 const zed_race_base_data = async (rid) => {
-  let api = `https://racing-api.zed.run/api/v1/races?race_id=${rid}`;
-  let doc = await fetch_a(api);
+  // let api = `https://racing-api.zed.run/api/v1/races?race_id=${rid}`;
+  // let doc = await fetch_a(api);
+  let doc = await zedf.race(rid);
   // console.log("base raw", doc);
   if (_.isEmpty(doc)) return null;
   let {
@@ -604,7 +673,7 @@ const zed_race_base_data = async (rid) => {
 };
 
 const zed_race_build_for_mongodb = async (rid, conf = {}) => {
-  let { mode = "g" } = conf;
+  let { mode = "err" } = conf;
   let [base, results, flames] = await Promise.all([
     zed_race_base_data(rid),
     zed_results_data(rid),
@@ -962,6 +1031,56 @@ const zed_races_get_missings = async () => {
   console.log("completed");
 };
 
+const zed_races_missing = async (
+  from = process.argv[3],
+  to = process.argv[4]
+) => {
+  let cs = 5;
+  let offset = 1 * 60 * 60 * 1000;
+  await init();
+  console.log({ from, to });
+  from = new Date(from).toISOString();
+  to = new Date(to).toISOString();
+  let now = new Date(from).getTime();
+  console.log("MISSING SCRIPT=>", from, to);
+  console.log(now);
+  while (now < new Date(to).getTime()) {
+    try {
+      console.log("----");
+      let now_ed = now + offset;
+      console.log(iso(now), "->", iso(now_ed));
+      // now += offset;
+      // continue;
+      let rids_all = await get_zed_rids_only(now, now_ed);
+      console.log("total_races: ", rids_all.length);
+      let rids_ch = await get_zed_ch_rids_only(now, now_ed);
+      console.log("db_races   : ", rids_ch.length);
+      let rids = _.difference(rids_all, rids_ch);
+      console.log("miss_races : ", rids.length);
+      for (let chunk_rids of _.chunk(rids, cs)) {
+        console.log("getting", chunk_rids.toString());
+        let races = await Promise.all(
+          chunk_rids.map((rid) =>
+            zed_race_build_for_mongodb(rid).then((d) => [rid, d])
+          )
+        );
+        races.forEach(([rid, d]) => {
+          console.log("GOT at", _.values(d)[0][2], "rid:", rid);
+        });
+        let n = races.length;
+        races = _.fromPairs(races);
+        await push_races_to_mongo(races);
+        console.log("pushed", n, "races\n");
+      }
+      now += offset;
+    } catch (err) {
+      console.log("zed_races_missing", err);
+      await delay(3000);
+    }
+  }
+  console.log("ENDED");
+};
+
 const runner = async () => {
   await init();
   await zed_races_get_missings();
@@ -980,4 +1099,5 @@ module.exports = {
   zed_races_get_missings,
   zed_races_g_auto_run,
   zed_races_err_auto_run,
+  zed_races_missing,
 };

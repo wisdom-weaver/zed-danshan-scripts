@@ -52,13 +52,27 @@ const horse = async (hid) => {
   return get(`https://api.zed.run/api/v1/horses/get/${hid}`);
 };
 const fatigue = async (hid) => {
-  let api = `https://api.zed.run/api/v1/horses/fatigue/${hid}`
+  let api = `https://api.zed.run/api/v1/horses/fatigue/${hid}`;
   return get(api, 1);
 };
-
+const race = async (rid) => {
+  let api = `https://racing-api.zed.run/api/v1/races?race_id=${rid}`;
+  return get(api);
+};
+const race_results = async (rid) => {
+  let api = `https://racing-api.zed.run/api/v1/races/result/${rid}`;
+  return get(api);
+};
+const race_flames = async (rid) => {
+  let api = `https://rpi.zed.run/?race_id=${rid}`;
+  return get(api);
+};
 module.exports = {
   get,
   post,
   horse,
   fatigue,
+  race,
+  race_results,
+  race_flames,
 };

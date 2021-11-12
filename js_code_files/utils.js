@@ -169,6 +169,14 @@ const dec_per = (a, b) => {
   return `${dec(per)}%`;
 };
 
+const iso = (d) => {
+  try {
+    return new Date(d).toISOString();
+  } catch (err) {
+    return "iso-err";
+  }
+};
+
 module.exports = {
   calc_avg,
   write_to_path,
@@ -187,4 +195,5 @@ module.exports = {
   disp_fee_tag,
   get_fee_tag_color,
   dec_per,
+  iso,
 };
