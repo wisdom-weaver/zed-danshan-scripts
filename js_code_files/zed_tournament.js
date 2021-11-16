@@ -10,7 +10,8 @@ const zed_secret_key = process.env.zed_secret_key;
 const zed_gql = "https://zed-ql.zed.run/graphql/getRaceResults";
 const mt = 60 * 1000;
 let offset = 2 * mt;
-let tour_start = "2021-11-17T00:00:00Z";
+// let tour_start = "2021-11-17T00:00:00Z";
+let tour_start = "2021-11-16T00:00:00Z";
 
 const get_zed_raw_data = async (from, to) => {
   try {
