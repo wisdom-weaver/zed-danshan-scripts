@@ -410,6 +410,7 @@ const zed_tour_leader_fn = async ({ limit = 100 } = {}) => {
           {
             hid: { $ne: null },
             [`stats.${dist}`]: { $ne: null },
+            [`stats.${dist}.count`]: { $ne: null, $gte: 3 },
           },
           { projection: { hid: 1, name: 1, _id: 0, [`stats.${dist}`]: 1 } }
         )
