@@ -383,6 +383,13 @@ const clear_zed_tour = async () => {
   console.log("DELETED tournaments collection");
 };
 
+const zed_tour_leader_fn = async () => {
+  for (let dist of dists) {
+    console.log(dist);
+    
+  }
+};
+
 module.exports = {
   zed_tour_fn,
   zed_tour_cron,

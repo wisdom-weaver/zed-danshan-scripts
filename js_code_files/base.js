@@ -113,6 +113,7 @@ module.exports = {
   get_date,
   get_at_eth_price_on,
   get_fee_cat_on,
+  eth_runner_fn,
   download_eth_prices,
   auto_eth_cron,
 };
