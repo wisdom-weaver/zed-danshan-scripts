@@ -399,7 +399,7 @@ const clear_zed_tour = async () => {
   console.log("DELETED tournaments collection");
 };
 
-const zed_tour_leader_fn = async ({ limit = 5000 } = {}) => {
+const zed_tour_leader_fn = async ({ limit = 1152 } = {}) => {
   await init();
   console.log("...\n#zed_tour_leader_fn", iso(Date.now()));
   for (let dist of dists) {
