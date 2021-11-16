@@ -424,11 +424,7 @@ const zed_tour_leader_fn = async ({ limit = 100 } = {}) => {
     let id = `tour_leader_${dist}`;
     await zed_db.db
       .collection("tournament")
-      .updateOne(
-        { id },
-        { $unset: { docs }, $set: { id, ar: docs } },
-        { upsert: true }
-      );
+      .updateOne({ id }, { $set: { id, ar: docs } }, { upsert: true });
     console.log("uploaded docs", docs.length, "to ", id);
   }
 };
