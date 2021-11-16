@@ -433,6 +433,7 @@ const zed_tour_leader_cron = async () => {
   await init();
   console.log("## zed_tour_leader_crom");
   let cron_str = "*/5 * * * *";
+  await zed_tour_leader_fn({});
   const c_itvl = cron_parser.parseExpression(cron_str);
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
   cron.schedule(cron_str, () => zed_tour_leader_cron({}), { scheduled: true });
