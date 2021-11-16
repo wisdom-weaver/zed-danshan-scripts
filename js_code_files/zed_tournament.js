@@ -399,7 +399,7 @@ const clear_zed_tour = async () => {
   console.log("DELETED tournaments collection");
 };
 
-const zed_tour_leader_fn = async ({ limit = 100 } = {}) => {
+const zed_tour_leader_fn = async ({ limit = 5000 } = {}) => {
   await init();
   console.log("...\n#zed_tour_leader_fn", iso(Date.now()));
   for (let dist of dists) {
@@ -437,7 +437,9 @@ const zed_tour_leader_cron = async () => {
   await zed_tour_leader_fn({});
   const c_itvl = cron_parser.parseExpression(cron_str);
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
-  cron.schedule(cron_str, () => zed_tour_leader_cron({}), { scheduled: true });
+  cron.schedule(cron_str, () => zed_tour_leader_cron({}), {
+    scheduled: true,
+  });
 };
 
 module.exports = {
