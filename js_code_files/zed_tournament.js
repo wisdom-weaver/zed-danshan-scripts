@@ -342,8 +342,7 @@ const zed_tour_cron = async () => {
   let cron_str = "*/1 * * * *";
   const c_itvl = cron_parser.parseExpression(cron_str);
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
-  const runner = zed_tour_fn();
-  cron.schedule(cron_str, runner, { scheduled: true });
+  cron.schedule(cron_str, ()=>zed_tour_fn({})), { scheduled: true });
 };
 const zed_tour_missed_cron = async (p, from, to) => {
   await init();
