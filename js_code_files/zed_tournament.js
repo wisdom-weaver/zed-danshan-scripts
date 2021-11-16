@@ -295,7 +295,7 @@ const set_tour_races_done = async (rids) => {
     { upsert: true }
   );
 };
-const zed_tour_fn = async ({ from = null, to = null }) => {
+const zed_tour_fn = async ({ from = null, to = null } = {}) => {
   if (!from) from = Date.now() - offset;
   if (!to) to = Date.now();
   console.log("----\nzed_tour_fn", iso(from), "->", iso(to));
@@ -342,7 +342,7 @@ const zed_tour_cron = async () => {
   let cron_str = "*/1 * * * *";
   const c_itvl = cron_parser.parseExpression(cron_str);
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
-  cron.schedule(cron_str, ()=>zed_tour_fn({})), { scheduled: true });
+  cron.schedule(cron_str, () => zed_tour_fn({}), { scheduled: true });
 };
 const zed_tour_missed_cron = async (p, from, to) => {
   await init();
@@ -385,7 +385,6 @@ const clear_zed_tour = async () => {
 const zed_tour_leader_fn = async () => {
   for (let dist of dists) {
     console.log(dist);
-    
   }
 };
 
