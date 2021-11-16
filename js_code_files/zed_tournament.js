@@ -10,6 +10,7 @@ const zed_secret_key = process.env.zed_secret_key;
 const zed_gql = "https://zed-ql.zed.run/graphql/getRaceResults";
 const mt = 60 * 1000;
 let offset = 2 * mt;
+let tour_start = "2021-11-17T00:00:00Z";
 
 const get_zed_raw_data = async (from, to) => {
   try {
@@ -168,6 +169,7 @@ const get_zed_race_from_api = async (rid) => {
       // console.log(hid, name);
       return { hid, name, position };
     });
+    console.log(start_time);
     let ob = {
       rid,
       tc,
@@ -198,26 +200,32 @@ const struct_horse = (horse) => {
   return { hid, name, position };
 };
 const struct_race = (race) => {
-  // console.log(race);
-  const { node } = race;
-  const {
-    class: tc,
-    fee,
-    length: dist,
-    raceId: rid,
-    startTime: start_time,
-  } = node;
-  let { horses = [] } = node;
-  horses = horses.map(struct_horse);
-  let ob = {
-    tc,
-    fee,
-    dist,
-    rid,
-    start_time,
-    horses,
-  };
-  return ob;
+  try {
+    // console.log(race);
+    const { node } = race;
+    const {
+      class: tc,
+      fee,
+      length: dist,
+      raceId: rid,
+      startTime: start_time,
+    } = node;
+
+    let { horses = [] } = node;
+    horses = horses.map(struct_horse);
+    let ob = {
+      tc,
+      fee,
+      dist,
+      rid,
+      start_time,
+      horses,
+    };
+    return ob;
+  } catch (err) {
+    console.log("err  at struct_race", err);
+    return null;
+  }
 };
 
 const dists = ["all", 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600];
@@ -309,30 +317,38 @@ const zed_tour_fn = async ({ from = null, to = null } = {}) => {
   let not_done = await tour_race_not_done(rids);
   console.log("not_done:", not_done.length);
   for (let race of raw) {
-    let { horses, raceId: rid } = race.node;
-    if (!not_done.includes(rid)) {
-      console.log("ALREADY_DONE", rid, "\n");
-      continue;
+    try {
+      let { horses, raceId: rid } = race.node;
+      if (!not_done.includes(rid)) {
+        console.log("ALREADY_DONE", rid, "\n");
+        continue;
+      }
+      if (horses.length !== 12) race = await get_zed_race_from_api(rid);
+      else race = struct_race(race);
+      if (_.isEmpty(race)) {
+        console.log("ERROR", rid);
+        continue;
+      }
+      let { tc, dist, status, start_time } = race;
+      console.log(`class#${tc}`, `${dist}M`, rid);
+      console.log("start_time:", start_time);
+      if (start_time < tour_start) {
+        console.log("Tournament NOT YET STARTED");
+        continue;
+      }
+      // console.log("got race", rid);
+      horses = race.horses;
+      for (let h of horses) {
+        if (_.isEmpty(h) || !h.position) console.log(h.hid, "EMPTY");
+        await tour_race_horse_update({ ...h, rid, dist });
+        console.log(h.hid, "done");
+      }
+      // console.log(horses);
+      await set_tour_races_done([rid]);
+      console.log("completed race", rid, "\n");
+    } catch (err) {
+      console.log("err  at zed_tour_fn", err);
     }
-    if (horses.length !== 12) race = await get_zed_race_from_api(rid);
-    else race = struct_race(race);
-    if (_.isEmpty(race)) {
-      console.log("ERROR", rid);
-      continue;
-    }
-    let { tc, dist, status, start_time } = race;
-    console.log(start_time);
-    console.log(`class#${tc}`, `${dist}M`, rid);
-    // console.log("got race", rid);
-    horses = race.horses;
-    for (let h of horses) {
-      if (_.isEmpty(h) || !h.position) console.log(h.hid, "EMPTY");
-      await tour_race_horse_update({ ...h, rid, dist });
-      console.log(h.hid, "done");
-    }
-    // console.log(horses);
-    await set_tour_races_done([rid]);
-    console.log("completed race", rid, "\n");
   }
 };
 
@@ -382,10 +398,47 @@ const clear_zed_tour = async () => {
   console.log("DELETED tournaments collection");
 };
 
-const zed_tour_leader_fn = async () => {
+const zed_tour_leader_fn = async ({ limit = 100 } = {}) => {
+  await init();
+  console.log("...\n#zed_tour_leader_fn", iso(Date.now()));
   for (let dist of dists) {
-    console.log(dist);
+    console.log("getting zed_tour_leader", dist);
+    let docs =
+      (await zed_db.db
+        .collection("tournament")
+        .find(
+          {
+            hid: { $ne: null },
+            [`stats.${dist}`]: { $ne: null },
+          },
+          { projection: { hid: 1, name: 1, _id: 0, [`stats.${dist}`]: 1 } }
+        )
+        .sort({ [`stats.${dist}.avg_pts`]: -1 })
+        .limit(limit)
+        .toArray()) || [];
+    docs = docs.map((doc) => {
+      let { hid, name } = doc;
+      let ob = doc?.stats[dist] || {};
+      return { hid, name, ...ob };
+    });
+    let id = `tour_leader_${dist}`;
+    await zed_db.db
+      .collection("tournament")
+      .updateOne(
+        { id },
+        { $unset: { docs }, $set: { id, ar: docs } },
+        { upsert: true }
+      );
+    console.log("uploaded docs", docs.length, "to ", id);
   }
+};
+const zed_tour_leader_cron = async () => {
+  await init();
+  console.log("## zed_tour_leader_crom");
+  let cron_str = "*/5 * * * *";
+  const c_itvl = cron_parser.parseExpression(cron_str);
+  console.log("Next run:", c_itvl.next().toISOString(), "\n");
+  cron.schedule(cron_str, () => zed_tour_leader_cron({}), { scheduled: true });
 };
 
 module.exports = {
@@ -393,4 +446,6 @@ module.exports = {
   zed_tour_cron,
   zed_tour_missed_cron,
   clear_zed_tour,
+  zed_tour_leader_fn,
+  zed_tour_leader_cron,
 };
