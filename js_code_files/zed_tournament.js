@@ -399,6 +399,7 @@ const clear_zed_tour = async () => {
   console.log("DELETED tournaments collection");
 };
 
+// 1152
 const zed_tour_leader_fn = async ({ limit = 1152 } = {}) => {
   await init();
   console.log("...\n#zed_tour_leader_fn", iso(Date.now()));
@@ -415,7 +416,7 @@ const zed_tour_leader_fn = async ({ limit = 1152 } = {}) => {
           },
           { projection: { hid: 1, name: 1, _id: 0, [`stats.${dist}`]: 1 } }
         )
-        .sort({ [`stats.${dist}.avg_pts`]: -1 })
+        .sort({ [`stats.${dist}.avg_pts`]: -1, [`stats.${dist}.count`]: -1 })
         .limit(limit)
         .toArray()) || [];
     docs = docs.map((doc) => {
@@ -423,6 +424,7 @@ const zed_tour_leader_fn = async ({ limit = 1152 } = {}) => {
       let ob = doc?.stats[dist] || {};
       return { hid, name, ...ob };
     });
+    // console.table(docs);
     let id = `tour_leader_${dist}`;
     await zed_db.db
       .collection("tournament")
