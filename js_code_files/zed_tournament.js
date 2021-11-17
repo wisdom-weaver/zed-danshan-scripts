@@ -54,7 +54,7 @@ const get_zed_raw_data = async (from, to) => {
   }
 }`,
       variables: {
-        first: 500,
+        first: 20000,
         input: {
           dates: {
             from: from,
