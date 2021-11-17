@@ -399,10 +399,17 @@ const clear_zed_tour = async () => {
   console.log("DELETED tournaments collection");
 };
 
+const tunnels = {
+  tun0: [1000, 1200, 1400],
+  tun1: [1600, 1800, 2000],
+  tun2: [2200, 2400, 2600],
+};
+
 // 1152
 const zed_tour_leader_fn = async ({ limit = 1152 } = {}) => {
   await init();
   console.log("...\n#zed_tour_leader_fn", iso(Date.now()));
+  let docs_ar = [];
   for (let dist of dists) {
     console.log("getting zed_tour_leader", dist);
     let docs =
@@ -414,16 +421,67 @@ const zed_tour_leader_fn = async ({ limit = 1152 } = {}) => {
             [`stats.${dist}`]: { $ne: null },
             [`stats.${dist}.count`]: { $ne: null, $gte: 3 },
           },
-          { projection: { hid: 1, name: 1, _id: 0, [`stats.${dist}`]: 1 } }
+          {
+            projection: {
+              hid: 1,
+              name: 1,
+              _id: 0,
+              stats: 1,
+              // [`stats.${dist}`]: 1
+            },
+          }
         )
         .sort({ [`stats.${dist}.avg_pts`]: -1, [`stats.${dist}.count`]: -1 })
         .limit(limit)
         .toArray()) || [];
+
+    docs_ar = [...docs_ar, ...docs];
     docs = docs.map((doc) => {
       let { hid, name } = doc;
       let ob = doc?.stats[dist] || {};
       return { hid, name, ...ob };
     });
+    // console.table(docs);
+    let id = `tour_leader_${dist}`;
+    await zed_db.db
+      .collection("tournament")
+      .updateOne({ id }, { $set: { id, ar: docs } }, { upsert: true });
+    console.log("uploaded docs", docs.length, "to ", id);
+  }
+  docs_ar = _.uniqBy(docs_ar, (i) => i.hid);
+  docs_ar = docs_ar.map((doc) => {
+    let { stats, hid, name } = doc;
+    for (let [tun, dis] of _.entries(tunnels)) {
+      stats[tun] = dis.reduce(
+        (ob, d) => {
+          let count = ob.count + stats[d].count;
+          let tot_pts = ob.tot_pts + stats[d].tot_pts;
+          return {
+            count,
+            tot_pts,
+            avg_pts: count == 0 ? 0 : tot_pts / count,
+          };
+        },
+        { count: 0, avg_pts: 0, tot_pts: 0 }
+      );
+    }
+    return { hid, name, stats };
+  });
+  for (let dist of _.keys(tunnels)) {
+    console.log("getting zed_tour_leader", dist);
+    docs = docs_ar.map((doc) => {
+      let { hid, name } = doc;
+      let ob = doc?.stats[dist] || {};
+      return { hid, name, ...ob };
+    });
+    docs = _.orderBy(
+      docs,
+      (i) => {
+        return [_.toNumber(i.avg_points), _.toNumber(i.count)];
+      },
+      ["desc", "desc"]
+    );
+    docs = docs.slice(0, limit);
     // console.table(docs);
     let id = `tour_leader_${dist}`;
     await zed_db.db
