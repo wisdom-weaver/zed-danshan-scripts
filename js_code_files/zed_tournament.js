@@ -317,6 +317,7 @@ const zed_tour_fn = async ({ from = null, to = null } = {}) => {
   console.log("found   :", rids.length, raw.length);
   let not_done = await tour_race_not_done(rids);
   console.log("not_done:", not_done.length);
+  if (not_done.length == 0) return;
   for (let race of raw) {
     try {
       let { horses, raceId: rid } = race.node;
@@ -373,10 +374,15 @@ const zed_tour_missed_cron = async (p, from, to) => {
   } else if (p == "manual") {
     console.log("from:", from);
     console.log("to  :", to);
-    zed_tour_fn({
-      from,
-      to,
-    });
+    let now = new Date(from).getTime();
+    while (now < new Date(to).getTime()) {
+      let now_ed = now + 60 * mt;
+      await zed_tour_fn({
+        from: now,
+        to: now_ed,
+      });
+      now = now_ed - 1;
+    }
   } else {
     let cron_str = "*/5 * * * *";
     const c_itvl = cron_parser.parseExpression(cron_str);
@@ -472,15 +478,14 @@ const zed_tour_leader_fn = async ({ limit = 1152 } = {}) => {
     docs = docs_ar.map((doc) => {
       let { hid, name } = doc;
       let ob = doc?.stats[dist] || {};
+      if (ob?.count < 3) return null;
       return { hid, name, ...ob };
     });
-    docs = _.orderBy(
-      docs,
-      (i) => {
-        return [_.toNumber(i.avg_points), _.toNumber(i.count)];
-      },
-      ["desc", "desc"]
-    );
+    docs = _.compact(docs);
+    docs = _.sortBy(docs, [
+      (i) => -parseFloat(i.avg_pts),
+      (i) => -parseFloat(i.count),
+    ]);
     docs = docs.slice(0, limit);
     // console.table(docs);
     let id = `tour_leader_${dist}`;
