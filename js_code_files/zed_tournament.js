@@ -368,7 +368,7 @@ const zed_tour_missed_cron = async (p, from, to) => {
   if (p == "test") {
     zed_tour_fn({
       from: Date.now() - 30 * mt,
-      to: Date.now() - 2 * mt,
+      to: Date.now() - 2 * mt + 5,
     });
     return;
   } else if (p == "manual") {
@@ -376,7 +376,7 @@ const zed_tour_missed_cron = async (p, from, to) => {
     console.log("to  :", to);
     let now = new Date(from).getTime();
     while (now < new Date(to).getTime()) {
-      let now_ed = now + 60 * mt;
+      let now_ed = now + 60 * mt + 5;
       await zed_tour_fn({
         from: now,
         to: now_ed,
