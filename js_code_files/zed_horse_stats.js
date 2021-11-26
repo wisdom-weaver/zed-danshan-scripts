@@ -153,7 +153,9 @@ const horse_stats_range = async (range, cs = 5) => {
 const horse_stats_all = async (st, ed, cs = 5) => {
   await init();
   if (!st) st = 1;
+  else st = parseInt(st)
   if (!ed) ed = await get_ed_horse();
+  else ed = parseInt(ed)
   console.log("horse_stats_all", st, ed);
   let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
   // let hids = [3312, 15147];
