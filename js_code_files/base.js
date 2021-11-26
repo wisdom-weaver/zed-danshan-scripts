@@ -107,6 +107,12 @@ const auto_eth_cron = async () => {
   cron.schedule(cron_str, runner);
 };
 
+const get_entryfee_usd = ({ date, fee }) => {
+  fee = parseFloat(fee);
+  let price = get_at_eth_price_on(date);
+  return price * fee;
+};
+
 module.exports = {
   get_price_limits,
   get_price_limits_on_date,
@@ -116,4 +122,5 @@ module.exports = {
   eth_runner_fn,
   download_eth_prices,
   auto_eth_cron,
+  get_entryfee_usd,
 };

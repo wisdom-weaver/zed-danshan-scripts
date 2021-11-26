@@ -1,6 +1,7 @@
-const { get_fee_cat_on, download_eth_prices } = require("./base");
+const { get_fee_cat_on, download_eth_prices, get_entryfee_usd } = require("./base");
 const _ = require("lodash");
 const { zed_ch, init } = require("./index-run");
+const { get_fee_tag } = require("./utils");
 
 const key_mapping_bs_zed = [
   ["_id", "_id"],
@@ -65,8 +66,9 @@ const get_races_of_hid = async (hid) => {
   data = struct_race_row_data(data);
   data = data.map((e) => {
     let { entryfee: fee, date } = e;
-    let fee_cat = get_fee_cat_on({ fee, date });
-    return { ...e, fee_cat };
+    let entryfee_usd = get_entryfee_usd({ fee, date });
+    let fee_tag = get_fee_tag(entryfee_usd);
+    return { ...e, entryfee_usd, fee_tag };
   });
   return data;
 };

@@ -67,7 +67,7 @@ const race_flames = async (rid) => {
   let api = `https://rpi.zed.run/?race_id=${rid}`;
   return get(api);
 };
-module.exports = {
+const zedf = {
   get,
   post,
   horse,
@@ -76,3 +76,4 @@ module.exports = {
   race_results,
   race_flames,
 };
+module.exports = zedf;

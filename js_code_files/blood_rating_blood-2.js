@@ -247,4 +247,5 @@ module.exports = {
   generate_rating_blood_from_hid,
   generate_rating_blood_calc,
   generate_rating_blood_dist_for_hid,
+  get_fee_tag,
 };
