@@ -130,7 +130,7 @@ const gen_and_upload_horse_stats = async ({ hid }) => {
     .updateOne({ hid }, { $set: stats }, { upsert: true });
   console.log("done stats", hid);
 };
-const horse_stats_range = async (range, cs = 10) => {
+const horse_stats_range = async (range, cs = 5) => {
   await init();
   await eth_runner_fn();
   for (let chunk of _.chunk(range, cs)) {
@@ -150,14 +150,14 @@ const horse_stats_range = async (range, cs = 10) => {
     console.log("done", chunk.toString());
   }
 };
-const horse_stats_all = async (st, ed) => {
+const horse_stats_all = async (st, ed, cs = 5) => {
   await init();
   if (!st) st = 1;
   if (!ed) ed = await get_ed_horse();
   console.log("horse_stats_all", st, ed);
   let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
   // let hids = [3312, 15147];
-  await horse_stats_range(hids);
+  await horse_stats_range(hids, cs);
   console.log("COMPLETED horse_stats_all");
 };
 
