@@ -150,10 +150,10 @@ const horse_stats_range = async (range, cs = 10) => {
     console.log("done", chunk.toString());
   }
 };
-const horse_stats_all = async () => {
+const horse_stats_all = async (st, ed) => {
   await init();
-  let st = 1;
-  let ed = await get_ed_horse();
+  if (!st) st = 1;
+  if (!ed) ed = await get_ed_horse();
   console.log("horse_stats_all", st, ed);
   let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
   // let hids = [3312, 15147];
