@@ -52,7 +52,7 @@ let rat_bl_seq = {
   tunnels: ["S", "M", "D"],
 };
 
-let days = 45;
+let days = 60;
 let days_ed = 60;
 
 const get_fee_tag = (entryfee_usd) => {
@@ -74,9 +74,9 @@ const generate_rating_blood_calc = async ({ hid, races = [] }, p) => {
   let rat_nano = now - days * 24 * 60 * 60 * 1000;
   let rat_nano_ed = now - days_ed * 24 * 60 * 60 * 1000;
 
-  let races_ed = _.filter(races, (i) => {
-    return _.inRange(nano(i.date), rat_nano_ed, rat_nano);
-  });
+  // let races_ed = _.filter(races, (i) => {
+  //   return _.inRange(nano(i.date), rat_nano_ed, rat_nano);
+  // });
   let races_r = _.filter(races, (i) => {
     return _.inRange(nano(i.date), rat_nano, now);
   });
@@ -85,7 +85,7 @@ const generate_rating_blood_calc = async ({ hid, races = [] }, p) => {
 
   races = races_r;
 
-  if (_.isEmpty(races_ed) && _.isEmpty(races)) {
+  if (_.isEmpty(races)) {
     let nr_ob = {
       cf: null,
       d: null,
@@ -235,7 +235,7 @@ const runner = async () => {
   let ob2 = await generate_rating_blood_dist_for_hid(hid);
   console.log(ob2);
 };
-runner();
+// runner();
 
 module.exports = {
   generate_rating_blood,
