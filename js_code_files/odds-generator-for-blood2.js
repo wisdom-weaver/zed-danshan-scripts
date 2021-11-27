@@ -760,7 +760,7 @@ const blood_generator_all_horses = async (st, ed) => {
     else st = parseFloat(st);
     if (!ed) ed = 200000;
     else ed = parseFloat(ed);
-    let cs = 500;
+    let cs = 100;
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
     // let hids = [26646, 21744, 21512];
     // let hids = [21888];
@@ -797,7 +797,7 @@ const blood_generator_dist_all_horses = async (st,ed) => {
     if (!st) st = 1;
     else st = parseFloat(st);
     if (!ed) ed = 200000;
-    let cs = 500;
+    let cs = 100;
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
     // let hids = [26646, 21744, 21512];
     // let hids = [21888];
