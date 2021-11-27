@@ -119,7 +119,13 @@ const generate_rating_blood_calc = async ({ hid, races = [] }, p) => {
         if (p1 == 0) continue;
         let p2 =
           _.filter(fr, (i) => ["2"].includes(i.place.toString()))?.length || 0;
-        let p12_ratio = p1 / (p2 || 1);
+        let p3 =
+          _.filter(fr, (i) => ["3"].includes(i.place.toString()))?.length || 0;
+        let p4 =
+          _.filter(fr, (i) => ["4"].includes(i.place.toString()))?.length || 0;
+        let p12_ratio;
+        if (p2 == 0 && p3 == 0 && p4 == 0) p12_ratio = 0.7 * p1;
+        else p12_ratio = p1 / (p2 * 0.5 + p3 * 0.75 + p4) + p1 * 0.001;
         let win_rate = (p1 / (n || 1)) * 100;
         let flame_rate = (flames / (n || 1)) * 100;
         let ob = { cf, d, p12_ratio, win_rate, flame_rate };
@@ -229,7 +235,7 @@ const runner = async () => {
   let ob2 = await generate_rating_blood_dist_for_hid(hid);
   console.log(ob2);
 };
-// runner();
+runner();
 
 module.exports = {
   generate_rating_blood,
