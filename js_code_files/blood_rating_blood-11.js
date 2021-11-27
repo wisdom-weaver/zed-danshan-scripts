@@ -1,49 +1,9 @@
 const _ = require("lodash");
 const fetch = require("node-fetch");
-const mongoose = require("mongoose");
-const { init, zed_db, zed_ch, run_func } = require("./index-run");
-const {
-  write_to_path,
-  read_from_path,
-  struct_race_row_data,
-  side_text,
-  nano,
-} = require("./utils");
 const app_root = require("app-root-path");
-const {
-  get_fee_cat_on,
-  download_eth_prices,
-  get_at_eth_price_on,
-  get_date,
-} = require("./base");
-const { generate_max_horse } = require("./max_horses");
-const {
-  get_n_upload_rating_flames,
-  generate_rating_flames,
-} = require("./update_flame_concentration");
-const { dec } = require("./utils");
-const { generate_breed_rating, init_btbtz } = require("./horses-kids-blood2");
 const { get_races_of_hid } = require("./cyclic_dependency");
-
-let mx;
-let st = 1;
-let ed = mx;
-let chunk_size = 25;
-let chunk_delay = 100;
-
-const initiate = async () => {
-  await init();
-  await download_eth_prices();
-};
-
-let fee_tags_ob = {
-  A: [25.0, 17.5, 5000],
-  B: [15.0, 12.5, 17.5],
-  C: [10.0, 7.5, 12.5],
-  D: [5.0, 3.75, 7.5],
-  E: [2.5, 1.25, 3.75],
-  F: [0.0, 0.0, 0.0],
-};
+const { zed_db, init } = require("./index-run");
+const { dec, nano } = require("./utils");
 
 let rat_bl_seq = {
   cls: [1, 2, 3, 4, 5],
@@ -54,19 +14,6 @@ let rat_bl_seq = {
 
 let days = 45;
 let days_ed = 60;
-
-const get_fee_tag = (entryfee_usd) => {
-  for (let [tag, [rep, mi, mx]] of _.entries(fee_tags_ob))
-    if (_.inRange(entryfee_usd, mi, mx + 1e-3)) return tag;
-};
-
-const place_fact = {
-  1: 1,
-  2: 0.6,
-  3: 0.45,
-  11: 0.2,
-  12: 0.3,
-};
 
 const generate_rating_blood_calc = async ({ hid, races = [] }, p) => {
   hid = parseInt(hid);
@@ -80,20 +27,13 @@ const generate_rating_blood_calc = async ({ hid, races = [] }, p) => {
   let races_r = _.filter(races, (i) => {
     return _.inRange(nano(i.date), rat_nano, now);
   });
-  // console.log("races_r", races_r.length, races_r[0]?.date);
-  // console.log("races_ed", races_ed.length, races_ed[0]?.date);
+  console.log("races_r", races_r.length, races_r[0]?.date);
+  console.log("races_ed", races_ed.length, races_ed[0]?.date);
 
   races = races_r;
 
   if (_.isEmpty(races_ed) && _.isEmpty(races)) {
-    let nr_ob = {
-      cf: null,
-      d: null,
-      p12_ratio: null,
-      win_rate: null,
-      flame_rate: null,
-      rated_type: "NR",
-    };
+    let nr_ob = { cf: null, d: null, med: null, rated_type: "NR" };
     return nr_ob;
   }
 
@@ -114,42 +54,32 @@ const generate_rating_blood_calc = async ({ hid, races = [] }, p) => {
         let flames = _.filter(fr, { flame: 1 })?.length || 0;
         let p1 =
           _.filter(fr, (i) => ["1"].includes(i.place.toString()))?.length || 0;
-        // console.log(cf, d, n, p1);
-
+        console.log(cf, d, n, p1);
         if (p1 == 0) continue;
         let p2 =
           _.filter(fr, (i) => ["2"].includes(i.place.toString()))?.length || 0;
         let p12_ratio = p1 / (p2 || 1);
         let win_rate = (p1 / (n || 1)) * 100;
         let flame_rate = (flames / (n || 1)) * 100;
-        let ob = { cf, d, p12_ratio, win_rate, flame_rate };
-        ar.push(ob);
-        if (p1 >= 1) return { ...ob, rated_type: "GH" };
+        ar.push({ cf, d, races_n: n, p12_ratio, win_rate, flames, flame_rate });
         // console.log(str);
       }
       // console.table(ar);
     }
   }
-  // console.table(ar);
-  // if (!_.isEmpty(ar)) {
-  //   ar = _.sortBy(ar, [
-  //     (i) => i.cf,
-  //     (i) => -i.d,
-  //     (i) => -i.p12_ratio,
-  //     (i) => -i.win_rate,
-  //     (i) => -i.flame_rate,
-  //   ]);
-  //   let ob = ar[0];
-  //   return { ...ob, rated_type: "GH" };
-  // }
-  let ch_ob = {
-    cf: null,
-    d: null,
-    p12_ratio: null,
-    win_rate: null,
-    flame_rate: null,
-    rated_type: "CH",
-  };
+  console.table(ar);
+  if (!_.isEmpty(ar)) {
+    ar = _.sortBy(ar, [
+      (i) => i.cf,
+      (i) => -i.d,
+      (i) => -i.p12_ratio,
+      (i) => -i.win_rate,
+      (i) => -i.flame_rate,
+    ]);
+    let ob = ar[0];
+    return { ...ob, rated_type: "GH" };
+  }
+  let ch_ob = { cf: null, d: null, med: null, rated_type: "CH" };
   return ch_ob;
 };
 
@@ -182,7 +112,8 @@ const generate_rating_blood_from_hid = async (hid) => {
   }
   let { tc, name } = doc;
   let races = await get_races_of_hid(hid);
-  // console.log({ hid, tc, len: races.length });
+  console.log({ hid, tc, len: races.length });
+  console.table(races);
   let ob = await generate_rating_blood({ hid, races, tc });
   ob.name = name;
   console.log("#hid:", hid, ob.rated_type, get_blood_str(ob));
@@ -199,42 +130,16 @@ const get_blood_str = (ob) => {
   }
 };
 
-const generate_rating_blood_dist_for_hid = async (hid) => {
-  hid = parseInt(hid);
-  let doc = await zed_db.db
-    .collection("horse_details")
-    .findOne({ hid }, { projection: { _id: 0, tc: 1, name: 1 } });
-  if (_.isEmpty(doc)) {
-    console.log("emp horse", hid);
-    return null;
-  }
-  let { tc, name } = doc;
-  let races = await get_races_of_hid(hid);
-  let ob = {};
-  ob.hid = hid;
-  ob.name = name;
-  for (let dist of ["All", ...rat_bl_seq.dists]) {
-    let fr = dist == "All" ? races : _.filter(races, { distance: dist });
-    ob[dist] = await generate_rating_blood_calc({ hid, races: fr });
-  }
-  console.log("done hid:", hid);
-  return ob;
-};
-
 const runner = async () => {
   await init();
   let hid = 132134;
   let ob = await generate_rating_blood_from_hid(hid);
   console.log(ob);
-  let ob2 = await generate_rating_blood_dist_for_hid(hid);
-  console.log(ob2);
 };
-// runner();
+runner();
 
 module.exports = {
   generate_rating_blood,
   generate_rating_blood_from_hid,
   generate_rating_blood_calc,
-  generate_rating_blood_dist_for_hid,
-  get_fee_tag,
 };

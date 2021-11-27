@@ -176,6 +176,13 @@ const iso = (d) => {
     return "iso-err";
   }
 };
+const nano = (d) => {
+  try {
+    return new Date(d).getTime();
+  } catch (err) {
+    return "nano-err";
+  }
+};
 
 module.exports = {
   calc_avg,
@@ -196,4 +203,5 @@ module.exports = {
   get_fee_tag_color,
   dec_per,
   iso,
+  nano,
 };

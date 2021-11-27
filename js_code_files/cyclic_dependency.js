@@ -1,4 +1,8 @@
-const { get_fee_cat_on, download_eth_prices, get_entryfee_usd } = require("./base");
+const {
+  get_fee_cat_on,
+  download_eth_prices,
+  get_entryfee_usd,
+} = require("./base");
 const _ = require("lodash");
 const { zed_ch, init } = require("./index-run");
 const { get_fee_tag } = require("./utils");
@@ -30,6 +34,13 @@ const from_ch_zed_collection = async (query) => {
   } catch (err) {
     return [];
   }
+};
+
+const get_tunnel = (dist) => {
+  if (dist >= 1000 && dist <= 1400) return "S";
+  if (dist >= 1600 && dist <= 2000) return "M";
+  if (dist >= 2200 && dist <= 2600) return "D";
+  return null;
 };
 
 const struct_race_row_data = (data) => {
@@ -68,7 +79,8 @@ const get_races_of_hid = async (hid) => {
     let { entryfee: fee, date } = e;
     let entryfee_usd = get_entryfee_usd({ fee, date });
     let fee_tag = get_fee_tag(entryfee_usd);
-    return { ...e, entryfee_usd, fee_tag };
+    let tunnel = get_tunnel(e.distance);
+    return { ...e, entryfee_usd, fee_tag, tunnel };
   });
   return data;
 };
