@@ -790,12 +790,13 @@ const blood_generator_all_horses = async (st, ed) => {
     console.log("ERROR fetch_all_horses\n", err);
   }
 };
-const blood_generator_dist_all_horses = async () => {
+const blood_generator_dist_all_horses = async (st,ed) => {
   try {
     await initiate();
     await init_btbtz();
-    let st = 1;
-    let ed = 200000;
+    if (!st) st = 1;
+    else st = parseFloat(st);
+    if (!ed) ed = 200000;
     let cs = 500;
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
     // let hids = [26646, 21744, 21512];
