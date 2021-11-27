@@ -15,6 +15,7 @@ const { initiate } = require("./odds-generator-for-blood2");
 const download_horses_data = async () => {
   await init();
   let st = 1;
+  // let ed = 12000;
   let ed = 200000;
   let cs = 2000;
   let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
@@ -45,8 +46,21 @@ const download_horses_data = async () => {
     i++;
   }
 };
+
+const get_blood_str = (ob) => {
+  try {
+    let { cf, d, side, p12_ratio, win_rate, flame_rate, rated_type } = ob;
+    if (rated_type == "GH")
+      return `${cf}-${d}-${dec(p12_ratio)}-${dec(win_rate)}-${dec(flame_rate)}`;
+    return rated_type;
+  } catch (err) {
+    return "err";
+  }
+};
+
 const get_downloaded_horses_data = async () => {
   let st = 1;
+  // let ed = 12000;
   let ed = 200000;
   let cs = 2000;
   let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
@@ -65,11 +79,11 @@ const get_downloaded_horses_data = async () => {
 };
 const generate_leaderboard_b2 = async () => {
   await initiate();
-  await fix_empty_names();
-  await download_horses_data();
+  // await fix_empty_names();
+  // await download_horses_data();
   let mapped = await get_downloaded_horses_data();
   console.log(mapped[3]);
-  let dists = [1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600, "All"];
+  let dists = ["S", "M", "D", "All"];
   for (let dist of dists) {
     await generate_leaderboard_b2_each_dist({ mapped, dist });
   }
@@ -92,23 +106,26 @@ const generate_leaderboard_b2_each_dist = async ({ mapped, dist }) => {
 
   let ar = [];
   ar = _.chain(gh_s)
-    .groupBy("cf")
-    .entries()
-    .map(([cf, entrs]) => {
-      if (_.isEmpty(entrs)) entrs = [];
-      entrs = _.sortBy(entrs, (i) => {
-        let { cf, med } = i;
-        if (!cf) cf = "6Z";
-        if (!med) med = 999;
-        return -_.toNumber(med);
-      });
-      return [cf, entrs];
-    })
-    .sortBy(0)
-    .map(1)
-    .flatten()
+    .orderBy(
+      [
+        (i) => {
+          return i.cf;
+        },
+        (i) => {
+          return +i.p12_ratio;
+        },
+        (i) => {
+          return +i.win_rate;
+        },
+        (i) => {
+          return +i.flame_rate;
+        },
+      ],
+      ["asc", "desc"]
+    )
     .map((i, idx) => {
-      return { ...i, rank: idx + 1 };
+      let str = get_blood_str(i);
+      return { ...i, rank: idx + 1, str };
     })
     .value();
   ar = ar.concat(_.map(ch_s, (i) => ({ ...i, rank: null })));
@@ -116,15 +133,14 @@ const generate_leaderboard_b2_each_dist = async ({ mapped, dist }) => {
   console.table(
     _.chain(ar)
       .map((i) => {
-        let { rank, hid, name, cf, med } = i;
-        return { rank, hid, name, cf, med };
+        return { ...i };
       })
       .value()
       .slice(0, 100)
   );
 
   let leader_ar = _.map(ar.slice(0, 100), (i) => {
-    let { rank, hid, cf, d, med, name } = i;
+    let { rank, hid, cf, d, str, name } = i;
     return {
       hid,
       name,
@@ -132,7 +148,7 @@ const generate_leaderboard_b2_each_dist = async ({ mapped, dist }) => {
       horse_rating: {
         cf,
         d,
-        med,
+        str,
         type: dist == "All" ? "all" : "dist",
       },
     };
