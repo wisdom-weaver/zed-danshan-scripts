@@ -79,8 +79,8 @@ const get_downloaded_horses_data = async () => {
 };
 const generate_leaderboard_b2 = async () => {
   await initiate();
-  // await fix_empty_names();
-  // await download_horses_data();
+  await fix_empty_names();
+  await download_horses_data();
   let mapped = await get_downloaded_horses_data();
   console.log(mapped[3]);
   let dists = ["S", "M", "D", "All"];
@@ -121,7 +121,7 @@ const generate_leaderboard_b2_each_dist = async ({ mapped, dist }) => {
           return +i.flame_rate;
         },
       ],
-      ["asc", "desc"]
+      ["asc", "desc", "desc", "desc"]
     )
     .map((i, idx) => {
       let str = get_blood_str(i);
