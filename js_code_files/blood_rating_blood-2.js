@@ -213,8 +213,8 @@ const generate_rating_blood_dist_for_hid = async (hid) => {
   let ob = {};
   ob.hid = hid;
   ob.name = name;
-  for (let dist of ["All", ...rat_bl_seq.dists]) {
-    let fr = dist == "All" ? races : _.filter(races, { distance: dist });
+  for (let dist of ["All", ...rat_bl_seq.tunnels]) {
+    let fr = dist == "All" ? races : _.filter(races, { tunnel: dist });
     ob[dist] = await generate_rating_blood_calc({ hid, races: fr });
   }
   console.log("done hid:", hid);
