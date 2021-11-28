@@ -136,7 +136,7 @@ const generate_rating_blood_calc = async ({ hid, races = [] }, p) => {
           return [e, count];
         });
         p = _.fromPairs(p);
-        console.log(p);
+        // console.log(p);
         let p12_ratio =
           p[1] /
             (p[2] * 0.5 +
