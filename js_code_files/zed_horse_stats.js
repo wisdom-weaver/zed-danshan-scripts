@@ -40,13 +40,12 @@ const get_roi = (races) => {
   return roi;
 };
 
-const get_horse_stats = async ({ hid }) => {
+const get_horse_stats_raw = async ({ hid, races = [] }) => {
   try {
     hid = parseInt(hid);
     let horse = await zedf.horse(hid);
     let name = horse.hash_info.name;
     let genotype = horse.genotype;
-    let races = (await get_races_of_hid(hid)) || [];
     races = _.sortBy(races, "date");
     let race_n = races.length;
     let race_first = races[0]?.date || null;
@@ -123,6 +122,13 @@ const get_horse_stats = async ({ hid }) => {
     console.log("err horse_stats", hid);
   }
 };
+const get_horse_stats = async ({ hid }) => {
+  let races = (await get_races_of_hid(hid)) || [];
+  let ob = await get_horse_stats_raw({ hid, races });
+  // console.log(ob);
+  return ob;
+};
+
 const gen_and_upload_horse_stats = async ({ hid }) => {
   let stats = await get_horse_stats({ hid });
   await zed_db.db
@@ -169,4 +175,6 @@ module.exports = {
   horse_stats_all,
   gen_and_upload_horse_stats,
   horse_stats_range,
+  get_horse_stats,
+  get_horse_stats_raw,
 };

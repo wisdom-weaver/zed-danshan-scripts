@@ -26,12 +26,14 @@ const {
   generate_rating_blood,
   generate_rating_blood_from_hid,
   generate_rating_blood_dist_for_hid,
+  get_blood_str,
 } = require("./blood_rating_blood-2");
 const {
   generate_odds_flames_hid,
   generate_odds_flames,
 } = require("./odds-flames-blood2");
-const { horse_stats_range } = require("./zed_horse_stats");
+const { horse_stats_range, get_horse_stats_raw } = require("./zed_horse_stats");
+const cyclic_depedency = require("./cyclic_dependency");
 
 let mx;
 let st = 1;
@@ -149,18 +151,7 @@ const get_details_of_hid = async (hid) => {
 };
 
 const get_races_of_hid = async (hid) => {
-  if (isNaN(hid)) return [];
-  hid = parseInt(hid);
-  let query = { 6: hid };
-  let data = await from_ch_zed_collection(query);
-  data = struct_race_row_data(data);
-  data = data.map((e) => {
-    let { entryfee: fee, date } = e;
-    let entryfee_usd = get_at_eth_price_on(date) * parseFloat(fee);
-    let fee_tag = get_fee_tag(entryfee_usd);
-    return { ...e, fee_tag, entryfee_usd };
-  });
-  return data;
+  return cyclic_depedency.get_races_of_hid(hid);
 };
 
 const filter_acc_to_criteria = ({
@@ -527,16 +518,6 @@ const generate_blood_mapping = async () => {
   }
 };
 
-const get_blood_str = (ob) => {
-  try {
-    let { cf, d, med, side, tc, rated_type } = ob;
-    if (rated_type == "GH") return `${cf}_${dec(med, 3)}_${d}M`;
-    return rated_type;
-  } catch (err) {
-    console.log(err);
-    return "err";
-  }
-};
 const get_flames_str = (ob) => {
   let { key, avg_points, flames_per } = ob;
   if (key == null) return "NF";
@@ -559,6 +540,7 @@ const generate_odds_for = async (hid) => {
     }
 
     let { tc, name } = doc;
+    // let races = await get_races_of_hid(hid);
     let races = await get_races_of_hid(hid);
 
     let or_map = [
@@ -577,11 +559,15 @@ const generate_odds_for = async (hid) => {
 
     let rating_blood = await generate_rating_blood({ hid, races, tc });
     rating_blood.name = name;
+
     let rating_flames = await generate_rating_flames_wraces({ hid, races });
     let odds_flames = await generate_odds_flames({ hid, races });
+    let stats = await get_horse_stats_raw({ hid, races });
+    
     let blood_str = get_blood_str(rating_blood);
     let flames_str = get_flames_str(rating_flames);
-    console.log(`# hid:`, hid, "len:", races.length, blood_str, flames_str);
+    
+    console.log(`# hid:`, hid, "len:", races.length, blood_str, flames_str, dec(stats?.avg_paid_fee_usd));
     return {
       hid,
       odds_live,
@@ -589,6 +575,7 @@ const generate_odds_for = async (hid) => {
       rating_blood,
       rating_flames,
       odds_flames,
+      stats,
     };
   } catch (err) {
     console.log("ERROR generate_odds_for", hid);
@@ -603,6 +590,7 @@ const odds_generator_bulk_push = async (obar) => {
   let rating_blood2_bulk = [];
   let rating_flames2_bulk = [];
   let odds_flames2_bulk = [];
+  let stats_bulk = [];
   for (let ob of obar) {
     if (_.isEmpty(ob)) continue;
     let {
@@ -612,6 +600,7 @@ const odds_generator_bulk_push = async (obar) => {
       rating_blood,
       rating_flames,
       odds_flames,
+      stats,
     } = ob;
     odds_live_bulk.push({
       updateOne: {
@@ -648,12 +637,20 @@ const odds_generator_bulk_push = async (obar) => {
         upsert: true,
       },
     });
+    stats_bulk.push({
+      updateOne: {
+        filter: { hid },
+        update: { $set: stats },
+        upsert: true,
+      },
+    });
   }
   await zed_db.db.collection("odds_live").bulkWrite(odds_live_bulk);
   await zed_db.db.collection("odds_overall2").bulkWrite(odds_overall2_bulk);
   await zed_db.db.collection("rating_blood2").bulkWrite(rating_blood2_bulk);
   await zed_db.db.collection("rating_flames2").bulkWrite(rating_flames2_bulk);
   await zed_db.db.collection("odds_flames2").bulkWrite(odds_flames2_bulk);
+  await zed_db.db.collection("horse_stats").bulkWrite(stats_bulk);
   console.log("wrote bulk", obar.length);
 };
 const breed_generator_bulk_push = async (obar) => {
@@ -791,7 +788,7 @@ const blood_generator_all_horses = async (st, ed) => {
     console.log("ERROR fetch_all_horses\n", err);
   }
 };
-const blood_generator_dist_all_horses = async (st,ed) => {
+const blood_generator_dist_all_horses = async (st, ed) => {
   try {
     await initiate();
     await init_btbtz();
@@ -1093,7 +1090,6 @@ const update_odds_and_breed_for_race_horses = async (horses_tc_ob) => {
   if (!_.isEmpty(tc_bulk))
     await zed_db.db.collection("horse_details").bulkWrite(tc_bulk);
   await odds_generator_for_hids(hids);
-  await horse_stats_range(hids)
   await breed_generator_for_hids(hids);
   await breed_generator_for_hids(parents_hids);
 };
@@ -1103,21 +1099,9 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const runner = async () => {
   await initiate();
   await init_btbtz();
-  let hid = 1102;
-  let doc = await zed_db.db
-    .collection("horse_details")
-    .findOne({ hid }, { projection: { _id: 1, tc: 1 } });
-
-  if (_.isEmpty(doc)) {
-    // console.log("horse details not present yet");
-    return null;
-  }
-
-  let { tc } = doc;
-  let races = await get_races_of_hid(hid);
-  let ob = await generate_rating_blood({ hid, races, tc }, 1);
-  console.log(hid);
-  console.log(ob);
+  let hid = 34750;
+  let ob = { 34750: 1 };
+  await update_odds_and_breed_for_race_horses(ob);
 };
 // runner();
 

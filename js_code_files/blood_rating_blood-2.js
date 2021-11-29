@@ -90,6 +90,7 @@ const generate_rating_blood_calc = async ({ hid, races = [] }, p) => {
       cf: null,
       d: null,
       p12_ratio: null,
+      rat: null,
       win_rate: null,
       flame_rate: null,
       rated_type: "NR",
@@ -178,6 +179,7 @@ const generate_rating_blood_calc = async ({ hid, races = [] }, p) => {
   let ch_ob = {
     cf: null,
     d: null,
+    rat: null,
     p12_ratio: null,
     win_rate: null,
     flame_rate: null,
@@ -256,7 +258,7 @@ const generate_rating_blood_dist_for_hid = async (hid) => {
 
 const runner = async () => {
   await init();
-  let hid = 38815;
+  let hid = 34750;
   let ob = await generate_rating_blood_from_hid(hid);
   console.log(ob);
   let ob2 = await generate_rating_blood_dist_for_hid(hid);
@@ -270,4 +272,5 @@ module.exports = {
   generate_rating_blood_calc,
   generate_rating_blood_dist_for_hid,
   get_fee_tag,
+  get_blood_str,
 };

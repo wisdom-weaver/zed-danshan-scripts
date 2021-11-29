@@ -98,10 +98,12 @@ const initiate = async () => {
   await download_eth_prices();
 };
 
-module.exports = {
+const cyclic_depedency = {
   get_races_of_hid,
   from_ch_zed_collection,
   struct_race_row_data,
   progress_bar,
   initiate,
 };
+
+module.exports = cyclic_depedency;
