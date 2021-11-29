@@ -138,20 +138,21 @@ const generate_rating_blood_calc = async ({ hid, races = [] }, p) => {
         });
         p = _.fromPairs(p);
         // console.log(cf, n, p1);
-        let p12_ratio =
-          p[1] /
-            (p[2] * 0.5 +
-              p[3] * 0.75 +
-              p[4] +
-              p[5] * 1.1 +
-              p[6] * 1.2 +
-              p[7] * 1.3 +
-              p[8] * 1.4 +
-              p[9] * 0.9 +
-              p[10] * 0.85 +
-              p[11] * 0.8 +
-              p[12] * 0.7) +
-          n * 0.001;
+        let den =
+          p[2] * 0.5 +
+          p[3] * 0.625 +
+          p[4] +
+          p[5] * 1.1 +
+          p[6] * 1.125 +
+          p[7] * 1.25 +
+          p[8] * 1.37 +
+          p[9] * 0.9 +
+          p[10] * 0.625 +
+          p[11] * 0.5 +
+          p[12] * 0.4;
+        let p12_ratio;
+        if (den == 0) p12_ratio = 0.5 * p1;
+        else p12_ratio = p[1] / den + n * 0.001;
 
         let win_rate = (p1 / (n || 1)) * 100;
         let flame_rate = (flames / (n || 1)) * 100;
@@ -258,7 +259,7 @@ const generate_rating_blood_dist_for_hid = async (hid) => {
 
 const runner = async () => {
   await init();
-  let hid = 34750;
+  let hid = 60781;
   let ob = await generate_rating_blood_from_hid(hid);
   console.log(ob);
   let ob2 = await generate_rating_blood_dist_for_hid(hid);
