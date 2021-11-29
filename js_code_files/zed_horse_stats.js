@@ -131,8 +131,10 @@ const gen_and_upload_horse_stats = async ({ hid }) => {
   console.log("done stats", hid);
 };
 const horse_stats_range = async (range, cs = 5) => {
-  await init();
-  await eth_runner_fn();
+  if (!zed_db) {
+    await init();
+    await eth_runner_fn();
+  }
   for (let chunk of _.chunk(range, cs)) {
     let ar = await Promise.all(chunk.map((hid) => get_horse_stats({ hid })));
     let bulk = [];
@@ -153,9 +155,9 @@ const horse_stats_range = async (range, cs = 5) => {
 const horse_stats_all = async (st, ed, cs = 5) => {
   await init();
   if (!st) st = 1;
-  else st = parseInt(st)
+  else st = parseInt(st);
   if (!ed) ed = await get_ed_horse();
-  else ed = parseInt(ed)
+  else ed = parseInt(ed);
   console.log("horse_stats_all", st, ed);
   let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
   // let hids = [3312, 15147];
@@ -166,4 +168,5 @@ const horse_stats_all = async (st, ed, cs = 5) => {
 module.exports = {
   horse_stats_all,
   gen_and_upload_horse_stats,
+  horse_stats_range,
 };

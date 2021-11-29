@@ -31,6 +31,7 @@ const {
   generate_odds_flames_hid,
   generate_odds_flames,
 } = require("./odds-flames-blood2");
+const { horse_stats_range } = require("./zed_horse_stats");
 
 let mx;
 let st = 1;
@@ -1092,6 +1093,7 @@ const update_odds_and_breed_for_race_horses = async (horses_tc_ob) => {
   if (!_.isEmpty(tc_bulk))
     await zed_db.db.collection("horse_details").bulkWrite(tc_bulk);
   await odds_generator_for_hids(hids);
+  await horse_stats_range(hids)
   await breed_generator_for_hids(hids);
   await breed_generator_for_hids(parents_hids);
 };
