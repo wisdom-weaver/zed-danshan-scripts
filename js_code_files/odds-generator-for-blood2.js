@@ -563,11 +563,19 @@ const generate_odds_for = async (hid) => {
     let rating_flames = await generate_rating_flames_wraces({ hid, races });
     let odds_flames = await generate_odds_flames({ hid, races });
     let stats = await get_horse_stats_raw({ hid, races });
-    
+
     let blood_str = get_blood_str(rating_blood);
     let flames_str = get_flames_str(rating_flames);
-    
-    console.log(`# hid:`, hid, "len:", races.length, blood_str, flames_str, dec(stats?.avg_paid_fee_usd));
+
+    console.log(
+      `# hid:`,
+      hid,
+      "len:",
+      races.length,
+      blood_str,
+      flames_str,
+      dec(stats?.avg_paid_fee_usd)
+    );
     return {
       hid,
       odds_live,
@@ -708,9 +716,9 @@ const general_bulk_push = async (coll, obar) => {
     let len = obar.length;
     let sth = obar[0].hid;
     let edh = obar[obar.length - 1].hid;
-    console.log("wrote bulk", len, "..", sth, "->", edh);
+    console.log("wrote bulk", coll, len, "..", sth, "->", edh);
   } catch (err) {
-    console.log("err mongo bulk", coll, obar && obar[0]?.hid);
+    console.log("err mongo bulk", coll, coll, obar && obar[0]?.hid);
   }
 };
 
@@ -762,28 +770,30 @@ const blood_generator_all_horses = async (st, ed) => {
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
     // let hids = [26646, 21744, 21512];
     // let hids = [21888];
-    outer: while (true) {
-      console.log("=> STARTED blood_generator: ", `${st}:${ed}`);
-      for (let chunk of _.chunk(hids, cs)) {
-        // console.log("\n=> fetching together:", chunk.toString());
-        let obar = await Promise.all(
-          chunk.map((hid) => generate_rating_blood_from_hid(hid))
-        );
-        obar = _.compact(obar);
-        if (obar.length == 0) {
-          console.log("starting from initial");
-          continue outer;
-        }
-        // console.table(obar);
-        try {
-          await general_bulk_push("rating_blood2", obar);
-        } catch (err) {
-          console.log("mongo err");
-        }
-        console.log("! got", chunk[0], " -> ", chunk[chunk.length - 1]);
-        await delay(chunk_delay);
+    // outer: while (true) {
+    console.log("=> STARTED blood_generator: ", `${st}:${ed}`);
+    for (let chunk of _.chunk(hids, cs)) {
+      // console.log("\n=> fetching together:", chunk.toString());
+      let obar = await Promise.all(
+        chunk.map((hid) => generate_rating_blood_from_hid(hid))
+      );
+      obar = _.compact(obar);
+      if (obar.length == 0) {
+        // console.log("starting from initial");
+        // continue outer;
+        console.log("exit");
+        return;
       }
+      // console.table(obar);
+      try {
+        await general_bulk_push("rating_blood2", obar);
+      } catch (err) {
+        console.log("mongo err");
+      }
+      console.log("! got", chunk[0], " -> ", chunk[chunk.length - 1]);
+      await delay(chunk_delay);
     }
+    // }
   } catch (err) {
     console.log("ERROR fetch_all_horses\n", err);
   }
@@ -799,28 +809,37 @@ const blood_generator_dist_all_horses = async (st, ed) => {
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
     // let hids = [26646, 21744, 21512];
     // let hids = [21888];
-    outer: while (true) {
-      console.log("=> STARTED blood_generator: ", `${st}:${ed}`);
-      for (let chunk of _.chunk(hids, cs)) {
-        // console.log("\n=> fetching together:", chunk.toString());
-        let obar = await Promise.all(
-          chunk.map((hid) => generate_rating_blood_dist_for_hid(hid))
-        );
-        obar = _.compact(obar);
-        if (obar.length == 0) {
-          console.log("starting from initial");
-          continue outer;
-        }
-        // console.table(obar);
-        try {
-          await general_bulk_push("rating_blood_dist", obar);
-        } catch (err) {
-          console.log("mongo err");
-        }
-        console.log("! got", chunk[0], " -> ", chunk[chunk.length - 1]);
-        await delay(chunk_delay);
+    // outer: while (true) {
+    console.log("=> STARTED blood_generator: ", `${st}:${ed}`);
+    for (let chunk of _.chunk(hids, cs)) {
+      // console.log("\n=> fetching together:", chunk.toString());
+      let obar = await Promise.all(
+        chunk.map((hid) => generate_rating_blood_dist_for_hid(hid))
+      );
+      obar = _.compact(obar);
+      let obar2 = _.map(obar, (i) => {
+        return { hid: i.hid, ...i["All"] };
+      });
+      // console.log(obar);
+      // console.log(obar2);
+      if (obar.length == 0) {
+        // console.log("starting from initial");
+        // continue outer;
+        console.log("exit");
+        return;
       }
+      // console.table(obar);
+      try {
+        await general_bulk_push("rating_blood2", obar2);
+        await general_bulk_push("rating_blood_dist", obar);
+      } catch (err) {
+        console.log("mongo err");
+      }
+      console.log("! got", chunk[0], " -> ", chunk[chunk.length - 1]);
+      await delay(chunk_delay);
     }
+    return;
+    // }
   } catch (err) {
     console.log("ERROR fetch_all_horses\n", err);
   }
