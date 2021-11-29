@@ -49,9 +49,9 @@ const download_horses_data = async () => {
 
 const get_blood_str = (ob) => {
   try {
-    let { cf, d, side, p12_ratio, win_rate, flame_rate, rated_type } = ob;
+    let { cf, d, side, p12_ratio, rat, win_rate, flame_rate, rated_type } = ob;
     if (rated_type == "GH")
-      return `${cf}-${d}-${dec(p12_ratio)}-${dec(win_rate)}-${dec(flame_rate)}`;
+      return `${cf}-${d}-${dec(rat)}-${dec(win_rate)}-${dec(flame_rate)}`;
     return rated_type;
   } catch (err) {
     return "err";
