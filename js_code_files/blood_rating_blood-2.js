@@ -262,7 +262,7 @@ const runner = async () => {
   // let ob2 = await generate_rating_blood_dist_for_hid(hid);
   // console.log(ob2);
 };
-runner();
+// runner();
 
 module.exports = {
   generate_rating_blood,
