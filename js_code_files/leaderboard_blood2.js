@@ -179,20 +179,12 @@ const generate_leaderboard_b2_each_dist = async ({ mapped, dist }) => {
       },
     });
   }
+  let i = 0;
   for (let mini_bulk of _.chunk(bulk, 2000)) {
     if (_.isEmpty(bulk)) continue;
     await zed_db.db.collection("rating_blood_dist").bulkWrite(mini_bulk);
     i += mini_bulk.length;
     console.log("rating_blood_dist ranks:", dec_per(i, bulk.length));
-  }
-
-  let i = 0;
-  console.log("staring writing ", bulk.length, "ranks");
-  for (let mini_bulk of _.chunk(bulk, 2000)) {
-    if (_.isEmpty(bulk)) continue;
-    await zed_db.db.collection("rating_blood2").bulkWrite(mini_bulk);
-    i += mini_bulk.length;
-    console.log("rating_blood2 ranks:", dec_per(i, bulk.length));
   }
 
   if (dist == "All") {
@@ -214,7 +206,7 @@ const generate_leaderboard_b2_each_dist = async ({ mapped, dist }) => {
       if (_.isEmpty(bulk)) continue;
       await zed_db.db.collection("rating_blood2").bulkWrite(mini_bulk);
       i += mini_bulk.length;
-      console.log("writing ranks", dec_per(i, bulk.length));
+      console.log("rating_blood2 ranks:", dec_per(i, bulk.length));
     }
   }
 };
