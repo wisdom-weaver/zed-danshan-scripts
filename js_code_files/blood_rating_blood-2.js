@@ -256,11 +256,11 @@ const generate_rating_blood_dist_for_hid = async (hid) => {
 
 const runner = async () => {
   await init();
-  let hid = 34750;
+  let hid = 38815;
   let ob = await generate_rating_blood_from_hid(hid);
   console.log(ob);
-  // let ob2 = await generate_rating_blood_dist_for_hid(hid);
-  // console.log(ob2);
+  let ob2 = await generate_rating_blood_dist_for_hid(hid);
+  console.log(ob2);
 };
 // runner();
 

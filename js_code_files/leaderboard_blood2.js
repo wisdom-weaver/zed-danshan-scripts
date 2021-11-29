@@ -112,7 +112,7 @@ const generate_leaderboard_b2_each_dist = async ({ mapped, dist }) => {
           return i.cf;
         },
         (i) => {
-          return +i.p12_ratio;
+          return +i.rat;
         },
         (i) => {
           return +i.win_rate;
