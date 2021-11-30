@@ -275,7 +275,8 @@ const write_ranks = async (dist) => {
   try {
     let docs = await zed_db.db
       .collection("rating_blood_dist")
-      .aggregate(leader_query(dist, 0, null));
+      .aggregate(leader_query(dist, 0, null))
+      .batchSize(200);
     let i = 0;
     let cur = docs;
     let last_cur;
@@ -303,6 +304,7 @@ const write_ranks = async (dist) => {
         console.log("...err");
       }
     }
+    console.log("completed ranks", dist);
   } catch (err) {
     console.log(err);
     return;
