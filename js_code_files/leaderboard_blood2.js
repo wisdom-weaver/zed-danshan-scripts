@@ -273,10 +273,10 @@ const generate_leaderboard_b2_each_dist = async (dist) => {
     .updateOne({ id: leader_doc.id }, { $set: leader_doc }, { upsert: true });
   console.log(dist, "done");
 
-  await write_ranks(dist);
+  await leader_write_ranks(dist);
 };
 
-const write_ranks = async (dist) => {
+const leader_write_ranks = async (dist) => {
   try {
     let docs = await zed_db.db
       .collection("rating_blood_dist")
@@ -361,5 +361,6 @@ const runner = async () => {
 module.exports = {
   generate_leaderboard_b2,
   generate_leaderboard_b2_each_dist,
+  leader_write_ranks,
   leaderboard_download,
 };
