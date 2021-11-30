@@ -13,42 +13,6 @@ const app_root = require("app-root-path");
 const { dec, dec_per } = require("./utils");
 const { initiate } = require("./odds-generator-for-blood2");
 
-const leaderboard_download = async () => {
-  await init();
-  let st = 1;
-  // let ed = 12000;
-  let ed = 200000;
-  let cs = 2000;
-  let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
-  let i = 0;
-  for (let chunk_hids of _.chunk(hids, cs)) {
-    let docs_a = await zed_db.db
-      .collection("rating_blood_dist")
-      .find({ hid: { $in: chunk_hids } })
-      .toArray();
-    let this_hids = _.map(docs_a, "hid");
-    if (_.isEmpty(this_hids)) {
-      console.log("empty");
-      continue;
-    }
-    let ob = {};
-    for (let hid of this_hids) {
-      let doc_a = _.find(docs_a, { hid });
-      if (_.isEmpty(doc_a)) continue;
-      // let dc = { hid };
-      let dc = doc_a;
-      ob[hid] = dc;
-    }
-
-    let [st_h, ed_h] = [chunk_hids[0], chunk_hids[chunk_hids.length - 1]];
-    let file_path = `${app_root}/data/rating_blood_dist/rbd-${st_h}-${ed_h}.json`;
-    write_to_path({ file_path, data: ob });
-    console.log("chunk", chunk_hids[0], chunk_hids[chunk_hids.length - 1]);
-    i++;
-  }
-  console.log("leaderboard_download horses_data");
-};
-
 const get_blood_str = (ob) => {
   try {
     let { cf, d, side, p12_ratio, rat, win_rate, flame_rate, rated_type } = ob;
@@ -59,32 +23,9 @@ const get_blood_str = (ob) => {
     return "err";
   }
 };
-
-const get_downloaded_horses_data = async () => {
-  let st = 1;
-  // let ed = 12000;
-  let ed = 200000;
-  let cs = 2000;
-  let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
-  let i = 0;
-  let mapped = {};
-  for (let chunk_hids of _.chunk(hids, cs)) {
-    let [st_h, ed_h] = [chunk_hids[0], chunk_hids[chunk_hids.length - 1]];
-    let file_path =
-      `${app_root}/data/rating_blood_dist/rbd-${st_h}-${ed_h}.json` || {};
-    let ob = read_from_path({ file_path });
-    if (_.isEmpty(ob)) break;
-    mapped = { ...mapped, ...ob };
-  }
-  console.log("got", _.keys(mapped).length);
-  return mapped;
-};
 const generate_leaderboard_b2 = async (only = null, cs = 100) => {
   await initiate();
   await fix_empty_names();
-  // if (down == 1) await leaderboard_download();
-  // let mapped = await get_downloaded_horses_data();
-  // console.log(mapped[3]);
   let dists = ["S", "M", "D", "All"];
   if (only) dists = [only];
   for (let dist of dists) {
@@ -283,7 +224,7 @@ const generate_leaderboard_b2_each_dist = async (dist) => {
   // await leader_write_ranks_each_dist(dist);
 };
 
-const leader_write_ranks_each_dist = async (dist) => {
+const leader_write_ranks_each_dist = async (dist, cs = 20) => {
   try {
     await init();
     // let d = await zed_db.db
@@ -296,34 +237,42 @@ const leader_write_ranks_each_dist = async (dist) => {
     // console.log(d.length);
     // return;
 
-    let limit = 10000;
+    let limit = 1e14;
     let skip = 0;
     let docs = await zed_db.db
       .collection("rating_blood_dist")
-      .aggregate(leader_query(dist, 0, limit. skip));
+      .aggregate(leader_query(dist, 0, limit, skip));
     let cur = docs;
     let ar = await cur.toArray();
     ar = ar.map((item, idx) => {
       let rank = idx + skip + 1;
       return { rank, ...item };
     });
-    console.table(ar);
-    return;
+    console.log("GH: ", ar.length);
+
     await zed_db.db
       .collection("rating_blood_dist")
-      .updateOne(
-        { [`${dist}.rated_type`]: { $ne: "GH" } },
-        { $set: { [`${dist}.rank`]: null } }
+      .updateMany(
+        { [`${"S"}.rank`]: { $ne: "GH" } },
+        { $set: { [`${"S"}.rank`]: null } }
       );
-    while (cur.hasNext()) {
-      let doc = await cur.next();
-      let rank = ++i;
-      console.log(rank, doc);
-      await zed_db.db
-        .collection("rating_blood_dist")
-        .updateOne({ hid: doc.hid }, { $set: { [`${dist}.rank`]: rank } });
-      // if (i % 100 == 0)
-      if (i % 10 == 0) await delay(500);
+    console.table("cleared ranks non-GH");
+
+    ar = _.compact(ar);
+    for (let chunk of _.chunk(ar, cs)) {
+      let mini = [];
+      for (let i of chunk) {
+        if (_.isEmpty(i)) continue;
+        console.log(`#${i.rank} @ ${dist}`, "hid:", i.hid);
+        mini.push({
+          updateOne: {
+            filter: { hid: i.hid },
+            update: { $set: { [`${dist}.rank`]: i.rank } },
+          },
+        });
+      }
+      await zed_db.db.collection("rating_blood_dist").bulkWrite(mini);
+      console.log("done bulk", mini.length);
     }
     console.log("completed ranks", dist);
   } catch (err) {
@@ -369,7 +318,12 @@ const fix_empty_names = async () => {
 };
 
 const runner = async () => {
-  await generate_leaderboard_b2();
+  await init();
+  // await generate_leaderboard_b2();
+  await zed_db.db
+    .collection("rating_blood_dist")
+    .updateMany({}, { $set: { [`${"S"}.rank`]: null } });
+
   console.log("done");
 };
 // runner();
@@ -378,5 +332,4 @@ module.exports = {
   generate_leaderboard_b2,
   generate_leaderboard_b2_each_dist,
   leader_write_ranks_each_dist,
-  leaderboard_download,
 };
