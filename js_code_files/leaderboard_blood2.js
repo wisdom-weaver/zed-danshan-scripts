@@ -77,13 +77,14 @@ const get_downloaded_horses_data = async () => {
   console.log("got", _.keys(mapped).length);
   return mapped;
 };
-const generate_leaderboard_b2 = async () => {
+const generate_leaderboard_b2 = async (down = 1, only = null) => {
   await initiate();
   await fix_empty_names();
-  await download_horses_data();
+  if (down == 1) await download_horses_data();
   let mapped = await get_downloaded_horses_data();
   console.log(mapped[3]);
   let dists = ["S", "M", "D", "All"];
+  if (only) dists = [only];
   for (let dist of dists) {
     await generate_leaderboard_b2_each_dist({ mapped, dist });
   }
