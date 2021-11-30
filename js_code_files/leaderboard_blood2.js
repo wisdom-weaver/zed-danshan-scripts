@@ -194,35 +194,6 @@ const generate_leaderboard_b2_each_dist = async ({ mapped, dist, cs }) => {
     i += mini_bulk.length;
     console.log("rating_blood_dist ranks:", dec_per(i, bulk.length));
   }
-
-  if (dist == "All") {
-    console.log("blooddoc ranks");
-    await zed_db.db
-      .collection("rating_blood2")
-      .updateMany({}, { $set: { rank: null } });
-    console.log("cleared, ranks");
-    console.log("need to write ranks", to_upd.length);
-    let bulk = [];
-    for (let doc of to_upd) {
-      let { hid, rank } = doc;
-      if (!hid) continue;
-      bulk.push({
-        updateOne: {
-          filter: { hid },
-          update: { $set: { hid, rank } },
-        },
-      });
-    }
-
-    let i = 0;
-    console.log("staring writing ", bulk.length, "ranks");
-    for (let mini_bulk of _.chunk(bulk, 2000)) {
-      if (_.isEmpty(bulk)) continue;
-      await zed_db.db.collection("rating_blood2").bulkWrite(mini_bulk);
-      i += mini_bulk.length;
-      console.log("rating_blood2 ranks:", dec_per(i, bulk.length));
-    }
-  }
 };
 
 const fix_empty_names = async () => {
