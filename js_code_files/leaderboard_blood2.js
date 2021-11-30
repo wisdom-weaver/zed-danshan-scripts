@@ -181,7 +181,7 @@ const leader_query = (
   return ar;
 };
 
-const generate_leaderboard_b2_each_dist = async (dist) => {
+const generate_leaderboard_b2_each_dist = async (dist, cs = 20) => {
   await init();
   if (!dist) return;
   console.log(dist);
@@ -221,7 +221,7 @@ const generate_leaderboard_b2_each_dist = async (dist) => {
     .updateOne({ id: leader_doc.id }, { $set: leader_doc }, { upsert: true });
   console.log(dist, "done");
 
-  // await leader_write_ranks_each_dist(dist);
+  await leader_write_ranks_each_dist(dist, cs);
 };
 
 const leader_write_ranks_each_dist = async (dist, cs = 20) => {
