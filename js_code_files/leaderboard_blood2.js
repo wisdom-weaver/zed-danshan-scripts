@@ -1,17 +1,8 @@
 const _ = require("lodash");
-const fetch = require("node-fetch");
-const mongoose = require("mongoose");
+const cron = require("node-cron");
+const cron_parser = require("cron-parser");
 const { init, zed_db, zed_ch, run_func } = require("./index-run");
-const {
-  write_to_path,
-  read_from_path,
-  struct_race_row_data,
-  side_text,
-  delay,
-} = require("./utils");
-const app_root = require("app-root-path");
-const { dec, dec_per } = require("./utils");
-const { initiate } = require("./odds-generator-for-blood2");
+const { dec } = require("./utils");
 
 const get_blood_str = (ob) => {
   try {
@@ -24,7 +15,7 @@ const get_blood_str = (ob) => {
   }
 };
 const generate_leaderboard_b2 = async (only = null, cs = 100) => {
-  await initiate();
+  await init();
   await fix_empty_names();
   let dists = ["S", "M", "D", "All"];
   if (only) dists = [only];
@@ -328,8 +319,28 @@ const runner = async () => {
 };
 // runner();
 
+const leaderboard_b2_cron = async () => {
+  let cron_str = "0 0 */2 * * *";
+  console.log(
+    "#starting leaderboard_b2_cron",
+    cron_str,
+    cron.validate(cron_str)
+  );
+  const c_itvl = cron_parser.parseExpression(cron_str);
+  console.log("Next run:", c_itvl.next().toISOString());
+
+  const runner = () => {
+    console.log("#running leaderboard_b2_cron");
+    const c_itvl = cron_parser.parseExpression(cron_str);
+    console.log("Next run:", c_itvl.next().toISOString());
+    generate_leaderboard_b2();
+  };
+  cron.schedule(cron_str, runner);
+};
+
 module.exports = {
   generate_leaderboard_b2,
   generate_leaderboard_b2_each_dist,
   leader_write_ranks_each_dist,
+  leaderboard_b2_cron,
 };
