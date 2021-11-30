@@ -77,7 +77,7 @@ const get_downloaded_horses_data = async () => {
   console.log("got", _.keys(mapped).length);
   return mapped;
 };
-const generate_leaderboard_b2 = async (down = 1, only = null) => {
+const generate_leaderboard_b2 = async (down = 1, only = null, cs = 100) => {
   await initiate();
   await fix_empty_names();
   if (down == 1) await download_horses_data();
@@ -86,10 +86,10 @@ const generate_leaderboard_b2 = async (down = 1, only = null) => {
   let dists = ["S", "M", "D", "All"];
   if (only) dists = [only];
   for (let dist of dists) {
-    await generate_leaderboard_b2_each_dist({ mapped, dist });
+    await generate_leaderboard_b2_each_dist({ mapped, dist, cs });
   }
 };
-const generate_leaderboard_b2_each_dist = async ({ mapped, dist }) => {
+const generate_leaderboard_b2_each_dist = async ({ mapped, dist, cs }) => {
   console.log("#DIST", dist);
   mapped = _.chain(mapped)
     .values()
@@ -170,7 +170,13 @@ const generate_leaderboard_b2_each_dist = async ({ mapped, dist }) => {
   console.log("written", dist, "leaderboard\n----------------\n");
 
   let bulk = [];
-  for (let doc of ar) {
+  await zed_db.db
+    .collection("rating_blood_dist")
+    .updateMany({}, { $set: { [`${dist}.rank`]: null } });
+  console.log("cleared, ranks");
+  let to_upd = _.filter(ar, (i) => i.rank !== null);
+  console.log("need to write ranks", to_upd.length);
+  for (let doc of to_upd) {
     let { hid, rank } = doc;
     if (!hid) continue;
     bulk.push({
@@ -181,7 +187,7 @@ const generate_leaderboard_b2_each_dist = async ({ mapped, dist }) => {
     });
   }
   let i = 0;
-  for (let mini_bulk of _.chunk(bulk, 2000)) {
+  for (let mini_bulk of _.chunk(bulk, cs)) {
     if (_.isEmpty(bulk)) continue;
     await zed_db.db.collection("rating_blood_dist").bulkWrite(mini_bulk);
     i += mini_bulk.length;
