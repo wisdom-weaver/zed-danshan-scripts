@@ -286,9 +286,12 @@ const write_ranks = async ({ dist, cs }) => {
         let doc = await cur.next();
         let rank = ++i;
         // if (i % 100 == 0) await delay(2000);
-        // if (i % 100 == 0) 
-        await delay(100);
+        // if (i % 100 == 0)
         console.log(rank, doc);
+        await zed_db.db
+          .collection("rating_blood_dist")
+          .updateOne({ hid: doc.hid }, { $set: { rank } });
+        await delay(100);
       } catch (err) {
         cur = last_cur;
         console.log("...err");
