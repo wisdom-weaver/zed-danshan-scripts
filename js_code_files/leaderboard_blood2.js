@@ -302,7 +302,7 @@ const write_ranks = async (dist) => {
         cur = last_cur;
         console.log("...err");
       }
-      let last_cur = _.cloneDeep(cur);
+      last_cur = _.cloneDeep(cur);
     }
     console.log("completed ranks", dist);
   } catch (err) {
