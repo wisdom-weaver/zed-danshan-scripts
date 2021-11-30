@@ -12,7 +12,7 @@ const app_root = require("app-root-path");
 const { dec, dec_per } = require("./utils");
 const { initiate } = require("./odds-generator-for-blood2");
 
-const download_horses_data = async () => {
+const leaderboard_download = async () => {
   await init();
   let st = 1;
   // let ed = 12000;
@@ -45,6 +45,7 @@ const download_horses_data = async () => {
     console.log("chunk", chunk_hids[0], chunk_hids[chunk_hids.length - 1]);
     i++;
   }
+  console.log("leaderboard_download horses_data");
 };
 
 const get_blood_str = (ob) => {
@@ -80,7 +81,7 @@ const get_downloaded_horses_data = async () => {
 const generate_leaderboard_b2 = async (down = 1, only = null, cs = 100) => {
   await initiate();
   await fix_empty_names();
-  if (down == 1) await download_horses_data();
+  if (down == 1) await leaderboard_download();
   let mapped = await get_downloaded_horses_data();
   console.log(mapped[3]);
   let dists = ["S", "M", "D", "All"];
@@ -268,4 +269,5 @@ const runner = async () => {
 
 module.exports = {
   generate_leaderboard_b2,
+  leaderboard_download,
 };

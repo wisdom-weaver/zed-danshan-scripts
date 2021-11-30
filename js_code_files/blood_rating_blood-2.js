@@ -68,22 +68,27 @@ const place_fact = {
   12: 0.3,
 };
 
-const generate_rating_blood_calc = async ({ hid, races = [] }, p) => {
+const generate_rating_blood_calc = async (
+  { hid, races = [], for_leader = 0 },
+  p
+) => {
   hid = parseInt(hid);
-  let now = Date.now();
-  let rat_nano = now - days * 24 * 60 * 60 * 1000;
-  let rat_nano_ed = now - days_ed * 24 * 60 * 60 * 1000;
+  if (for_leader) {
+    let now = Date.now();
+    let rat_nano = now - days * 24 * 60 * 60 * 1000;
+    let rat_nano_ed = now - days_ed * 24 * 60 * 60 * 1000;
 
-  // let races_ed = _.filter(races, (i) => {
-  //   return _.inRange(nano(i.date), rat_nano_ed, rat_nano);
-  // });
-  let races_r = _.filter(races, (i) => {
-    return _.inRange(nano(i.date), rat_nano, now);
-  });
-  // console.log("races_r", races_r.length, races_r[0]?.date);
-  // console.log("races_ed", races_ed.length, races_ed[0]?.date);
+    // let races_ed = _.filter(races, (i) => {
+    //   return _.inRange(nano(i.date), rat_nano_ed, rat_nano);
+    // });
+    let races_r = _.filter(races, (i) => {
+      return _.inRange(nano(i.date), rat_nano, now);
+    });
+    // console.log("races_r", races_r.length, races_r[0]?.date);
+    // console.log("races_ed", races_ed.length, races_ed[0]?.date);
 
-  races = races_r;
+    races = races_r;
+  }
 
   if (_.isEmpty(races)) {
     let nr_ob = {
@@ -190,7 +195,7 @@ const generate_rating_blood_calc = async ({ hid, races = [] }, p) => {
 };
 
 const generate_rating_blood = async ({ hid, races, tc }, p) => {
-  let ob = await generate_rating_blood_calc({ hid, races }, p);
+  let ob = await generate_rating_blood_calc({ hid, races, for_leader: 0 }, p);
   ob.hid = hid;
   ob.tc = tc;
   let side;
@@ -237,6 +242,13 @@ const get_blood_str = (ob) => {
 
 const generate_rating_blood_dist_for_hid = async (hid) => {
   hid = parseInt(hid);
+  let races = await get_races_of_hid(hid);
+  let ob = await generate_rating_blood_dist({ hid, races });
+  return ob;
+};
+
+const generate_rating_blood_dist = async ({ hid, races }) => {
+  hid = parseInt(hid);
   let doc = await zed_db.db
     .collection("horse_details")
     .findOne({ hid }, { projection: { _id: 0, tc: 1, name: 1 } });
@@ -245,13 +257,16 @@ const generate_rating_blood_dist_for_hid = async (hid) => {
     return null;
   }
   let { tc, name } = doc;
-  let races = await get_races_of_hid(hid);
   let ob = {};
   ob.hid = hid;
   ob.name = name;
   for (let dist of ["All", ...rat_bl_seq.tunnels]) {
     let fr = dist == "All" ? races : _.filter(races, { tunnel: dist });
-    ob[dist] = await generate_rating_blood_calc({ hid, races: fr });
+    ob[dist] = await generate_rating_blood_calc({
+      hid,
+      races: fr,
+      for_leader: 1,
+    });
   }
   console.log("done hid:", hid);
   return ob;

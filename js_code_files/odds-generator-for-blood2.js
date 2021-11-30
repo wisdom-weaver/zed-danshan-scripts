@@ -563,6 +563,7 @@ const generate_odds_for = async (hid) => {
     let rating_flames = await generate_rating_flames_wraces({ hid, races });
     let odds_flames = await generate_odds_flames({ hid, races });
     let stats = await get_horse_stats_raw({ hid, races });
+    let rating_blood_dist = await rating_blood_dist({ hid, races });
 
     let blood_str = get_blood_str(rating_blood);
     let flames_str = get_flames_str(rating_flames);
@@ -584,6 +585,7 @@ const generate_odds_for = async (hid) => {
       rating_flames,
       odds_flames,
       stats,
+      rating_blood_dist,
     };
   } catch (err) {
     console.log("ERROR generate_odds_for", hid);
@@ -599,6 +601,7 @@ const odds_generator_bulk_push = async (obar) => {
   let rating_flames2_bulk = [];
   let odds_flames2_bulk = [];
   let stats_bulk = [];
+  let rating_blood_dist_bulk = [];
   for (let ob of obar) {
     if (_.isEmpty(ob)) continue;
     let {
@@ -609,6 +612,7 @@ const odds_generator_bulk_push = async (obar) => {
       rating_flames,
       odds_flames,
       stats,
+      rating_blood_dist,
     } = ob;
     odds_live_bulk.push({
       updateOne: {
@@ -649,6 +653,13 @@ const odds_generator_bulk_push = async (obar) => {
       updateOne: {
         filter: { hid },
         update: { $set: stats },
+        upsert: true,
+      },
+    });
+    rating_blood_dist_bulk.push({
+      updateOne: {
+        filter: { hid },
+        update: { $set: rating_blood_dist },
         upsert: true,
       },
     });
@@ -817,11 +828,7 @@ const blood_generator_dist_all_horses = async (st, ed) => {
         chunk.map((hid) => generate_rating_blood_dist_for_hid(hid))
       );
       obar = _.compact(obar);
-      let obar2 = _.map(obar, (i) => {
-        return { hid: i.hid, ...i["All"] };
-      });
       // console.log(obar);
-      // console.log(obar2);
       if (obar.length == 0) {
         // console.log("starting from initial");
         // continue outer;
@@ -830,7 +837,6 @@ const blood_generator_dist_all_horses = async (st, ed) => {
       }
       // console.table(obar);
       try {
-        await general_bulk_push("rating_blood2", obar2);
         await general_bulk_push("rating_blood_dist", obar);
       } catch (err) {
         console.log("mongo err");
