@@ -50,6 +50,7 @@
     "tabulate_hids_br_ymca": "run-func js_code_files/horses-kids-blood2.js tabulate_hids_br_ymca",
     "driver_test": "run-func js_code_files/webdriver-utils.js driver_test",
     "generate_leaderboard_b2": "run-func js_code_files/leaderboard_blood2.js generate_leaderboard_b2",
+    "generate_leaderboard_b2_each_dist": "run-func js_code_files/leaderboard_blood2.js generate_leaderboard_b2_each_dist",
     "leaderboard_download": "run-func js_code_files/leaderboard_blood2.js leaderboard_download",
     "fix_parents_kids_mismatch": "run-func js_code_files/parents-blood2.js fix_parents_kids_mismatch",
     "zed_tour_fn": "run-func js_code_files/zed_tournament.js zed_tour_fn",

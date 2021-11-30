@@ -214,8 +214,12 @@ const leader_query = (dist = null, need_details = 0, limit = null) => {
       $project: {
         _id: 0,
         hid: 1,
-        name: 1,
-        ...(need_details ? { [dist]: 1 } : {}),
+        ...(need_details
+          ? {
+              name: 1,
+              [dist]: 1,
+            }
+          : {}),
         // [`${dist}.cf`]: 1,
         // [`${dist}.d`]: 1,
         // [`${dist}.rat`]: 1,
