@@ -320,7 +320,7 @@ const runner = async () => {
 // runner();
 
 const leaderboard_b2_cron = async () => {
-  let cron_str = "0 0 */2 * * *";
+  let cron_str = "0 0 */12 * * *";
   console.log(
     "#starting leaderboard_b2_cron",
     cron_str,
