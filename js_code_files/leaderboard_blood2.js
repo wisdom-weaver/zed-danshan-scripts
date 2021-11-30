@@ -287,7 +287,6 @@ const write_ranks = async (dist) => {
         { $set: { [`${dist}.rank`]: null } }
       );
     while (true) {
-      let last_cur = _.cloneDeep(cur);
       try {
         if (!cur.hasNext()) break;
         let doc = await cur.next();
@@ -303,6 +302,7 @@ const write_ranks = async (dist) => {
         cur = last_cur;
         console.log("...err");
       }
+      let last_cur = _.cloneDeep(cur);
     }
     console.log("completed ranks", dist);
   } catch (err) {
