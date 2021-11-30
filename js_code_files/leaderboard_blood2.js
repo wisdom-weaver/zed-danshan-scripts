@@ -220,6 +220,7 @@ const leader_query = (
       $project: {
         _id: 0,
         hid: 1,
+        name: 1,
         ...(need_details
           ? {
               name: 1,
@@ -285,12 +286,29 @@ const generate_leaderboard_b2_each_dist = async (dist) => {
 const leader_write_ranks_each_dist = async (dist) => {
   try {
     await init();
+    // let d = await zed_db.db
+    //   .collection("rating_blood_dist")
+    //   .find(
+    //     { [`${dist}.rated_type`]: "GH" },
+    //     { projection: { _id: 0, hid: 1 } }
+    //   )
+    //   .toArray();
+    // console.log(d.length);
+    // return;
+
+    let limit = 10000;
+    let skip = 0;
     let docs = await zed_db.db
       .collection("rating_blood_dist")
-      .aggregate(leader_query(dist, 0, 100, 0));
-    let i = 0;
+      .aggregate(leader_query(dist, 0, limit. skip));
     let cur = docs;
-    let last_cur;
+    let ar = await cur.toArray();
+    ar = ar.map((item, idx) => {
+      let rank = idx + skip + 1;
+      return { rank, ...item };
+    });
+    console.table(ar);
+    return;
     await zed_db.db
       .collection("rating_blood_dist")
       .updateOne(
@@ -306,8 +324,8 @@ const leader_write_ranks_each_dist = async (dist) => {
         .updateOne({ hid: doc.hid }, { $set: { [`${dist}.rank`]: rank } });
       // if (i % 100 == 0)
       if (i % 10 == 0) await delay(500);
-      console.log("completed ranks", dist);
     }
+    console.log("completed ranks", dist);
   } catch (err) {
     console.log(err);
     return;
