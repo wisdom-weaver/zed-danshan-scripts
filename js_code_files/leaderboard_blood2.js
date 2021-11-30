@@ -285,7 +285,9 @@ const write_ranks = async ({ dist, cs }) => {
         if (!cur.hasNext()) break;
         let doc = await cur.next();
         let rank = ++i;
-        if (i % 500 == 0) await delay(5000);
+        // if (i % 100 == 0) await delay(2000);
+        // if (i % 100 == 0) 
+        await delay(100);
         console.log(rank, doc);
       } catch (err) {
         cur = last_cur;
