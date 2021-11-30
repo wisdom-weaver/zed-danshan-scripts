@@ -285,6 +285,7 @@ const write_ranks = async ({ dist, cs }) => {
         if (!cur.hasNext()) break;
         let doc = await cur.next();
         let rank = ++i;
+        if (i % 500 == 0) await delay(5000);
         console.log(rank, doc);
       } catch (err) {
         cur = last_cur;
@@ -337,7 +338,7 @@ const runner = async () => {
   await generate_leaderboard_b2();
   console.log("done");
 };
-runner();
+// runner();
 
 module.exports = {
   generate_leaderboard_b2,
