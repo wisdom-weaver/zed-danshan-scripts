@@ -27,6 +27,7 @@ const {
   generate_rating_blood_from_hid,
   generate_rating_blood_dist_for_hid,
   get_blood_str,
+  generate_rating_blood_dist,
 } = require("./blood_rating_blood-2");
 const {
   generate_odds_flames_hid,
@@ -563,7 +564,7 @@ const generate_odds_for = async (hid) => {
     let rating_flames = await generate_rating_flames_wraces({ hid, races });
     let odds_flames = await generate_odds_flames({ hid, races });
     let stats = await get_horse_stats_raw({ hid, races });
-    let rating_blood_dist = await rating_blood_dist({ hid, races });
+    let rating_blood_dist = await generate_rating_blood_dist({ hid, races });
 
     let blood_str = get_blood_str(rating_blood);
     let flames_str = get_flames_str(rating_flames);

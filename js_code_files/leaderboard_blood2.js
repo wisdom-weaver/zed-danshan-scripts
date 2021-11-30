@@ -196,6 +196,20 @@ const generate_leaderboard_b2_each_dist = async ({ mapped, dist, cs }) => {
   }
 };
 
+const gene_leader = async () => {
+  await init()
+  let dist = "All";
+  let docs = await zed_db.db
+    .collection("rating_blood_dist")
+    .aggregate([
+      { $match: { [`${dist}.rated_type`]: "urgent" } },
+      { $sort: { [`${dist}.cf`]: 1 } },
+    ])
+    .toArray();
+  console.log(docs);
+  return [];
+};
+
 const fix_empty_names = async () => {
   console.log("fix_empty_names");
   let docs = await zed_db.db
@@ -237,6 +251,7 @@ const runner = async () => {
   console.log("done");
 };
 // runner();
+gene_leader();
 
 module.exports = {
   generate_leaderboard_b2,
