@@ -251,7 +251,7 @@ const runner = async () => {
   console.log("done");
 };
 // runner();
-gene_leader();
+// gene_leader();
 
 module.exports = {
   generate_leaderboard_b2,
