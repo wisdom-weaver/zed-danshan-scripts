@@ -282,7 +282,7 @@ const leader_write_ranks_each_dist = async (dist) => {
     let docs = await zed_db.db
       .collection("rating_blood_dist")
       .aggregate(leader_query(dist, 0, null))
-      .batchSize(200);
+      .batchSize(100);
     let i = 0;
     let cur = docs;
     let last_cur;
@@ -303,7 +303,7 @@ const leader_write_ranks_each_dist = async (dist) => {
         await zed_db.db
           .collection("rating_blood_dist")
           .updateOne({ hid: doc.hid }, { $set: { [`${dist}.rank`]: rank } });
-        if (i % 10 == 0) await delay(200);
+        if (i % 10 == 0) await delay(500);
       } catch (err) {
         cur = last_cur;
         console.log("...err");
