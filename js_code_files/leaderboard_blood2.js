@@ -279,6 +279,12 @@ const write_ranks = async ({ dist, cs }) => {
     let i = 0;
     let cur = docs;
     let last_cur;
+    await zed_db.db
+      .collection("rating_blood_dist")
+      .updateOne(
+        { [`${dist}.rated_type`]: { $ne: "GH" } },
+        { $set: { [`${dist}.rank`]: null } }
+      );
     while (true) {
       let last_cur = _.cloneDeep(cur);
       try {
@@ -290,8 +296,8 @@ const write_ranks = async ({ dist, cs }) => {
         console.log(rank, doc);
         await zed_db.db
           .collection("rating_blood_dist")
-          .updateOne({ hid: doc.hid }, { $set: { rank } });
-        await delay(100);
+          .updateOne({ hid: doc.hid }, { $set: { [`${dist}.rank`]: rank } });
+        if (i % 10 == 0) await delay(100);
       } catch (err) {
         cur = last_cur;
         console.log("...err");
