@@ -88,7 +88,7 @@ const generate_leaderboard_b2 = async (only = null, cs = 100) => {
   let dists = ["S", "M", "D", "All"];
   if (only) dists = [only];
   for (let dist of dists) {
-    await generate_leaderboard_b2_each_dist({ dist, cs });
+    await generate_leaderboard_b2_each_dist(dist);
   }
 };
 // const generate_leaderboard_b2_each_dist = async ({ mapped, dist, cs }) => {
@@ -229,7 +229,7 @@ const leader_query = (dist = null, need_details = 0, limit = null) => {
   return ar;
 };
 
-const generate_leaderboard_b2_each_dist = async ({ dist = null, cs }) => {
+const generate_leaderboard_b2_each_dist = async (dist) => {
   if (!dist) return;
   console.log(dist);
   let docs = await zed_db.db
@@ -268,10 +268,10 @@ const generate_leaderboard_b2_each_dist = async ({ dist = null, cs }) => {
     .updateOne({ id: leader_doc.id }, { $set: leader_doc }, { upsert: true });
   console.log(dist, "done");
 
-  await write_ranks({ dist, cs });
+  await write_ranks(dist);
 };
 
-const write_ranks = async ({ dist, cs }) => {
+const write_ranks = async (dist) => {
   try {
     let docs = await zed_db.db
       .collection("rating_blood_dist")
@@ -353,5 +353,6 @@ const runner = async () => {
 
 module.exports = {
   generate_leaderboard_b2,
+  generate_leaderboard_b2_each_dist,
   leaderboard_download,
 };
