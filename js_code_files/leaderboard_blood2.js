@@ -234,6 +234,7 @@ const leader_query = (dist = null, need_details = 0, limit = null) => {
 };
 
 const generate_leaderboard_b2_each_dist = async (dist) => {
+  await init();
   if (!dist) return;
   console.log(dist);
   let docs = await zed_db.db
