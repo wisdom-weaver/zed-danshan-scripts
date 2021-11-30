@@ -195,8 +195,14 @@ const generate_leaderboard_b2_each_dist = async ({ mapped, dist, cs }) => {
   }
 
   if (dist == "All") {
+    console.log("blooddoc ranks");
+    await zed_db.db
+      .collection("rating_blood2")
+      .updateMany({}, { $set: { rank: null } });
+    console.log("cleared, ranks");
+    console.log("need to write ranks", to_upd.length);
     let bulk = [];
-    for (let doc of ar) {
+    for (let doc of to_upd) {
       let { hid, rank } = doc;
       if (!hid) continue;
       bulk.push({
