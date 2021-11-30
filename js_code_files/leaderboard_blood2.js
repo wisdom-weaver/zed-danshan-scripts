@@ -197,7 +197,12 @@ const generate_leaderboard_b2 = async (only = null, cs = 100) => {
 //   }
 // };
 
-const leader_query = (dist = null, need_details = 0, limit = null) => {
+const leader_query = (
+  dist = null,
+  need_details = 0,
+  limit = null,
+  skip = null
+) => {
   if (!dist) [{ $match: { hid: -1 } }];
   let ar = [
     { $match: { [`${dist}.rated_type`]: "GH" } },
@@ -210,6 +215,7 @@ const leader_query = (dist = null, need_details = 0, limit = null) => {
       },
     },
     ...(limit ? [{ $limit: limit }] : []),
+    ...(skip ? [{ $skip: skip }] : []),
     {
       $project: {
         _id: 0,
@@ -281,8 +287,7 @@ const leader_write_ranks_each_dist = async (dist) => {
     await init();
     let docs = await zed_db.db
       .collection("rating_blood_dist")
-      .aggregate(leader_query(dist, 0, null))
-      .batchSize(100);
+      .aggregate(leader_query(dist, 0, 100, 0));
     let i = 0;
     let cur = docs;
     let last_cur;
@@ -292,25 +297,17 @@ const leader_write_ranks_each_dist = async (dist) => {
         { [`${dist}.rated_type`]: { $ne: "GH" } },
         { $set: { [`${dist}.rank`]: null } }
       );
-    while (true) {
-      try {
-        if (!cur.hasNext()) break;
-        let doc = await cur.next();
-        let rank = ++i;
-        // if (i % 100 == 0) await delay(2000);
-        // if (i % 100 == 0)
-        console.log(rank, doc);
-        await zed_db.db
-          .collection("rating_blood_dist")
-          .updateOne({ hid: doc.hid }, { $set: { [`${dist}.rank`]: rank } });
-        if (i % 10 == 0) await delay(500);
-      } catch (err) {
-        cur = last_cur;
-        console.log("...err");
-      }
-      last_cur = cur;
+    while (cur.hasNext()) {
+      let doc = await cur.next();
+      let rank = ++i;
+      console.log(rank, doc);
+      await zed_db.db
+        .collection("rating_blood_dist")
+        .updateOne({ hid: doc.hid }, { $set: { [`${dist}.rank`]: rank } });
+      // if (i % 100 == 0)
+      if (i % 10 == 0) await delay(500);
+      console.log("completed ranks", dist);
     }
-    console.log("completed ranks", dist);
   } catch (err) {
     console.log(err);
     return;
