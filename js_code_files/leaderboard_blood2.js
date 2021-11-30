@@ -273,7 +273,7 @@ const generate_leaderboard_b2_each_dist = async (dist) => {
     .updateOne({ id: leader_doc.id }, { $set: leader_doc }, { upsert: true });
   console.log(dist, "done");
 
-  await leader_write_ranks(dist);
+  // await leader_write_ranks(dist);
 };
 
 const leader_write_ranks = async (dist) => {
