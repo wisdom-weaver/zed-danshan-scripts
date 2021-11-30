@@ -278,7 +278,7 @@ const generate_leaderboard_b2_each_dist = async (dist) => {
 
 const leader_write_ranks_each_dist = async (dist) => {
   try {
-    await init()
+    await init();
     let docs = await zed_db.db
       .collection("rating_blood_dist")
       .aggregate(leader_query(dist, 0, null))
@@ -308,7 +308,7 @@ const leader_write_ranks_each_dist = async (dist) => {
         cur = last_cur;
         console.log("...err");
       }
-      last_cur = _.cloneDeep(cur);
+      last_cur = cur;
     }
     console.log("completed ranks", dist);
   } catch (err) {
