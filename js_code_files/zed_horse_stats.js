@@ -68,7 +68,7 @@ const get_horse_stats_raw = async ({ hid, races = [] }) => {
     let free_races = _.filter(races, (i) => i.fee_tag === "F") || [];
     let paid_n = paid_races.length;
 
-    console.log(paid_races[0]);
+    // console.log(paid_races[0]);
 
     let avg_paid_fee_usd = _.chain(paid_races)
       .map("entryfee_usd")
