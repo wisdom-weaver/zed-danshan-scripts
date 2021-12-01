@@ -9,3 +9,4 @@ pm2 start npm  --name "unnamedfoal" -- run zed_horses_fix_unnamed_foal_cron
 pm2 start npm  --name "bt_tour_cron" -- run zed_tour_cron
 pm2 start npm  --name "bt_tour_leader_cron" -- run zed_tour_leader_cron
 pm2 start npm  --name "bt_tour_missed_cron" -- run zed_tour_missed_cron
+pm2 start npm --name "leader_b2_cron" -- run leaderboard_b2_cron

@@ -6,7 +6,21 @@ const { get_fee_tag } = require("./utils");
 const zedf = require("./zedf");
 const { get_ed_horse } = require("./zed_horse_scrape");
 
-const dists = ["all", 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600];
+const distst = [
+  "all",
+  "S",
+  "M",
+  "D",
+  1000,
+  1200,
+  1400,
+  1600,
+  1800,
+  2000,
+  2200,
+  2400,
+  2600,
+];
 const places = {
   1: ["1"],
   2: ["2"],
@@ -54,6 +68,8 @@ const get_horse_stats_raw = async ({ hid, races = [] }) => {
     let free_races = _.filter(races, (i) => i.fee_tag === "F") || [];
     let paid_n = paid_races.length;
 
+    console.log(paid_races[0]);
+
     let avg_paid_fee_usd = _.chain(paid_races)
       .map("entryfee_usd")
       .mean()
@@ -67,15 +83,20 @@ const get_horse_stats_raw = async ({ hid, races = [] }) => {
       per: (free_races.length / race_n) * 100,
     };
 
-    let paid_races_dist = dists.map((dist) => {
+    let paid_races_dist = distst.map((dist) => {
       if (dist == "all") return [dist, paid_races];
+      if (["S", "M", "D"].includes(dist)) {
+        let filt = _.filter(paid_races, { tunnel: dist }) || [];
+        console.log(filt.length);
+        return [dist, filt];
+      }
       let filt = _.filter(paid_races, { distance: dist }) || [];
       return [dist, filt];
     });
     paid_races_dist = _.fromPairs(paid_races_dist);
 
     for (let dist in paid_races_dist) {
-      if (dist !== "all") dist = parseInt(dist);
+      if (!["all", "S", "M", "D"].includes(dist)) dist = parseInt(dist);
       let filt = paid_races_dist[dist];
       let n = filt.length;
       let flame_n = _.filter(filt, { flame: 1 })?.length || 0;
@@ -170,6 +191,14 @@ const horse_stats_all = async (st, ed, cs = 5) => {
   await horse_stats_range(hids, cs);
   console.log("COMPLETED horse_stats_all");
 };
+
+const runner = async () => {
+  await init();
+  let hid = 3312;
+  let ob = await get_horse_stats({ hid });
+  console.log(ob);
+};
+// runner();
 
 module.exports = {
   horse_stats_all,
