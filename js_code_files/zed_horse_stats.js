@@ -87,7 +87,6 @@ const get_horse_stats_raw = async ({ hid, races = [] }) => {
       if (dist == "all") return [dist, paid_races];
       if (["S", "M", "D"].includes(dist)) {
         let filt = _.filter(paid_races, { tunnel: dist }) || [];
-        console.log(filt.length);
         return [dist, filt];
       }
       let filt = _.filter(paid_races, { distance: dist }) || [];
