@@ -28,6 +28,7 @@ const {
   generate_rating_blood_dist_for_hid,
   get_blood_str,
   generate_rating_blood_dist,
+  generate_rating_blood_both_for_hid,
 } = require("./blood_rating_blood-2");
 const {
   generate_odds_flames_hid,
@@ -851,6 +852,60 @@ const blood_generator_dist_all_horses = async (st, ed) => {
     console.log("ERROR fetch_all_horses\n", err);
   }
 };
+const blood_generator_both_all_horses = async (st, ed) => {
+  try {
+    await initiate();
+    await init_btbtz();
+    if (!st) st = 1;
+    else st = parseFloat(st);
+    if (!ed) ed = 200000;
+    let cs = 20;
+    let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
+    // let hids = [26646, 21744, 21512];
+    // let hids = [21888];
+    // outer: while (true) {
+    console.log("=> STARTED blood_generator_both: ", `${st}:${ed}`);
+    for (let chunk of _.chunk(hids, cs)) {
+      // console.log("\n=> fetching together:", chunk.toString());
+      let obar = await Promise.all(
+        chunk.map((hid) => generate_rating_blood_both_for_hid(hid))
+      );
+      obar = _.compact(obar) || [];
+      let overall_ar = _.chain(obar)
+        .map((i) => {
+          return i.overall || null;
+        })
+        .compact()
+        .value();
+      let forleader_ar = _.chain(obar)
+        .map((i) => {
+          return i.forleader || null;
+        })
+        .compact()
+        .value();
+      // console.log(obar);
+      if (obar.length == 0) {
+        // console.log("starting from initial");
+        // continue outer;
+        console.log("exit");
+        return;
+      }
+      // console.table(obar);
+      try {
+        await general_bulk_push("rating_blood2", overall_ar);
+        await general_bulk_push("rating_blood_dist", forleader_ar);
+      } catch (err) {
+        console.log("mongo err");
+      }
+      console.log("! got", chunk[0], " -> ", chunk[chunk.length - 1]);
+      await delay(chunk_delay);
+    }
+    return;
+    // }
+  } catch (err) {
+    console.log("ERROR fetch_all_horses\n", err);
+  }
+};
 
 const breed_generator_all_horses = async () => {
   try {
@@ -1142,5 +1197,6 @@ module.exports = {
   breed_generator_m1_all_horses,
   blood_generator_all_horses,
   blood_generator_dist_all_horses,
+  blood_generator_both_all_horses,
   general_bulk_push,
 };
