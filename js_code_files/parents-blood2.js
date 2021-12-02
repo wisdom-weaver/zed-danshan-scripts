@@ -228,7 +228,7 @@ const fix_horse_type_all = async () => {
 };
 
 const fix_horse_type_all_cron = async () => {
-  let cron_str = "0 0 */4 * * *";
+  let cron_str = "0 0 */8 * * *";
   console.log(
     "#starting fix_horse_type_all_cron",
     cron_str,
