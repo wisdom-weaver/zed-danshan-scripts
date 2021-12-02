@@ -164,24 +164,22 @@ const generate_rating_blood_calc = async (
         let rat = ((flame_rate / 100) * 0.5 + p12_ratio) * 10;
         let ob = { cf, d, p12_ratio, win_rate, p1, flame_rate, rat, n };
         ar.push(ob);
-        if (p1 >= 1) return { ...ob, rated_type: "GH" };
-        // console.log(str);
+        // console.log(get_blood_str(ob));
+        // if (p1 >= 1) return { ...ob, rated_type: "GH" };
       }
       // console.table(ar);
+      if (!_.isEmpty(ar)) {
+        ar = _.orderBy(ar, [
+          (i) => i.cf,
+          (i) => -i.rat,
+          (i) => -i.win_rate,
+          (i) => -i.flame_rate,
+        ]);
+        let ob = ar[0];
+        return { ...ob, rated_type: "GH" };
+      }
     }
   }
-  // console.table(ar);
-  // if (!_.isEmpty(ar)) {
-  //   ar = _.sortBy(ar, [
-  //     (i) => i.cf,
-  //     (i) => -i.d,
-  //     (i) => -i.p12_ratio,
-  //     (i) => -i.win_rate,
-  //     (i) => -i.flame_rate,
-  //   ]);
-  //   let ob = ar[0];
-  //   return { ...ob, rated_type: "GH" };
-  // }
   let ch_ob = {
     cf: null,
     d: null,
@@ -274,13 +272,13 @@ const generate_rating_blood_dist = async ({ hid, races }) => {
 
 const runner = async () => {
   await init();
-  let hid = 60781;
+  let hid = 34750;
   let ob = await generate_rating_blood_from_hid(hid);
   console.log(ob);
-  let ob2 = await generate_rating_blood_dist_for_hid(hid);
-  console.log(ob2);
+  // let ob2 = await generate_rating_blood_dist_for_hid(hid);
+  // console.log(ob2);
 };
-// runner();
+runner();
 
 module.exports = {
   generate_rating_blood,
