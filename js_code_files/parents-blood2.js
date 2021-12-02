@@ -212,7 +212,7 @@ const runner = async () => {
   // fix_horse_type_after_kids([62411]);
   fix_horse_type_all();
 };
-runner();
+// runner();
 
 module.exports = {
   fix_parents_kids_mismatch,
