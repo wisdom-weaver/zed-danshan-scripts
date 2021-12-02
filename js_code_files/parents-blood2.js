@@ -12,6 +12,8 @@ const { delay } = require("./utils");
 const {
   update_odds_and_breed_for_race_horses,
 } = require("./odds-generator-for-blood2");
+const cron = require("node-cron");
+const cron_parser = require("cron-parser");
 
 const z = (geno) => {
   if (!geno) return null;
@@ -194,9 +196,26 @@ const fix_horse_type_after_kids = async (hids_) => {
     "horses"
   );
 };
+const fix_horse_type_using_kid_ids = async (kids) => {
+  let docs = await zed_db.db
+    .collection("horse_details")
+    .find(
+      { hid: { $in: kids } },
+      { projection: { _id: 0, hid: 1, parents: 1 } }
+    )
+    .toArray();
+  let parents = docs.map((e) => {
+    let { mother, father } = e?.parents || {};
+    return [mother, father];
+  });
+  parents = _.chain(parents).flatten().compact().value();
+  // console.log(parents);
+  await fix_horse_type_after_kids(parents);
+};
+
 const fix_horse_type_all = async () => {
   await init();
-  let cs = 500;
+  let cs = 100;
   let ed_hid = await get_ed_horse();
   let [st, ed] = [1, ed_hid];
   // let h = 130000;
@@ -207,14 +226,37 @@ const fix_horse_type_all = async () => {
     await fix_horse_type_after_kids(chunk_hids);
   }
 };
+
+const fix_horse_type_all_cron = async () => {
+  let cron_str = "0 0 */4 * * *";
+  console.log(
+    "#starting fix_horse_type_all_cron",
+    cron_str,
+    cron.validate(cron_str)
+  );
+  const c_itvl = cron_parser.parseExpression(cron_str);
+  console.log("Next run:", c_itvl.next().toISOString());
+
+  const runner = () => {
+    console.log("#running leaderboard_b2_cron");
+    const c_itvl = cron_parser.parseExpression(cron_str);
+    console.log("Next run:", c_itvl.next().toISOString());
+    generate_leaderboard_b2();
+  };
+  cron.schedule(cron_str, runner);
+};
+
 const runner = async () => {
   await init();
-  // fix_horse_type_after_kids([62411]);
-  fix_horse_type_all();
+  // fix_horse_type_after_kids([92597]);
+  // fix_horse_type_all();
+  // fix_horse_type_using_kid_ids([124088]);
 };
 // runner();
 
 module.exports = {
   fix_parents_kids_mismatch,
   fix_horse_type_all,
+  fix_horse_type_all_cron,
+  fix_horse_type_using_kid_ids,
 };

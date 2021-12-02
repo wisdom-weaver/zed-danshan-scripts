@@ -56,6 +56,7 @@
     "leaderboard_download": "run-func js_code_files/leaderboard_blood2.js leaderboard_download",
     "fix_parents_kids_mismatch": "run-func js_code_files/parents-blood2.js fix_parents_kids_mismatch",
     "fix_horse_type_all": "run-func js_code_files/parents-blood2.js fix_horse_type_all",
+    "fix_horse_type_all_cron": "run-func js_code_files/parents-blood2.js fix_horse_type_all_cron",
     "zed_tour_fn": "run-func js_code_files/zed_tournament.js zed_tour_fn",
     "zed_tour_cron": "run-func js_code_files/zed_tournament.js zed_tour_cron",
     "zed_tour_leader_fn": "run-func js_code_files/zed_tournament.js zed_tour_leader_fn",

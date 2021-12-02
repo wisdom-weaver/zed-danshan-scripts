@@ -19,6 +19,7 @@ const {
 const zedf = require("./zedf");
 const cron_parser = require("cron-parser");
 const cron = require("node-cron");
+const { fix_horse_type_using_kid_ids } = require("./parents-blood2");
 
 // X-paths
 // name            /html/body/ul/div/main/main/div[1]/div[1]/div[2]/h1
@@ -633,6 +634,7 @@ const bulk_write_kid_to_parent = async (obar) => {
       });
     }
   }
+
   if (!_.isEmpty(mgp))
     await zed_db.db.collection("horse_details").bulkWrite(mgp);
 };
@@ -1013,6 +1015,7 @@ const zed_horses_needed_manual_using_api = async () => {
         .value();
       await update_odds_and_breed_for_race_horses(hids_ob);
       // await rem_from_new_horses_bucket(chunk_hids);
+      await fix_horse_type_using_kid_ids(chunk_hids);
       console.log("## DONE SCRAPE ", chunk_hids.toString(), "\n");
       // await delay(2000);
     }
