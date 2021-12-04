@@ -579,7 +579,7 @@ const generate_odds_for = async (hid) => {
       flames_str,
       dec(stats?.avg_paid_fee_usd)
     );
-    return {
+    const h_docs = {
       hid,
       odds_live,
       odds_overall,
@@ -589,6 +589,8 @@ const generate_odds_for = async (hid) => {
       stats,
       rating_blood_dist,
     };
+    // console.log(h_docs);
+    return h_docs;
   } catch (err) {
     console.log("ERROR generate_odds_for", hid);
     console.log("ERROR generate_odds_for", hid, err);
@@ -671,6 +673,7 @@ const odds_generator_bulk_push = async (obar) => {
   await zed_db.db.collection("rating_blood2").bulkWrite(rating_blood2_bulk);
   await zed_db.db.collection("rating_flames2").bulkWrite(rating_flames2_bulk);
   await zed_db.db.collection("odds_flames2").bulkWrite(odds_flames2_bulk);
+  await zed_db.db.collection("rating_blood_dist").bulkWrite(rating_blood_dist_bulk);
   await zed_db.db.collection("horse_stats").bulkWrite(stats_bulk);
   console.log("wrote bulk", obar.length);
 };
@@ -1180,8 +1183,7 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const runner = async () => {
   await initiate();
   await init_btbtz();
-  let hid = 34750;
-  let ob = { 34750: 1 };
+  let ob = { 87728: 1 };
   await update_odds_and_breed_for_race_horses(ob);
 };
 // runner();

@@ -17,12 +17,7 @@ const {
   get_date,
 } = require("./base");
 const { generate_max_horse } = require("./max_horses");
-const {
-  get_n_upload_rating_flames,
-  generate_rating_flames,
-} = require("./update_flame_concentration");
 const { dec } = require("./utils");
-const { generate_breed_rating, init_btbtz } = require("./horses-kids-blood2");
 const { get_races_of_hid } = require("./cyclic_dependency");
 
 let mx;
@@ -449,12 +444,13 @@ const generate_rating_blood_dist = async ({ hid, races }) => {
 
 const runner = async () => {
   await init();
-  let hid = 132134;
-  let ob = await generate_rating_blood_from_hid(hid);
-  console.log(ob);
-  let ob2 = await generate_rating_blood_dist_for_hid(hid);
-  console.log(ob2);
-  ["All", "S", "M", "D"].map((d) => console.log(d, get_blood_str(ob2[d])));
+  let hid = 57368;
+  // let hid = 21888;
+  // let ob = await generate_rating_blood_from_hid(hid);
+  // console.log(ob);
+  // let ob2 = await generate_rating_blood_dist_for_hid(hid);
+  // console.log(ob2);
+  // ["All", "S", "M", "D"].map((d) => console.log(d, get_blood_str(ob2[d])));
   // let ob3 = await generate_rating_blood_both_for_hid(hid);
   // console.log(ob3);
 };
