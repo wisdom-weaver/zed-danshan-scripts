@@ -211,6 +211,148 @@ const generate_rating_blood_calc = async (
   };
   return ch_ob;
 };
+const generate_rating_blood_calc_for_leader = async (
+  { hid, races = [], for_leader = 1 },
+  p
+) => {
+  hid = parseInt(hid);
+  if (for_leader) {
+    let now = Date.now();
+    let rat_nano = now - days * 24 * 60 * 60 * 1000;
+    let rat_nano_ed = now - days_ed * 24 * 60 * 60 * 1000;
+
+    // let races_ed = _.filter(races, (i) => {
+    //   return _.inRange(nano(i.date), rat_nano_ed, rat_nano);
+    // });
+    let races_r = _.filter(races, (i) => {
+      return _.inRange(nano(i.date), rat_nano, now);
+    });
+    // console.log("races_r", races_r.length, races_r[0]?.date);
+    // console.log("races_ed", races_ed.length, races_ed[0]?.date);
+
+    races = races_r;
+  }
+
+  if (_.isEmpty(races)) {
+    let nr_ob = {
+      cf: null,
+      d: null,
+      p12_ratio: null,
+      rat: null,
+      win_rate: null,
+      flame_rate: null,
+      rated_type: "NR",
+    };
+    return nr_ob;
+  }
+
+  // console.log(races[0]);
+  let ar = [];
+  for (let c of rat_bl_seq.cls) {
+    for (let d of rat_bl_seq.tunnels) {
+      let fr = _.filter(races, (i) => {
+        return (
+          i.thisclass == c &&
+          i.tunnel == d &&
+          ["A", "B", "C"].includes(i.fee_tag)
+        );
+      });
+      let n = fr.length;
+      // if (n < 3) continue;
+      let cf = `${c}${"ABC"}`;
+      let flames = _.filter(fr, { flame: 1 })?.length || 0;
+      let p1 =
+        _.filter(fr, (i) => ["1"].includes(i.place.toString()))?.length || 0;
+      let av_fee = _.chain(fr).map("entryfee_usd").mean().value();
+
+      // console.log(cf, d, n, p1);
+      if (n < 5) continue;
+      if (!p1 && p1 == 0) continue;
+      let p = [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+      ].map((e) => {
+        let count =
+          _.filter(fr, (i) => [e].includes(i.place.toString()))?.length || 0;
+        return [e, count];
+      });
+      p = _.fromPairs(p);
+      // console.log(p);
+      // console.log(cf, n, p1);
+      let den =
+        p[2] * 0.5 +
+        p[3] * 0.625 +
+        p[4] * 1.0 +
+        p[5] * 1.1 +
+        p[6] * 1.125 +
+        p[7] * 1.25 +
+        p[8] * 1.37 +
+        p[9] * 0.9 +
+        p[10] * 0.625 +
+        p[11] * 0.5 +
+        p[12] * 0.4;
+
+      let p12_ratio;
+      if (den == 0) p12_ratio = 0.5 * p1;
+      else p12_ratio = p[1] / den + n * 0.001;
+
+      let av_fee_adj = (av_fee || 0) * 0.0375;
+
+      let win_rate = (p1 / (n || 1)) * 100;
+      let flame_rate = (flames / (n || 1)) * 100;
+      let p12f = ((flame_rate / 100) * 0.5 + p12_ratio) * 10;
+      let rat = p12f + av_fee_adj;
+      let ob = {
+        cf,
+        d,
+        n,
+        p1,
+        win_rate,
+        flame_rate,
+        p12_ratio,
+        p12f,
+        av_fee,
+        av_fee_adj,
+        rat,
+      };
+      ar.push(ob);
+      // console.log(ob, { p, flames });
+      // console.log(get_blood_str({ ...ob, rated_type: "GH" }));
+      // if (p1 >= 1) return { ...ob, rated_type: "GH" };
+    }
+    // console.table(ar);
+    if (!_.isEmpty(ar)) {
+      ar = _.orderBy(ar, [
+        (i) => i.cf,
+        (i) => -i.rat,
+        (i) => -i.win_rate,
+        (i) => -i.flame_rate,
+      ]);
+      let ob = ar[0];
+      return { ...ob, rated_type: "GH" };
+    }
+  }
+  let ch_ob = {
+    cf: null,
+    d: null,
+    rat: null,
+    p12_ratio: null,
+    win_rate: null,
+    flame_rate: null,
+    rated_type: "CH",
+  };
+  return ch_ob;
+};
 
 const generate_rating_blood = async ({ hid, races, tc }, p) => {
   let ob = await generate_rating_blood_calc({ hid, races, for_leader: 0 }, p);
@@ -295,7 +437,7 @@ const generate_rating_blood_dist = async ({ hid, races }) => {
   ob.name = name;
   for (let dist of ["All", ...rat_bl_seq.tunnels]) {
     let fr = dist == "All" ? races : _.filter(races, { tunnel: dist });
-    ob[dist] = await generate_rating_blood_calc({
+    ob[dist] = await generate_rating_blood_calc_for_leader({
       hid,
       races: fr,
       for_leader: 1,
@@ -307,13 +449,14 @@ const generate_rating_blood_dist = async ({ hid, races }) => {
 
 const runner = async () => {
   await init();
-  let hid = 34750;
-  // let ob = await generate_rating_blood_from_hid(hid);
-  // console.log(ob);
-  // let ob2 = await generate_rating_blood_dist_for_hid(hid);
-  // console.log(ob2);
-  let ob3 = await generate_rating_blood_both_for_hid(hid);
-  console.log(ob3);
+  let hid = 132134;
+  let ob = await generate_rating_blood_from_hid(hid);
+  console.log(ob);
+  let ob2 = await generate_rating_blood_dist_for_hid(hid);
+  console.log(ob2);
+  ["All", "S", "M", "D"].map((d) => console.log(d, get_blood_str(ob2[d])));
+  // let ob3 = await generate_rating_blood_both_for_hid(hid);
+  // console.log(ob3);
 };
 // runner();
 
