@@ -330,7 +330,7 @@ const leaderboard_b2_cron = async () => {
   console.log("Next run:", c_itvl.next().toISOString());
 
   const runner = () => {
-    console.log("#running leaderboard_b2_cron");
+    console.log("#running leaderboard_b2_cron", new Date().toISOString());
     const c_itvl = cron_parser.parseExpression(cron_str);
     console.log("Next run:", c_itvl.next().toISOString());
     generate_leaderboard_b2();
