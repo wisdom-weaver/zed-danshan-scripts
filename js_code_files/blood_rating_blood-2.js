@@ -261,7 +261,7 @@ const generate_rating_blood_calc_for_leader = async (
       let av_fee = _.chain(fr).map("entryfee_usd").mean().value();
 
       // console.log(cf, d, n, p1);
-      if (n < 5) continue;
+      if (n < 10) continue;
       if (!p1 && p1 == 0) continue;
       let p = [
         "1",
