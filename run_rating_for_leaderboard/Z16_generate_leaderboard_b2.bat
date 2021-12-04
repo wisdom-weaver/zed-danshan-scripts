@@ -1,2 +1,0 @@
-npm run generate_leaderboard_b2
-PAUSE

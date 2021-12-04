@@ -120,6 +120,8 @@ const generate_rating_blood_calc = async (
         let flames = _.filter(fr, { flame: 1 })?.length || 0;
         let p1 =
           _.filter(fr, (i) => ["1"].includes(i.place.toString()))?.length || 0;
+        let av_fee = _.chain(fr).map("entryfee_usd").mean().value();
+
         // console.log(cf, d, n, p1);
         if (n < 5) continue;
         if (!p1 && p1 == 0) continue;
@@ -142,11 +144,12 @@ const generate_rating_blood_calc = async (
           return [e, count];
         });
         p = _.fromPairs(p);
+        // console.log(p);
         // console.log(cf, n, p1);
         let den =
           p[2] * 0.5 +
           p[3] * 0.625 +
-          p[4] +
+          p[4] * 1.0 +
           p[5] * 1.1 +
           p[6] * 1.125 +
           p[7] * 1.25 +
@@ -155,16 +158,33 @@ const generate_rating_blood_calc = async (
           p[10] * 0.625 +
           p[11] * 0.5 +
           p[12] * 0.4;
+
         let p12_ratio;
         if (den == 0) p12_ratio = 0.5 * p1;
         else p12_ratio = p[1] / den + n * 0.001;
 
+        let av_fee_adj = (av_fee || 0) * 0.0375;
+
         let win_rate = (p1 / (n || 1)) * 100;
         let flame_rate = (flames / (n || 1)) * 100;
-        let rat = ((flame_rate / 100) * 0.5 + p12_ratio) * 10;
-        let ob = { cf, d, p12_ratio, win_rate, p1, flame_rate, rat, n };
+        let p12f = ((flame_rate / 100) * 0.5 + p12_ratio) * 10;
+        let rat = p12f + av_fee_adj;
+        let ob = {
+          cf,
+          d,
+          n,
+          p1,
+          win_rate,
+          flame_rate,
+          p12_ratio,
+          p12f,
+          av_fee,
+          av_fee_adj,
+          rat,
+        };
         ar.push(ob);
-        // console.log(get_blood_str(ob));
+        // console.log(ob, { p, flames });
+        // console.log(get_blood_str({ ...ob, rated_type: "GH" }));
         // if (p1 >= 1) return { ...ob, rated_type: "GH" };
       }
       // console.table(ar);
