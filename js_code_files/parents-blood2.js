@@ -281,7 +281,7 @@ const get_parents_comb_score = async (hid) => {
   return comb_score;
 };
 
-const parents_comb_score_generator_all_horses = async (st, ed) => {
+const parents_comb_score_generator_all_horses = async (st, ed, cs=50) => {
   try {
     await init();
     // await init_btbtz();
@@ -289,7 +289,7 @@ const parents_comb_score_generator_all_horses = async (st, ed) => {
     else st = parseFloat(st);
     if (!ed) ed = await get_ed_horse();
     else ed = parseFloat(ed);
-    let cs = 20;
+    // let cs = 50;
     let chunk_delay = 100;
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
     // let hids = [26646, 21744, 21512];
