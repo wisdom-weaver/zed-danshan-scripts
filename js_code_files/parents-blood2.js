@@ -287,7 +287,7 @@ const parents_comb_score_generator_all_horses = async (st, ed) => {
     // await init_btbtz();
     if (!st) st = 1;
     else st = parseFloat(st);
-    if (!ed) ed = get_ed_horse();
+    if (!ed) ed = await get_ed_horse();
     else ed = parseFloat(ed);
     let cs = 20;
     let chunk_delay = 100;
