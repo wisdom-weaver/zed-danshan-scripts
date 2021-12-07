@@ -58,6 +58,7 @@
     "fix_parents_kids_mismatch": "run-func js_code_files/parents-blood2.js fix_parents_kids_mismatch",
     "fix_horse_type_all": "run-func js_code_files/parents-blood2.js fix_horse_type_all",
     "fix_horse_type_all_cron": "run-func js_code_files/parents-blood2.js fix_horse_type_all_cron",
+    "parents_comb_score_generator_all_horses": "run-func js_code_files/parents-blood2.js parents_comb_score_generator_all_horses",
     "zed_tour_fn": "run-func js_code_files/zed_tournament.js zed_tour_fn",
     "zed_tour_cron": "run-func js_code_files/zed_tournament.js zed_tour_cron",
     "zed_tour_leader_fn": "run-func js_code_files/zed_tournament.js zed_tour_leader_fn",

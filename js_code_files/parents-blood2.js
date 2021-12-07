@@ -11,6 +11,7 @@ const {
 const { delay } = require("./utils");
 const {
   update_odds_and_breed_for_race_horses,
+  general_bulk_push,
 } = require("./odds-generator-for-blood2");
 const cron = require("node-cron");
 const cron_parser = require("cron-parser");
@@ -246,8 +247,93 @@ const fix_horse_type_all_cron = async () => {
   cron.schedule(cron_str, runner);
 };
 
+const get_global_br_avg_hid = async (hid) => {
+  if (hid == null) return null;
+  hid = parseInt(hid);
+  let { bloodline, breed_type, genotype } = await zed_db.db
+    .collection("horse_details")
+    .findOne({ hid }, { _id: 0, bloodline: 1, breed_type: 1, genotype: 1 });
+  let key = `${bloodline}-${breed_type}-${genotype}`;
+  let doc_id = "kid-score-global";
+  let doc = await zed_db.db
+    .collection("requirements")
+    .findOne({ id: doc_id }, { [`avg_ob.${key}`]: 1 });
+  return doc?.avg_ob[key]?.br_avg || null;
+};
+
+const get_parents_comb_score = async (hid) => {
+  let { parents } = await zed_db.db
+    .collection("horse_details")
+    .findOne({ hid }, { parents: 1 });
+  let { mother, father } = parents;
+  // console.log(mother, father);
+  if (!mother && !father) return null;
+  let { br: f_br = 0 } = await zed_db.db
+    .collection("rating_breed2")
+    .findOne({ hid: father }, { br: 1 });
+
+  let { br: m_br = 0 } = await zed_db.db
+    .collection("rating_breed2")
+    .findOne({ hid: mother }, { br: 1 });
+
+  let comb_score = _.sum([f_br, m_br]);
+  // console.log(comb_score);
+  return comb_score;
+};
+
+const parents_comb_score_generator_all_horses = async (st, ed) => {
+  try {
+    await init();
+    // await init_btbtz();
+    if (!st) st = 1;
+    else st = parseFloat(st);
+    if (!ed) ed = get_ed_horse();
+    else ed = parseFloat(ed);
+    let cs = 20;
+    let chunk_delay = 100;
+    let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
+    // let hids = [26646, 21744, 21512];
+    // let hids = [21888];
+    // outer: while (true) {
+    console.log("=> STARTED parents_comb_score_generator: ", `${st}:${ed}`);
+    for (let chunk of _.chunk(hids, cs)) {
+      // console.log("\n=> fetching together:", chunk.toString());
+      let obar = await Promise.all(
+        chunk.map((hid) =>
+          get_parents_comb_score(hid).then((comb_score) => ({
+            hid,
+            comb_score,
+          }))
+        )
+      );
+      console.log(obar);
+      obar = _.compact(obar);
+      if (obar.length == 0) {
+        // console.log("starting from initial");
+        // continue outer;
+        console.log("exit");
+        return;
+      }
+      // console.table(obar);
+      try {
+        await general_bulk_push("rating_breed2", obar);
+      } catch (err) {
+        console.log(err);
+        console.log("mongo err");
+      }
+      console.log("! got", chunk[0], " -> ", chunk[chunk.length - 1]);
+      await delay(chunk_delay);
+    }
+    // }
+  } catch (err) {
+    console.log("ERROR fetch_all_horses\n", err);
+  }
+};
+
 const runner = async () => {
   await init();
+  await parents_comb_score_generator_all_horses(31896, 31896);
+  // console.log(await get_parents_comb_score(31896));
   // fix_horse_type_after_kids([92597]);
   // fix_horse_type_all();
   // fix_horse_type_using_kid_ids([124088]);
@@ -255,6 +341,7 @@ const runner = async () => {
 // runner();
 
 module.exports = {
+  parents_comb_score_generator_all_horses,
   fix_parents_kids_mismatch,
   fix_horse_type_all,
   fix_horse_type_all_cron,
