@@ -306,7 +306,7 @@ const parents_comb_score_generator_all_horses = async (st, ed, cs=50) => {
           }))
         )
       );
-      console.log(obar);
+      // console.log(obar);
       obar = _.compact(obar);
       if (obar.length == 0) {
         // console.log("starting from initial");
