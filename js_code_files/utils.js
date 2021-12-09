@@ -169,7 +169,7 @@ const dec_per = (a, b) => {
   return `${dec(per)}%`;
 };
 
-const iso = (d) => {
+const iso = (d = new Date()) => {
   try {
     return new Date(d).toISOString();
   } catch (err) {
@@ -182,6 +182,10 @@ const nano = (d) => {
   } catch (err) {
     return "nano-err";
   }
+};
+
+const per = (a, b) => {
+  return `${parseFloat((a * 100) / b)?.toFixed(2)}%`;
 };
 
 module.exports = {
@@ -204,4 +208,5 @@ module.exports = {
   dec_per,
   iso,
   nano,
+  per,
 };

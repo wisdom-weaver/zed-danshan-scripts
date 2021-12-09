@@ -145,7 +145,7 @@ const get_horse_stats_raw = async ({ hid, races = [] }) => {
 const get_horse_stats = async ({ hid }) => {
   let races = (await get_races_of_hid(hid)) || [];
   let ob = await get_horse_stats_raw({ hid, races });
-  // console.log(ob);
+  console.log(ob);
   return ob;
 };
 

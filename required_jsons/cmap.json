@@ -1,0 +1,553 @@
+[
+  {
+    "cg": "Neptune",
+    "rg": "s",
+    "r": 5,
+    "color": "Aggressive Azure",
+    "hex": "#027DFF"
+  },
+  {
+    "cg": "Neptune",
+    "rg": "r",
+    "r": 7,
+    "color": "Alice Blue",
+    "hex": "#F0F8FF"
+  },
+  {
+    "cg": "Neptune",
+    "rg": "r",
+    "r": 7,
+    "color": "Cadet Blue",
+    "hex": "#5F9EA0"
+  },
+  {
+    "cg": "Neptune",
+    "rg": "r",
+    "r": 7,
+    "color": "Powder Blue",
+    "hex": "#B0E0E6"
+  },
+  {
+    "cg": "Neptune",
+    "rg": "r",
+    "r": 7,
+    "color": "Royal Blue",
+    "hex": "#4169E1"
+  },
+  {
+    "cg": "Neptune",
+    "rg": "r",
+    "r": 8,
+    "color": "Absolute Zero",
+    "hex": "#0048BA"
+  },
+  {
+    "cg": "Neptune",
+    "rg": "c",
+    "r": 9,
+    "color": "Air Superiority Blue",
+    "hex": "#72A0C1"
+  },
+  {
+    "cg": "Neptune",
+    "rg": "c",
+    "r": 9,
+    "color": "Azure Mist",
+    "hex": "#F0FFFF"
+  },
+  {
+    "cg": "Neptune",
+    "rg": "c",
+    "r": 9,
+    "color": "Cosmic Cobalt",
+    "hex": "#2E2D88"
+  },
+  { "cg": "Neptune", "rg": "c", "r": 9, "color": "Azure", "hex": "#007FFF" },
+  {
+    "cg": "Neptune",
+    "rg": "c",
+    "r": 9,
+    "color": "Bondi Blue",
+    "hex": "#0095B6"
+  },
+  {
+    "cg": "Neptune",
+    "rg": "c",
+    "r": 9,
+    "color": "Bleu De France",
+    "hex": "#318CE7"
+  },
+  {
+    "cg": "Neptune",
+    "rg": "c",
+    "r": 9,
+    "color": "Celestial Blue",
+    "hex": "#4997D0"
+  },
+  {
+    "cg": "Neptune",
+    "rg": "c",
+    "r": 9,
+    "color": "Cerulean Frost",
+    "hex": "#6D9BC3"
+  },
+  {
+    "cg": "Neptune",
+    "rg": "c",
+    "r": 9,
+    "color": "Egyptian Blue",
+    "hex": "#1034A6"
+  },
+  {
+    "cg": "Neptune",
+    "rg": "c",
+    "r": 9,
+    "color": "Bright Cerulean",
+    "hex": "#1DACD6"
+  },
+  { "cg": "Earth", "rg": "s", "r": 5, "color": "Honeydew", "hex": "#E0EEE0" },
+  { "cg": "Earth", "rg": "r", "r": 7, "color": "Rosy Brown", "hex": "#BC8F8F" },
+  {
+    "cg": "Earth",
+    "rg": "r",
+    "r": 8,
+    "color": "Antique Brass",
+    "hex": "#CD9575"
+  },
+  {
+    "cg": "Earth",
+    "rg": "c",
+    "r": 10,
+    "color": "Brown Sugar",
+    "hex": "#AF6E4D"
+  },
+  {
+    "cg": "Earth",
+    "rg": "c",
+    "r": 10,
+    "color": "Champagne Papi",
+    "hex": "#F1DDCF"
+  },
+  { "cg": "Earth", "rg": "c", "r": 10, "color": "Cinereous", "hex": "#98817B" },
+  {
+    "cg": "Earth",
+    "rg": "c",
+    "r": 10,
+    "color": "Copper Penny",
+    "hex": "#AD6F69"
+  },
+  {
+    "cg": "Earth",
+    "rg": "c",
+    "r": 10,
+    "color": "Coyote Brown",
+    "hex": "#81613C"
+  },
+  { "cg": "Earth", "rg": "c", "r": 10, "color": "Dark Lava", "hex": "#483C32" },
+  {
+    "cg": "Earth",
+    "rg": "c",
+    "r": 10,
+    "color": "Deep Taupe",
+    "hex": "#7E5E60"
+  },
+  {
+    "cg": "Earth",
+    "rg": "c",
+    "r": 10,
+    "color": "Field Drab",
+    "hex": "#6C541E"
+  },
+  { "cg": "Earth", "rg": "c", "r": 10, "color": "Sienna", "hex": "#3C1414" },
+  { "cg": "Earth", "rg": "c", "r": 10, "color": "Taupe", "hex": "#715C56" },
+  { "cg": "Wild", "rg": "s", "r": 5, "color": "Gainsboro ", "hex": "#0048BA" },
+  { "cg": "Wild", "rg": "r", "r": 7, "color": "Chartreuse", "hex": "#7FFF00" },
+  {
+    "cg": "Wild",
+    "rg": "r",
+    "r": 7,
+    "color": "Sir Aquamarine",
+    "hex": "#7FFFD4"
+  },
+  { "cg": "Wild", "rg": "c", "r": 9, "color": "AO", "hex": "#008000" },
+  { "cg": "Wild", "rg": "c", "r": 10, "color": "Feldgrau", "hex": "#4D5D53" },
+  {
+    "cg": "Wild",
+    "rg": "c",
+    "r": 10,
+    "color": "Cal Poly Pomona",
+    "hex": "#1E4D2B"
+  },
+  {
+    "cg": "Wild",
+    "rg": "c",
+    "r": 10,
+    "color": "Caribbean Green",
+    "hex": "#00CC99"
+  },
+  { "cg": "Wild", "rg": "c", "r": 10, "color": "Dark Moss", "hex": "#4A5D23" },
+  {
+    "cg": "Wild",
+    "rg": "c",
+    "r": 10,
+    "color": "Dartmouth Green",
+    "hex": "#00703C"
+  },
+  {
+    "cg": "Wild",
+    "rg": "c",
+    "r": 10,
+    "color": "Space Sparkle",
+    "hex": "#4A646C"
+  },
+  { "cg": "Moon", "rg": "s", "r": 4, "color": "Slate Gray", "hex": "#708090" },
+  {
+    "cg": "Moon",
+    "rg": "s",
+    "r": 4,
+    "color": "Stronghold Ivory",
+    "hex": "#CDCDC1"
+  },
+  { "cg": "Moon", "rg": "s", "r": 6, "color": "Arctic Snow", "hex": "#FFFAFA" },
+  { "cg": "Moon", "rg": "r", "r": 7, "color": "Ghost White", "hex": "#FFFFFF" },
+  { "cg": "Moon", "rg": "r", "r": 7, "color": "White Smoke", "hex": "#F5F5F5" },
+  {
+    "cg": "Moon",
+    "rg": "c",
+    "r": 9,
+    "color": "Anti-Flash White",
+    "hex": "#F2F3F4"
+  },
+  {
+    "cg": "Moon",
+    "rg": "c",
+    "r": 9,
+    "color": "Antique White",
+    "hex": "#FAEBD7"
+  },
+  {
+    "cg": "Moon",
+    "rg": "c",
+    "r": 9,
+    "color": "Battle Horse Gray",
+    "hex": "#848482"
+  },
+  {
+    "cg": "Moon",
+    "rg": "c",
+    "r": 10,
+    "color": "Midnight Black",
+    "hex": "#000000"
+  },
+  { "cg": "Moon", "rg": "c", "r": 10, "color": "Alabaster", "hex": "#F2F0E6" },
+  {
+    "cg": "Moon",
+    "rg": "c",
+    "r": 10,
+    "color": "Black Chocolate",
+    "hex": "#1B1811"
+  },
+  {
+    "cg": "Moon",
+    "rg": "c",
+    "r": 10,
+    "color": "Shadow Fighter",
+    "hex": "#BFAFB2"
+  },
+  { "cg": "Fiery", "rg": "s", "r": 5, "color": "Peach Puff", "hex": "#FFDAB9" },
+  { "cg": "Fiery", "rg": "r", "r": 7, "color": "Coral Wave", "hex": "#FF7F50" },
+  { "cg": "Fiery", "rg": "r", "r": 8, "color": "Firebrick", "hex": "#B22222" },
+  {
+    "cg": "Fiery",
+    "rg": "c",
+    "r": 9,
+    "color": "Alizarin Crimson",
+    "hex": "#E32636"
+  },
+  {
+    "cg": "Fiery",
+    "rg": "c",
+    "r": 9,
+    "color": "Atomic Tangerine",
+    "hex": "#FF9966"
+  },
+  {
+    "cg": "Fiery",
+    "rg": "c",
+    "r": 9,
+    "color": "Big Dip O’Ruby",
+    "hex": "#9C2542"
+  },
+  {
+    "cg": "Fiery",
+    "rg": "c",
+    "r": 9,
+    "color": "Bittersweet Shimmer",
+    "hex": "#BF4F51"
+  },
+  {
+    "cg": "Fiery",
+    "rg": "c",
+    "r": 10,
+    "color": "Colombo Spice",
+    "hex": "#FF3800"
+  },
+  {
+    "cg": "Fiery",
+    "rg": "c",
+    "r": 10,
+    "color": "Burnt Umber",
+    "hex": "#8A3324"
+  },
+  {
+    "cg": "Fiery",
+    "rg": "c",
+    "r": 10,
+    "color": "Crimson Tide",
+    "hex": "#DC143C"
+  },
+  {
+    "cg": "Fiery",
+    "rg": "c",
+    "r": 10,
+    "color": "English Vermillion",
+    "hex": "#CC474B"
+  },
+  {
+    "cg": "Fiery",
+    "rg": "c",
+    "r": 10,
+    "color": "Fuzzy Wuzzy",
+    "hex": "#CC6666"
+  },
+  {
+    "cg": "Fiery",
+    "rg": "c",
+    "r": 10,
+    "color": "Burnt Sienna",
+    "hex": "#E97451"
+  },
+  { "cg": "Fiery", "rg": "c", "r": 10, "color": "Cinnabar", "hex": "#E34234" },
+  { "cg": "Fiery", "rg": "c", "r": 10, "color": "Fire Opal", "hex": "#E95C4B" },
+  { "cg": "Classic", "rg": "s", "r": 5, "color": "Cornsilk", "hex": "#FFF8DC" },
+  {
+    "cg": "Classic",
+    "rg": "r",
+    "r": 7,
+    "color": "Golden Rod",
+    "hex": "#EEE8AA"
+  },
+  {
+    "cg": "Classic",
+    "rg": "r",
+    "r": 8,
+    "color": "Burlywood",
+    "hex": "#DEB887"
+  },
+  {
+    "cg": "Classic",
+    "rg": "c",
+    "r": 9,
+    "color": "Arylide Yellow",
+    "hex": "#E9D66B"
+  },
+  {
+    "cg": "Classic",
+    "rg": "c",
+    "r": 9,
+    "color": "Banana Mania",
+    "hex": "#FAE7B5"
+  },
+  {
+    "cg": "Classic",
+    "rg": "c",
+    "r": 10,
+    "color": "Buff Gold",
+    "hex": "#F0DC82"
+  },
+  {
+    "cg": "Classic",
+    "rg": "c",
+    "r": 10,
+    "color": "Café Au Lait",
+    "hex": "#A67B5B"
+  },
+  {
+    "cg": "Classic",
+    "rg": "c",
+    "r": 10,
+    "color": "Chrome Yellow",
+    "hex": "#FFA700"
+  },
+  {
+    "cg": "Classic",
+    "rg": "c",
+    "r": 10,
+    "color": "Cosmic Latte",
+    "hex": "#FFF8E7"
+  },
+  {
+    "cg": "Classic",
+    "rg": "c",
+    "r": 10,
+    "color": "Desert Sand",
+    "hex": "#EDC9AF"
+  },
+  { "cg": "Classic", "rg": "c", "r": 10, "color": "Fawn", "hex": "#E5AA70" },
+  { "cg": "Classic", "rg": "c", "r": 10, "color": "Flex", "hex": "#EEDC82" },
+  {
+    "cg": "Classic",
+    "rg": "c",
+    "r": 10,
+    "color": "Hairy Canary",
+    "hex": "#FFFF99"
+  },
+  {
+    "cg": "Mystical",
+    "rg": "s",
+    "r": 5,
+    "color": "Papaya Whip",
+    "hex": "#FFEFD5"
+  },
+  {
+    "cg": "Mystical",
+    "rg": "r",
+    "r": 7,
+    "color": "Misty Rose",
+    "hex": "#FFE4E1"
+  },
+  {
+    "cg": "Mystical",
+    "rg": "r",
+    "r": 7,
+    "color": "Pale Violet",
+    "hex": "#DB7093"
+  },
+  {
+    "cg": "Mystical",
+    "rg": "c",
+    "r": 9,
+    "color": "Mystic Maroon",
+    "hex": "#B03060"
+  },
+  {
+    "cg": "Mystical",
+    "rg": "c",
+    "r": 9,
+    "color": "Oval Orchid",
+    "hex": "#DA70D6"
+  },
+  { "cg": "Mystical", "rg": "c", "r": 9, "color": "Thistle", "hex": "#D8BFD8" },
+  {
+    "cg": "Mystical",
+    "rg": "c",
+    "r": 10,
+    "color": "Amethyst",
+    "hex": "#9966CC"
+  },
+  {
+    "cg": "Mystical",
+    "rg": "c",
+    "r": 10,
+    "color": "Baker-Miller Pink",
+    "hex": "#FF91AF"
+  },
+  {
+    "cg": "Mystical",
+    "rg": "c",
+    "r": 10,
+    "color": "Byzantine",
+    "hex": "#BD33A4"
+  },
+  {
+    "cg": "Mystical",
+    "rg": "c",
+    "r": 10,
+    "color": "Byzantium",
+    "hex": "#702963"
+  },
+  {
+    "cg": "Mystical",
+    "rg": "c",
+    "r": 10,
+    "color": "China Pink",
+    "hex": "#DE6FA1"
+  },
+  {
+    "cg": "Mystical",
+    "rg": "c",
+    "r": 10,
+    "color": "China Rose",
+    "hex": "#A8516E"
+  },
+  {
+    "cg": "Mystical",
+    "rg": "c",
+    "r": 10,
+    "color": "Cinnamon Satin",
+    "hex": "#CD607E"
+  },
+  {
+    "cg": "Mystical",
+    "rg": "c",
+    "r": 10,
+    "color": "Cotton Candy",
+    "hex": "#FFBCD9"
+  },
+  {
+    "cg": "Mystical",
+    "rg": "c",
+    "r": 10,
+    "color": "Cyclamen",
+    "hex": "#F56FA1"
+  },
+  {
+    "cg": "Mystical",
+    "rg": "c",
+    "r": 10,
+    "color": "Dark Byzantium",
+    "hex": "#5D3954"
+  },
+  {
+    "cg": "Mystical",
+    "rg": "c",
+    "r": 10,
+    "color": "Destiny",
+    "hex": "#872657"
+  },
+  {
+    "cg": "Mystical",
+    "rg": "c",
+    "r": 10,
+    "color": "Electric Violet",
+    "hex": "#8F00FF"
+  },
+  {
+    "cg": "Mystical",
+    "rg": "c",
+    "r": 10,
+    "color": "Eminence",
+    "hex": "#6C3082"
+  },
+  {
+    "cg": "Mystical",
+    "rg": "c",
+    "r": 10,
+    "color": "Fandango",
+    "hex": "#B53389"
+  },
+  {
+    "cg": "Mystical",
+    "rg": "c",
+    "r": 10,
+    "color": "Fiery Rose",
+    "hex": "#FF5470"
+  },
+  {
+    "cg": "Mystical",
+    "rg": "c",
+    "r": 10,
+    "color": "Suave Mauve",
+    "hex": "#D473D4"
+  }
+]
