@@ -117,6 +117,7 @@ const get_parents_color_pair_chart_cron = () => {
     cron.validate(cron_str)
   );
   const c_itvl = cron_parser.parseExpression(cron_str);
+  console.log("next", c_itvl.next().toISOString());
   const runner = () => {
     console.log("#running get_parents_color_pair_chart_cron");
     console.log("Now run:", new Date().toISOString());
@@ -146,11 +147,11 @@ const runner = async () => {
   // console.log(ob);
   // await fix_colors();
   // console.log(cmap.length);
-  
+
   // await get_parents_color_pair_chart();
 
   // await upload_cmap()
-  
+
   // await fix_colors();
 };
 // runner();

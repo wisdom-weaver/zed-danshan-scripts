@@ -65,6 +65,7 @@
     "zed_tour_leader_cron": "run-func js_code_files/zed_tournament.js zed_tour_leader_cron",
     "zed_tour_missed_cron": "run-func js_code_files/zed_tournament.js zed_tour_missed_cron",
     "get_parents_color_pair_chart": "run-func js_code_files/color.js get_parents_color_pair_chart",
+    "get_parents_color_pair_chart_cron": "run-func js_code_files/color.js get_parents_color_pair_chart_cron",
     "horse_stats_all": "run-func js_code_files/zed_horse_stats.js horse_stats_all",
     "clear_zed_tour": "run-func js_code_files/zed_tournament.js clear_zed_tour",
     "test1": "run-func js_code_files/tests.js test1",
