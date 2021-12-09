@@ -100,7 +100,7 @@ const get_parents_color_pair_chart = async (idx = 0) => {
   for (let i = idx; i < N; i++) {
     let ea = ar[i];
     let { fc, mc } = ea;
-    console.log(`comb ${per(idx, N)} :: ${idx} of ${N}`, fc, mc);
+    console.log(`comb ${per(i, N)} :: ${i} of ${N}`, fc, mc);
     let doc = await get_color_pair_data(fc, mc);
     await zed_db.db
       .collection("cmap_combs")
