@@ -86,7 +86,7 @@ const fix_colors = async () => {
   }
 };
 
-const get_parents_color_pair_chart = async () => {
+const get_parents_color_pair_chart = async (idx = 0) => {
   await init();
   console.log("## get_parents_color_pair_chart");
   console.log("#started", iso());
@@ -95,10 +95,10 @@ const get_parents_color_pair_chart = async () => {
   for (let a of colors) for (let b of colors) ar.push({ fc: a, mc: b });
   console.log("tot combination", ar.length);
 
-  let idx = 0;
+  idx = parseInt(idx);
   let N = ar.length;
-  for (let ea of ar) {
-    idx++;
+  for (let i = idx; i < N; i++) {
+    let ea = ar[i];
     let { fc, mc } = ea;
     console.log(`comb ${per(idx, N)} :: ${idx} of ${N}`, fc, mc);
     let doc = await get_color_pair_data(fc, mc);
