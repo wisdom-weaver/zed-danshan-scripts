@@ -160,7 +160,7 @@
   },
   { "cg": "Earth", "rg": "c", "r": 10, "color": "Sienna", "hex": "#3C1414" },
   { "cg": "Earth", "rg": "c", "r": 10, "color": "Taupe", "hex": "#715C56" },
-  { "cg": "Wild", "rg": "s", "r": 5, "color": "Gainsboro ", "hex": "#0048BA" },
+  { "cg": "Wild", "rg": "s", "r": 5, "color": "Gainsboro", "hex": "#0048BA" },
   { "cg": "Wild", "rg": "r", "r": 7, "color": "Chartreuse", "hex": "#7FFF00" },
   {
     "cg": "Wild",
