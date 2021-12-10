@@ -10,4 +10,4 @@ pm2 start npm  --name "bt_tour_cron" -- run zed_tour_cron
 pm2 start npm  --name "bt_tour_leader_cron" -- run zed_tour_leader_cron
 pm2 start npm  --name "bt_tour_missed_cron" -- run zed_tour_missed_cron
 pm2 start npm --name "leader_b2_cron" -- run leaderboard_b2_cron
-pm2 start npm --name "parents_color" -- run get_parents_color_pair_chart_cron
+pm2 start npm --name "cmap_combs" -- run get_parents_color_pair_chart_cron
