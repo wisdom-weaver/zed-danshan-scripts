@@ -586,41 +586,23 @@ const clear_CH = async () => {
 // clear_CH();
 const a = async () => {
   await init();
-  let ar = {
-    "2021-11-11": 4730.38,
-    "2021-11-10": 4636.17,
-    "2021-11-09": 4735.07,
-    "2021-11-08": 4812.09,
-    "2021-11-07": 4620.55,
-    "2021-11-06": 4521.58,
-    "2021-11-05": 4486.24,
-    "2021-11-04": 4537.32,
-    "2021-11-03": 4607.19,
-    "2021-11-02": 4584.8,
-    "2021-11-01": 4324.63,
-    "2021-10-31": 4288.07,
-    "2021-10-30": 4325.65,
-    "2021-10-29": 4414.75,
-    "2021-10-28": 4287.32,
-    "2021-10-27": 3930.26,
-    "2021-10-26": 4131.1,
-    "2021-10-25": 4217.88,
-    "2021-10-24": 4087.9,
-    "2021-10-23": 4171.66,
-    "2021-10-22": 3970.18,
-    "2021-10-21": 4054.32,
-  };
-  let bulk = [];
-  bulk = _.entries(ar).map(([date, val]) => {
-    return {
-      updateOne: {
-        filter: { id: "eth_prices" },
-        update: { $set: { [`data.${date}`]: val } },
-        upsert: true,
-      },
-    };
+  // let ref =
+  let docs = zed_db.db.collection("horse_stats").find({
+    hid: { $in: [3312] },
+    projection: {
+      hid: 1,
+      "free.n": 1,
+      "paid.all.n": 1,
+    },
   });
-  zed_db.db.collection("base").bulkWrite(bulk);
+  let ar = docs.map((e) => {
+    let f = e?.free?.n || 0;
+    let p = e?.paid?.all?.n || 0;
+    let n = p + f;
+    let hid = e?.hid || null;
+    return { hid, f, p, n };
+  });
+  console.table(ar);
   console.log("done");
 };
 a();
