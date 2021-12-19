@@ -64,7 +64,7 @@ const generate_ymca2 = async (hid, print = 0) => {
       .limit(8)
       .toArray();
     races = struct_race_row_data(races);
-    if (print) console.log(races[0]);
+    // if (print) console.log(races[0]);
 
     let r_ob = races.map((r) => {
       let { thisclass: rc, fee_tag, place: position, flame } = r;
@@ -79,11 +79,10 @@ const generate_ymca2 = async (hid, print = 0) => {
         final_score,
       };
     });
-    if (print) console.table(r_ob);
+    // if (print) console.table(r_ob);
 
     let ymca2 = calc_median(_.map(r_ob, "final_score")) ?? null;
-    // if (print)
-    console.log(hid, "ymca2", ymca2);
+    if (print) console.log(hid, "ymca2", ymca2);
 
     return ymca2;
   } catch (err) {
@@ -103,7 +102,8 @@ const ymca2_generator_all_horses = async (cs = 500) => {
 
     console.log("=> STARTED ymca2_generator: ", `${st}:${ed}`);
     for (let chunk of _.chunk(hids, cs)) {
-      // console.log("\n=> fetching together:", chunk.toString());
+      let [a, b] = [chunk[0], chunk[chunk.length - 1]];
+      console.log("\n=> fetching together:", a, "to", b);
       let obar = await Promise.all(
         chunk.map((hid) =>
           generate_ymca2(hid).then((ymca2) => {
