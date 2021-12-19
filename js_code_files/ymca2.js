@@ -107,13 +107,13 @@ const ymca2_generator_all_horses = async (cs = 500) => {
       let obar = await Promise.all(
         chunk.map((hid) =>
           generate_ymca2(hid).then((ymca2) => {
-            hid, ymca2;
+            return { hid, ymca2 };
           })
         )
       );
-      // console.table(obar);
+      console.table(obar);
       try {
-        await general_bulk_push(obar);
+        await general_bulk_push("rating_breed2", obar);
       } catch (err) {
         console.log("mongo err", err);
       }

@@ -120,6 +120,7 @@ const general_bulk_push = async (coll, obar) => {
     console.log("wrote bulk", coll, len, "..", sth, "->", edh);
   } catch (err) {
     console.log("err mongo bulk", coll, coll, obar && obar[0]?.hid);
+    console.log(err);
   }
 };
 
