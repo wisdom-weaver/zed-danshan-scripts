@@ -4,7 +4,7 @@ const {
   get_entryfee_usd,
 } = require("./base");
 const _ = require("lodash");
-const { zed_ch, init } = require("./index-run");
+const { zed_ch, init, zed_db } = require("./index-run");
 const { get_fee_tag } = require("./utils");
 
 const key_mapping_bs_zed = [
@@ -59,6 +59,13 @@ const struct_race_row_data = (data) => {
       );
     });
     data = _.compact(data);
+    data = data.map((e) => {
+      let { entryfee: fee, date } = e;
+      let entryfee_usd = get_entryfee_usd({ fee, date });
+      let fee_tag = get_fee_tag(entryfee_usd);
+      let tunnel = get_tunnel(e.distance);
+      return { ...e, entryfee_usd, fee_tag, tunnel };
+    });
   } catch (err) {
     if (data.name == "MongoNetworkError") {
       console.log("MongoNetworkError");
@@ -75,13 +82,6 @@ const get_races_of_hid = async (hid) => {
   let query = { 6: hid };
   let data = await from_ch_zed_collection(query);
   data = struct_race_row_data(data);
-  data = data.map((e) => {
-    let { entryfee: fee, date } = e;
-    let entryfee_usd = get_entryfee_usd({ fee, date });
-    let fee_tag = get_fee_tag(entryfee_usd);
-    let tunnel = get_tunnel(e.distance);
-    return { ...e, entryfee_usd, fee_tag, tunnel };
-  });
   return data;
 };
 
@@ -98,12 +98,50 @@ const initiate = async () => {
   await download_eth_prices();
 };
 
+const general_bulk_push = async (coll, obar) => {
+  try {
+    if (_.isEmpty(obar)) return;
+    let bulk = [];
+    for (let ob of obar) {
+      if (_.isEmpty(ob)) continue;
+      let { hid } = ob;
+      bulk.push({
+        updateOne: {
+          filter: { hid },
+          update: { $set: ob },
+          upsert: true,
+        },
+      });
+    }
+    await zed_db.db.collection(coll).bulkWrite(bulk);
+    let len = obar.length;
+    let sth = obar[0].hid;
+    let edh = obar[obar.length - 1].hid;
+    console.log("wrote bulk", coll, len, "..", sth, "->", edh);
+  } catch (err) {
+    console.log("err mongo bulk", coll, coll, obar && obar[0]?.hid);
+  }
+};
+
+const get_ed_horse = async () => {
+  let end_doc = await zed_db.db
+    .collection("horse_details")
+    .find({ hid: { $type: 16 } }, { projection: { _id: 0, hid: 1 } })
+    .sort({ hid: -1 })
+    .limit(1)
+    .toArray();
+  end_doc = end_doc && end_doc[0];
+  return end_doc?.hid;
+};
+
 const cyclic_depedency = {
   get_races_of_hid,
   from_ch_zed_collection,
   struct_race_row_data,
   progress_bar,
   initiate,
+  general_bulk_push,
+  get_ed_horse,
 };
 
 module.exports = cyclic_depedency;

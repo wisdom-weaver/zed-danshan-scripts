@@ -14,6 +14,7 @@ const app_root = require("app-root-path");
 const { download_eth_prices, get_at_eth_price_on } = require("./base");
 const { options } = require("./options");
 const { get_ed_horse } = require("./zed_horse_scrape");
+const { get_races_of_hid } = require("./cyclic_dependency");
 
 let mx = 11000;
 let st = 1;
@@ -218,7 +219,7 @@ const generate_breed_rating_old = async (hid) => {
   }
 };
 
-const get_kids_score = async (hid, p = 0) => {
+const generate_kids_score = async (hid, p = 0) => {
   try {
     hid = parseInt(hid);
     let races = await zed_ch.db
@@ -303,7 +304,7 @@ const get_kids_score = async (hid, p = 0) => {
 
 const generate_breed_rating = async (hid, p = 0) => {
   try {
-    let hid_kid_score = await get_kids_score(hid, p);
+    let hid_kid_score = await generate_kids_score(hid, p);
     hid = parseInt(hid);
     if (hid == null || isNaN(hid)) return null;
     let kids = (await get_kids_existing(hid)) || [];
@@ -335,7 +336,7 @@ const generate_breed_rating = async (hid, p = 0) => {
     let kids_hids = _.map(kids, "hid");
 
     let kids_scores_ob = await Promise.all(
-      kids.map((kid) => get_kids_score(kid.hid).then((z) => [kid.hid, z]))
+      kids.map((kid) => generate_kids_score(kid.hid).then((z) => [kid.hid, z]))
     );
     kids_scores_ob = Object.fromEntries(kids_scores_ob);
 
@@ -422,7 +423,7 @@ const generate_breed_rating = async (hid, p = 0) => {
 
 const generate_breed_rating_m1 = async (hid, p = 0) => {
   try {
-    let hid_kid_score = await get_kids_score(hid, p);
+    let hid_kid_score = await generate_kids_score(hid, p);
     hid = parseInt(hid);
     if (hid == null || isNaN(hid)) return null;
     let kids = (await get_kids_existing(hid)) || [];
@@ -458,7 +459,7 @@ const generate_breed_rating_m1 = async (hid, p = 0) => {
     let kids_hids = _.map(kids, "hid");
 
     let kids_scores_ob = await Promise.all(
-      kids.map((kid) => get_kids_score(kid.hid).then((z) => [kid.hid, z]))
+      kids.map((kid) => generate_kids_score(kid.hid).then((z) => [kid.hid, z]))
     );
     kids_scores_ob = Object.fromEntries(kids_scores_ob);
 
@@ -635,7 +636,7 @@ const push_kids_score_all_horses = async () => {
   for (let chunk_hids of _.chunk(hids, cs)) {
     let ar = await Promise.all(
       chunk_hids.map((hid) =>
-        get_kids_score(hid).then((kid_score) => ({ hid, kid_score }))
+        generate_kids_score(hid).then((kid_score) => ({ hid, kid_score }))
       )
     );
     // console.log(ar);
@@ -748,43 +749,6 @@ const init_btbtz = async () => {
   blbtz = doc.avg_ob;
   console.log("#done init_btbtz");
 };
-
-const runner = async () => {
-  await init();
-  let doc_id = "kid-score-global";
-  let doc = await zed_db.db.collection("requirements").findOne({ id: doc_id });
-  let ob = doc.avg_ob;
-  ob = _.entries(ob).map((i) => {
-    return { id: i[0], ...i[1] };
-  });
-  console.table(ob);
-};
-// runner();
-
-const runner2 = async () => {
-  await init();
-  await init_btbtz();
-  let hids = [3312];
-  // let hids = [24865, 22558, 20501, 24538, 26646, 24865, 22558, 20501, 24538];
-  for (let hid of hids) {
-    let br = await generate_breed_rating_m1(hid, 1);
-    console.log(br);
-    console.log("done");
-  }
-};
-// runner2();
-
-const runner3 = async () => {
-  await init();
-  await download_eth_prices();
-  await init_btbtz();
-  let hid = 73778;
-  let ks = await generate_breed_rating(hid, 1);
-  console.log(ks);
-  // await zed_db.db.collection("rating_breed2").updateOne({ hid }, { $set: { br: 1 } });
-  console.log("done");
-};
-// runner3();
 
 const ymca_cont1 = {
   a: [4, 100],
@@ -993,6 +957,7 @@ const tabulate_hids_br_ymca = async () => {
     .value();
   console.table(ymca_ob);
 };
+
 // tabulate_hids_br_ymca();
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
