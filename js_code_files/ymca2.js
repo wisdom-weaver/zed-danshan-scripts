@@ -111,7 +111,7 @@ const ymca2_generator_all_horses = async (cs = 500) => {
           })
         )
       );
-      console.table(obar);
+      // console.table(obar);
       try {
         await general_bulk_push("rating_breed2", obar);
       } catch (err) {
