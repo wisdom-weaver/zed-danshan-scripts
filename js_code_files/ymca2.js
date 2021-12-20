@@ -28,18 +28,18 @@ const f_tab = {
 };
 
 let pos_tab = {
-  1: [7, 10],
-  2: [5, 8],
-  3: [4, 7],
-  4: [2, 4],
-  5: [1, 3],
-  6: [1, 3],
-  7: [1, 3],
-  8: [1, 3],
-  9: [2, 5],
-  10: [3, 6],
-  11: [4, 7],
-  12: [5, 8],
+  1: [5, 10],
+  2: [4.5, 9],
+  3: [4, 8],
+  4: [3.5, 7],
+  5: [3, 6],
+  6: [3, 6],
+  7: [3, 6],
+  8: [3, 6],
+  9: [3.5, 7],
+  10: [4, 8],
+  11: [4, 8],
+  12: [4.5, 9],
 };
 
 const calc_score = ({ rc, fee_tag, position, flame }) => {
@@ -79,9 +79,9 @@ const generate_ymca2 = async (hid, print = 0) => {
         final_score,
       };
     });
-    // if (print) console.table(r_ob);
+    if (print) console.table(r_ob);
 
-    let ymca2 = calc_median(_.map(r_ob, "final_score")) ?? null;
+    let ymca2 = _.meanBy(r_ob, "final_score") ?? null;
     if (print) console.log(hid, "ymca2", ymca2);
 
     return ymca2;
@@ -129,11 +129,11 @@ const ymca2_generator_all_horses = async (cs = 500) => {
 
 const runner = async () => {
   await init();
-  let hid = 132134;
+  let hid = 34750;
   let ymca2 = await generate_ymca2(hid, 1);
   console.log(ymca2);
 };
-// runner();
+runner();
 
 // ymca2_generator_all_horses();
 
