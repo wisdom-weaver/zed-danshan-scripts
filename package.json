@@ -68,6 +68,7 @@
     "get_parents_color_pair_chart_cron": "run-func js_code_files/color.js get_parents_color_pair_chart_cron",
     "horse_stats_all": "run-func js_code_files/zed_horse_stats.js horse_stats_all",
     "ymca2_all": "run-func js_code_files/ymca2.js ymca2_generator_all_horses",
+    "racerat2_all": "run-func js_code_files/ymca2.js racerat2_generator_all_horses",
     "clear_zed_tour": "run-func js_code_files/zed_tournament.js clear_zed_tour"
   },
   "keywords": [],

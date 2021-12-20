@@ -3,6 +3,7 @@ const {
   struct_race_row_data,
   general_bulk_push,
   get_ed_horse,
+  get_races_of_hid,
 } = require("./cyclic_dependency");
 const { calc_median, delay } = require("./utils");
 const _ = require("lodash");
@@ -91,6 +92,47 @@ const generate_ymca2 = async (hid, print = 0) => {
   }
 };
 
+const generate_race_rating = async (hid, print = 0) => {
+  try {
+    hid = parseInt(hid);
+    // let { tc = null } = await zed_db.db
+    //   .collection("horse_details")
+    //   .findOne({ hid }, { tc: 1 });
+    // if (print) console.log(hid, `:`, tc);
+
+    let races = await get_races_of_hid(hid);
+    if (races?.length == 0) return { tunnel: null, race_rat: null };
+    // if (print) console.log(races[0]);
+    let ob = ["S", "M", "D"].map((tunnel) => {
+      let filt_races = _.filter(races, { tunnel });
+      let r_ob = filt_races.map((r) => {
+        let { thisclass: rc, fee_tag, place: position, flame } = r;
+        let score = calc_score({ rc, fee_tag, position, flame });
+        let final_score = score * 0.1;
+        return {
+          rc,
+          fee_tag,
+          position,
+          flame,
+          score,
+          final_score,
+        };
+      });
+      // if (print) console.table(r_ob);
+      let race_rat = _.meanBy(r_ob, "final_score") ?? null;
+      // if (print) console.log(hid, "ymca2", race_rat);
+      return { tunnel, race_rat };
+    });
+    // console.log(hid, ob);
+    let rat2 = _.maxBy(ob, "race_rat");
+    if (rat2?.race_rat == null) return { tunnel: null, race_rat: null };
+    return rat2;
+  } catch (err) {
+    console.log("err in race_rat", hid, err);
+    return null;
+  }
+};
+
 const ymca2_generator_all_horses = async (cs = 500) => {
   try {
     console.log("ymca2_generator_all_horses");
@@ -127,18 +169,56 @@ const ymca2_generator_all_horses = async (cs = 500) => {
   }
 };
 
+const racerat2_generator_all_horses = async (cs = 250) => {
+  try {
+    console.log("racerat2_generator_all_horses");
+    await init();
+    let st = 1;
+    let ed = await get_ed_horse();
+    let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
+    // hids = [3722];
+
+    console.log("=> STARTED racerat2_generator: ", `${st}:${ed}`);
+    for (let chunk of _.chunk(hids, cs)) {
+      let [a, b] = [chunk[0], chunk[chunk.length - 1]];
+      console.log("\n=> fetching together:", a, "to", b);
+      let obar = await Promise.all(
+        chunk.map((hid) =>
+          generate_race_rating(hid).then((rat2) => {
+            return { hid, rat2 };
+          })
+        )
+      );
+      // console.table(obar);
+      try {
+        await general_bulk_push("rating_blood2", obar);
+      } catch (err) {
+        console.log("mongo err", err);
+      }
+      console.log("! got", chunk[0], " -> ", chunk[chunk.length - 1]);
+      await delay(chunk_delay);
+    }
+
+    console.log("ended");
+  } catch (err) {
+    console.log("ERROR fetch_all_horses\n", err);
+  }
+};
+
 const runner = async () => {
   await init();
-  let hid = 34750;
-  let ymca2 = await generate_ymca2(hid, 1);
-  console.log(ymca2);
+  let hids = [34750, 21649, 87728, 1529, 274, 132134];
+  let ob = await Promise.all(
+    hids.map((hid) => generate_race_rating(hid).then((d) => [hid, d]))
+  );
+  ob = _.fromPairs(ob);
+  console.table(ob);
 };
-runner();
-
-// ymca2_generator_all_horses();
+// runner();
 
 const ymca2 = {
   generate_ymca2,
   ymca2_generator_all_horses,
+  racerat2_generator_all_horses,
 };
 module.exports = ymca2;
