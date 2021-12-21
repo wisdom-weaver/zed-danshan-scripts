@@ -1,0 +1,48 @@
+const _ = require("lodash");
+const { MongoClient } = require("mongodb");
+const mongoose = require("mongoose");
+const fetch = require("node-fetch");
+
+require("dotenv").config();
+const MONGO_ROOT_PASS = process.env.MONGO_ROOT_PASS;
+
+const uri_db = `mongodb+srv://root:${MONGO_ROOT_PASS}@cluster0.hvyg7.mongodb.net`;
+const uri_ch = `mongodb+srv://zed:zed@cluster0.vyaud.mongodb.net`;
+const options = { useNewUrlParser: true, useUnifiedTopology: true };
+
+// let conn_db = MongoClient.connect(uri_db, options);
+// let conn_ch = MongoClient.connect(uri_ch, options);
+
+let zed_db = mongoose.createConnection(uri_db + "/zed", options);
+let zed_ch = mongoose.createConnection(uri_ch + "/zed", options);
+
+const init = async () => {
+  console.log("starting...");
+  try {
+    await zed_db;
+    console.log("# MONGO connected zed_db");
+  } catch (err) {
+    console.log("zed_db", err.message);
+  }
+  try {
+    await zed_ch;
+    console.log("# MONGO connected zed_ch");
+  } catch (err) {
+    console.log("zed_ch err", err.message);
+  }
+};
+
+const run_func = async (run_func) => {
+  await init();
+  await run_func();
+  process.exit();
+};
+
+const mdb = {
+  init,
+  run_func,
+  zed_db,
+  zed_ch,
+};
+
+module.exports = mdb;
