@@ -115,12 +115,7 @@ const calc_avg_pts = (races) => {
   let tot_pts = _.sum(all_pts) ?? 0;
   return (tot_pts ?? 0) / (all_pts.length || 1);
 };
-const def_rating_blood = {
-  tunnel: null,
-  rat: null,
-  win_rate: null,
-  roi: null,
-};
+
 
 const def_overall = {
   rat: null,
@@ -131,7 +126,7 @@ const def_overall = {
 };
 const calc_overall_rat = async ({ hid, races = [], tc }) => {
   hid = parseInt(hid);
-  if (races?.length == 0) return { tunnel, rat: null };
+  if (races?.length == 0) return { ...def_overall };
   let filt_races = races;
   let r_ob = filt_races.map((r) => {
     let { thisclass: rc, fee_tag, place: position, flame } = r;
@@ -152,11 +147,21 @@ const calc_overall_rat = async ({ hid, races = [], tc }) => {
   let profit = calc_profit(filt_races);
   let flame_rate = calc_flame_rate(filt_races);
   if (flame_rate >= 50 || wins >= 2)
-    return { hid, rat, profit, win_rate, flame_rate, type: "all" };
-  else return { hid, ...def_overall };
+    return { rat, profit, win_rate, flame_rate, type: "all" };
+  else return { ...def_overall };
+};
+const def_tunnel_rat = {
+  c: null,
+  f: null,
+  t: null,
+  rat: null,
+  win_rate: null,
+  profit: null,
+  avg_pts: null,
+  type: "tunnel",
 };
 const calc_tunnel_rat = async ({ hid, races = [] }) => {
-  let c, f;
+  if (races.length == 0) return def_tunnel_rat;
   let ar = [];
   let max_ob;
   c_loop: for (let c of [1, 2, 3, 4, 5]) {
