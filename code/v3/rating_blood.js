@@ -155,7 +155,7 @@ const calc_overall_rat = async ({ hid, races = [], tc }) => {
     return { hid, rat, profit, win_rate, flame_rate, type: "all" };
   else return { hid, ...def_overall };
 };
-const calc_tunnel_rat2 = async ({ hid, races = [] }) => {
+const calc_tunnel_rat = async ({ hid, races = [] }) => {
   let c, f;
   let ar = [];
   let max_ob;
@@ -197,106 +197,32 @@ const calc_tunnel_rat2 = async ({ hid, races = [] }) => {
   let rat = calc_rat(tunn_races);
   return {
     hid,
-    c: max_ob.c,
-    f: max_ob.f,
-    t: max_ob.t,
+    c: max_ob?.c || null,
+    f: max_ob?.f || null,
+    t: max_ob?.t || null,
     rat,
     win_rate,
     profit,
     avg_pts,
-    type:"tunnel"
+    type: "tunnel",
   };
 };
-const calc_tunnel_rat = async ({ hid, races = [], tc }) => {
-  hid = parseInt(hid);
-  let tun_ob = ["S", "M", "D"].map((tunnel) => {
-    let filt_races = _.filter(races, { tunnel });
-    let r_ob = filt_races.map((r) => {
-      let { thisclass: rc, fee_tag, place: position, flame } = r;
-      let score = calc_race_score({ rc, fee_tag, position, flame });
-      let final_score = score * 0.1;
-      return { final_score };
-    });
-    let rat = _.meanBy(r_ob, "final_score") ?? null;
-    return { rat, tunnel };
-  });
-  console.table(tun_ob);
-  let max_ob = _.maxBy(tun_ob, "rat");
-  let max_tunnel = max_ob?.tunnel ?? null;
-  let max_rat = max_ob?.rat ?? null;
-  console.log({ max_tunnel, max_rat });
-  let max_class, max_fee;
-  if (!max_tunnel) return null;
-  c_loop: for (let c of [1, 2, 3, 4, 5])
-    f_loop: for (let f of ["A", "B", "C", "D", "E"]) {
-      let filt = _.filter(races, {
-        tunnel: max_tunnel,
-        thisclass: c,
-        fee_tag: f,
-      });
-      let wins = calc_wins(filt);
-      let flame_rate = calc_flame_rate(filt);
-      console.log(c, f, { n: filt.length, wins, flame_rate });
-      if (wins >= 2 || flame_rate >= 50) {
-        max_class = c;
-        max_fee = f;
-        break c_loop;
-      }
-    }
-  let tunn_races = _.filter(races, { tunnel: max_tunnel });
-  let win_rate = calc_win_rate(tunn_races);
-  let profit = calc_profit(tunn_races);
-  let avg_pts = calc_avg_pts(tunn_races);
-  // if (max_class == undefined)
-  return {
-    class: max_class,
-    fee_tag: max_fee,
-    tunnel: max_tunnel,
-    rat: max_rat,
-    win_rate,
-    profit,
-    avg_pts,
-  };
-};
-
 const calc = async ({ hid, races = [], tc }) => {
   try {
     hid = parseInt(hid);
-    if (races?.length == 0) return { tunnel, rat: null };
-    // if (print) console.log(races[0]);
-    let ob = ["all", "S", "M", "D"].map((tunnel) => {
-      let filt_races = tunnel == "all" ? races : _.filter(races, { tunnel });
-      let r_ob = filt_races.map((r) => {
-        let { thisclass: rc, fee_tag, place: position, flame } = r;
-        let score = calc_race_score({ rc, fee_tag, position, flame });
-        let final_score = score * 0.1;
-        return {
-          rc,
-          fee_tag,
-          position,
-          flame,
-          score,
-          final_score,
-        };
-      });
-      let rat = _.meanBy(r_ob, "final_score") ?? null;
-      let win_rate = _.filter(filt_races, (i) =>
-        ["1"].includes(i.place.toString())
-      );
-      win_rate = ((win_rate?.length || 0) / (filt_races?.length || 1)) * 100;
-      let roi = calc_roi(filt_races);
-      return { rat, tunnel, win_rate, roi };
-    });
+    let ob = { hid };
+    ob.overall_rat = await calc_overall_rat({ hid, races });
+    ob.tunnel_rat = await calc_tunnel_rat({ hid, races });
     return ob;
   } catch (err) {
-    console.log("err on get_rating_flames", hid);
+    console.log("err on rating", hid);
     console.log(err);
   }
 };
 const generate = async (hid) => {
   hid = parseInt(hid);
   let races = await get_races_of_hid(hid);
-  console.log(races[0]);
+  // console.log(races[0]);
   let doc = await zed_db.db
     .collection("horse_details")
     .findOne({ hid }, { tc: 1 });
@@ -317,7 +243,7 @@ const test = async (hid) => {
   let races = await get_races_of_hid(hid);
   let ob = await calc_overall_rat({ hid, races });
   console.table(ob);
-  let ob3 = await calc_tunnel_rat2({ hid, races });
+  let ob3 = await calc_tunnel_rat({ hid, races });
   console.table(ob3);
 };
 
