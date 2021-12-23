@@ -7,7 +7,7 @@ const { geno, dec } = require("../utils/utils");
 const coll = "rating_blood3";
 const name = "base_ability v3";
 const cs = 200;
-const test_mode = 1;
+const test_mode = 0;
 
 const c_tab = {
   0: 1,
