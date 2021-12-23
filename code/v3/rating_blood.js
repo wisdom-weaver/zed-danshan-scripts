@@ -246,6 +246,7 @@ const generate_ranks = async () => {
   let st = 0;
   let ed = await get_ed_horse();
   let hids = new Array(ed - st + 1).fill(0).map((ea, i) => st + i);
+  hids = hids.filter((e) => ![15745, 15812].includes(e));
   let ar = [];
   for (let chunk of _.chunk(hids, cs)) {
     let chunk_ar = await zed_db.db
