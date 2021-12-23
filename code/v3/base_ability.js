@@ -7,7 +7,7 @@ const { geno, dec } = require("../utils/utils");
 const coll = "rating_blood3";
 const name = "base_ability v3";
 const cs = 200;
-const test_mode = 0;
+const test_mode = 1;
 
 const c_tab = {
   0: 1,
@@ -55,7 +55,7 @@ const calc = async ({ hid, races = [], tc }) => {
     let base_ability = 0;
     let filt_races = _.filter(races, (i) => {
       let { distance } = i;
-      return [1400, 1600, 1800].includes(distance);
+      return ["1400", "1600", "1800"].includes(distance.toString());
     });
     let r_ob = filt_races.map((r) => {
       let { thisclass: rc, fee_tag, place: position, flame } = r;
@@ -65,7 +65,9 @@ const calc = async ({ hid, races = [], tc }) => {
     });
     base_ability = _.meanBy(r_ob, "final_score") ?? null;
     ob.base_ability = base_ability;
-    if (test_mode) console.log(hid, ob);
+    let conf = (filt_races?.length || 0) * 5;
+    conf = Math.min(99, conf);
+    ob.base_conf = conf;
     return ob;
   } catch (err) {
     console.log("err on rating", hid);
@@ -101,10 +103,7 @@ const get_table_row = async (id) => {
   let hids = _.map(ar, "hid") || [];
   let docs = await zed_db.db
     .collection("rating_blood3")
-    .find(
-      { hid: { $in: hids } },
-      { projection: { _id: 0, base_ability: 1 } }
-    )
+    .find({ hid: { $in: hids } }, { projection: { _id: 0, base_ability: 1 } })
     .toArray();
 
   let scores = _.chain(docs).map("base_ability").compact().value();
@@ -116,9 +115,7 @@ const get_table_row = async (id) => {
   let ba_max = _.max(scores);
   if (!ba_max || _.isNaN(ba_max)) ba_max = null;
 
-  let str = [ba_min, ba_avg, ba_max]
-    .map((e) => dec(e))
-    .join(" ");
+  let str = [ba_min, ba_avg, ba_max].map((e) => dec(e)).join(" ");
 
   console.log({ id, count: scores.length }, str);
   return {
@@ -183,6 +180,6 @@ const base_ability = {
   all,
   only,
   range,
-  generate_table
+  generate_table,
 };
 module.exports = base_ability;
