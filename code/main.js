@@ -33,6 +33,22 @@ const main = async (args) => {
     if (arg2 == "test") {
       mod.rating_blood.test(arg3);
     }
+  } else if (arg1 == "--base_ability") {
+    if (arg2 == "all") mod.base_ability.all();
+    if (arg2 == "only") {
+      let conf = JSON.parse(arg3) || {};
+      mod.base_ability.only(conf);
+    }
+    if (arg2 == "range") {
+      let [a, b] = [parseInt(arg3), parseInt(arg4)];
+      mod.base_ability.range(a, b);
+    }
+    if (arg2 == "generate_ranks") {
+      mod.base_ability.generate_ranks();
+    }
+    if (arg2 == "test") {
+      mod.base_ability.test(arg3);
+    }
   }
 };
 main(process.argv);
