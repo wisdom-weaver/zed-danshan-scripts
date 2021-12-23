@@ -53,10 +53,13 @@ const calc = async ({ hid, races = [], tc }) => {
     hid = parseInt(hid);
     let ob = { hid };
     let base_ability = 0;
-    let filt_races = _.filter(races, (i) => {
-      let { distance } = i;
-      return ["1400", "1600", "1800"].includes(distance.toString());
-    });
+    let filt_races =
+      _.filter(races, (i) => {
+        let { distance, thisclass } = i;
+        if (thisclass == 99) return false;
+        return ["1400", "1600", "1800"].includes(distance.toString());
+      }) || [];
+    // if (test_mode) console.log(filt_races.length);
     let r_ob = filt_races.map((r) => {
       let { thisclass: rc, fee_tag, place: position, flame } = r;
       let score = calc_base_ea_score({ rc, fee_tag, position, flame });
@@ -64,6 +67,7 @@ const calc = async ({ hid, races = [], tc }) => {
       return { final_score };
     });
     base_ability = _.meanBy(r_ob, "final_score") ?? null;
+    if (_.isNaN(base_ability)) base_ability = null;
     ob.base_ability = base_ability;
     let conf = (filt_races?.length || 0) * 5;
     conf = Math.min(99, conf);
