@@ -146,8 +146,8 @@ const calc_overall_rat = async ({ hid, races = [], tc }) => {
   let profit = calc_profit(filt_races);
   let flame_rate = calc_flame_rate(filt_races);
   if (flame_rate >= 50 || wins >= 2)
-    return { rat, profit, win_rate, flame_rate, type: "all", rated_type: "CH" };
-  else return { ...def_overall, rated_type: "GH" };
+    return { rat, profit, win_rate, flame_rate, type: "all", rated_type: "GH" };
+  else return { ...def_overall, rated_type: "CH" };
 };
 const def_tunnel_rat = {
   c: null,
