@@ -1,6 +1,7 @@
 const { zed_db } = require("../connection/mongo_connect");
 const { get_ed_horse } = require("./cyclic_dependency");
 const _ = require("lodash");
+const { get_hids } = require("./utils");
 
 const try_fn = async (fn, name, ...args) => {
   try {
@@ -45,7 +46,7 @@ const run_bulk_range = async (
   test_mode = 0
 ) => {
   if (ed == "ed") ed = await get_ed_horse();
-  let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
+  let hids = get_hids(st, ed);
   await run_bulk_only(name, fn, coll, hids, cs);
   console.log("ended", name);
 };
@@ -58,7 +59,7 @@ const run_bulk_all = async (
   test_mode = 0
 ) => {
   let [st, ed] = [1, await get_ed_horse()];
-  let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
+  let hids = get_hids(st, ed);
   await run_bulk_only(name, fn, coll, hids, cs);
   console.log("ended", name);
 };
