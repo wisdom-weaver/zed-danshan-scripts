@@ -1,9 +1,13 @@
-const { get_races_of_hid } = require("../utils/cyclic_dependency");
+const {
+  get_races_of_hid,
+  get_ed_horse,
+} = require("../utils/cyclic_dependency");
 const mdb = require("../connection/mongo_connect");
 const _ = require("lodash");
 const bulk = require("../utils/bulk");
 const { zed_db } = require("../connection/mongo_connect");
 const { calc_race_score } = require("./race_score");
+const { push_bulk } = require("../utils/bulk");
 const coll = "rating_blood3";
 const name = "rating_blood v3";
 const cs = 200;
@@ -236,6 +240,58 @@ const generate = async (hid) => {
   if (test_mode) console.log(hid, ob);
   return ob;
 };
+
+const generate_ranks = async () => {
+  console.log("starting generate_ranks");
+  let st = 0;
+  let ed = await get_ed_horse();
+  let hids = new Array(ed - st + 1).fill(0).map((ea, i) => st + i);
+  let ar = [];
+  for (let chunk of _.chunk(hids, cs)) {
+    let chunk_ar = await zed_db.db
+      .collection("rating_blood3")
+      .find(
+        {
+          hid: { $in: chunk },
+          "tunnel_rat.rated_type": "GH",
+        },
+        {
+          hid: 1,
+          "tunnel_rat.rat": 1,
+          "tunnel_rat.rated_type": 1,
+        }
+      )
+      .toArray();
+    chunk_ar = _.compact(chunk_ar);
+    chunk_ar = chunk_ar.map((e) => {
+      let { rat, rated_type } = e.tunnel_rat || {};
+      return { hid: e.hid, rat, rated_type };
+    });
+    ar = [...ar, ...chunk_ar];
+    let [a, b] = [chunk[0], chunk[chunk.length - 1]];
+    console.log("downloaded", a, "to", b);
+  }
+  console.log("total", ar.length);
+  await zed_db.db
+    .collection("rating_blood3")
+    .updateMany({}, { $set: { rank: null } });
+  ar = _.filter(ar, (ea) => ea.rated_type == "GH");
+  ar = _.sortBy(ar, (i) => -i.rat);
+  console.log("to push", ar.length);
+  ar = ar.map((e, i) => {
+    return { hid: e.hid, rank: i + 1, rat: e.rat };
+  });
+  console.table(ar.slice(0, 100));
+  for (let chunk of _.chunk(ar, cs)) {
+    chunk = chunk.map((ea) => {
+      let { hid, rank } = ea;
+      return { hid, rank };
+    });
+    await push_bulk("rating_blood3", chunk);
+  }
+  console.log("ended generate_ranks");
+};
+
 const all = async () => bulk.run_bulk_all(name, generate, coll, cs, test_mode);
 const only = async (hids) =>
   bulk.run_bulk_only(name, generate, coll, hids, cs, test_mode);
@@ -259,5 +315,6 @@ const rating_blood = {
   all,
   only,
   range,
+  generate_ranks,
 };
 module.exports = rating_blood;
