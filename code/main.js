@@ -28,7 +28,7 @@ const main = async (args) => {
       mod.rating_blood.range(a, b);
     }
     if (arg2 == "generate_ranks") {
-      mod.rating_blood.generate_ranks(a, b);
+      mod.rating_blood.generate_ranks();
     }
     if (arg2 == "test") {
       mod.rating_blood.test(arg3);
