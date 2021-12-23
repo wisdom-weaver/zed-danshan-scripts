@@ -2,6 +2,8 @@ const { get_races_of_hid } = require("../utils/cyclic_dependency");
 const _ = require("lodash");
 const bulk = require("../utils/bulk");
 const { zed_db } = require("../connection/mongo_connect");
+const { options } = require("../utils/options");
+const { geno, dec } = require("../utils/utils");
 const coll = "rating_blood3";
 const name = "base_ability v3";
 const cs = 200;
@@ -83,6 +85,81 @@ const generate = async (hid) => {
   return ob;
 };
 
+const get_table_row = async (id) => {
+  let [bl, bt, z] = id.split("-");
+  let ar = await zed_db.db
+    .collection("horse_details")
+    .find(
+      {
+        bloodline: bl,
+        breed_type: bt,
+        genotype: z,
+      },
+      { projection: { _id: 0, hid: 1 } }
+    )
+    .toArray();
+  let hids = _.map(ar, "hid") || [];
+  let docs = await zed_db.db
+    .collection("rating_blood3")
+    .find(
+      { hid: { $in: hids } },
+      { projection: { _id: 0, base_ability: 1 } }
+    )
+    .toArray();
+
+  let scores = _.chain(docs).map("base_ability").compact().value();
+
+  let ba_avg = _.mean(scores);
+  if (!ba_avg || _.isNaN(ba_avg)) ba_avg = null;
+  let ba_min = _.min(scores);
+  if (!ba_min || _.isNaN(ba_min)) ba_min = null;
+  let ba_max = _.max(scores);
+  if (!ba_max || _.isNaN(ba_max)) ba_max = null;
+
+  let str = [ba_min, ba_avg, ba_max]
+    .map((e) => dec(e))
+    .join(" ");
+
+  console.log({ id, count: scores.length }, str);
+  return {
+    count_all: ar.length,
+    count: scores.length,
+    ba_min,
+    ba_avg,
+    ba_max,
+  };
+};
+const generate_table = async () => {
+  let ob = {};
+  let keys = [];
+  for (let bl of options.bloodline)
+    for (let bt of options.breed_type)
+      for (let z of options.genotype) {
+        if (bt == "genesis" && geno(z) > 10) continue;
+        if (bl == "Nakamoto" && bt == "legendary" && geno(z) > 4) continue;
+        if (bl == "Szabo" && bt == "legendary" && geno(z) > 8) continue;
+        if (bl == "Finney" && bt == "legendary" && geno(z) > 14) continue;
+        if (bl == "Buterin" && bt == "legendary" && geno(z) > 20) continue;
+        let id = `${bl}-${bt}-${z}`;
+        keys.push(id);
+      }
+  // keys = ["Buterin-cross-Z13"];
+  // keys = keys.slice(0, 5);
+  for (let id of keys) {
+    ob[id] = await get_table_row(id);
+  }
+  // return;
+  let doc_id = "base-ability-global-table";
+  await zed_db.db
+    .collection("requirements")
+    .updateOne(
+      { id: doc_id },
+      { $set: { id: doc_id, avg_ob: ob } },
+      { upsert: true }
+    );
+  console.log("done");
+};
+
 const all = async () => bulk.run_bulk_all(name, generate, coll, cs, test_mode);
 const only = async (hids) =>
   bulk.run_bulk_only(name, generate, coll, hids, cs, test_mode);
@@ -106,5 +183,6 @@ const base_ability = {
   all,
   only,
   range,
+  generate_table
 };
 module.exports = base_ability;

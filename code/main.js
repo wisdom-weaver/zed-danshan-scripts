@@ -43,8 +43,8 @@ const main = async (args) => {
       let [a, b] = [parseInt(arg3), parseInt(arg4)];
       mod.base_ability.range(a, b);
     }
-    if (arg2 == "generate_ranks") {
-      mod.base_ability.generate_ranks();
+    if (arg2 == "generate_table") {
+      mod.base_ability.generate_table();
     }
     if (arg2 == "test") {
       mod.base_ability.test(arg3);

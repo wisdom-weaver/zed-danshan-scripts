@@ -188,6 +188,11 @@ const per = (a, b) => {
   return `${parseFloat((a * 100) / b)?.toFixed(2)}%`;
 };
 
+const geno = (z) => {
+  if (z.startsWith("Z")) z = z.slice(1);
+  return parseFloat(z);
+};
+
 module.exports = {
   calc_avg,
   write_to_path,
@@ -209,4 +214,5 @@ module.exports = {
   iso,
   nano,
   per,
+  geno,
 };
