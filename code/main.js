@@ -47,7 +47,8 @@ const main = async (args) => {
       mod.base_ability.generate_table();
     }
     if (arg2 == "test") {
-      mod.base_ability.test(arg3);
+      let conf = JSON.parse(arg3) || {};
+      mod.base_ability.test(conf);
     }
   }
 };

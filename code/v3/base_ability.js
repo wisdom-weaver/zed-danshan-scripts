@@ -3,76 +3,169 @@ const _ = require("lodash");
 const bulk = require("../utils/bulk");
 const { zed_db } = require("../connection/mongo_connect");
 const { options } = require("../utils/options");
-const { geno, dec } = require("../utils/utils");
+const { geno, dec, get_fee_tag } = require("../utils/utils");
+const race_utils = require("../utils/race_utils");
 const coll = "rating_blood3";
 const name = "base_ability v3";
-const cs = 200;
+let cs = 200;
 const test_mode = 0;
+if (test_mode) cs = 1;
 
-const c_tab = {
-  0: 1,
-  1: 7,
-  2: 4.5,
+const c_ob = {
+  0: 0,
+  1: 5,
+  2: 4,
   3: 3,
   4: 2,
-  5: 1.5,
+  5: 1,
 };
-const f_tab = {
-  A: 10,
-  B: 10,
-  C: 8,
-  D: 5,
-  E: 2.5,
+const f_ob = {
+  A: 5,
+  B: 5,
+  C: 4,
+  D: 3,
+  E: 2,
   F: 1,
 };
+const p_ob = {
+  1: 5,
+  2: 4,
+  3: 3,
+  4: 2,
+  5: 1,
+  6: 0.5,
+};
+let pos_pts = {
+  1: 0.6,
+  2: 0.5,
+  3: 0.4,
+  4: 0.3,
+  5: 0.2,
+  6: 0.1,
+  7: 0.1,
+  8: 0.2,
+  9: 0.3,
+  10: 0.4,
+  11: 0.5,
+  12: 0.6,
+};
+const flame_ob = 3;
+const min_ratio = 1.14;
+const min_races = 2;
 
-let pos_tab = {
-  1: [15, 30],
-  2: [14, 27],
-  3: [12, 24],
-  4: [10, 21],
-  5: [9, 18],
-  6: [7, 15],
-  7: [6, 13],
-  8: [5, 11],
-  9: [0, 9],
-  10: [0, 7],
-  11: [0, 5],
-  12: [0, 3],
+const get_class_ratio_ob = ({ c, dist_races }) => {
+  let c_races = race_utils.filter_races(dist_races, { c });
+  let p_count = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((p) => {
+    let n = race_utils.filter_races(c_races, { position: p });
+    n = n?.length || 0;
+    return [p, n];
+  });
+  p_count = _.fromPairs(p_count);
+  let left = _.sum([1, 2, 3, 4, 5, 6].map((p) => p_count[p]));
+  let right = _.sum([7, 8, 9, 10, 11, 12].map((p) => p_count[p]));
+  // let ob = { c, tot: c_races.length, left, right };
+  let left_pts = _.sum([1, 2, 3, 4, 5, 6].map((p) => p_count[p] * pos_pts[p]));
+  if (_.isNaN(left_pts)) left_pts = 0;
+  let right_pts = _.sum(
+    [7, 8, 9, 10, 11, 12].map((p) => p_count[p] * pos_pts[p])
+  );
+  if (_.isNaN(right_pts)) right_pts = 0;
+  let ratio = (left_pts || 0) / (right_pts || 1);
+  if (left + right < min_races) ratio = null;
+  if (ratio == 0) ratio = null;
+  if (ratio < min_ratio) ratio = null;
+  return { c, left, right, ratio };
 };
 
-const calc_base_ea_score = ({ rc, fee_tag, position, flame }) => {
-  let c_sc = c_tab[rc] || 0;
-  let f_sc = f_tab[fee_tag] || 0;
-  let p_sc = pos_tab[position][flame] || 0;
-  return c_sc + f_sc + p_sc;
+const pick_c = (ratio_ar) => {
+  ratio_ar = _.keyBy(ratio_ar, "c");
+  let ratio_ob = _.chain(ratio_ar)
+    .keyBy("c")
+    .mapValues((i) => {
+      if (i.left + i.right < min_races) return null;
+      return i["ratio"];
+    })
+    .value();
+  for (let c of [1, 2, 3, 4, 5]) {
+    let difft = ratio_ob[c] - ratio_ob[c - 1 < 1 ? 1 : c - 1];
+    let diffb = -(ratio_ob[c] - ratio_ob[c + 1 > 5 ? 5 : c + 1]);
+    let tb_diff = Math.abs(difft + diffb);
+    let tot_diff = Math.abs(difft) + Math.abs(diffb);
+    if (ratio_ob[c] == null) tot_diff = 0;
+    if (c == 1 || c == 5) tot_diff *= 2;
+    ratio_ar[c] = { ...ratio_ar[c], difft, diffb, tot_diff, tb_diff };
+  }
+  const mean_diff = _.mean(_.compact(_.map(_.values(ratio_ar), "tot_diff")));
+  if (test_mode) console.log({ mean_diff });
+  ratio_ar = [1, 2, 3, 4, 5].map((i) => {
+    let { difft, diffb, tot_diff, tb_diff, ratio } = ratio_ar[i];
+    let onlys = _.filter([1, 2, 3, 4, 5], (e) => e !== i);
+    onlys = _.compact(onlys.map((ec) => ratio_ar[ec].tot_diff || null));
+    let ex_mean = _.mean(onlys);
+    if (_.sum(onlys) == 0) ex_mean = mean_diff;
+    let ex_ratio = mean_diff / ex_mean;
+
+    let range_pm = 0.25;
+    let bullshit = !_.inRange(ex_ratio, 1 - range_pm, 1 + range_pm);
+    if (!bullshit) {
+      let rat2 = ratio_ar[i + 1]?.ratio;
+      if (i < 5 && rat2 && rat2 < ratio_ar[i].ratio) bullshit = true;
+    }
+    let pick = ratio != null && ratio != 0 && !bullshit;
+    return {
+      ...ratio_ar[i],
+      difft: dec(difft),
+      diffb: dec(diffb),
+      tot_diff: dec(tot_diff),
+      tb_diff: dec(tb_diff),
+      ex_mean: dec(ex_mean),
+      ex_ratio: dec(ex_ratio),
+      bullshit,
+      pick,
+    };
+  });
+  let pick = _.find(ratio_ar, { pick: true })?.c || null;
+  if (test_mode) {
+    console.table(ratio_ar);
+    console.log({ pick });
+  }
+  if (!pick) return null;
+  let ob = _.find(ratio_ar, { c: pick }) || {};
+  return { c: pick, ...ob };
 };
+const pick_avg_fee = ({ c, races }) => {
+  let c_races = race_utils.filter_races(races, { c }, { paid: 1 });
+  let avg_fee = _.meanBy(c_races, "entryfee_usd");
+  // let avg_fee_tag = get_fee_tag(avg_fee);
+  if (test_mode) console.log({ avg_fee });
+  return avg_fee;
+};
+
+const diff = () => {};
 
 const calc = async ({ hid, races = [], tc }) => {
   try {
     hid = parseInt(hid);
-    let ob = { hid };
-    let base_ability = 0;
-    let filt_races =
-      _.filter(races, (i) => {
-        let { distance, thisclass } = i;
-        if (thisclass == 99) return false;
-        return ["1400", "1600", "1800"].includes(distance.toString());
-      }) || [];
-    // if (test_mode) console.log(filt_races.length);
-    let r_ob = filt_races.map((r) => {
-      let { thisclass: rc, fee_tag, place: position, flame } = r;
-      let score = calc_base_ea_score({ rc, fee_tag, position, flame });
-      let final_score = score * 0.1;
-      return { final_score };
-    });
-    base_ability = _.meanBy(r_ob, "final_score") ?? null;
-    if (_.isNaN(base_ability)) base_ability = null;
-    ob.base_ability = base_ability;
-    let conf = (filt_races?.length || 0) * 5;
-    conf = Math.min(99, conf);
-    ob.base_conf = conf;
-    return ob;
+    let dist_races = race_utils.filter_races(
+      races,
+      { d: [1400, 1600, 1800] },
+      { no_tourney: 1, paid: 1 }
+    );
+    if (test_mode)
+      console.log("#", hid, { n: races.length, dist_n: dist_races.length });
+    let ratio_ar = [];
+
+    for (let c of [1, 2, 3, 4, 5]) {
+      let ratio_ob = get_class_ratio_ob({ c, dist_races });
+      ratio_ar.push(ratio_ob);
+    }
+    const c_ob = pick_c(ratio_ar);
+    if (!c_ob)
+      return { hid, base_ability: { c: null, ratio: null, avg_fee: null } };
+    let { c, left, right, ratio } = c_ob;
+    if (test_mode) console.table([c_ob]);
+    let avg_fee = pick_avg_fee({ c, races: dist_races });
+    return { hid, base_ability: { c, ratio, avg_fee } };
   } catch (err) {
     console.log("err on rating", hid);
     console.log(err);
@@ -87,7 +180,7 @@ const generate = async (hid) => {
     .findOne({ hid }, { tc: 1 });
   let tc = doc?.tc || undefined;
   let ob = await calc({ races, tc, hid });
-  if (test_mode) console.log(hid, ob);
+  if (test_mode) console.log(hid, ob, "\n\n");
   return ob;
 };
 
@@ -167,14 +260,19 @@ const only = async (hids) =>
 const range = async (st, ed) =>
   bulk.run_bulk_range(name, generate, coll, st, ed, cs, test_mode);
 
-const test = async (hid) => {
-  hid = parseInt(hid);
-  // let hid = 126065;
-  let races = await get_races_of_hid(hid);
-  let ob = await calc_overall_rat({ hid, races });
-  console.table(ob);
-  let ob3 = await calc_tunnel_rat({ hid, races });
-  console.table(ob3);
+const test = async (hids) => {
+  hids = hids.map((hid) => parseInt(hid));
+  for (let hid of hids) {
+    pos_tab = pos_new3;
+    let ob_new3 = await generate(hid);
+    console.log("new3", ob_new3);
+    pos_tab = pos_new;
+    let ob_new = await generate(hid);
+    console.log("new", ob_new);
+    pos_tab = pos_old;
+    let ob_old = await generate(hid);
+    console.log("old", ob_old);
+  }
 };
 
 const base_ability = {
