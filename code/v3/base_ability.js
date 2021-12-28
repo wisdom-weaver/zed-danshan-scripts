@@ -8,8 +8,7 @@ const race_utils = require("../utils/race_utils");
 const coll = "rating_blood3";
 const name = "base_ability v3";
 let cs = 200;
-const test_mode = 0;
-if (test_mode) cs = 1;
+let test_mode = 0;
 
 const c_ob = {
   0: 0,
@@ -165,7 +164,10 @@ const calc = async ({ hid, races = [], tc }) => {
     let { c, left, right, ratio } = c_ob;
     if (test_mode) console.table([c_ob]);
     let avg_fee = pick_avg_fee({ c, races: dist_races });
-    return { hid, base_ability: { c, ratio, avg_fee } };
+    let c_races_n = left + right;
+    if (!c_races_n || _.isNaN(c_races_n)) c_races_n = 0;
+    let conf = Math.min(99, c_races_n * 2);
+    return { hid, base_ability: { c, ratio, avg_fee, c_races_n, conf } };
   } catch (err) {
     console.log("err on rating", hid);
     console.log(err);
@@ -261,18 +263,9 @@ const range = async (st, ed) =>
   bulk.run_bulk_range(name, generate, coll, st, ed, cs, test_mode);
 
 const test = async (hids) => {
-  hids = hids.map((hid) => parseInt(hid));
-  for (let hid of hids) {
-    pos_tab = pos_new3;
-    let ob_new3 = await generate(hid);
-    console.log("new3", ob_new3);
-    pos_tab = pos_new;
-    let ob_new = await generate(hid);
-    console.log("new", ob_new);
-    pos_tab = pos_old;
-    let ob_old = await generate(hid);
-    console.log("old", ob_old);
-  }
+  test_mode = 1;
+  if (test_mode) cs = 1;
+  for (let hid of hids) generate(hid);
 };
 
 const base_ability = {
