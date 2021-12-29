@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const mdb = require("./connection/mongo_connect");
+const zed_races = require("./races/zed_races");
 const v3 = require("./v3/v3");
 const mod = v3;
 
@@ -7,7 +8,13 @@ const main = async (args) => {
   await mdb.init();
   console.log("main");
   let [_node, _cfile, arg1, arg2, arg3, arg4] = args;
-  if (arg1 == "--rating_flames") {
+  if (arg1 == "--races") {
+    if (arg2 == "test") zed_races.test();
+    if (arg2 == "live") zed_races.live();
+    if (arg2 == "live_cron") zed_races.live_cron();
+    if (arg2 == "miss") zed_races.miss(arg3, arg4);
+    if (arg2 == "miss_cron") zed_races.miss_cron();
+  } else if (arg1 == "--rating_flames") {
     if (arg2 == "all") mod.rating_flames.all();
     if (arg2 == "only") {
       let conf = JSON.parse(arg3) || {};
