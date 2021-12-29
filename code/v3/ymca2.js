@@ -1,5 +1,6 @@
 const _ = require("lodash");
 const { zed_db, zed_ch } = require("../connection/mongo_connect");
+const bulk = require("../utils/bulk");
 const { struct_race_row_data } = require("../utils/cyclic_dependency");
 const { calc_race_score } = require("./race_score");
 
