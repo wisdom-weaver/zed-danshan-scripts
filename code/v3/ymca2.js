@@ -1,0 +1,107 @@
+const _ = require("lodash");
+const { zed_db, zed_ch } = require("../connection/mongo_connect");
+const { struct_race_row_data } = require("../utils/cyclic_dependency");
+const { calc_race_score } = require("./race_score");
+
+let test_mode = 0;
+let cs = 100;
+let z_ALL = {};
+const coll = "rating_breed3";
+
+const get_z_med = async ({ bloodline, breed_type, genotype }) => {
+  let id = "";
+  let z = genotype.slice(1);
+  z = "z" + z.toString().padStart(3, "0");
+  bloodline = bloodline.toString().toLowerCase();
+  breed_type = breed_type.toString().toLowerCase();
+  id = `${z}-${bloodline}-${breed_type}`;
+  if (_.isEmpty(z_ALL)) {
+    let z_med_doc =
+      (await zed_db.db.collection("z_meds").findOne({ id })) || {};
+    let { med: z_med = 0 } = z_med_doc;
+    return z_med;
+  } else {
+    let z_med = z_ALL[id];
+    return z_med;
+  }
+};
+
+const get_z_ALL_meds = async () => {
+  let doc = await zed_db.db.collection("z_meds").findOne({ id: "z_ALL" });
+  let ob = _.chain(doc.ar).keyBy("id").mapValues("med").value();
+  return ob;
+};
+
+const calc = async ({ hid, races = [], details }) => {
+  try {
+    let avg_z = await get_z_med(details);
+    if (test_mode) console.log("avg_z", avg_z);
+    let r_ob = races.map((r) => {
+      let { thisclass: rc, fee_tag, place: position, flame } = r;
+      let score = calc_race_score({ rc, fee_tag, position, flame });
+      let final_score = score * 0.1 - avg_z * 0.02;
+      return {
+        rc,
+        fee_tag,
+        position,
+        flame,
+        score,
+        final_score,
+      };
+    });
+    if (test_mode) console.table(r_ob);
+
+    let ymca2 = _.meanBy(r_ob, "final_score") ?? null;
+    if (test_mode) console.log(hid, "ymca2", ymca2);
+
+    return ymca2;
+  } catch (err) {
+    console.log("err in ymca2", hid, err);
+    return null;
+  }
+};
+
+const generate = async (hid) => {
+  try {
+    hid = parseInt(hid);
+    let details = await zed_db.db
+      .collection("horse_details")
+      .findOne({ hid }, { bloodline: 1, breed_type: 1, genotype: 1 });
+    if (test_mode) console.log(details);
+
+    let races = await zed_ch.db
+      .collection("zed")
+      .find({ 6: hid })
+      .sort({ 2: 1 })
+      .limit(8)
+      .toArray();
+    races = struct_race_row_data(races);
+    if (_.isEmpty(races)) races = [];
+
+    if (test_mode) console.table(races);
+
+    const ymca2 = await calc({ hid, races, details });
+    let ob = { hid, ymca2 };
+    return ob;
+  } catch (err) {
+    console.log("err in get_kids_score", err);
+  }
+};
+
+const all = async () => bulk.run_bulk_all(name, generate, coll, cs, test_mode);
+const only = async (hids) =>
+  bulk.run_bulk_only(name, generate, coll, hids, cs, test_mode);
+const range = async (st, ed) =>
+  bulk.run_bulk_range(name, generate, coll, st, ed, cs, test_mode);
+
+const test = async (hids) => {
+  console.log("ymca2", "test");
+  // test_mode = 1;
+  for (let hid of hids) {
+    let ob = await generate(hid);
+    console.log(hid, ob);
+  }
+};
+
+const ymca2_s = { calc, generate, test, get_z_med, all, only, range };
+module.exports = ymca2_s;

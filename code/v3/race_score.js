@@ -17,6 +17,7 @@ const f_tab = {
 };
 
 let pos_tab = {
+  0: [0, 0],
   1: [5, 10],
   2: [4.5, 9],
   3: [4, 8],
@@ -32,6 +33,7 @@ let pos_tab = {
 };
 
 module.exports.calc_race_score = ({ rc, fee_tag, position, flame }) => {
+  // console.log({ rc, fee_tag, position, flame })
   let c_sc = c_tab[rc] || 0;
   let f_sc = f_tab[fee_tag] || 0;
   let p_sc = pos_tab[position][flame] || 0;

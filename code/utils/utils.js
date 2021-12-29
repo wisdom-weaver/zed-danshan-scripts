@@ -112,6 +112,13 @@ const struct_race_row_data = (data) => {
       );
     });
     data = _.compact(data);
+    data = data.map((e) => {
+      let { entryfee: fee, date } = e;
+      let entryfee_usd = get_entryfee_usd({ fee, date });
+      let fee_tag = get_fee_tag(entryfee_usd);
+      let tunnel = get_tunnel(e.distance);
+      return { ...e, entryfee_usd, fee_tag, tunnel };
+    });
   } catch (err) {
     if (data.name == "MongoNetworkError") {
       console.log("MongoNetworkError");

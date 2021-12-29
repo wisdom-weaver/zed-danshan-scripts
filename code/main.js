@@ -57,6 +57,25 @@ const main = async (args) => {
       let conf = JSON.parse(arg3) || {};
       mod.base_ability.test(conf);
     }
+  } else if (arg1 == "--ymca2") {
+    if (arg2 == "test") {
+      let conf = JSON.parse(arg3) || {};
+      mod.ymca2.test(conf);
+    }
+  } else if (arg1 == "--rating_breed") {
+    if (arg2 == "all") mod.rating_flames.all();
+    if (arg2 == "only") {
+      let conf = JSON.parse(arg3) || {};
+      mod.rating_flames.only(conf);
+    }
+    if (arg2 == "range") {
+      let [a, b] = [parseInt(arg3), parseInt(arg4)];
+      mod.rating_flames.range(a, b);
+    }
+    if (arg2 == "test") {
+      let conf = JSON.parse(arg3) || {};
+      mod.rating_breed.test(conf);
+    }
   }
 };
 main(process.argv);
