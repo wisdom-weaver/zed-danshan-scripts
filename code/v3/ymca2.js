@@ -9,10 +9,12 @@ let cs = 100;
 let z_ALL = {};
 const name = "ymca2";
 const coll = "rating_breed3";
+const first_n_races = 8;
 
 const get_z_med = async ({ bloodline, breed_type, genotype }) => {
+  if (!genotype) return null;
   let id = "";
-  let z = genotype.slice(1);
+  let z = genotype?.slice(1);
   z = "z" + z.toString().padStart(3, "0");
   bloodline = bloodline.toString().toLowerCase();
   breed_type = breed_type.toString().toLowerCase();
@@ -36,6 +38,9 @@ const get_z_ALL_meds = async () => {
 
 const calc = async ({ hid, races = [], details }) => {
   try {
+    if (_.isEmpty(races)) return null;
+    races = _.sortBy(races, "date");
+    races = races.slice(0, first_n_races);
     let avg_z = await get_z_med(details);
     if (test_mode) console.log("avg_z", avg_z);
     let r_ob = races.map((r) => {
@@ -75,7 +80,7 @@ const generate = async (hid) => {
       .collection("zed")
       .find({ 6: hid })
       .sort({ 2: 1 })
-      .limit(8)
+      .limit(first_n_races)
       .toArray();
     races = struct_race_row_data(races);
     if (_.isEmpty(races)) return { hid, ymca2: null };

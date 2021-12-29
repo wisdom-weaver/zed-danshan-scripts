@@ -4,6 +4,7 @@ const rating_breed = require("./rating_breed");
 const base_ability = require("./base_ability");
 const ymca2 = require("./ymca2");
 const ymca2_table = require("./ymca2_table");
+const mega = require("./mega");
 
 const v3 = {
   rating_flames,
@@ -12,6 +13,7 @@ const v3 = {
   base_ability,
   ymca2,
   ymca2_table,
+  mega,
 };
 
 module.exports = v3;
