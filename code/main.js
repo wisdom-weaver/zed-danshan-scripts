@@ -79,7 +79,7 @@ const main = async (args) => {
       mod.rating_breed.test(conf);
     }
   } else if (arg1 == "--ymca2_table") {
-    if (arg2 == "generate") mod.ymca2_table.test();
+    if (arg2 == "generate") mod.ymca2_table.generate();
     if (arg2 == "get") {
       let ob = mod.ymca2_table.get(1);
       console.table(ob);
