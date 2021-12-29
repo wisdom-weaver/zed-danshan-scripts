@@ -74,6 +74,10 @@ const generate = async (hid) => {
     let details = await zed_db.db
       .collection("horse_details")
       .findOne({ hid }, { bloodline: 1, breed_type: 1, genotype: 1 });
+    if (!details) {
+      console.log(hid, "details missing");
+      return null;
+    }
     if (test_mode) console.log(details);
 
     let races = await zed_ch.db
