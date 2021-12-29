@@ -50,7 +50,7 @@ const miss_cron = async () => {
       console.log(err);
     }
   };
-  let cron_str = "*/2 * * * *";
+  let cron_str = "*/5 * * * *";
   const c_itvl = cron_parser.parseExpression(cron_str);
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
   cron.schedule(cron_str, runner, cron_conf);
