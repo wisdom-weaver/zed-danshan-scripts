@@ -1,11 +1,13 @@
 const mongoose = require("mongoose");
 const mdb = require("./connection/mongo_connect");
+const global_req = require("./global_req/global_req");
 const zed_races = require("./races/zed_races");
 const v3 = require("./v3/v3");
 const mod = v3;
 
 const main = async (args) => {
   await mdb.init();
+  await global_req.download();
   console.log("main");
   let [_node, _cfile, arg1, arg2, arg3, arg4] = args;
   if (arg1 == "--races") {
@@ -75,6 +77,12 @@ const main = async (args) => {
     if (arg2 == "test") {
       let conf = JSON.parse(arg3) || {};
       mod.rating_breed.test(conf);
+    }
+  } else if (arg1 == "--ymca2_table") {
+    if (arg2 == "generate") mod.ymca2_table.test();
+    if (arg2 == "get") {
+      let ob = mod.ymca2_table.get(1);
+      console.table(ob);
     }
   }
 };

@@ -18,6 +18,7 @@ const {
   get_ed_horse,
 } = require("../utils/cyclic_dependency");
 const ymca2_s = require("./ymca2");
+const global_req = require("../global_req/global_req");
 
 let mx = 11000;
 let st = 1;
@@ -26,17 +27,17 @@ let chunk_size = 25;
 let chunk_delay = 100;
 
 //global
-let z_ALL = {};
-let blbtz = {};
+let z_ALL;
+let ymca2_avgs;
+
 let tot_runs = 1;
 const coll = "rating_breed3";
 const test_mode = 0;
 
-const initiate = async () => {
-  console.log("## Initiating");
-  await init();
-  await download_eth_prices();
-  z_ALL = await get_z_ALL_meds();
+const get_reqs = () => {
+  console.log("get_reqs");
+  z_ALL = global_req.get_data().z_ALL;
+  ymca2_avgs = global_req.get_data().ymca2_avgs;
 };
 
 const get_parents_hids = async (hid) => {
@@ -134,140 +135,15 @@ const get_z_ALL_meds = async () => {
   return ob;
 };
 
-const get_blbtz_global_avg = async ({ bloodline, breed_type, genotype }) => {
+const get_ymca_global_avg = async ({ bloodline, breed_type, genotype }) => {
   let id = `${bloodline}-${breed_type}-${genotype}`;
-  return blbtz[id]?.avg || null;
-};
-
-const get_kids_and_upload = async (hid, print = 0) => {
-  try {
-    hid = parseInt(hid);
-    if (hid == null || isNaN(hid)) return null;
-    let kg = await generate_breed_rating(hid);
-    if (print == 1) {
-      let { avg, br, odds, kids_n } = kg;
-      let str = _.values(odds)
-        .map((e) => (e == null ? "N" : parseFloat(e).toFixed(0)))
-        .join(" ");
-      console.log(`horse_${hid}`, ` (${kids_n})=>`, str);
-      console.log({ avg, br });
-    }
-    if (_.isEmpty(kg)) {
-      console.log("get_kids_and_upload", hid, "empty_kg");
-      return;
-    }
-    // console.log(kg.is, hid, "=>", kg.kids_n, "kids, breed_rat:", kg.br);
-    kg.db_date = new Date().toISOString();
-    kg.fn = "script";
-    await zed_db.db
-      .collection("kids")
-      .updateOne({ hid }, { $set: kg }, { upsert: true });
-    // await write_horse_details_to_hid_br(hid);
-  } catch (err) {
-    console.log("ERR on get_kids_and_upload", hid);
-  }
-};
-
-const get_z_table_for_id = async (id) => {
-  let [bl, bt, z] = id.split("-");
-  let ar = await zed_db.db
-    .collection("horse_details")
-    .find(
-      {
-        bloodline: bl,
-        breed_type: bt,
-        genotype: z,
-      },
-      { projection: { _id: 0, hid: 1 } }
-    )
-    .toArray();
-  let hids = _.map(ar, "hid") || [];
-  let docs = await zed_db.db
-    .collection("rating_breed2")
-    .find({ hid: { $in: hids } }, { projection: { _id: 0, ymca2: 1, br: 1 } })
-    .toArray();
-
-  let scores = _.chain(docs).map("ymca2").compact().value();
-  let brs = _.chain(docs)
-    .map("br")
-    .filter((i) => i !== Infinity)
-    .compact()
-    .value();
-
-  let avg = _.mean(scores);
-  if (!avg || _.isNaN(avg)) avg = null;
-  let ks_min = _.min(scores);
-  if (!ks_min || _.isNaN(ks_min)) ks_min = null;
-  let ks_max = _.max(scores);
-  if (!ks_max || _.isNaN(ks_max)) ks_max = null;
-
-  let br_avg = _.mean(brs);
-  if (!br_avg || _.isNaN(br_avg)) br_avg = null;
-  let br_min = _.min(brs);
-  if (!br_min || _.isNaN(br_min)) br_min = null;
-  let br_max = _.max(brs);
-  if (!br_max || _.isNaN(br_max)) br_max = null;
-
-  let str = [ks_min, avg, ks_max, br_min, br_avg, br_max]
-    .map((e) => dec(e))
-    .join(" ");
-
-  console.log({ id, count: scores.length }, str);
-  return {
-    count_all: ar.length,
-    count: scores.length,
-    count_: brs.length,
-    ks_min,
-    avg,
-    ks_max,
-    br_min,
-    br_avg,
-    br_max,
-  };
-};
-const blood_breed_z_table = async () => {
-  await init();
-  let ob = {};
-  let keys = [];
-  for (let bl of options.bloodline)
-    for (let bt of options.breed_type)
-      for (let z of options.genotype) {
-        if (bt == "genesis" && geno(z) > 10) continue;
-        if (bl == "Nakamoto" && bt == "legendary" && geno(z) > 4) continue;
-        if (bl == "Szabo" && bt == "legendary" && geno(z) > 8) continue;
-        if (bl == "Finney" && bt == "legendary" && geno(z) > 14) continue;
-        if (bl == "Buterin" && bt == "legendary" && geno(z) > 20) continue;
-        let id = `${bl}-${bt}-${z}`;
-        keys.push(id);
-      }
-  // keys = ["Buterin-cross-Z13"];
-  // keys = keys.slice(0, 5);
-  for (let id of keys) {
-    ob[id] = await get_z_table_for_id(id);
-  }
-  // return;
-  let doc_id = "kid-score-global";
-  await zed_db.db
-    .collection("requirements")
-    .updateOne(
-      { id: doc_id },
-      { $set: { id: doc_id, avg_ob: ob } },
-      { upsert: true }
-    );
-  console.log("done");
-};
-
-const init_btbtz = async () => {
-  if (!_.isEmpty(blbtz)) return;
-  let doc_id = "kid-score-global";
-  let doc = await zed_db.db.collection("requirements").findOne({ id: doc_id });
-  blbtz = doc.avg_ob;
-  console.log("#done init_btbtz");
+  return ymca2_avgs[id]?.avg || null;
 };
 
 const calc = async ({ hid }) => {
   try {
     let ymca2 = await ymca2_s.generate(hid);
+    ymca2 = ymca2.ymca2;
     hid = parseInt(hid);
     if (hid == null || isNaN(hid)) return null;
     let kids = (await get_kids_existing(hid)) || [];
@@ -305,15 +181,15 @@ const calc = async ({ hid }) => {
       .keyBy("hid")
       .mapValues("ymca2")
       .value();
-    // if (test_mode)
-     console.log(kids_scores_ob);
+    if (test_mode) console.log("kids_scores_ob", kids_scores_ob);
+
     let gavg_ob = await Promise.all(
       kids.map((kid) =>
-        // get_blbtz_global_avg(kid).then((gavg) => [kid.hid, gavg])
-        get_blbtz_global_avg(kid).then((gavg) => [kid.hid, gavg])
+        get_ymca_global_avg(kid).then((gavg) => [kid.hid, gavg])
       )
     );
     gavg_ob = Object.fromEntries(gavg_ob);
+    if (test_mode) console.log("gavg_ob", gavg_ob);
 
     let op_br_ob = await Promise.all(
       kids.map((kid) => {
@@ -323,6 +199,7 @@ const calc = async ({ hid }) => {
       })
     );
     op_br_ob = Object.fromEntries(op_br_ob);
+    if (test_mode) console.log("op_br_ob", op_br_ob);
 
     kids = kids.map((e) => ({
       ...e,
@@ -388,6 +265,7 @@ const generate = async (hid) => {
   return ob;
 };
 const test = async (hids) => {
+  get_reqs();
   for (let hid of hids) {
     let ob = await generate(hid);
     console.log(hid, ob);
