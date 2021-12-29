@@ -516,7 +516,7 @@ const zed_races_zrapi_runner = async (
   while (now < new Date(to).getTime()) {
     try {
       console.log("----");
-      let now_ed = now + offset;
+      let now_ed = Math.min(now + offset, nano(to));
       console.log(iso(now), "->", iso(now_ed));
       // now += offset;
       // continue;
