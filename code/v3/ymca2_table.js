@@ -4,8 +4,7 @@ const { options } = require("../utils/options");
 const { geno, dec } = require("../utils/utils");
 
 const coll = "rating_breed3";
-// let doc_id = "ymca2-global-avgs";
-let doc_id = "kid-score-global"
+let doc_id = "ymca2-global-avgs";
 
 const get_z_table_for_id = async (id) => {
   let [bl, bt, z] = id.split("-");
