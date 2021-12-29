@@ -1,5 +1,6 @@
 const _ = require("lodash");
 const { zed_ch, zed_db } = require("../connection/mongo_connect");
+const { options } = require("../utils/options");
 
 const coll = "rating_breed3";
 // let doc_id = "ymca2-global-avgs";
