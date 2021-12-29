@@ -90,14 +90,21 @@ const generate = async (hid) => {
   }
 };
 
-const all = async () => bulk.run_bulk_all(name, generate, coll, cs, test_mode);
-const only = async (hids) =>
+const all = async () => {
+  console.log(name, "all");
+  bulk.run_bulk_all(name, generate, coll, cs, test_mode);
+};
+const only = async (hids) => {
+  console.log(name, "only");
   bulk.run_bulk_only(name, generate, coll, hids, cs, test_mode);
-const range = async (st, ed) =>
+};
+const range = async (st, ed) => {
+  console.log(name, "range");
   bulk.run_bulk_range(name, generate, coll, st, ed, cs, test_mode);
+};
 
 const test = async (hids) => {
-  console.log("ymca2", "test");
+  console.log(name, "test");
   test_mode = 1;
   for (let hid of hids) {
     let ob = await generate(hid);
