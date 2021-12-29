@@ -7,6 +7,7 @@ const { calc_race_score } = require("./race_score");
 let test_mode = 0;
 let cs = 100;
 let z_ALL = {};
+const name = "ymca2";
 const coll = "rating_breed3";
 
 const get_z_med = async ({ bloodline, breed_type, genotype }) => {
@@ -77,7 +78,7 @@ const generate = async (hid) => {
       .limit(8)
       .toArray();
     races = struct_race_row_data(races);
-    if (_.isEmpty(races)) races = [];
+    if (_.isEmpty(races)) return { hid, ymca2: null };
 
     if (test_mode) console.table(races);
 
@@ -97,7 +98,7 @@ const range = async (st, ed) =>
 
 const test = async (hids) => {
   console.log("ymca2", "test");
-  // test_mode = 1;
+  test_mode = 1;
   for (let hid of hids) {
     let ob = await generate(hid);
     console.log(hid, ob);
