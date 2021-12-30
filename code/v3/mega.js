@@ -125,7 +125,7 @@ const only = async (hids, cs) => {
 const range = async (st, ed, cs = def_cs) => {
   if (!ed || ed == "ed") ed = await get_ed_horse();
   let hids = get_hids(st, ed);
-  await only(hids);
+  await only(hids, cs);
   console.log("ended", name);
 };
 

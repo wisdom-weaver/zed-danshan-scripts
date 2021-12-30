@@ -84,7 +84,7 @@ const push_bulk = async (coll, obar, name = "-") => {
     let len = obar.length;
     let sth = obar[0].hid;
     let edh = obar[obar.length - 1].hid;
-    console.log(`bulk@${name} to`, coll, len, "..", sth, "->", edh);
+    console.log(`bulk@ ${name} to`, coll, len, "..", sth, "->", edh);
   } catch (err) {
     console.log("err mongo bulk", coll, coll, obar && obar[0]?.hid);
     console.log(err);
