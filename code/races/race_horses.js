@@ -6,7 +6,7 @@ const cron_parser = require("cron-parser");
 const utils = require("../utils/utils");
 
 const def_cs = 200;
-const run_cs = 25
+const run_cs = 25;
 
 const coll = "race_horses";
 const push = async (ob) => {
@@ -43,9 +43,13 @@ const update_horse_tc = async (doc) => {
 
 const run = async (cs = def_cs) => {
   let ar = await pull(cs);
+  if (_.isEmpty(ar)) {
+    console.log("empty");
+    return;
+  }
   await Promise.all(ar.map(update_horse_tc));
   let hids = _.map(ar, "hid");
-  for (let chunk_hids of _.chunk(hids, run_cs)){
+  for (let chunk_hids of _.chunk(hids, run_cs)) {
     await mega.only(chunk_hids, run_cs);
   }
   console.log("updated", hids.length);
