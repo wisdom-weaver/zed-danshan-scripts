@@ -149,6 +149,10 @@ const main = async (args) => {
     if (arg2 == "fix_unnamed_cron") {
       mod.horses.fix_unnamed_cron();
     }
+  } else if (arg1 == "--parents") {
+    if (arg2 == "fix_horse_type_all_cron") {
+      mod.horses.fix_horse_type_all_cron();
+    }
   }
 };
 main(process.argv);
