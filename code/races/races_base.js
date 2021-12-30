@@ -18,6 +18,8 @@ const hr = 1000 * 60 * 60;
 const day_diff = 1000 * 60 * 60 * 24 * 1;
 const g_h = 72;
 
+const push_race_horses_on = 0;
+
 const cron_conf = {
   scheduled: true,
 };
@@ -368,8 +370,14 @@ const zed_races_gql_runner_inner = async (
 const zed_races_gql_runner = async (
   from = null,
   to = null,
-  race_conf = { check_exists: false, durr: 2 * 60 * 1000 }
+  race_conf = {
+    check_exists: false,
+    durr: 2 * 60 * 1000,
+    push_race_horses_on: 1,
+  }
 ) => {
+  if (race_conf.push_race_horses_on)
+    push_race_horses_on = race_conf.push_race_horses_on;
   let offset = race_conf.durr;
   from = new Date(from).toISOString();
   to = new Date(to).toISOString();
@@ -503,10 +511,17 @@ const zed_race_odds_struct_mongodb = async (rid) => {
 const zed_races_zrapi_runner = async (
   from = null,
   to = null,
-  race_conf = { check_exists: true, durr: 1 * 60 * 60 * 1000, cs: 10 }
+  race_conf = {
+    check_exists: true,
+    durr: 1 * 60 * 60 * 1000,
+    cs: 10,
+    push_race_horses_on: 1,
+  }
 ) => {
   let offset = race_conf.durr;
   let cs = race_conf?.cs || 10;
+  if (race_conf.push_race_horses_on)
+    push_race_horses_on = race_conf.push_race_horses_on;
   // console.log({ from, to });
   from = new Date(from).toISOString();
   to = new Date(to).toISOString();

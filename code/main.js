@@ -85,14 +85,20 @@ const main = async (args) => {
       console.table(ob);
     }
   } else if (arg1 == "--mega") {
-    if (arg2 == "all") mod.mega.all();
+    let def_cs = 25;
+    if (arg2 == "all") {
+      let cs = arg3 ? parseInt(arg3) : def_cs;
+      mod.mega.all(cs);
+    }
     if (arg2 == "only") {
+      let cs = arg4 ? parseInt(arg4) : def_cs;
       let conf = JSON.parse(arg3) || {};
-      mod.mega.only(conf);
+      mod.mega.only(conf, cs);
     }
     if (arg2 == "range") {
+      let cs = arg5 ? parseInt(arg5) : def_cs;
       let [a, b] = [parseInt(arg3), parseInt(arg4)];
-      mod.mega.range(a, b);
+      mod.mega.range(a, b, cs);
     }
     if (arg2 == "test") {
       let conf = JSON.parse(arg3) || {};

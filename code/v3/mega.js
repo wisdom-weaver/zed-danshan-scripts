@@ -8,7 +8,10 @@ const ymca2 = require("./ymca2");
 const ymca2_table = require("./ymca2_table");
 
 const { zed_ch, zed_db } = require("../connection/mongo_connect");
-const { get_races_of_hid, get_ed_horse } = require("../utils/cyclic_dependency");
+const {
+  get_races_of_hid,
+  get_ed_horse,
+} = require("../utils/cyclic_dependency");
 const bulk = require("../utils/bulk");
 const { get_hids } = require("../utils/utils");
 
@@ -22,7 +25,7 @@ const s_ = {
 };
 
 let test_mode = 0;
-const cs = 100;
+const def_cs = 25;
 
 const calc = async ({ hid }) => {
   hid = parseInt(hid);
@@ -88,22 +91,22 @@ const push_mega_bulk = async (datas_ar) => {
   console.log("pushed_mega_bulk", datas_ar.length, `[${a} -> ${b}]`);
 };
 
-const only = async (hids) => {
-  for (let chunk_hids of _.chunk(hids, cs)) {
+const only = async (hids, cs) => {
+  for (let chunk_hids of _.chunk(hids, (cs = def_cs))) {
     let datas_ar = await Promise.all(chunk_hids.map((hid) => generate(hid)));
     datas_ar = _.compact(datas_ar);
     await push_mega_bulk(datas_ar);
   }
 };
 
-const range = async (st, ed) => {
+const range = async (st, ed, cs = def_cs) => {
   if (!ed || ed == "ed") ed = await get_ed_horse();
   let hids = get_hids(st, ed);
   await only(hids);
   console.log("ended", name);
 };
 
-const all = async () => {
+const all = async (cs = def_cs) => {
   let [st, ed] = [1, await get_ed_horse()];
   let hids = get_hids(st, ed);
   await only(hids);
