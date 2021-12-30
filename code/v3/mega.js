@@ -114,7 +114,7 @@ const push_mega_bulk = async (datas_ar) => {
   console.log("pushed_mega_bulk", datas_ar.length, `[${a} -> ${b}]`);
 };
 
-const only = async (hids, cs) => {
+const only = async (hids, cs = def_cs) => {
   for (let chunk_hids of _.chunk(hids, cs)) {
     let datas_ar = await Promise.all(chunk_hids.map((hid) => generate(hid)));
     datas_ar = _.compact(datas_ar);

@@ -9,7 +9,7 @@ const { get_ed_horse } = require("../utils/cyclic_dependency");
 const mega = require("./mega");
 const { delay } = require("../utils/utils");
 
-const def_cs = 10;
+const def_cs = 15;
 
 const bulk_write_kid_to_parent = async (obar) => {
   let mgp = [];
@@ -110,7 +110,7 @@ const get_new = async () => {
   st = st - 15000;
   let ed = st * 2;
   console.log({ st, ed });
-  let cs = 5;
+  let cs = def_cs;
   let hids_all = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
 
   outer: while (true) {
