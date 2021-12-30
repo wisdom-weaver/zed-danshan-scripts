@@ -1,10 +1,9 @@
 const _ = require("lodash");
 const { zed_db } = require("../connection/mongo_connect");
-const { delay } = require("./utils");
+const { delay, geno } = require("../utils/utils");
 const cron = require("node-cron");
 const cron_parser = require("cron-parser");
 const { get_ed_horse } = require("../utils/cyclic_dependency");
-const { geno } = require("../utils/utils");
 
 const validate_kid_parents = (doc) => {
   if (_.isEmpty(doc)) return null;
@@ -231,12 +230,11 @@ const fix_horse_type_all_cron = async () => {
   cron.schedule(cron_str, runner);
 };
 
-
-
-module.exports = {
-  
+const parents = {
   fix_parents_kids_mismatch,
   fix_horse_type_all,
   fix_horse_type_all_cron,
   fix_horse_type_using_kid_ids,
 };
+
+module.exports = parents;

@@ -139,6 +139,16 @@ const main = async (args) => {
       let conf = JSON.parse(arg3) || {};
       mod.parents_comb.test(conf);
     }
+  } else if (arg1 == "--horses") {
+    if (arg2 == "new") {
+      mod.horses.get_new();
+    }
+    if (arg2 == "fix_unnamed") {
+      mod.horses.fix_unnamed();
+    }
+    if (arg2 == "fix_unnamed_cron") {
+      mod.horses.fix_unnamed_cron();
+    }
   }
 };
 main(process.argv);
