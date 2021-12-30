@@ -6,6 +6,7 @@ const rating_breed = require("./rating_breed");
 const base_ability = require("./base_ability");
 const ymca2 = require("./ymca2");
 const ymca2_table = require("./ymca2_table");
+const parents_comb = require("./parents_comb");
 
 const { zed_ch, zed_db } = require("../connection/mongo_connect");
 const {
@@ -22,6 +23,7 @@ const s_ = {
   base_ability,
   ymca2,
   ymca2_table,
+  parents_comb,
 };
 
 let test_mode = 0;
@@ -41,20 +43,29 @@ const calc = async ({ hid }) => {
   if (test_mode) {
     console.log("#hid", hid, "class:", tc, "races_n:", races.length);
   }
-  let [rating_blood, rating_breed, rating_flames, base_ability] =
+  let [rating_blood, rating_breed, rating_flames, base_ability, parents_comb] =
     await Promise.all([
       s_.rating_blood.calc({ hid, races, tc }),
       s_.rating_breed.calc({ hid, tc }),
       s_.rating_flames.calc({ hid, races, tc }),
       s_.base_ability.calc({ hid, races, tc }),
+      s_.parents_comb.calc({ hid, races, hdoc }),
     ]);
   if (test_mode) {
     console.log("rating_blood", rating_blood);
     console.log("rating_breed", rating_breed);
     console.log("rating_flames", rating_flames);
     console.log("base_ability", base_ability);
+    console.log("parents_comb", parents_comb);
   }
-  return { hid, rating_blood, rating_breed, rating_flames, base_ability };
+  return {
+    hid,
+    rating_blood,
+    rating_breed,
+    rating_flames,
+    base_ability,
+    parents_comb,
+  };
 };
 
 const generate = async (hid) => {
@@ -67,25 +78,37 @@ const push_mega_bulk = async (datas_ar) => {
   let rating_breed_bulk = [];
   let rating_flames_bulk = [];
   let base_ability_bulk = [];
+  let parents_comb_bulk = [];
+
   datas_ar = _.compact(datas_ar);
   datas_ar.map((data) => {
-    let { hid, rating_blood, rating_breed, rating_flames, base_ability } = data;
+    let {
+      hid,
+      rating_blood,
+      rating_breed,
+      rating_flames,
+      base_ability,
+      parents_comb,
+    } = data;
     if (!_.isEmpty(rating_blood)) rating_blood_bulk.push(rating_blood);
     if (!_.isEmpty(rating_breed)) rating_breed_bulk.push(rating_breed);
     if (!_.isEmpty(rating_flames)) rating_flames_bulk.push(rating_flames);
     if (!_.isEmpty(base_ability)) base_ability_bulk.push(base_ability);
+    if (!_.isEmpty(parents_comb)) parents_comb_bulk.push(parents_comb);
   });
   if (test_mode) {
     console.log("rating_blood_bulk.len", rating_blood_bulk.length);
     console.log("rating_breed_bulk.len", rating_breed_bulk.length);
     console.log("rating_flames_bulk.len", rating_flames_bulk.length);
     console.log("base_ability_bulk.len", base_ability_bulk.length);
+    console.log("parents_comb_bulk.len", parents_comb_bulk.length);
   }
   await Promise.all([
-    bulk.push_bulk("rating_blood3", rating_blood_bulk),
-    bulk.push_bulk("rating_breed3", rating_breed_bulk),
-    bulk.push_bulk("rating_flames3", rating_flames_bulk),
-    bulk.push_bulk("rating_blood3", base_ability_bulk),
+    bulk.push_bulk("rating_blood3", rating_blood_bulk, "rating_blood"),
+    bulk.push_bulk("rating_breed3", rating_breed_bulk, "rating_breed"),
+    bulk.push_bulk("rating_flames3", rating_flames_bulk, "rating_flames"),
+    bulk.push_bulk("rating_blood3", base_ability_bulk, "base_ability"),
+    bulk.push_bulk("rating_breed3", parents_comb_bulk, "parents_comb"),
   ]);
   let [a, b] = [datas_ar[0]?.hid, datas_ar[datas_ar.length - 1]?.hid];
   console.log("pushed_mega_bulk", datas_ar.length, `[${a} -> ${b}]`);

@@ -122,6 +122,22 @@ const main = async (args) => {
       let conf = JSON.parse(arg3) || {};
       mod.mega.test(conf);
     }
+  } else if (arg1 == "--parents_comb") {
+    if (arg2 == "all") {
+      mod.parents_comb.all();
+    }
+    if (arg2 == "only") {
+      let conf = JSON.parse(arg3) || {};
+      mod.parents_comb.only(conf);
+    }
+    if (arg2 == "range") {
+      let [a, b] = [parseInt(arg3), parseInt(arg4)];
+      mod.parents_comb.range(a, b);
+    }
+    if (arg2 == "test") {
+      let conf = JSON.parse(arg3) || {};
+      mod.parents_comb.test(conf);
+    }
   }
 };
 main(process.argv);

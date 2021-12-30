@@ -31,7 +31,7 @@ const run_bulk_only = async (
       let err_n = Math.abs(obar.length - chunk.length);
       console.log("failed", err_n);
     }
-    if (!test_mode) await push_bulk(coll, obar);
+    if (!test_mode) await push_bulk(coll, obar, name);
   }
   console.log("ended", name);
 };
@@ -64,7 +64,7 @@ const run_bulk_all = async (
   console.log("ended", name);
 };
 
-const push_bulk = async (coll, obar) => {
+const push_bulk = async (coll, obar, name = "-") => {
   try {
     if (_.isEmpty(obar)) return console.log("push bulk empty");
     let bulk = [];
@@ -84,7 +84,7 @@ const push_bulk = async (coll, obar) => {
     let len = obar.length;
     let sth = obar[0].hid;
     let edh = obar[obar.length - 1].hid;
-    console.log("wrote bulk", coll, len, "..", sth, "->", edh);
+    console.log(`bulk@${name} to`, coll, len, "..", sth, "->", edh);
   } catch (err) {
     console.log("err mongo bulk", coll, coll, obar && obar[0]?.hid);
     console.log(err);

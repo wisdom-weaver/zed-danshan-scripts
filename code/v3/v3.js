@@ -5,6 +5,7 @@ const base_ability = require("./base_ability");
 const ymca2 = require("./ymca2");
 const ymca2_table = require("./ymca2_table");
 const mega = require("./mega");
+const parents_comb = require("./parents_comb");
 
 const v3 = {
   rating_flames,
@@ -14,6 +15,7 @@ const v3 = {
   ymca2,
   ymca2_table,
   mega,
+  parents_comb,
 };
 
 module.exports = v3;
