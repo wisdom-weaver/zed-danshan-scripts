@@ -72,6 +72,10 @@ const push_mega_bulk = async (datas_ar) => {
     rating_flames_bulk.push(rating_flames);
     base_ability_bulk.push(base_ability);
   });
+  console.log("rating_blood_bulk.len", rating_blood_bulk.length);
+  console.log("rating_breed_bulk.len", rating_breed_bulk.length);
+  console.log("rating_flames_bulk.len", rating_flames_bulk.length);
+  console.log("base_ability_bulk.len", base_ability_bulk.length);
   await Promise.all([
     bulk.push_bulk("rating_blood3", rating_blood_bulk),
     bulk.push_bulk("rating_breed3", rating_breed_bulk),
