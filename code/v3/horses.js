@@ -1,4 +1,4 @@
-const { zed_db } = require("../connection/mongo_connect");
+const { zed_db, init } = require("../connection/mongo_connect");
 const _ = require("lodash");
 const zedf = require("../utils/zedf");
 const cron_parser = require("cron-parser");
@@ -213,6 +213,15 @@ const fix_unnamed_cron = async () => {
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
   cron.schedule(cron_str, () => runner(), { scheduled: true });
 };
+
+const runner = async () => {
+  await init();
+  await zed_db.db
+    .collection("horse_details")
+    .deleteMany({ hid: { $gt: 176000 } });
+  console.log("done");
+};
+runner();
 
 const horses = {
   get_new,
