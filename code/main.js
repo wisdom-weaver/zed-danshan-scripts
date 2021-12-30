@@ -115,6 +115,7 @@ const main = async (args) => {
     }
     if (arg2 == "range") {
       let cs = arg5 ? parseInt(arg5) : def_cs;
+      console.log({ cs });
       let [a, b] = [parseInt(arg3), parseInt(arg4)];
       mod.mega.range(a, b, cs);
     }
