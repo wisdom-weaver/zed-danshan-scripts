@@ -1,15 +1,23 @@
 const _ = require("lodash");
 const { zed_db, zed_ch } = require("../connection/mongo_connect");
+const global_req = require("../global_req/global_req");
 const bulk = require("../utils/bulk");
 const { struct_race_row_data } = require("../utils/cyclic_dependency");
 const { calc_race_score } = require("./race_score");
 
 let test_mode = 0;
 let cs = 100;
-let z_ALL = {};
+let z_ALL;
+let ymca2_avgs;
 const name = "ymca2";
 const coll = "rating_breed3";
 const first_n_races = 8;
+
+const get_reqs = () => {
+  console.log("get_reqs");
+  z_ALL = global_req.get_data().z_ALL;
+  ymca2_avgs = global_req.get_data().ymca2_avgs;
+};
 
 const get_z_med = async ({ bloodline, breed_type, genotype }) => {
   if (!genotype) return null;
@@ -38,6 +46,7 @@ const get_z_ALL_meds = async () => {
 
 const calc = async ({ hid, races = [], details }) => {
   try {
+    if (!z_ALL || !ymca2_avgs) get_reqs();
     if (_.isEmpty(races)) return null;
     races = _.sortBy(races, "date");
     races = races.slice(0, first_n_races);

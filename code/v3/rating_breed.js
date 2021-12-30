@@ -141,6 +141,7 @@ const get_ymca_global_avg = async ({ bloodline, breed_type, genotype }) => {
 };
 
 const calc = async ({ hid }) => {
+  if (!z_ALL || !ymca2_avgs) get_reqs();
   try {
     let ymca2 = await ymca2_s.generate(hid);
     ymca2 = ymca2.ymca2;
@@ -265,7 +266,6 @@ const generate = async (hid) => {
   return ob;
 };
 const test = async (hids) => {
-  get_reqs();
   for (let hid of hids) {
     let ob = await generate(hid);
     console.log(hid, ob);

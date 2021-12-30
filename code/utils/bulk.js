@@ -68,6 +68,7 @@ const push_bulk = async (coll, obar) => {
   try {
     if (_.isEmpty(obar)) return console.log("push bulk empty");
     let bulk = [];
+    obar = _.compact(obar);
     for (let ob of obar) {
       if (_.isEmpty(ob)) continue;
       let { hid } = ob;
