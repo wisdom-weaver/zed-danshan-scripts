@@ -84,7 +84,7 @@ const push_mega_bulk = async (datas_ar) => {
     bulk.push_bulk("rating_flames3", rating_flames_bulk),
     bulk.push_bulk("rating_blood3", base_ability_bulk),
   ]);
-  let [a, b] = [datas_ar[0]?.hid, datas_ar[datas_ar.length]?.hid];
+  let [a, b] = [datas_ar[0]?.hid, datas_ar[datas_ar.length - 1]?.hid];
   console.log("pushed_mega_bulk", datas_ar.length, `[${a} -> ${b}]`);
 };
 
