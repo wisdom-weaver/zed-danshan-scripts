@@ -11,6 +11,7 @@ const calc = async ({ hid, hdoc }) => {
   try {
     if (_.isEmpty(hdoc)) return null;
     let { parents } = hdoc;
+    if (_.isEmpty(parents)) return null;
     let { mother, father } = parents;
     if (test_mode) console.log(hid, parents);
     if (!mother && !father) return { hid, comb_score: null };
