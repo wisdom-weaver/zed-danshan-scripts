@@ -8,7 +8,7 @@ const ymca2 = require("./ymca2");
 const ymca2_table = require("./ymca2_table");
 
 const { zed_ch, zed_db } = require("../connection/mongo_connect");
-const { get_races_of_hid } = require("../utils/cyclic_dependency");
+const { get_races_of_hid, get_ed_horse } = require("../utils/cyclic_dependency");
 const bulk = require("../utils/bulk");
 const { get_hids } = require("../utils/utils");
 
