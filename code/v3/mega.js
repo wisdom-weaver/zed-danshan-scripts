@@ -21,8 +21,8 @@ const s_ = {
   ymca2_table,
 };
 
-let test_mode = 1;
-const cs = 3;
+let test_mode = 0;
+const cs = 25;
 
 const calc = async ({ hid }) => {
   hid = parseInt(hid);
