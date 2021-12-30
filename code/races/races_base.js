@@ -291,7 +291,7 @@ const zed_push_races_to_mongo = async (races) => {
     }
   }
   if (push_race_horses_on) {
-    console.log("race_horses.len:", race_horses.length);
+    console.log("race_horses.len:", horses_ar.length);
     // console.table(horses_ar)
     await race_horses.push_ar(horses_ar);
   }
