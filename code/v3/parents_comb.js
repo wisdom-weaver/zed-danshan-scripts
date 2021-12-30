@@ -9,6 +9,7 @@ const coll = "rating_breed3";
 
 const calc = async ({ hid, hdoc }) => {
   try {
+    if (_.isEmpty(hdoc)) return null;
     let { parents } = hdoc;
     let { mother, father } = parents;
     if (test_mode) console.log(hid, parents);
