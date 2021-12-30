@@ -85,14 +85,14 @@ const main = async (args) => {
       console.table(ob);
     }
   } else if (arg1 == "--mega") {
-    if (arg2 == "all") mod.rating_flames.all();
+    if (arg2 == "all") mod.mega.all();
     if (arg2 == "only") {
       let conf = JSON.parse(arg3) || {};
-      mod.rating_flames.only(conf);
+      mod.mega.only(conf);
     }
     if (arg2 == "range") {
       let [a, b] = [parseInt(arg3), parseInt(arg4)];
-      mod.rating_flames.range(a, b);
+      mod.mega.range(a, b);
     }
     if (arg2 == "test") {
       let conf = JSON.parse(arg3) || {};
