@@ -159,16 +159,17 @@ const calc = async ({ hid }) => {
         is: null,
         ymca2,
       };
-      console.log(
-        "# hid:",
-        hid,
-        "kids_n:",
-        0,
-        "br:",
-        null,
-        "hid_ymca2:",
-        dec(ymca2, 2)
-      );
+      if (test_mode)
+        console.log(
+          "# hid:",
+          hid,
+          "kids_n:",
+          0,
+          "br:",
+          null,
+          "ymca2:",
+          dec(ymca2, 2)
+        );
       return empty_kg;
     }
 
@@ -244,16 +245,17 @@ const calc = async ({ hid }) => {
       ymca2,
     };
     // console.log({ avg: dec2(avg), br: dec2(br) });
-    console.log(
-      "# hid:",
-      hid,
-      "kids_n:",
-      kids_n,
-      "br:",
-      dec(br, 2),
-      "ymca2:",
-      dec(ymca2, 2)
-    );
+    if (test_mode)
+      console.log(
+        "# hid:",
+        hid,
+        "kids_n:",
+        kids_n,
+        "br:",
+        dec(br, 2),
+        "ymca2:",
+        dec(ymca2, 2)
+      );
     return kg;
   } catch (err) {
     console.log("err on horse get_kg", hid);
