@@ -29,7 +29,7 @@ const calc = async ({ hid }) => {
   let hdoc = await zed_db.db
     .collection("horse_details")
     .findOne({ hid }, { tc: 1 });
-  if (!_.isEmpty(hdoc)) {
+  if (_.isEmpty(hdoc)) {
     console.log("empty horse", hid);
     return null;
   }
