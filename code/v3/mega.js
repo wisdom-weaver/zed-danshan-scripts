@@ -31,7 +31,7 @@ const calc = async ({ hid }) => {
     .findOne({ hid }, { tc: 1 });
   if (!_.isEmpty(hdoc)) {
     console.log("empty horse", hid);
-    return;
+    return null;
   }
   let tc = hdoc?.tc || null;
   let races = await get_races_of_hid(hid);
@@ -67,10 +67,10 @@ const push_mega_bulk = async (datas_ar) => {
   datas_ar = _.compact(datas_ar);
   datas_ar.map((data) => {
     let { hid, rating_blood, rating_breed, rating_flames, base_ability } = data;
-    rating_blood_bulk.push(rating_blood);
-    rating_breed_bulk.push(rating_breed);
-    rating_flames_bulk.push(rating_flames);
-    base_ability_bulk.push(base_ability);
+    if (!_.isEmpty(rating_blood)) rating_blood_bulk.push(rating_blood);
+    if (!_.isEmpty(rating_breed)) rating_breed_bulk.push(rating_breed);
+    if (!_.isEmpty(rating_flames)) rating_flames_bulk.push(rating_flames);
+    if (!_.isEmpty(base_ability)) base_ability_bulk.push(base_ability);
   });
   if (test_mode) {
     console.log("rating_blood_bulk.len", rating_blood_bulk.length);
@@ -82,7 +82,7 @@ const push_mega_bulk = async (datas_ar) => {
     bulk.push_bulk("rating_blood3", rating_blood_bulk),
     bulk.push_bulk("rating_breed3", rating_breed_bulk),
     bulk.push_bulk("rating_flames3", rating_flames_bulk),
-    bulk.push_bulk("rating_blood3", base_ability),
+    bulk.push_bulk("rating_blood3", base_ability_bulk),
   ]);
   let [a, b] = [datas_ar[0]?.hid, datas_ar[datas_ar.length]?.hid];
   console.log("pushed_mega_bulk", datas_ar.length, `[${a} -> ${b}]`);
