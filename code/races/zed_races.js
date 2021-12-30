@@ -18,6 +18,7 @@ const live = async () => {
   await races_base.zed_races_gql_runner(from, to, {
     check_exists: false,
     durr: 1 * 60 * 60 * 1000,
+    push_race_horses_on: 1,
   });
 };
 const live_cron = async () => {
@@ -27,7 +28,7 @@ const live_cron = async () => {
   cron.schedule(cron_str, live, cron_conf);
 };
 
-const miss = async (from, to) => {
+const miss = async (from, to, push_race_horses_on = 0) => {
   console.log("zed_races", "miss");
   if (!from.endsWith("Z")) from += "Z";
   if (!to.endsWith("Z")) to += "Z";
@@ -37,15 +38,17 @@ const miss = async (from, to) => {
     check_exists: true,
     durr: 1 * 60 * 60 * 1000,
     cs: 10,
+    push_race_horses_on,
   });
 };
 const miss_cron = async () => {
   const runner = async () => {
+    let push_race_horses_on = 1;
     try {
       let now = Date.now();
       let from = moment(new Date(now)).subtract(10, "minutes").toISOString();
       let to = moment(new Date(now)).subtract(5, "minute").toISOString();
-      await miss(from, to);
+      await miss(from, to, push_race_horses_on);
     } catch (err) {
       console.log(err);
     }

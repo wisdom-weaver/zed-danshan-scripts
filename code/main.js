@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const mdb = require("./connection/mongo_connect");
 const global_req = require("./global_req/global_req");
+const race_horses = require("./races/race_horses");
 const zed_races = require("./races/zed_races");
 const v3 = require("./v3/v3");
 const mod = v3;
@@ -16,6 +17,23 @@ const main = async (args) => {
     if (arg2 == "live_cron") zed_races.live_cron();
     if (arg2 == "miss") zed_races.miss(arg3, arg4);
     if (arg2 == "miss_cron") zed_races.miss_cron();
+  } else if (arg1 == "--rating_flames") {
+    if (arg2 == "all") mod.rating_flames.all();
+    if (arg2 == "only") {
+      let conf = JSON.parse(arg3) || {};
+      mod.rating_flames.only(conf);
+    }
+    if (arg2 == "range") {
+      let [a, b] = [parseInt(arg3), parseInt(arg4)];
+      mod.rating_flames.range(a, b);
+    }
+  } else if (arg1 == "--race_horses") {
+    if (arg2 == "test") {
+      race_horses.test();
+    }
+    if (arg2 == "run_cron") {
+      race_horses.run_cron();
+    }
   } else if (arg1 == "--rating_flames") {
     if (arg2 == "all") mod.rating_flames.all();
     if (arg2 == "only") {

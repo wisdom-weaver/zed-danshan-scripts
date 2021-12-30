@@ -8,6 +8,7 @@ const {
 const { get_fee_cat_on } = require("../utils/base");
 const { get_sims_zed_odds } = require("./sims");
 const zedf = require("../utils/zedf");
+const race_horses = require("./race_horses");
 
 const zed_gql = "https://zed-ql.zed.run/graphql/getRaceResults";
 const zed_secret_key = process.env.zed_secret_key;
@@ -18,7 +19,7 @@ const hr = 1000 * 60 * 60;
 const day_diff = 1000 * 60 * 60 * 24 * 1;
 const g_h = 72;
 
-const push_race_horses_on = 0;
+let push_race_horses_on = 0;
 
 const cron_conf = {
   scheduled: true,
@@ -270,9 +271,16 @@ const add_times_flames_odds_to_races = async (raw_data, config) => {
 
 const zed_push_races_to_mongo = async (races) => {
   if (_.isEmpty(races)) return;
+  let horses_ar = [];
   let mongo_push = [];
   for (let r in races) {
     for (let h in races[r]) {
+      horses_ar.push({
+        hid: parseInt(h),
+        rid: r,
+        date: races[r][h]["2"],
+        tc: races[r][h]["16"],
+      });
       mongo_push.push({
         updateOne: {
           filter: { 4: races[r][h]["4"], 6: races[r][h]["6"] },
@@ -282,8 +290,13 @@ const zed_push_races_to_mongo = async (races) => {
       });
     }
   }
-  // console.log(mongo_push);
-  if (test_mode == 0) await zed_ch.db.collection("zed").bulkWrite(mongo_push);
+  if (push_race_horses_on) {
+    console.log("race_horses.len:", race_horses.length);
+    // console.table(horses_ar)
+    await race_horses.push_ar(horses_ar);
+  }
+  if (!_.isEmpty(mongo_push))
+    await zed_ch.db.collection("zed").bulkWrite(mongo_push);
 };
 
 const zed_races_gql_runner_inner = async (

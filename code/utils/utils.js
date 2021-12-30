@@ -206,7 +206,9 @@ const get_hids = (st, ed) => {
   return hids;
 };
 
-module.exports = {
+const cron_conf = { scheduled: true };
+
+const utils = {
   calc_avg,
   write_to_path,
   read_from_path,
@@ -229,4 +231,7 @@ module.exports = {
   per,
   geno,
   get_hids,
+  cron_conf,
 };
+
+module.exports = utils;
