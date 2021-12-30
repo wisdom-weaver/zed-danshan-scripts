@@ -66,7 +66,8 @@ const run_bulk_all = async (
 
 const push_bulk = async (coll, obar, name = "-") => {
   try {
-    if (_.isEmpty(obar)) return console.log("push bulk empty");
+    if (_.isEmpty(obar))
+      return console.log(`bulk@${coll} --`, `[${name}]`, "EMPTY");
     let bulk = [];
     obar = _.compact(obar);
     for (let ob of obar) {
@@ -84,7 +85,7 @@ const push_bulk = async (coll, obar, name = "-") => {
     let len = obar.length;
     let sth = obar[0].hid;
     let edh = obar[obar.length - 1].hid;
-    console.log(`bulk@ ${name} to`, coll, len, "..", sth, "->", edh);
+    console.log(`bulk@${coll} --`, `[${name}]`, len, "..", sth, "->", edh);
   } catch (err) {
     console.log("err mongo bulk", coll, coll, obar && obar[0]?.hid);
     console.log(err);
