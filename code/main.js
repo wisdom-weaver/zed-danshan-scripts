@@ -151,7 +151,7 @@ const main = async (args) => {
     }
   } else if (arg1 == "--parents") {
     if (arg2 == "fix_horse_type_all_cron") {
-      mod.horses.fix_horse_type_all_cron();
+      mod.parents.fix_horse_type_all_cron();
     }
   }
 };

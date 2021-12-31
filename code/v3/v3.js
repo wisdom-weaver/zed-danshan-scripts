@@ -8,7 +8,7 @@ const mega = require("./mega");
 const parents_comb = require("./parents_comb");
 const horses = require("./horses");
 const stats = require("./stats");
-
+const parents = require("./parents");
 const v3 = {
   rating_flames,
   rating_blood,
@@ -20,6 +20,7 @@ const v3 = {
   parents_comb,
   horses,
   stats,
+  parents,
 };
 
 module.exports = v3;
