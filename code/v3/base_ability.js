@@ -105,11 +105,14 @@ const pick_c = (ratio_ar) => {
     let ex_ratio = mean_diff / ex_mean;
 
     let range_pm = 0.25;
-    let bullshit = !_.inRange(ex_ratio, 1 - range_pm, 1 + range_pm);
-    if (!bullshit) {
-      let rat2 = ratio_ar[i + 1]?.ratio;
-      if (i < 5 && rat2 && rat2 < ratio_ar[i].ratio) bullshit = true;
-    }
+    let bullshit;
+    if (i.left + i.right < 15) {
+      !_.inRange(ex_ratio, 1 - range_pm, 1 + range_pm);
+      if (!bullshit) {
+        let rat2 = ratio_ar[i + 1]?.ratio;
+        if (i < 5 && rat2 && rat2 < ratio_ar[i].ratio) bullshit = true;
+      }
+    } else bullshit = false;
     let pick = ratio != null && ratio != 0 && !bullshit;
     return {
       ...ratio_ar[i],
