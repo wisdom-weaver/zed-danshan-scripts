@@ -107,6 +107,7 @@ const add_hdocs = async (hids, cs = def_cs) => {
 
 const get_new = async () => {
   let st = await get_ed_horse();
+  console.log("last:", st);
   st = st - 15000;
   let ed = st * 2;
   console.log({ st, ed });
