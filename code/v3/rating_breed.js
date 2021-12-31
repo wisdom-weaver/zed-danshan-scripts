@@ -94,7 +94,7 @@ const get_breed_rating = async (hid) => {
   if (hid === null) return null;
   let { br = null } =
     (await zed_db.db
-      .collection("rating_breed2")
+      .collection(coll)
       .findOne({ hid }, { projection: { _id: 0, br: 1 } })) || {};
   return br;
 };
