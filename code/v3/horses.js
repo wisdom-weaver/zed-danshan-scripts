@@ -40,7 +40,7 @@ const bulk_write_kid_to_parent = async (obar) => {
     await zed_db.db.collection("horse_details").bulkWrite(mgp);
 };
 const struct_zed_hdoc = (hid, doc) => {
-  // console.log(hid, doc);
+  console.log(hid, doc);
   hid = parseInt(hid);
   if (_.isEmpty(doc) || doc?.err) return null;
   let {
@@ -214,15 +214,6 @@ const fix_unnamed_cron = async () => {
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
   cron.schedule(cron_str, () => runner(), { scheduled: true });
 };
-
-const runner = async () => {
-  await init();
-  await zed_db.db
-    .collection("horse_details")
-    .deleteMany({ hid: { $gt: 176000 } });
-  console.log("done");
-};
-runner();
 
 const horses = {
   get_new,
