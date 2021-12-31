@@ -7,6 +7,7 @@ const ymca2_table = require("./ymca2_table");
 const mega = require("./mega");
 const parents_comb = require("./parents_comb");
 const horses = require("./horses");
+const stats = require("./stats");
 
 const v3 = {
   rating_flames,
@@ -18,6 +19,7 @@ const v3 = {
   mega,
   parents_comb,
   horses,
+  stats,
 };
 
 module.exports = v3;
