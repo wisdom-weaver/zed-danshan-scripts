@@ -32,7 +32,7 @@ let ymca2_avgs;
 
 let tot_runs = 1;
 const coll = "rating_breed3";
-const test_mode = 0;
+let test_mode = 0;
 
 const get_reqs = () => {
   console.log("get_reqs");
@@ -268,6 +268,7 @@ const generate = async (hid) => {
   return ob;
 };
 const test = async (hids) => {
+  test_mode = 1
   for (let hid of hids) {
     let ob = await generate(hid);
     console.log(hid, ob);
