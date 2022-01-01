@@ -19,11 +19,12 @@ const {
 } = require("../utils/cyclic_dependency");
 const ymca2_s = require("./ymca2");
 const global_req = require("../global_req/global_req");
+const bulk = require("../utils/bulk");
 
 let mx = 11000;
 let st = 1;
 let ed = mx;
-let chunk_size = 25;
+let cs = 200;
 let chunk_delay = 100;
 
 //global
@@ -31,6 +32,7 @@ let z_ALL;
 let ymca2_avgs;
 
 let tot_runs = 1;
+const name = "rating_breed";
 const coll = "rating_breed3";
 let test_mode = 0;
 
@@ -217,24 +219,41 @@ const calc = async ({ hid }) => {
       let adj;
       if (fact == null) adj = null;
 
-      if (e.op_br == null || _.isNaN(e.op_br)) {
-        adj = fact;
-      } else {
-        adj = e.op_br > 1.1 ? fact * 0.9 : e.op_br < 0.9 ? fact * 1.1 : fact;
-      }
+      if (e.op_br == 0 || _.isNaN(e.op_br)) adj = fact;
+      else if (e.op_br > 1.05) adj = fact * 0.98;
+      else if (e.op_br >= 1 && e.op_br < 1.05) adj = fact * 0.99;
+      else if (e.op_br > 0.9 && e.op_br < 0.9999999) adj = fact * 1;
+      else if (e.op_br > 0.80000001 && e.op_br < 0.89999999) adj = fact * 1.01;
+      else if (e.op_br < 0.8) adj = fact * 1.02;
+      else adj = null;
+
       let good_adj;
-      if (adj == 0) good_adj = 0;
-      else good_adj = e.ymca2 > e.gavg ? 0.1 : -0.1;
+      let diff = (e.ymca2 || 0) - (e.gavg || 0);
+      if (!adj) good_adj = 0;
+      else if (diff < -0.1) good_adj = -0.1;
+      else if (diff > 0.1) good_adj = 0.1;
+      else good_adj = diff;
+
       return { ...e, fact, adj, good_adj };
     });
     if (test_mode) console.table(kids);
 
     let avg = _.chain(kids_scores_ob).values().compact().mean().value();
-    let br = _.chain(kids).map("adj").values().compact().value();
-    if (br.length == 0) br = null;
-    else br = _.mean(br);
+    let adjs = _.chain(kids).map("adj").values().compact().value();
+    let good_adjs = _.chain(kids).map("good_adj").compact().sum().value();
+    let br;
+    if (adjs.length == 0) br = null;
+    else {
+      adjs = _.mean(adjs);
+      br = adjs;
+    }
 
-    br += _.chain(kids).map("good_adj").compact().sum().value();
+    if (test_mode) console.log({ adjs });
+    if (test_mode) console.log({ good_adjs });
+
+    if (br !== null) {
+      br += good_adjs;
+    }
 
     let kg = {
       hid,
@@ -268,15 +287,25 @@ const generate = async (hid) => {
   return ob;
 };
 const test = async (hids) => {
-  test_mode = 1
+  test_mode = 1;
   for (let hid of hids) {
     let ob = await generate(hid);
     console.log(hid, ob);
   }
 };
+
+const all = async () => bulk.run_bulk_all(name, generate, coll, cs, test_mode);
+const only = async (hids) =>
+  bulk.run_bulk_only(name, generate, coll, hids, cs, test_mode);
+const range = async (st, ed) =>
+  bulk.run_bulk_range(name, generate, coll, st, ed, cs, test_mode);
+
 const rating_breed = {
   generate,
   calc,
   test,
+  all,
+  only,
+  range,
 };
 module.exports = rating_breed;

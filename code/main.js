@@ -96,6 +96,15 @@ const main = async (args) => {
       let conf = JSON.parse(arg3) || {};
       mod.rating_breed.test(conf);
     }
+    if (arg2 == "all") mod.rating_breed.all();
+    if (arg2 == "only") {
+      let conf = JSON.parse(arg3) || {};
+      mod.rating_breed.only(conf);
+    }
+    if (arg2 == "range") {
+      let [a, b] = [parseInt(arg3), parseInt(arg4)];
+      mod.rating_breed.range(a, b);
+    }
   } else if (arg1 == "--ymca2_table") {
     if (arg2 == "generate") mod.ymca2_table.generate();
     if (arg2 == "get") {
