@@ -24,7 +24,7 @@ const bulk = require("../utils/bulk");
 let mx = 11000;
 let st = 1;
 let ed = mx;
-let cs = 200;
+let cs = 25;
 let chunk_delay = 100;
 
 //global
