@@ -8,7 +8,7 @@ const mod = v3;
 
 const main = async (args) => {
   await mdb.init();
-  await global_req.download();
+  // await global_req.download();
   console.log("main");
   let [_node, _cfile, arg1, arg2, arg3, arg4, arg5] = args;
   if (arg1 == "--races") {
@@ -58,7 +58,25 @@ const main = async (args) => {
       mod.rating_blood.generate_ranks();
     }
     if (arg2 == "test") {
-      mod.rating_blood.test(arg3);
+      let conf = JSON.parse(arg3) || {};
+      mod.rating_blood.test(conf);
+    }
+  } else if (arg1 == "--ancestry") {
+    if (arg2 == "all") mod.ancestry.all();
+    if (arg2 == "only") {
+      let conf = JSON.parse(arg3) || {};
+      mod.ancestry.only(conf);
+    }
+    if (arg2 == "range") {
+      let [a, b] = [parseInt(arg3), parseInt(arg4)];
+      mod.ancestry.range(a, b);
+    }
+    if (arg2 == "generate_ranks") {
+      mod.ancestry.generate_ranks();
+    }
+    if (arg2 == "test") {
+      let conf = JSON.parse(arg3) || {};
+      mod.ancestry.test(conf);
     }
   } else if (arg1 == "--base_ability") {
     if (arg2 == "all") mod.base_ability.all();

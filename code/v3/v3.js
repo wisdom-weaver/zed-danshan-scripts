@@ -9,6 +9,7 @@ const parents_comb = require("./parents_comb");
 const horses = require("./horses");
 const stats = require("./stats");
 const parents = require("./parents");
+const ancestry = require("./ancestry");
 const v3 = {
   rating_flames,
   rating_blood,
@@ -21,6 +22,6 @@ const v3 = {
   horses,
   stats,
   parents,
+  ancestry,
 };
-
 module.exports = v3;
