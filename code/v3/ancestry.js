@@ -5,7 +5,7 @@ const { dec } = require("../utils/utils");
 
 const name = "ancestry";
 const coll = "horse_details";
-let cs = 100;
+let cs = 1;
 let test_mode = 0;
 
 const get_ans_ob = async (hid) => {
