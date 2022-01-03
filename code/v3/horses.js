@@ -8,6 +8,7 @@ const bulk = require("../utils/bulk");
 const { get_ed_horse } = require("../utils/cyclic_dependency");
 const mega = require("./mega");
 const { delay } = require("../utils/utils");
+const { ancestry } = require("./v3");
 
 const def_cs = 15;
 
@@ -146,6 +147,7 @@ const get_new = async () => {
       chunk_hids = _.map(resps, "hid");
       await mega.only(chunk_hids);
       await parents.fix_horse_type_using_kid_ids(chunk_hids);
+      await ancestry.only(chunk_hids);
       console.log("## GOT ", chunk_hids.toString(), "\n");
     }
     console.log("completed zed_horses_needed_bucket_using_zed_api ");

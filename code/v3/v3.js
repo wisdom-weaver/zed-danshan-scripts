@@ -10,6 +10,7 @@ const horses = require("./horses");
 const stats = require("./stats");
 const parents = require("./parents");
 const ancestry = require("./ancestry");
+
 const v3 = {
   rating_flames,
   rating_blood,
