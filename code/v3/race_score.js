@@ -8,9 +8,9 @@ const c_tab = {
 };
 
 const f_tab = {
-  A: 10,
-  B: 10,
-  C: 8,
+  A: 5,
+  B: 5,
+  C: 5,
   D: 5,
   E: 2.5,
   F: 1,
@@ -33,9 +33,10 @@ let pos_tab = {
 };
 
 module.exports.calc_race_score = ({ rc, fee_tag, position, flame }) => {
-  // console.log({ rc, fee_tag, position, flame })
   let c_sc = c_tab[rc] || 0;
   let f_sc = f_tab[fee_tag] || 0;
   let p_sc = pos_tab[position][flame] || 0;
-  return c_sc + f_sc + p_sc;
+  if ([5, 6, 7, 8].includes(parseInt(position)) && flame == 0) f_sc = 0;
+  let sc = c_sc + f_sc + p_sc;
+  return sc;
 };
