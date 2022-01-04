@@ -36,7 +36,7 @@ module.exports.calc_race_score = ({ rc, fee_tag, position, flame }) => {
   let c_sc = c_tab[rc] || 0;
   let f_sc = f_tab[fee_tag] || 0;
   let p_sc = pos_tab[position][flame] || 0;
-  if ([5, 6, 7, 8].includes(parseInt(position)) && flame == 0) f_sc = 0;
+  if ([5, 6, 7, 8].includes(parseInt(position)) && flame == 0) f_sc = f_sc / 2;
   let sc = c_sc + f_sc + p_sc;
   return sc;
 };
