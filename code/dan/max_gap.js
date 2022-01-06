@@ -4,24 +4,20 @@ const utils = require("../utils/utils");
 const _ = require("lodash");
 const cyclic_depedency = require("../utils/cyclic_dependency");
 
-const download_races = async (date) => {
-  let st = moment(date).subtract(15, "minutes").toISOString();
-  let ed = moment(date).toISOString();
+const download_races = async (st, ed) => {
   console.log(st, "->", ed);
   let races = await zed_ch.db
     .collection("zed")
     .find({ 2: { $gte: st, $lte: ed } })
     .toArray();
-  console.log("races.len", races.length);
   races = cyclic_depedency.struct_race_row_data(races);
   return races;
 };
 
-const main = async () => {
-  let date = "2021-12-01";
-  let races = await download_races(date);
-  console.log(races.length);
+const run_duration = async (st, ed) => {
+  let races = await download_races(st, ed);
   races = _.keyBy(races, "raceid");
+  console.log("found", _.keys(races).length);
   let data = [];
   for (let [rid, ar] of _.entries(races)) {
     let f_ob = _.chain(ar).keyBy("place").mapValues("flame").value();
@@ -49,6 +45,17 @@ const main = async () => {
   if (!_.isEmpty(bulk))
     await zed_db.db.collection("gap_leader").bulkWrite(bulk);
   console.log("wrote", bulk.length);
+};
+
+const main = async (st, ed) => {
+  let now = Date.now(st);
+  let end = Date.now(ed);
+  let offset = 1000 * 60 * 15;
+  while (now < end) {
+    let now_ed = Math.min(end, now + offset);
+    await run_duration(now, now_ed);
+    now += offset;
+  }
 };
 
 const max_gap = { main };

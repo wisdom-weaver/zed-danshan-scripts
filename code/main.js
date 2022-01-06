@@ -183,7 +183,7 @@ const main = async (args) => {
     }
   } else if (arg1 == "--dan_max_gap") {
     if (arg2 == "main") {
-      dan.max_gap.main();
+      dan.max_gap.main(arg3, arg4);
     }
   }
 };
