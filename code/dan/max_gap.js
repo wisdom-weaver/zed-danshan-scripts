@@ -15,6 +15,8 @@ const download_races = async (st, ed) => {
 };
 
 const run_duration = async (st, ed) => {
+  st = new Date(st);
+  ed = new Date(ed);
   let races = await download_races(st, ed);
   races = _.keyBy(races, "raceid");
   console.log("found", _.keys(races).length);
