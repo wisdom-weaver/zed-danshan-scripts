@@ -24,6 +24,8 @@ const run_duration = async (st, ed) => {
   let data = [];
   for (let [rid, ar] of _.entries(races)) {
     console.log(rid, ar.length);
+    if (_.isEmpty(ar)) continue;
+    let date = ar[0].date;
     let f_ob = _.chain(ar).keyBy("place").mapValues("flame").value();
     let hid_ob = _.chain(ar).keyBy("place").mapValues("hid").value();
     let t_ob = _.chain(ar).keyBy("place").mapValues("finishtime").value();
@@ -36,8 +38,7 @@ const run_duration = async (st, ed) => {
     let hid_12 = hid_ob[12];
     let f_1 = f_ob[1];
     let f_12 = f_ob[1];
-    let ob = { rid, hid_1, hid_12, g_1_2, g_11_12, f_1, f_12 }
-    console.log(ob)
+    let ob = { rid, hid_1, hid_12, g_1_2, g_11_12, f_1, f_12, date };
     data.push(ob);
   }
   let bulk = [];
