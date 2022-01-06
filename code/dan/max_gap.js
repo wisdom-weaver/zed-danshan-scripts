@@ -36,7 +36,9 @@ const run_duration = async (st, ed) => {
     let hid_12 = hid_ob[12];
     let f_1 = f_ob[1];
     let f_12 = f_ob[1];
-    data.push({ rid, hid_1, hid_12, g_1_2, g_11_12, f_1, f_12 });
+    let ob = { rid, hid_1, hid_12, g_1_2, g_11_12, f_1, f_12 }
+    console.log(ob)
+    data.push(ob);
   }
   let bulk = [];
   for (let ob of data) {
