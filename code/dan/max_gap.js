@@ -26,6 +26,9 @@ const run_duration = async (st, ed) => {
     let f_ob = _.chain(ar).keyBy("place").mapValues("flame").value();
     let hid_ob = _.chain(ar).keyBy("place").mapValues("hid").value();
     let t_ob = _.chain(ar).keyBy("place").mapValues("finishtime").value();
+    console.log(f_ob);
+    console.log(hid_ob);
+    console.log(t_ob);
     let g_1_2 = t_ob[2] - t_ob[1];
     let g_11_12 = t_ob[12] - t_ob[11];
     let hid_1 = hid_ob[1];
