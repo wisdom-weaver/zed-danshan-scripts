@@ -23,7 +23,7 @@ const run_duration = async (st, ed) => {
   console.log("found", _.keys(races).length);
   let data = [];
   for (let [rid, ar] of _.entries(races)) {
-    console.log(rid, ar.length);
+    // console.log(rid, ar.length);
     if (_.isEmpty(ar)) continue;
     let date = ar[0].date;
     let f_ob = _.chain(ar).keyBy("place").mapValues("flame").value();
