@@ -37,7 +37,7 @@ const run_duration = async (st, ed) => {
     let hid_1 = hid_ob[1];
     let hid_12 = hid_ob[12];
     let f_1 = f_ob[1];
-    let f_12 = f_ob[1];
+    let f_12 = f_ob[12];
     let ob = { rid, hid_1, hid_12, g_1_2, g_11_12, f_1, f_12, date };
     data.push(ob);
   }
@@ -62,7 +62,7 @@ const main = async (st, ed) => {
   let end = new Date(ed).getTime();
   console.log(st, ed);
   console.log(now, end);
-  let offset = 1000 * 60 * 15;
+  let offset = 1000 * 60 * 30;
   while (now < end) {
     let now_ed = Math.min(end, now + offset);
     await run_duration(now, now_ed);
