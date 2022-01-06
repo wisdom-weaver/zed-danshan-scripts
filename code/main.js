@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const mdb = require("./connection/mongo_connect");
+const dan = require("./dan/dan");
 const global_req = require("./global_req/global_req");
 const race_horses = require("./races/race_horses");
 const zed_races = require("./races/zed_races");
@@ -8,7 +9,7 @@ const mod = v3;
 
 const main = async (args) => {
   await mdb.init();
-  await global_req.download();
+  // await global_req.download();
   console.log("main");
   let [_node, _cfile, arg1, arg2, arg3, arg4, arg5] = args;
   if (arg1 == "--races") {
@@ -179,6 +180,10 @@ const main = async (args) => {
   } else if (arg1 == "--parents") {
     if (arg2 == "fix_horse_type_all_cron") {
       mod.parents.fix_horse_type_all_cron();
+    }
+  } else if (arg1 == "--dan_max_gap") {
+    if (arg2 == "main") {
+      dan.max_gap.main();
     }
   }
 };

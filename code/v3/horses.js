@@ -8,7 +8,7 @@ const bulk = require("../utils/bulk");
 const { get_ed_horse } = require("../utils/cyclic_dependency");
 const mega = require("./mega");
 const { delay } = require("../utils/utils");
-const { ancestry } = require("./v3");
+const ancestry = require("./ancestry");
 
 const def_cs = 15;
 
