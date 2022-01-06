@@ -9,7 +9,7 @@ const mod = v3;
 
 const main = async (args) => {
   await mdb.init();
-  // await global_req.download();
+  await global_req.download();
   console.log("main");
   let [_node, _cfile, arg1, arg2, arg3, arg4, arg5] = args;
   if (arg1 == "--races") {
