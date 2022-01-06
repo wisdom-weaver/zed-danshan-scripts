@@ -19,7 +19,7 @@ const run_duration = async (st, ed) => {
   st = new Date(st).toISOString();
   ed = new Date(ed).toISOString();
   let races = await download_races(st, ed);
-  races = _.keyBy(races, "raceid");
+  races = _.groupBy(races, "raceid");
   console.log("found", _.keys(races).length);
   let data = [];
   for (let [rid, ar] of _.entries(races)) {
