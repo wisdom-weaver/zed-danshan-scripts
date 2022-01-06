@@ -50,6 +50,7 @@ const run_duration = async (st, ed) => {
 const main = async (st, ed) => {
   let now = Date.now(st);
   let end = Date.now(ed);
+  console.log(now, end);
   let offset = 1000 * 60 * 15;
   while (now < end) {
     let now_ed = Math.min(end, now + offset);
