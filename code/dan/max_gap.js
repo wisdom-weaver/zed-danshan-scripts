@@ -48,8 +48,9 @@ const run_duration = async (st, ed) => {
 };
 
 const main = async (st, ed) => {
-  let now = Date.now(st);
-  let end = Date.now(ed);
+  let now = new Date(st).getTime();
+  let end = new Date(ed).getTime();
+  console.log(st, ed);
   console.log(now, end);
   let offset = 1000 * 60 * 15;
   while (now < end) {
