@@ -11,6 +11,7 @@ const download_races = async (st, ed) => {
     .find({ 2: { $gte: st, $lte: ed } })
     .toArray();
   races = cyclic_depedency.struct_race_row_data(races);
+  console.log("docs.len", races.length);
   return races;
 };
 
