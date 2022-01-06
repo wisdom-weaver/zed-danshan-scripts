@@ -41,7 +41,7 @@ const main = async () => {
     bulk.push({
       updateOne: {
         filter: { rid: ob.rid },
-        update: ob,
+        update: { $set: ob },
         upsert: true,
       },
     });
