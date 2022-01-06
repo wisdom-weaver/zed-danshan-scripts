@@ -2,6 +2,7 @@ const moment = require("moment");
 const { zed_ch, zed_db } = require("../connection/mongo_connect");
 const utils = require("../utils/utils");
 const _ = require("lodash");
+const cyclic_depedency = require("../utils/cyclic_dependency");
 
 const download_races = async (date) => {
   let st = moment(date).subtract(15, "minutes").toISOString();
@@ -12,7 +13,7 @@ const download_races = async (date) => {
     .find({ 2: { $gte: st, $lte: ed } })
     .toArray();
   console.log("races.len", races.length);
-  races = utils.struct_race_row_data(races);
+  races = cyclic_depedency.struct_race_row_data(races);
   return races;
 };
 
