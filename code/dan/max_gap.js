@@ -23,6 +23,7 @@ const run_duration = async (st, ed) => {
   console.log("found", _.keys(races).length);
   let data = [];
   for (let [rid, ar] of _.entries(races)) {
+    console.log(ar)
     let f_ob = _.chain(ar).keyBy("place").mapValues("flame").value();
     let hid_ob = _.chain(ar).keyBy("place").mapValues("hid").value();
     let t_ob = _.chain(ar).keyBy("place").mapValues("finishtime").value();
