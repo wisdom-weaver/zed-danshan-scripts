@@ -9,6 +9,7 @@ const { get_fee_cat_on } = require("../utils/base");
 const { get_sims_zed_odds } = require("./sims");
 const zedf = require("../utils/zedf");
 const race_horses = require("./race_horses");
+const max_gap = require("../dan/max_gap");
 
 const zed_gql = "https://zed-ql.zed.run/graphql/getRaceResults";
 const zed_secret_key = process.env.zed_secret_key;
@@ -273,7 +274,9 @@ const zed_push_races_to_mongo = async (races) => {
   if (_.isEmpty(races)) return;
   let horses_ar = [];
   let mongo_push = [];
+  let races_ar = [];
   for (let r in races) {
+    races_ar = [...races_ar, ..._.values(races[r])];
     for (let h in races[r]) {
       horses_ar.push({
         hid: parseInt(h),
@@ -295,8 +298,10 @@ const zed_push_races_to_mongo = async (races) => {
     // console.table(horses_ar)
     await race_horses.push_ar(horses_ar);
   }
-  if (!_.isEmpty(mongo_push))
+  if (!_.isEmpty(mongo_push)) {
     await zed_ch.db.collection("zed").bulkWrite(mongo_push);
+  }
+  if (!_.isEmpty(races_ar)) await max_gap.raw_race_runner(races_ar);
 };
 
 const zed_races_gql_runner_inner = async (

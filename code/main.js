@@ -185,6 +185,9 @@ const main = async (args) => {
     if (arg2 == "main") {
       dan.max_gap.main(arg3, arg4);
     }
+    if (arg2 == "test") {
+      dan.max_gap.test();
+    }
   }
 };
 main(process.argv);

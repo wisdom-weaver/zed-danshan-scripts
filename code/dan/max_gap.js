@@ -10,15 +10,12 @@ const download_races = async (st, ed) => {
     .collection("zed")
     .find({ 2: { $gte: st, $lte: ed } })
     .toArray();
-  races = cyclic_depedency.struct_race_row_data(races);
-  console.log("docs.len", races.length);
+  // console.log("docs.len", races.length);
   return races;
 };
 
-const run_duration = async (st, ed) => {
-  st = new Date(st).toISOString();
-  ed = new Date(ed).toISOString();
-  let races = await download_races(st, ed);
+const raw_race_runner = async (races) => {
+  races = cyclic_depedency.struct_race_row_data(races);
   races = _.groupBy(races, "raceid");
   console.log("found", _.keys(races).length);
   let data = [];
@@ -54,7 +51,14 @@ const run_duration = async (st, ed) => {
   }
   if (!_.isEmpty(bulk))
     await zed_db.db.collection("gap_leader").bulkWrite(bulk);
-  console.log("wrote", bulk.length);
+  console.log("gap_leader wrote", bulk.length);
+};
+
+const run_duration = async (st, ed) => {
+  st = new Date(st).toISOString();
+  ed = new Date(ed).toISOString();
+  let races = await download_races(st, ed);
+  await raw_race_runner(races);
 };
 
 const main = async (st, ed) => {
@@ -70,5 +74,101 @@ const main = async (st, ed) => {
   }
 };
 
-const max_gap = { main };
+let limit = 500;
+const get_gap_horses = async ({
+  limit = 100,
+  query,
+  projection,
+  sort,
+  struct_doc,
+}) => {
+  try {
+    let st = moment().subtract(5, "days").toISOString().slice(0, 10);
+    let docs = await zed_db.db
+      .collection("gap_leader")
+      .find({ ...query, date: { $gt: st } }, { projection })
+      .sort(sort)
+      .limit(limit)
+      .toArray();
+    docs = docs.map(struct_doc);
+    docs = _.compact(docs);
+    let hids = _.map(docs, "hid");
+    let hdocs = await zed_db.db
+      .collection("horse_details")
+      .find({ hid: { $in: hids } }, { projection: { hid: 1, name: 1, tc: 1 } })
+      .toArray();
+    hdocs = _.chain(hdocs).keyBy("hid").value();
+    docs = docs.map((d) => {
+      return { ...d, ...hdocs[d.hid] };
+    });
+    return docs;
+  } catch (err) {
+    console.log("err", err);
+    return [];
+  }
+};
+
+const create_leaderboard = async (ldate) => {
+  ldate = new Date(ldate).toISOString().slice(0, 10);
+  let date_ed = moment(new Date(ldate).toUTCString())
+    .add(1, "day")
+    .toISOString();
+  console.log({ ldate });
+  console.log({ date_ed });
+  let hids_wins = await get_gap_horses({
+    limit,
+    query: {
+      f_1: 1,
+      g_1_2: { $ne: null },
+      date: { $lte: date_ed },
+    },
+    projection: {
+      hid_1: 1,
+    },
+    sort: { g_1_2: -1 },
+    struct_doc: (doc) => ({ hid: doc.hid_1 }),
+  });
+  hids_wins = _.map(hids_wins, "hid");
+  let id_w = `gapl-winners-${ldate}`;
+  await zed_db.db
+    .collection("gap_leader")
+    .updateOne(
+      { id: id_w },
+      { $set: { id: id_w, type: "leader", hids: hids_wins } },
+      { upsert: true }
+    );
+  console.log(hids_wins);
+  console.log("done", id_w);
+
+  let hids_loses = await get_gap_horses({
+    limit,
+    query: {
+      f_12: 1,
+      g_11_12: { $ne: null },
+      date: { $lte: date_ed },
+    },
+    projection: {
+      hid_12: 1,
+    },
+    sort: { g_11_12: -1 },
+    struct_doc: (doc) => ({ hid: doc.hid_12 }),
+  });
+  hids_loses = _.map(hids_loses, "hid");
+  let id_l = `gapl-losers-${ldate}`;
+  await zed_db.db
+    .collection("gap_leader")
+    .updateOne(
+      { id: id_l },
+      { $set: { id: id_l, type: "leader", hids: hids_loses } },
+      { upsert: true }
+    );
+  console.log("done", id_l);
+};
+
+const test = async () => {
+  let date = "2022-01-06";
+  await create_leaderboard(date);
+};
+
+const max_gap = { main, create_leaderboard, test, raw_race_runner };
 module.exports = max_gap;
