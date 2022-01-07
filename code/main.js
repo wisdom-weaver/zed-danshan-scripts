@@ -192,6 +192,9 @@ const main = async (args) => {
     if (arg2 == "test") {
       dan.max_gap.test();
     }
+  } else if (arg1 == "--ranks") {
+    if (arg2 == "run") mod.ranks.run();
+    if (arg2 == "run_cron") mod.ranks.run_cron();
   }
 };
 main(process.argv);

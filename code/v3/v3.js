@@ -10,6 +10,7 @@ const horses = require("./horses");
 const stats = require("./stats");
 const parents = require("./parents");
 const ancestry = require("./ancestry");
+const ranks = require("./ranks");
 
 const v3 = {
   rating_flames,
@@ -24,5 +25,6 @@ const v3 = {
   stats,
   parents,
   ancestry,
+  ranks,
 };
 module.exports = v3;
