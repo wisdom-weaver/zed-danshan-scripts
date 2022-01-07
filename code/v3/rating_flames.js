@@ -5,7 +5,7 @@ const bulk = require("../utils/bulk");
 const { zed_db } = require("../connection/mongo_connect");
 const coll = "rating_flames3";
 const name = "rating_flames v3";
-const cs = 200;
+const cs = 1000;
 let test_mode = 0;
 
 let keys = (() => {
