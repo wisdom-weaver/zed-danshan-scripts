@@ -51,7 +51,7 @@ const get_docs = async (st, ed) => {
 };
 
 let colls = ["rating_blood3", "rating_flames3", "horse_details"];
-let cs = 200;
+let cs = 2000;
 
 const run = async () => {
   console.log("running ranks");
