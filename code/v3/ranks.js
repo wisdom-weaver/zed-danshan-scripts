@@ -3,6 +3,8 @@ const mdb = require("../connection/mongo_connect");
 const _ = require("lodash");
 const bulk = require("../utils/bulk");
 const { zed_db } = require("../connection/mongo_connect");
+const utils = require("../utils/utils");
+const cyclic_depedency = require("../utils/cyclic_dependency");
 const coll = "rating_flames3";
 const name = "rating_flames v3";
 let test_mode = 0;
@@ -54,7 +56,7 @@ let cs = 200;
 const run = async () => {
   console.log("running ranks");
   let st = 0;
-  let ed = await get_ed_horse();
+  let ed = await  cyclic_depedency.get_ed_horse();
   let ar = [];
   for (let i = st; i <= ed; i += cs) {
     let eee = Math.min(ed, i + cs);
