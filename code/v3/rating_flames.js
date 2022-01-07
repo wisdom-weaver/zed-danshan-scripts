@@ -50,6 +50,8 @@ const get_points_from_place = (p) => {
   }
 };
 const get_side = (ob) => {
+  if (ob.rated_type == "NR") return null;
+  if (ob.rated_type == "CH") return "A";
   let side;
   let tc = ob?.tc;
   let rc = parseInt(ob?.key[0]);
@@ -75,7 +77,14 @@ const calc = async ({ hid, races = [], tc }) => {
     hid = parseInt(hid);
     let races_n = races.length || 0;
     if (races?.length == 0)
-      return { hid, tc, ...def_rating_flames, races_n, rated_type: "NR" };
+      return {
+        hid,
+        tc,
+        ...def_rating_flames,
+        races_n,
+        rated_type: "NR",
+        side: null,
+      };
     // console.table(races);
     let ob = {};
     for (let key of keys) {
@@ -123,7 +132,14 @@ const calc = async ({ hid, races = [], tc }) => {
     );
 
     if (_.isEmpty(ob))
-      return { ...def_rating_flames, hid, tc, races_n, rated_type: "CH" };
+      return {
+        ...def_rating_flames,
+        hid,
+        tc,
+        races_n,
+        rated_type: "CH",
+        side: "A",
+      };
     // console.table(ob);
     let mx_ob = ob[0];
     // console.table(mx_ob);
