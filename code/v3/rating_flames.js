@@ -73,9 +73,10 @@ const def_rating_flames = {
 const calc = async ({ hid, races = [], tc }) => {
   try {
     hid = parseInt(hid);
-    if (races?.length == 0) return { hid, tc, ...def_rating_flames };
+    let races_n = races.length || 0;
+    if (races?.length == 0)
+      return { hid, tc, ...def_rating_flames, races_n, rated_type: "NR" };
     // console.table(races);
-    let races_n = races.length;
     let ob = {};
     for (let key of keys) {
       let c = parseInt(key[0]);
@@ -121,11 +122,12 @@ const calc = async ({ hid, races = [], tc }) => {
       ["asc", "desc", "desc"]
     );
 
-    if (_.isEmpty(ob)) return { ...def_rating_flames, hid, tc };
+    if (_.isEmpty(ob))
+      return { ...def_rating_flames, hid, tc, races_n, rated_type: "CH" };
     // console.table(ob);
     let mx_ob = ob[0];
     // console.table(mx_ob);
-    let fob = { hid, ...mx_ob, tc };
+    let fob = { hid, ...mx_ob, tc, races_n, rated_type: "GH" };
     fob.side = get_side(fob);
     return fob;
   } catch (err) {
