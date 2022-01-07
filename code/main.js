@@ -24,6 +24,10 @@ const main = async (args) => {
       let conf = JSON.parse(arg3) || {};
       mod.rating_flames.only(conf);
     }
+    if (arg2 == "test") {
+      let conf = JSON.parse(arg3) || {};
+      mod.rating_flames.test(conf);
+    }
     if (arg2 == "range") {
       let [a, b] = [parseInt(arg3), parseInt(arg4)];
       mod.rating_flames.range(a, b);

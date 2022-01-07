@@ -6,7 +6,7 @@ const { zed_db } = require("../connection/mongo_connect");
 const coll = "rating_flames3";
 const name = "rating_flames v3";
 const cs = 200;
-const test_mode = 0;
+let test_mode = 0;
 
 let keys = (() => {
   let classes = [1, 2, 3, 4, 5];
@@ -153,9 +153,12 @@ const only = async (hids) =>
 const range = async (st, ed) =>
   bulk.run_bulk_range(name, generate, coll, st, ed, cs, test_mode);
 
-const test = async () => {
-  let ob = await generate(3312);
-  console.log(ob);
+const test = async (hids) => {
+  for (let hid of hids) {
+    test_mode = 1;
+    let ob = await generate(hid);
+    console.log(hid, ob);
+  }
 };
 
 const rating_flames = {
