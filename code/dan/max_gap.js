@@ -166,7 +166,7 @@ const create_leaderboard = async (ldate) => {
 };
 
 const test = async () => {
-  let date = "2022-01-06";
+  let date = "2022-01-07";
   await create_leaderboard(date);
 };
 

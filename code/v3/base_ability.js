@@ -126,14 +126,33 @@ const pick_c = (ratio_ar) => {
       pick,
     };
   });
-  let pick = _.find(ratio_ar, { pick: true })?.c || null;
+  for (let c of [1, 2, 3, 4, 5]) {
+    let ref1 = ratio_ar[c - 1];
+    if (!ref1.pick || ref1.left + ref1.right >= 15) {
+      ref1.pick2 = ref1.pick;
+      continue;
+    }
+    for (let i = c + 1; i <= 5; i++) {
+      let ref2 = ratio_ar[i - 1];
+      if (!ref2.pick) {
+        if (i == 5) ref1.pick2 = ref1.pick;
+        continue;
+      }
+      if (ref2.ratio < ref1.ratio) ref1.pick2 = false;
+      else {
+        ref1.pick2 = true;
+        break;
+      }
+    }
+  }
+  let pick2 = _.find(ratio_ar, { pick2: true })?.c || null;
   if (test_mode) {
     console.table(ratio_ar);
-    console.log({ pick });
+    console.log({ pick2 });
   }
-  if (!pick) return null;
-  let ob = _.find(ratio_ar, { c: pick }) || {};
-  return { c: pick, ...ob };
+  if (!pick2) return null;
+  let ob = _.find(ratio_ar, { c: pick2 }) || {};
+  return { c: pick2, ...ob };
 };
 const pick_avg_fee = ({ c, races }) => {
   let c_races = race_utils.filter_races(races, { c }, { paid: 1 });
