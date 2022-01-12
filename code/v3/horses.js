@@ -9,6 +9,8 @@ const { get_ed_horse } = require("../utils/cyclic_dependency");
 const mega = require("./mega");
 const { delay } = require("../utils/utils");
 const ancestry = require("./ancestry");
+const utils = require("../utils/utils");
+const cyclic_depedency = require("../utils/cyclic_dependency");
 
 const def_cs = 15;
 
@@ -217,10 +219,38 @@ const fix_unnamed_cron = async () => {
   cron.schedule(cron_str, () => runner(), { scheduled: true });
 };
 
+const fix_stable_h1 = async (hid) => {
+  hid = parseInt(hid);
+  let doc = await zedf.horse(hid);
+  let oid = doc.owner;
+  let stable_name = doc.owner_stable;
+  let slug = doc.owner_stable_slug;
+  return { hid, oid, stable_name, slug };
+};
+
+const fix_stable = () =>
+  bulk.run_bulk_all("stable", fix_stable_h1, "horse_details", def_cs, 0);
+
+const fix_stable_cron = () => {
+  let cron_str = "0 0 * * 0";
+  const runner = bulk.run_bulk_all(
+    "stable",
+    fix_stable_h1,
+    "horse_details",
+    def_cs,
+    0
+  );
+  const c_itvl = cron_parser.parseExpression(cron_str);
+  console.log("Next run:", c_itvl.next().toISOString(), "\n");
+  cron.schedule(cron_str, () => runner(), { scheduled: true });
+};
+
 const horses = {
   get_new,
   fix_unnamed,
   fix_unnamed_cron,
+  fix_stable,
+  fix_stable_cron,
 };
 
 module.exports = horses;
