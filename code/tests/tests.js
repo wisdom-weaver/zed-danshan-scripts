@@ -7,8 +7,8 @@ const moment = require("moment");
 const { iso, nano } = require("../utils/utils");
 
 const run_01 = async () => {
-  let st = "2022-01-06T00:00:00Z";
-  // let st = moment().subtract(3, "hours").toISOString();
+  // let st = "2022-01-06T00:00:00Z";
+  let st = moment().subtract(3, "hours").toISOString();
   let ed = moment().toISOString();
   let now = new Date(st).getTime();
   let offset = 1000 * 60 * 60 * 1;
@@ -24,11 +24,15 @@ const run_01 = async () => {
     let races =
       (await zed_ch.db
         .collection("zed")
-        .find({ 2: { $gte: iso(now), $lte: iso(now_ed) } }) //.limit(10)
+        .find({
+          2: { $gte: iso(now), $lte: iso(now_ed) },
+          5: c,
+          1: { $in: ds },
+        }) //.limit(10)
         .toArray()) || [];
     races = cyclic_depedency.struct_race_row_data(races);
     races = _.groupBy(races, "raceid");
-    console.log("got tot", races.length);
+    console.log("got tot", _.keys(races).length);
     for (let [rid, ar] of _.entries(races)) {
       if (_.isEmpty(ar)) continue;
       let { thisclass, distance, fee_tag } = ar[0];
