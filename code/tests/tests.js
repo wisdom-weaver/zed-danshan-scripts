@@ -7,8 +7,8 @@ const moment = require("moment");
 const { iso, nano } = require("../utils/utils");
 
 const run_01 = async () => {
-  // let st = "2022-01-06T00:00:00Z";
-  let st = moment().subtract(3, "hours").toISOString();
+  let st = "2022-01-06T00:00:00Z";
+  // let st = moment().subtract(3, "hours").toISOString();
   let ed = moment().toISOString();
   let now = new Date(st).getTime();
   let offset = 1000 * 60 * 60 * 1;
