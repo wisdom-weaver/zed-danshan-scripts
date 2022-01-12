@@ -233,13 +233,7 @@ const fix_stable = () =>
 
 const fix_stable_cron = () => {
   let cron_str = "0 0 * * 0";
-  const runner = bulk.run_bulk_all(
-    "stable",
-    fix_stable_h1,
-    "horse_details",
-    def_cs,
-    0
-  );
+  const runner = fix_stable
   const c_itvl = cron_parser.parseExpression(cron_str);
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
   cron.schedule(cron_str, () => runner(), { scheduled: true });
