@@ -232,7 +232,7 @@ const fix_stable = () =>
   bulk.run_bulk_all("stable", fix_stable_h1, "horse_details", def_cs, 0);
 
 const fix_stable_cron = () => {
-  let cron_str = "0 0 * * 0";
+  let cron_str = "0 0 */3 * *";
   const runner = fix_stable
   const c_itvl = cron_parser.parseExpression(cron_str);
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
