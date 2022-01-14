@@ -129,10 +129,11 @@ const horse_fatigue_update_cron = async () => {
 
 const test_api = (z) => `https://jsonplaceholder.typicode.com/todos/${z}`;
 
-const studs_api = (z) =>
-  `https://api.zed.run/api/v1/stud/horses?offset=0&gen[]=${z}&gen[]=${z}&breed_type=${"genesis"}`;
+const studs_api = (z, o = 0) =>
+  `https://api.zed.run/api/v1/stud/horses?offset=${o}&gen[]=${z}&gen[]=${z}&breed_type=${"genesis"}`;
 
 let process_prev_curr_studs = (prev, curr) => {
+  console.log("all", _.map(curr.new, "hid"));
   if (_.isEmpty(prev)) prev = { new: [], old: [] };
   let new_horses = [];
   let old_horses = [];
@@ -143,7 +144,7 @@ let process_prev_curr_studs = (prev, curr) => {
 
     if (_.map(prev.new, "hid").includes(hid)) {
       let { date: dpn } = _.find(prev.new, { hid });
-      if (new Date(date).getTime() - new Date(dpn).getTime() < 60000)
+      if (new Date(date).getTime() - new Date(dpn).getTime() < 3 * 60 * 1000)
         new_horses.push({ ...h, date: dpn });
       else old_horses.push({ ...h, date: dpn });
     }
@@ -201,7 +202,17 @@ const studs_api_cacher = async (z) => {
   try {
     console.log("START studs_api_cacher");
     let id = "zed-studs-sniper";
-    let z_apis = [1, 2, 3].map((z) => studs_api(z));
+    let z_apis = [
+      [1, 0],
+      [1, 10],
+      [1, 20],
+      [2, 0],
+      [2, 10],
+      [2, 20],
+      [3, 0],
+      [3, 10],
+      [3, 20],
+    ].map(([z, o]) => studs_api(z, o));
     let api_doc = await Promise.all(z_apis.map((z_api) => zedf.get(z_api)));
     if (api_doc.includes(null)) {
       console.log("SKIPPED either api gave null");
