@@ -198,7 +198,6 @@ const fix_horse_type_using_kid_ids = async (kids) => {
 };
 
 const fix_horse_type_all = async () => {
-  await init();
   let cs = 100;
   let ed_hid = await get_ed_horse();
   let [st, ed] = [1, ed_hid];
