@@ -133,7 +133,7 @@ const studs_api = (z, o = 0) =>
   `https://api.zed.run/api/v1/stud/horses?offset=${o}&gen[]=${z}&gen[]=${z}&breed_type=${"genesis"}`;
 
 let process_prev_curr_studs = (prev, curr) => {
-  console.log("all", _.map(curr.new, "hid"));
+  console.log("all", _.map(curr.new, "hid")?.length, "horses");
   if (_.isEmpty(prev)) prev = { new: [], old: [] };
   let new_horses = [];
   let old_horses = [];
@@ -222,6 +222,16 @@ const studs_api_cacher = async (z) => {
 
     api_doc = _.chain(api_doc).compact().flatten().value() || [];
     api_doc = struct_studs_api_data(api_doc);
+    let all_hids = _.map(api_doc, "hid");
+    let br_ob = await zed_db.db
+      .collection("rating_breed3")
+      .find(
+        { hid: { $in: all_hids } },
+        { projection: { hid: 1, br: 1, _id: 0 } }
+      )
+      .toArray();
+    br_ob = _.chain(br_ob).keyBy("hid").mapValues("br").value();
+    api_doc = api_doc.map((e) => ({ ...e, br: br_ob[e.hid] }));
     if (_.isEmpty(api_doc)) return;
     api_doc = { new: api_doc, old: [] };
     let mdb_doc = await zed_db.db.collection("zed_api_cache").findOne({ id });
