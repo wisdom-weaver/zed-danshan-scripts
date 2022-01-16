@@ -208,6 +208,11 @@ const get_hids = (st, ed) => {
 
 const cron_conf = { scheduled: true };
 
+const get_n = (n) => {
+  if (!_.isNaN(parseFloat(n))) return parseFloat(n);
+  return n;
+};
+
 const utils = {
   calc_avg,
   write_to_path,
@@ -232,6 +237,7 @@ const utils = {
   geno,
   get_hids,
   cron_conf,
+  get_n,
 };
 
 module.exports = utils;

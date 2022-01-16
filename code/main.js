@@ -5,6 +5,7 @@ const global_req = require("./global_req/global_req");
 const race_horses = require("./races/race_horses");
 const zed_races = require("./races/zed_races");
 const tests = require("./tests/tests");
+const utils = require("./utils/utils");
 const v3 = require("./v3/v3");
 const mod = v3;
 
@@ -162,6 +163,12 @@ const main = async (args) => {
       let [a, b] = [parseInt(arg3), parseInt(arg4)];
       mod.mega.range(a, b, cs);
     }
+    if (arg2 == "range_w_parents_br") {
+      let cs = arg5 ? parseInt(arg5) : def_cs;
+      console.log({ cs });
+      let [a, b] = [utils.get_n(arg3), utils.get_n(arg4)];
+      mod.mega.range_w_parents_br(a, b, cs);
+    }
     if (arg2 == "test") {
       let conf = JSON.parse(arg3) || {};
       mod.mega.test(conf);
@@ -184,7 +191,7 @@ const main = async (args) => {
     }
   } else if (arg1 == "--horses") {
     if (arg2 == "new") {
-      mod.horses.get_new_hdocs();
+      mod.horses.get_new();
     }
     if (arg2 == "new_hdocs") {
       mod.horses.get_new_hdocs();

@@ -173,6 +173,12 @@ const range = async (st, ed, cs = def_cs) => {
   await only(hids, cs);
   console.log("ended", name);
 };
+const range_w_parents_br = async (st, ed, cs = def_cs) => {
+  if (!ed || ed == "ed") ed = await get_ed_horse();
+  let hids = get_hids(st, ed);
+  await only_w_parents_br(hids, cs);
+  console.log("ended", name);
+};
 
 const all = async (cs = def_cs) => {
   let [st, ed] = [1, await get_ed_horse()];
@@ -197,5 +203,6 @@ const mega = {
   all,
   only_w_parents,
   only_w_parents_br,
+  range_w_parents_br,
 };
 module.exports = mega;
