@@ -195,7 +195,15 @@ const main = async (args) => {
     }
     if (arg2 == "range") {
       arg3 = JSON.parse(arg3) ?? [0, 0];
-      mod.horses.get_manual(arg3);
+      mod.horses.get_range(arg3);
+    }
+    if (arg2 == "only") {
+      arg3 = JSON.parse(arg3) ?? [0];
+      mod.horses.get_only(arg3);
+    }
+    if (arg2 == "missing") {
+      arg3 = JSON.parse(arg3) ?? [0];
+      mod.horses.get_missings(arg3);
     }
     if (arg2 == "new_hdocs") {
       mod.horses.get_new_hdocs();

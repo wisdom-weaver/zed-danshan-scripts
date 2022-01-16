@@ -164,19 +164,10 @@ const get_new = async () => {
     await delay(120000);
   }
 };
-const get_manual = async (range) => {
-  let st, ed;
-  if (range.length == 1) st = ed = range[0];
-  else {
-    [st, ed] = range;
-    st = utils.get_n(st);
-    ed = utils.get_n(ed);
-    if (ed == "ed" || ed == null) ed = await get_ed_horse();
-  }
+const get_only = async (hids) => {
   let cs = def_cs;
-  let hids_all = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
-  console.log([st, ed], hids_all.length);
-
+  let hids_all = hids.map((h) => parseInt(h));
+  console.log("hids_all", hids_all.length);
   for (let chunk_hids of _.chunk(hids_all, cs)) {
     console.log("GETTING", chunk_hids);
     let resps = await add_hdocs(chunk_hids, cs);
@@ -194,6 +185,63 @@ const get_manual = async (range) => {
     console.log("## GOT ", chunk_hids.toString(), "\n");
   }
 };
+const get_range = async (range) => {
+  let [st, ed] = range;
+  st = utils.get_n(st);
+  ed = utils.get_n(ed);
+  if (ed == "ed" || ed == null) ed = await get_ed_horse();
+  let cs = def_cs;
+  let hids_all = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
+  console.log([st, ed]);
+  await get_only(hids_all);
+};
+
+const get_valid_hids_in_coll = async (hids, coll) => {
+  let ar = await zed_db.db
+    .collection(coll)
+    .find({ hid: { $in: hids } }, { projection: { _id: 1, hid: 1 } })
+    .toArray();
+  return _.compact(_.map(ar, "hid"));
+};
+
+const get_valid_hids_in_ancestry = async (hids) => {
+  let hids5 = await zed_db.db
+    .collection("horse_details")
+    .find(
+      { hid: { $in: hids } },
+      { projection: { _id: 1, hid: 1, ancestry: 1 } }
+    )
+    .toArray();
+  hids5 = hids5.map((h) => (_.isEmpty(h.ancestry) ? null : h.hid));
+  hids5 = _.compact(hids5);
+  return hids5;
+};
+
+const get_missings = async (range) => {
+  let [st, ed] = range;
+  st = utils.get_n(st);
+  ed = utils.get_n(ed);
+  if (ed == "ed" || ed == null) ed = await get_ed_horse();
+  let cs = def_cs;
+  let hids_all = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
+  for (let chunk_hids of _.chunk(hids_all, 100)) {
+    let [a, b] = [chunk_hids[0], chunk_hids[chunk_hids.length - 1]];
+    console.log("checking", a, "->", b);
+    let hids1 = await get_valid_hids_in_coll(chunk_hids, "horse_details");
+    let hids2 = await get_valid_hids_in_coll(chunk_hids, "rating_blood3");
+    let hids3 = await get_valid_hids_in_coll(chunk_hids, "rating_breed3");
+    let hids4 = await get_valid_hids_in_coll(chunk_hids, "rating_flames3");
+    let hids5 = await get_valid_hids_in_ancestry(chunk_hids);
+
+    let hids_exists = _.intersection(hids1, hids2, hids3, hids4, hids5);
+    console.log("hids_exists", hids_exists.length);
+    let missings = _.difference(chunk_hids, hids_exists);
+    console.log("missings", missings.length, missings);
+    if (_.isEmpty(missings)) continue;
+    await get_only(missings);
+  }
+};
+
 const get_new_hdocs = async () => {
   let st = await get_ed_horse();
   console.log("last:", st);
@@ -329,12 +377,14 @@ const fix_stable_cron = () => {
 
 const horses = {
   get_new,
-  get_manual,
+  get_only,
+  get_range,
   fix_unnamed,
   fix_unnamed_cron,
   fix_stable,
   fix_stable_cron,
   get_new_hdocs,
+  get_missings,
 };
 
 module.exports = horses;
