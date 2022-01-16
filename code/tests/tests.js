@@ -94,5 +94,10 @@ const run_03 = async () => {
   console.table(ar);
 };
 
-const tests = { run: run_01 };
+const run_04 = async () => {
+  let hid_mx = 185000;
+  await zed_db.db.collection("horse_details").deleteMany({ hid: { $gte: hid_mx } });
+};
+
+const tests = { run: run_04 };
 module.exports = tests;

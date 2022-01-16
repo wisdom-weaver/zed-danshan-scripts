@@ -50,7 +50,7 @@ const run = async (cs = def_cs) => {
   await Promise.all(ar.map(update_horse_tc));
   let hids = _.map(ar, "hid");
   for (let chunk_hids of _.chunk(hids, run_cs)) {
-    await mega.only(chunk_hids, run_cs);
+    await mega.only_w_parents_br(chunk_hids, run_cs);
   }
   console.log("updated", hids.length);
   await zed_db.db.collection(coll).deleteMany({ hid: { $in: hids } });

@@ -140,6 +140,19 @@ const only_w_parents = async (hids, cs = def_cs) => {
     await push_mega_bulk(datas_ar_p);
   }
 };
+const only_w_parents_br = async (hids, cs = def_cs) => {
+  for (let chunk_hids of _.chunk(hids, cs)) {
+    let datas_ar = await Promise.all(chunk_hids.map((hid) => generate(hid)));
+    datas_ar = _.compact(datas_ar);
+    await push_mega_bulk(datas_ar);
+    await utils.delay(500);
+    let phids = await zed_db.db
+      .collection("horse_details")
+      .find({ hid: { $in: chunk_hids } }, { projection: { parents: 1 } })
+      .toArray();
+    await s_.rating_breed.only(phids)
+  }
+};
 
 const only = async (hids, cs = def_cs) => {
   for (let chunk_hids of _.chunk(hids, cs)) {
@@ -178,5 +191,6 @@ const mega = {
   range,
   all,
   only_w_parents,
+  only_w_parents_br,
 };
 module.exports = mega;
