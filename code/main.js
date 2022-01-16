@@ -151,6 +151,11 @@ const main = async (args) => {
       let conf = JSON.parse(arg3) || {};
       mod.mega.only_w_parents(conf, cs);
     }
+    if (arg2 == "only_w_parents_br") {
+      let cs = arg4 ? parseInt(arg4) : def_cs;
+      let conf = JSON.parse(arg3) || {};
+      mod.mega.only_w_parents_br(conf, cs);
+    }
     if (arg2 == "range") {
       let cs = arg5 ? parseInt(arg5) : def_cs;
       console.log({ cs });
@@ -213,6 +218,6 @@ const main = async (args) => {
   } else if (arg1 == "--tests") {
     if (arg2 == "run") tests.run();
   }
-  console.log("ed")
+  console.log("ed");
 };
 main(process.argv);
