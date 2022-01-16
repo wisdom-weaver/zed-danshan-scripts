@@ -237,6 +237,12 @@ const get_missings = async (range) => {
     let hids4 = await get_valid_hids_in_coll(chunk_hids, "rating_flames3");
     let hids5 = await get_valid_hids_in_ancestry(chunk_hids);
 
+    console.log("hids1:",hids1.length)
+    console.log("hids2:",hids2.length)
+    console.log("hids3:",hids3.length)
+    console.log("hids4:",hids4.length)
+    console.log("hids5:",hids5.length)
+
     let hids_exists = _.intersection(hids1, hids2, hids3, hids4, hids5);
     console.log("hids_exists", hids_exists.length);
     let missings = _.difference(chunk_hids, hids_exists);
