@@ -145,7 +145,7 @@ const get_new = async () => {
     for (let chunk_hids of _.chunk(hids, cs)) {
       console.log("GETTING", chunk_hids);
       let resps = await add_hdocs(chunk_hids, cs);
-      await delay(100)
+      await delay(100);
       if (resps?.length == 0) {
         console.log("found consec", chunk_hids.length, "empty horses");
         console.log("continue from start after 5 minutes");
@@ -159,6 +159,56 @@ const get_new = async () => {
       await parents.fix_horse_type_using_kid_ids(chunk_hids);
       await ancestry.only(chunk_hids);
       console.log("## GOT ", chunk_hids.toString(), "\n");
+    }
+    console.log("completed zed_horses_needed_bucket_using_zed_api ");
+    await delay(120000);
+  }
+};
+const get_new_hdocs = async () => {
+  let st = await get_ed_horse();
+  console.log("last:", st);
+  st = st - 15000;
+  let ed = st * 2;
+  console.log({ st, ed });
+  let cs = def_cs;
+  let hids_all = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
+
+  outer: while (true) {
+    let docs_exists1 =
+      (await zed_db.db
+        .collection("horse_details")
+        .find(
+          { hid: { $gt: st - 1 } },
+          { projection: { _id: 0, hid: 1, bloodline: 1 } }
+        )
+        .toArray()) || {};
+    let docs_exists2 =
+      (await zed_db.db
+        .collection("rating_blood3")
+        .find({ hid: { $gt: st - 1 } }, { projection: { _id: 0, hid: 1 } })
+        .toArray()) || {};
+
+    let hids_exists1 = _.map(docs_exists1, (i) => {
+      if (i?.bloodline) return i.hid;
+      return null;
+    });
+    let hids_exists2 = _.map(docs_exists2, "hid");
+    let hids_exists = _.intersection(hids_exists1, hids_exists2);
+
+    let hids = _.difference(hids_all, hids_exists);
+    console.log("hids.len: ", hids.length);
+
+    for (let chunk_hids of _.chunk(hids, cs)) {
+      console.log("GETTING", chunk_hids);
+      let resps = await add_hdocs(chunk_hids, cs);
+      await delay(100);
+      if (resps?.length == 0) {
+        console.log("found consec", chunk_hids.length, "empty horses");
+        console.log("continue from start after 5 minutes");
+        await delay(300000);
+        continue outer;
+      }
+      console.log("wrote", resps.length, "to horse_details");
     }
     console.log("completed zed_horses_needed_bucket_using_zed_api ");
     await delay(120000);
@@ -253,6 +303,7 @@ const horses = {
   fix_unnamed_cron,
   fix_stable,
   fix_stable_cron,
+  get_new_hdocs,
 };
 
 module.exports = horses;

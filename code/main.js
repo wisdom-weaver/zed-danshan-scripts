@@ -184,7 +184,7 @@ const main = async (args) => {
     }
   } else if (arg1 == "--horses") {
     if (arg2 == "new") {
-      mod.horses.get_new();
+      mod.horses.get_new_hdocs();
     }
     if (arg2 == "fix_unnamed") {
       mod.horses.fix_unnamed();
