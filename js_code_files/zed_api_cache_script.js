@@ -222,6 +222,8 @@ const studs_api_cacher = async (z) => {
 
     api_doc = _.chain(api_doc).compact().flatten().value() || [];
     api_doc = struct_studs_api_data(api_doc);
+    let dummy = [];
+    api_doc = [...dummy, ...api_doc];
     let all_hids = _.map(api_doc, "hid");
     let br_ob = await zed_db.db
       .collection("rating_breed3")

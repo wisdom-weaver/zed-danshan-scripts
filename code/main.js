@@ -192,6 +192,9 @@ const main = async (args) => {
     if (arg2 == "fix_horse_type_all_cron") {
       mod.parents.fix_horse_type_all_cron();
     }
+    if (arg2 == "fix_horse_type_all") {
+      mod.parents.fix_horse_type_all();
+    }
   } else if (arg1 == "--dan_max_gap") {
     if (arg2 == "main") {
       dan.max_gap.main(arg3, arg4);
