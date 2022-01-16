@@ -57,6 +57,8 @@ const struct_zed_hdoc = (hid, doc) => {
     owner_stable_slug: slug,
     rating,
   } = doc;
+  let oid = doc.owner;
+  let stable_name = doc.owner_stable;
   let { color, hex_code, name } = hash_info;
   let parents = {
     mother: parents_raw?.mother?.horse_id || null,
@@ -83,6 +85,8 @@ const struct_zed_hdoc = (hid, doc) => {
     tc,
     rating,
     slug,
+    oid,
+    stable_name,
     parents,
     parents_d,
   };
