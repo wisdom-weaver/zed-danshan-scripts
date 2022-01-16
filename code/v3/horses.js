@@ -155,7 +155,7 @@ const get_new = async () => {
       console.log("wrote", resps.length, "to horse_details");
 
       chunk_hids = _.map(resps, "hid");
-      await mega.only_w_parents(chunk_hids);
+      await mega.only_w_parents_br(chunk_hids);
       await parents.fix_horse_type_using_kid_ids(chunk_hids);
       await ancestry.only(chunk_hids);
       console.log("## GOT ", chunk_hids.toString(), "\n");
