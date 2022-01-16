@@ -12,7 +12,7 @@ const ancestry = require("./ancestry");
 const utils = require("../utils/utils");
 const cyclic_depedency = require("../utils/cyclic_dependency");
 
-const def_cs = 15;
+const def_cs = 10;
 
 const bulk_write_kid_to_parent = async (obar) => {
   let mgp = [];
@@ -145,7 +145,7 @@ const get_new = async () => {
     for (let chunk_hids of _.chunk(hids, cs)) {
       console.log("GETTING", chunk_hids);
       let resps = await add_hdocs(chunk_hids, cs);
-
+      await delay(100)
       if (resps?.length == 0) {
         console.log("found consec", chunk_hids.length, "empty horses");
         console.log("continue from start after 5 minutes");
