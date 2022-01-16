@@ -146,6 +146,11 @@ const main = async (args) => {
       let conf = JSON.parse(arg3) || {};
       mod.mega.only(conf, cs);
     }
+    if (arg2 == "only_w_parents") {
+      let cs = arg4 ? parseInt(arg4) : def_cs;
+      let conf = JSON.parse(arg3) || {};
+      mod.mega.only_w_parents(conf, cs);
+    }
     if (arg2 == "range") {
       let cs = arg5 ? parseInt(arg5) : def_cs;
       console.log({ cs });
