@@ -118,7 +118,7 @@ const get_new = async () => {
   let hids_all = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
 
   outer: while (true) {
-    let docs_exists =
+    let docs_exists1 =
       (await zed_db.db
         .collection("horse_details")
         .find(
@@ -126,10 +126,18 @@ const get_new = async () => {
           { projection: { _id: 0, hid: 1, bloodline: 1 } }
         )
         .toArray()) || {};
-    let hids_exists = _.map(docs_exists, (i) => {
+    let docs_exists2 =
+      (await zed_db.db
+        .collection("rating_blood3")
+        .find({ hid: { $gt: st - 1 } }, { projection: { _id: 0, hid: 1 } })
+        .toArray()) || {};
+
+    let hids_exists1 = _.map(docs_exists1, (i) => {
       if (i?.bloodline) return i.hid;
       return null;
     });
+    let hids_exists2 = _.map(docs_exists2, "hid");
+    let hids_exists = _.intersection(hids_exists1, hids_exists2);
 
     let hids = _.difference(hids_all, hids_exists);
     console.log("hids.len: ", hids.length);
@@ -233,7 +241,7 @@ const fix_stable = () =>
 
 const fix_stable_cron = () => {
   let cron_str = "0 0 */3 * *";
-  const runner = fix_stable
+  const runner = fix_stable;
   const c_itvl = cron_parser.parseExpression(cron_str);
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
   cron.schedule(cron_str, () => runner(), { scheduled: true });
