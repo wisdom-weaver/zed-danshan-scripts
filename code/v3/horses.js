@@ -164,6 +164,36 @@ const get_new = async () => {
     await delay(120000);
   }
 };
+const get_manual = async (range) => {
+  let st, ed;
+  if (range.length == 1) st = ed = range[0];
+  else {
+    [st, ed] = range;
+    st = utils.get_n(st);
+    ed = utils.get_n(ed);
+    if (ed == "ed" || ed == null) ed = await get_ed_horse();
+  }
+  let cs = def_cs;
+  let hids_all = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
+  console.log([st, ed], hids_all.length);
+
+  for (let chunk_hids of _.chunk(hids_all, cs)) {
+    console.log("GETTING", chunk_hids);
+    let resps = await add_hdocs(chunk_hids, cs);
+    await delay(100);
+    if (resps?.length == 0) {
+      console.log("break");
+      break;
+    }
+    console.log("wrote", resps.length, "to horse_details");
+
+    chunk_hids = _.map(resps, "hid");
+    await mega.only_w_parents_br(chunk_hids);
+    await parents.fix_horse_type_using_kid_ids(chunk_hids);
+    await ancestry.only(chunk_hids);
+    console.log("## GOT ", chunk_hids.toString(), "\n");
+  }
+};
 const get_new_hdocs = async () => {
   let st = await get_ed_horse();
   console.log("last:", st);
@@ -299,6 +329,7 @@ const fix_stable_cron = () => {
 
 const horses = {
   get_new,
+  get_manual,
   fix_unnamed,
   fix_unnamed_cron,
   fix_stable,

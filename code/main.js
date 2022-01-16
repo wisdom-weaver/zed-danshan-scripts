@@ -193,6 +193,10 @@ const main = async (args) => {
     if (arg2 == "new") {
       mod.horses.get_new();
     }
+    if (arg2 == "range") {
+      arg3 = JSON.parse(arg3) ?? [0, 0];
+      mod.horses.get_manual(arg3);
+    }
     if (arg2 == "new_hdocs") {
       mod.horses.get_new_hdocs();
     }
