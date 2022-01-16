@@ -126,7 +126,7 @@ const fix_parents_kids_mismatch = async () => {
 const fix_horse_type_after_kids = async (hids_) => {
   // await init();
   let docs_a = await zed_db.db
-    .collection("rating_breed2")
+    .collection("rating_breed3")
     .find(
       {
         hid: { $in: hids_ },
