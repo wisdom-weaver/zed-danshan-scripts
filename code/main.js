@@ -186,6 +186,9 @@ const main = async (args) => {
     if (arg2 == "new") {
       mod.horses.get_new_hdocs();
     }
+    if (arg2 == "new_hdocs") {
+      mod.horses.get_new_hdocs();
+    }
     if (arg2 == "fix_unnamed") {
       mod.horses.fix_unnamed();
     }

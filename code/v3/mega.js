@@ -150,7 +150,12 @@ const only_w_parents_br = async (hids, cs = def_cs) => {
       .collection("horse_details")
       .find({ hid: { $in: chunk_hids } }, { projection: { parents: 1 } })
       .toArray();
-    await s_.rating_breed.only(phids)
+    phids = _.chain(phids)
+      .map((i) => _.values(i.parents))
+      .flatten()
+      .compact()
+      .value();
+    await s_.rating_breed.only(phids);
   }
 };
 
