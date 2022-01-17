@@ -42,7 +42,7 @@ const run_dur = async ([st, ed]) => {
       { projection: { 4: 1, 6: 1, 8: 1, 5: 1 } }
     )
     .toArray();
-  console.log("docs.len", races.len);
+  console.log("docs.len", races.length);
   races = _.groupBy(races, 4);
   for (let [rid, race] of _.entries(races)) {
     race = _.sortBy(race, (i) => parseFloat(i[8]));
