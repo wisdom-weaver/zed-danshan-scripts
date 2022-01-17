@@ -36,6 +36,7 @@ const calc_horse_points = async (hid) => {
 };
 
 const run_dur = async ([st, ed]) => {
+  console.log("init")
   stable_ob = await get_stable_ob();
   all_hids = await get_all_hids();
   console.log("stables:", stable_ob.length);
