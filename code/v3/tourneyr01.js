@@ -8,7 +8,7 @@ const utils = require("../utils/utils");
 const coll = "tourneyr01";
 const dur = 2 * 60 * 1000;
 
-let t_st_date = "";
+let t_st_date = "2022-01-17T18:00:00.000Z";
 
 const calc_horse_points = async (hid) => {
   hid = parseFloat(hid);
