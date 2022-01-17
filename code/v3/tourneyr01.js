@@ -37,7 +37,10 @@ const run_dur = async ([st, ed]) => {
   ed = iso(ed);
   let races = await zed_ch.db
     .collection("zed")
-    .find({ 2: { $gte: st, $lte: ed } }, { projection: { 4: 1, 6: 1, 8: 1 } })
+    .find(
+      { 2: { $gte: st, $lte: ed } },
+      { projection: { 4: 1, 6: 1, 8: 1, 5: 1 } }
+    )
     .toArray();
   console.log("docs.len", races.len);
   races = _.groupBy(races, 4);
