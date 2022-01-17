@@ -36,7 +36,7 @@ const calc_horse_points = async (hid) => {
 };
 
 const run_dur = async ([st, ed]) => {
-  console.log("init")
+  console.log("init");
   stable_ob = await get_stable_ob();
   all_hids = await get_all_hids();
   console.log("stables:", stable_ob.length);
@@ -71,16 +71,17 @@ const now = async () => {
 };
 
 const get_stable_ob = async () => {
-  return zed_db.db
+  let ob = await zed_db.db
     .collection(coll)
     .find({}, { projection: { _id: 0, stable_name: 1, hids: 1 } })
     .toArray();
+  return ob;
 };
 const get_all_hids = async () => {
   if (!stable_ob) stable_ob = await get_stable_ob();
   let hids = _.map(ar, "hids");
   hids = _.flatten(hids);
-  return hids
+  return hids;
 };
 
 const get_stable_name = (hid) => {
