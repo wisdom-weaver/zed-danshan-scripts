@@ -116,7 +116,7 @@ const run_05 = async (range) => {
     .toArray();
   console.log(hids);
   hids = _.map(hids, "hid");
-  await mega.only_w_parents_br(hids);
+  await mega.only(hids);
 };
 
 const tests = { run: run_05 };
