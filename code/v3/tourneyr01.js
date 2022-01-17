@@ -29,7 +29,7 @@ const run_dur = async ([st, ed]) => {
   console.log("docs.len", races.len);
   races = _.groupBy(races, 4);
   for (let [rid, race] of _.entries(races)) {
-    race = _.sortBy(races, i=>parseFloat(i[8]));
+    race = _.sortBy(race, i=>parseFloat(i[8]));
     let hids = _.map(race, 6);
     let top3 = hids.slice(0, 3);
     console.log(rid, race.length, top3);
