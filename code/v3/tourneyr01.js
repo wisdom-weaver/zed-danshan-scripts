@@ -40,7 +40,7 @@ const run_dur = async ([st, ed]) => {
   all_hids = await get_all_hids();
   console.log("stables:", stable_ob.length);
   console.log("stable_hids:", all_hids.length);
-  update_list();
+  await update_list();
   console.log("run_dur", [st, ed]);
   st = iso(st);
   ed = iso(ed);
