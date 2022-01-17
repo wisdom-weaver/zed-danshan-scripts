@@ -242,6 +242,16 @@ const main = async (args) => {
     if (arg2 == "test") {
       tourneyr01.test();
     }
+    if (arg2 == "now") {
+      tourneyr01.now();
+    }
+    if (arg2 == "cron") {
+      tourneyr01.cron();
+    }
+    if (arg2 == "run_dur") {
+
+      tourneyr01.run_dur(arg3);
+    }
   } else if (arg1 == "--tests") {
     try {
       arg3 = JSON.parse(arg3);
@@ -250,6 +260,6 @@ const main = async (args) => {
     }
     if (arg2 == "run") tests.run(arg3);
   }
-  console.log("ed");
+  console.log("---ed");
 };
 main(process.argv);
