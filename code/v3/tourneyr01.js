@@ -20,7 +20,8 @@ const calc_horse_points = async (hid) => {
   let poss = _.map(races, (i) => parseFloat(i[8]));
   let pts = poss.reduce((acc, e) => (acc + [1, 2, 3].includes(e) ? 1 : 0), 0);
   let avg = pts / poss.length;
-  console.log({ hid, pts, avg });
+  let traces_n = poss.length
+  console.log({ hid, pts, avg, traces_n });
 };
 
 const run_dur = async ([st, ed]) => {
