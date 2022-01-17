@@ -56,6 +56,7 @@ const now = async () => {
   await run_dur([st, ed]);
 };
 const run_cron = () => {
+  console.log("run_cron")
   let cron_str = "*/2 * * * *";
   let runner = now;
   cron.schedule(cron_str, runner, utils.cron_conf);
