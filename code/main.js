@@ -238,7 +238,12 @@ const main = async (args) => {
     if (arg2 == "run") mod.ranks.run();
     if (arg2 == "run_cron") mod.ranks.run_cron();
   } else if (arg1 == "--tests") {
-    if (arg2 == "run") tests.run();
+    try {
+      arg3 = JSON.parse(arg3);
+    } catch (err) {
+      arg3 = null;
+    }
+    if (arg2 == "run") tests.run(arg3);
   }
   console.log("ed");
 };

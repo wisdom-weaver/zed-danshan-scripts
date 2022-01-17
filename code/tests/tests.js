@@ -5,6 +5,8 @@ const { zed_ch, zed_db } = require("../connection/mongo_connect");
 const cyclic_depedency = require("../utils/cyclic_dependency");
 const moment = require("moment");
 const { iso, nano } = require("../utils/utils");
+const mega = require("../v3/mega");
+const utils = require("../utils/utils");
 
 const run_01 = async () => {
   let st = "2022-01-06T00:00:00Z";
@@ -96,8 +98,26 @@ const run_03 = async () => {
 
 const run_04 = async () => {
   let hid_mx = 185000;
-  await zed_db.db.collection("horse_details").deleteMany({ hid: { $gte: hid_mx } });
+  await zed_db.db
+    .collection("horse_details")
+    .deleteMany({ hid: { $gte: hid_mx } });
 };
 
-const tests = { run: run_04 };
+const run_05 = async (range) => {
+  console.log("tests run05");
+  if (!range) return console.log("end");
+  let [st, ed] = range;
+  st = utils.get_n(st);
+  ed = utils.get_n(ed);
+  console.log([st, ed]);
+  let hids = await zed_db.db
+    .collection("rating_breed3")
+    .find({ br: null, hid: { $lte: ed, $gte: st } }, { projection: { hid: 1 } })
+    .toArray();
+  console.log(hids);
+  hids = _.map(hids, "hid");
+  await mega.only_w_parents_br(hids);
+};
+
+const tests = { run: run_05 };
 module.exports = tests;
