@@ -55,7 +55,7 @@ const now = async () => {
   let st = moment(new Date(nano(ed) - dur)).toISOString();
   await run_dur([st, ed]);
 };
-const cron = () => {
+const run_cron = () => {
   let cron_str = "*/2 * * * *";
   let runner = now;
   cron.schedule(cron_str, runner, cron_conf);
@@ -64,5 +64,5 @@ const test = async () => {
   now();
 };
 const main = () => {};
-const tourneyr01 = { test, cron, now, run_dur };
+const tourneyr01 = { test, run_cron, now, run_dur };
 module.exports = tourneyr01;

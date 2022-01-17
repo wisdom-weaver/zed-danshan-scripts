@@ -245,11 +245,10 @@ const main = async (args) => {
     if (arg2 == "now") {
       tourneyr01.now();
     }
-    if (arg2 == "cron") {
-      tourneyr01.cron();
+    if (arg2 == "run_cron") {
+      tourneyr01.run_cron();
     }
     if (arg2 == "run_dur") {
-
       tourneyr01.run_dur(arg3);
     }
   } else if (arg1 == "--tests") {
