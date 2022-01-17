@@ -79,7 +79,7 @@ const get_all_hids = async () => {
   if (!stable_ob) stable_ob = await get_stable_ob();
   let hids = _.map(ar, "hids");
   hids = _.flatten(hids);
-  all_hids = hids ?? [];
+  return hids
 };
 
 const get_stable_name = (hid) => {
