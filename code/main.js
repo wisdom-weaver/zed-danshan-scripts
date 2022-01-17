@@ -6,6 +6,7 @@ const race_horses = require("./races/race_horses");
 const zed_races = require("./races/zed_races");
 const tests = require("./tests/tests");
 const utils = require("./utils/utils");
+const tourneyr01 = require("./v3/tourneyr01");
 const v3 = require("./v3/v3");
 const mod = v3;
 
@@ -237,6 +238,10 @@ const main = async (args) => {
   } else if (arg1 == "--ranks") {
     if (arg2 == "run") mod.ranks.run();
     if (arg2 == "run_cron") mod.ranks.run_cron();
+  } else if (arg1 == "--tourneyr01") {
+    if (arg2 == "test") {
+      tourneyr01.test();
+    }
   } else if (arg1 == "--tests") {
     try {
       arg3 = JSON.parse(arg3);
