@@ -22,10 +22,11 @@ const calc_horse_points = async (hid) => {
 
 const run_dur = async ([st, ed]) => {
   console.log("run_dur", [st, ed]);
-  let races = zed_ch.db
+  let races = await zed_ch.db
     .collection("zed")
     .find({ 2: { $gte: st, $lte: ed } }, { projection: { 4: 1, 6: 1, 8: 1 } })
     .toArray();
+  console.log("docs.len", races.len);
   races = _.groupBy(races, 4);
   for (let [rid, race] of _.entries(races)) {
     race = _.sortBy(race, 8);
