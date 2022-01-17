@@ -33,6 +33,7 @@ const calc_horse_points = async (hid) => {
 
 const run_dur = async ([st, ed]) => {
   console.log("run_dur", [st, ed]);
+  update_list();
   st = iso(st);
   ed = iso(ed);
   let races = await zed_ch.db
@@ -58,6 +59,20 @@ const now = async () => {
   let st = moment(new Date(nano(ed) - dur)).toISOString();
   await run_dur([st, ed]);
 };
+const update_list = async () => {
+  let ar = await zed_db.db
+    .collection(coll)
+    .find({}, { projection: { _id: 0, stable_name: 1, hids: 1 } })
+    .toArray();
+  let hids = _.map(ar, "hids");
+  hids = _.flatten(hids);
+  console.log("hids.len", hids.length);
+  let ob = { id: "master", hids };
+  await zed_db.db
+    .collection(coll2)
+    .updateOne({ id: "master" }, { $set: ob }, { upsert: true });
+};
+
 const run_cron = () => {
   console.log("run_cron");
   let cron_str = "*/2 * * * *";
@@ -67,7 +82,7 @@ const run_cron = () => {
   cron.schedule(cron_str, runner, utils.cron_conf);
 };
 const test = async () => {
-  now();
+  update_list();
 };
 const main = () => {};
 const tourneyr01 = { test, run_cron, now, run_dur };
