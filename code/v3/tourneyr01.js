@@ -1,6 +1,6 @@
 const _ = require("lodash");
 const moment = require("moment");
-const cron = require("cron");
+const cron = require("node-cron");
 const cron_parser = require("cron-parser");
 const { zed_ch, zed_db } = require("../connection/mongo_connect");
 const cyclic_depedency = require("../utils/cyclic_dependency");
