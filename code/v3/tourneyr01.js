@@ -26,6 +26,7 @@ const calc_horse_points = async (hid) => {
   let poss = _.map(races, (i) => parseFloat(i[8]));
   let pts = poss.reduce((acc, e) => (acc + [1, 2, 3].includes(e) ? 1 : 0), 0);
   let avg = pts / poss.length;
+  if (poss.length == 0) avg = 0;
   let traces_n = poss.length;
   let stable_name = get_stable_name(hid);
   let ob = { hid, pts, avg, traces_n, stable_name };
@@ -82,7 +83,7 @@ const get_stable_ob = async () => {
 };
 const get_all_hids = async () => {
   if (!stable_ob) stable_ob = await get_stable_ob();
-  let hids = _.map(ar, "hids");
+  let hids = _.map(stable_ob, "hids");
   hids = _.flatten(hids);
   return hids;
 };
