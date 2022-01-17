@@ -73,7 +73,10 @@ const now = async () => {
 const get_stable_ob = async () => {
   let ob = await zed_db.db
     .collection(coll)
-    .find({}, { projection: { _id: 0, stable_name: 1, hids: 1 } })
+    .find(
+      { stable_name: { $ne: null } },
+      { projection: { _id: 0, stable_name: 1, hids: 1 } }
+    )
     .toArray();
   return ob;
 };
