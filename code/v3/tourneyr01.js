@@ -16,7 +16,7 @@ const calc_horse_points = async (hid) => {
     .collection("zed")
     .find({ 2: { $gte: t_st_date }, 6: hid }, { projection: { 6: 1, 8: 1 } })
     .toArray();
-  let poss = _.map(races, 8);
+  let poss = _.map(races, i=>parseFloat(i[8]));
   console.log(hid, poss);
 };
 
@@ -29,7 +29,7 @@ const run_dur = async ([st, ed]) => {
   console.log("docs.len", races.len);
   races = _.groupBy(races, 4);
   for (let [rid, race] of _.entries(races)) {
-    race = _.sortBy(race, 8);
+    race = _.sortBy(races, i=>parseFloat(i[8]));
     let hids = _.map(race, 6);
     let top3 = hids.slice(0, 3);
     console.log(rid, race.length, top3);
