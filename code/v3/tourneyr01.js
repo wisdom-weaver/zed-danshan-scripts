@@ -83,8 +83,11 @@ const get_stable_ob = async () => {
 };
 const get_all_hids = async () => {
   if (!stable_ob) stable_ob = await get_stable_ob();
-  let hids = _.map(stable_ob, "hids");
-  hids = _.flatten(hids);
+  let hids = [];
+  for (let { stable_name, hids, payments } of ar) {
+    for (let p of payments)
+      if (p.status == "paid") hids = [...hids, ...p.add_hids];
+  }
   return hids;
 };
 
@@ -119,7 +122,22 @@ const run_cron = () => {
   cron.schedule(cron_str, runner, utils.cron_conf);
 };
 const test = async () => {
-  update_list();
+  // let ar = await zed_db.db
+  //   .collection(coll)
+  //   .find({ stable_name: { $ne: null } })
+  //   .toArray();
+  // for (let { stable_name, hids, payments } of ar) {
+  //   let add_hids = hids;
+  //   let id = `payments.${0}.add_hids`;
+  //   await zed_db.db.collection(coll).updateOne(
+  //     { stable_name },
+  //     {
+  //       $set: { [id]: add_hids },
+  //     },
+  //     { upsert: true }
+  //   );
+  // }
+  console.log("done");
 };
 const main = () => {};
 const tourneyr01 = { test, run_cron, now, run_dur };
