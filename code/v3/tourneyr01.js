@@ -11,7 +11,7 @@ const coll = "tourneyr01";
 const coll2 = "tourneyr01_leader";
 const dur = 2.1 * 60 * 1000;
 
-let t_st_date = "2022-01-17T18:00:00.000Z";
+let t_st_date = "2022-01-19T00:00:00.000Z";
 
 let stable_ob = [];
 let all_hids = [];
