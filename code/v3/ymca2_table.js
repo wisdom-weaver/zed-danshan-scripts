@@ -99,7 +99,7 @@ const generate = async () => {
   let ob = {};
   let keys = [];
 
-  for (let [bl_idx, bl] of _.entries(bloodlines.slice(0, 1))) {
+  for (let [bl_idx, bl] of _.entries(bloodlines)) {
     for (let [bt_idx, bt] of _.entries(breed_types)) {
       let id_st = `${bl}-${bt}`;
       let [z_mi, z_mx] = z_mi_mx[id_st];
@@ -107,7 +107,7 @@ const generate = async () => {
         let id = `${bl}-${bt}-Z${z}`;
         let id_ob = await get_z_table_for_id(id);
         y_avg = id_ob?.y_avg;
-        if (id == `Nakamoto-genesis-Z1`) {
+        if (bt == "genesis" && z == z_mi) {
           ob[id] = { base: y_avg, y_avg };
         } else if (z == z_mi) {
           let prev_id = `${bl}-${breed_types[bt_idx - 1]}-Z${z}`;
@@ -153,8 +153,7 @@ const get = async (print = 0) => {
   return avgs;
 };
 
-const test = async () => {
-};
+const test = async () => {};
 
 const ymca2_table = { generate, get, test };
 
