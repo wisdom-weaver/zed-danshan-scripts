@@ -15,6 +15,7 @@ let t_st_date = "2022-01-17T18:00:00.000Z";
 
 let stable_ob = [];
 let all_hids = [];
+let unpaid_hids = [];
 
 const calc_horse_points = async (hid) => {
   hid = parseFloat(hid);
@@ -37,12 +38,7 @@ const calc_horse_points = async (hid) => {
 };
 
 const run_dur = async ([st, ed]) => {
-  console.log("init");
-  stable_ob = await get_stable_ob();
-  all_hids = await get_all_hids();
-  console.log("stables:", stable_ob.length);
-  console.log("stable_hids:", all_hids.length);
-  await update_list();
+  await init_run();
   console.log("run_dur", [st, ed]);
   st = iso(st);
   ed = iso(ed);
@@ -74,21 +70,25 @@ const now = async () => {
 const get_stable_ob = async () => {
   let ob = await zed_db.db
     .collection(coll)
-    .find(
-      { stable_name: { $ne: null } },
-      { projection: { _id: 0, stable_name: 1, hids: 1 } }
-    )
+    .find({ stable_name: { $ne: null } })
     .toArray();
   return ob;
 };
-const get_all_hids = async () => {
+const update_hids_list = async () => {
   if (!stable_ob) stable_ob = await get_stable_ob();
   let hids = [];
-  for (let { stable_name, hids, payments } of ar) {
-    for (let p of payments)
-      if (p.status == "paid") hids = [...hids, ...p.add_hids];
+  let un = [];
+  for (let { payments } of stable_ob) {
+    for (let p of payments) {
+      if (p.status == "paid") {
+        hids.push(p?.add_hids ?? []);
+      } else {
+        un.push(p?.add_hids ?? []);
+      }
+    }
   }
-  return hids;
+  all_hids = _.compact(_.flatten(hids));
+  unpaid_hids = _.compact(_.flatten(un));
 };
 
 const get_stable_name = (hid) => {
@@ -99,7 +99,7 @@ const get_stable_name = (hid) => {
   return "na-stable";
 };
 
-const update_list = async () => {
+const update_hid_docs = async () => {
   let ob = { id: "master", hids: all_hids };
   await zed_db.db
     .collection(coll2)
@@ -110,7 +110,19 @@ const update_list = async () => {
     .toArray();
   hids_exists = _.map(hids_exists, "hid");
   let miss = _.difference(all_hids, hids_exists);
-  await Promise.all(miss.map(calc_horse_points));
+  if (!_.isEmpty(miss)) await Promise.all(miss.map(calc_horse_points));
+  if (!_.isEmpty(unpaid_hids))
+    await zed_db.db.collection(coll2).deleteMany({ hid: { $in: unpaid_hids } });
+};
+
+const init_run = async () => {
+  console.log("init");
+  stable_ob = await get_stable_ob();
+  await update_hids_list();
+  console.log("stables:", stable_ob.length);
+  console.log("paid  :", all_hids.length);
+  console.log("unpaid:", unpaid_hids.length);
+  await update_hid_docs();
 };
 
 const run_cron = () => {
