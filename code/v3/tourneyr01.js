@@ -9,7 +9,7 @@ const utils = require("../utils/utils");
 
 const coll = "tourneyr01";
 const coll2 = "tourneyr01_leader";
-const dur = 2.1 * 60 * 1000;
+const dur = 2.2 * 60 * 1000;
 
 let t_st_date = "2022-01-19T00:00:00.000Z";
 let t_ed_date = "2022-01-26T00:00:00.000Z";
