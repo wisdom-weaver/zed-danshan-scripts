@@ -137,6 +137,10 @@ const main = async (args) => {
       let ob = mod.ymca2_table.get(1);
       console.table(ob);
     }
+    if (arg2 == "test") {
+      let ob = mod.ymca2_table.test(1);
+      console.table(ob);
+    }
   } else if (arg1 == "--mega") {
     let def_cs = 25;
     if (arg2 == "all") {
