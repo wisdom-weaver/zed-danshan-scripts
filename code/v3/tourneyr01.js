@@ -12,6 +12,7 @@ const coll2 = "tourneyr01_leader";
 const dur = 2.1 * 60 * 1000;
 
 let t_st_date = "2022-01-19T00:00:00.000Z";
+let t_ed_date = "2022-01-26T00:00:00.000Z";
 
 let stable_ob = [];
 let all_hids = [];
@@ -22,7 +23,10 @@ const calc_horse_points = async (hid) => {
   let races =
     (await zed_ch.db
       .collection("zed")
-      .find({ 2: { $gte: t_st_date }, 6: hid }, { projection: { 6: 1, 8: 1 } })
+      .find(
+        { 2: { $gte: t_st_date, $lte: t_ed_date }, 6: hid },
+        { projection: { 6: 1, 8: 1 } }
+      )
       .toArray()) ?? [];
   let poss = _.map(races, (i) => parseFloat(i[8]));
   let pts = poss.reduce((acc, e) => (acc + [1, 2, 3].includes(e) ? 1 : 0), 0);
