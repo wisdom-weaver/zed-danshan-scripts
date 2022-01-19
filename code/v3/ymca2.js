@@ -7,7 +7,7 @@ const utils = require("../utils/utils");
 const { calc_race_score } = require("./race_score");
 
 let test_mode = 0;
-let cs = 25;
+let cs = 100;
 let z_ALL;
 let ymca2_avgs;
 const name = "ymca2";
