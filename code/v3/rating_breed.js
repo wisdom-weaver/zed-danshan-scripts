@@ -145,8 +145,8 @@ const get_ymca_global_avg = async ({ bloodline, breed_type, genotype }) => {
 const calc = async ({ hid }) => {
   if (!z_ALL || !ymca2_avgs) get_reqs();
   try {
-    let ymca2 = await ymca2_s.generate(hid);
-    ymca2 = ymca2.ymca2;
+    // let ymca2 = await ymca2_s.generate(hid);
+    // ymca2 = ymca2.ymca2;
     hid = parseInt(hid);
     if (hid == null || isNaN(hid)) return null;
     let kids = (await get_kids_existing(hid)) || [];
@@ -159,7 +159,7 @@ const calc = async ({ hid }) => {
         br: null,
         kids_n: 0,
         is: null,
-        ymca2,
+        // ymca2,
       };
       if (test_mode)
         console.log(
@@ -169,8 +169,8 @@ const calc = async ({ hid }) => {
           0,
           "br:",
           null,
-          "ymca2:",
-          dec(ymca2, 2)
+          // "ymca2:",
+          // dec(ymca2, 2)
         );
       return empty_kg;
     }
@@ -261,7 +261,7 @@ const calc = async ({ hid }) => {
       avg,
       br,
       kids_n,
-      ymca2,
+      // ymca2,
     };
     // console.log({ avg: dec2(avg), br: dec2(br) });
     if (test_mode)
@@ -272,8 +272,8 @@ const calc = async ({ hid }) => {
         kids_n,
         "br:",
         dec(br, 2),
-        "ymca2:",
-        dec(ymca2, 2)
+        // "ymca2:",
+        // dec(ymca2, 2)
       );
     return kg;
   } catch (err) {
