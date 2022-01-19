@@ -29,13 +29,14 @@ const calc_horse_points = async (hid) => {
       )
       .toArray()) ?? [];
   let poss = _.map(races, (i) => parseFloat(i[8]));
-  let pts = poss.reduce((acc, e) => (acc + [1, 2, 3].includes(e) ? 1 : 0), 0);
+  let pts = poss.reduce((acc, e) => acc + ([1, 2, 3].includes(e) ? 1 : 0), 0);
   let avg = pts / poss.length;
   if (poss.length == 0) avg = 0;
   let traces_n = poss.length;
   let stable_name = get_stable_name(hid);
   let ob = { hid, pts, avg, traces_n, stable_name };
   console.log(`::${hid} #${traces_n}`, { avg, pts });
+  console.log(poss);
   await zed_db.db
     .collection(coll2)
     .updateOne({ hid }, { $set: ob }, { upsert: true });
@@ -154,21 +155,8 @@ const run_cron_h = async () => {
   cron.schedule(cron_str, runner, utils.cron_conf);
 };
 const test = async () => {
-  // let ar = await zed_db.db
-  //   .collection(coll)
-  //   .find({ stable_name: { $ne: null } })
-  //   .toArray();
-  // for (let { stable_name, hids, payments } of ar) {
-  //   let add_hids = hids;
-  //   let id = `payments.${0}.add_hids`;
-  //   await zed_db.db.collection(coll).updateOne(
-  //     { stable_name },
-  //     {
-  //       $set: { [id]: add_hids },
-  //     },
-  //     { upsert: true }
-  //   );
-  // }
+  let hid = 191385;
+  await calc_horse_points(hid);
   console.log("done");
 };
 const main = () => {};
