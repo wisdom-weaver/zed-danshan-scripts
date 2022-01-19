@@ -129,7 +129,7 @@ const init_run = async () => {
   await update_hid_docs();
 };
 
-const run_cron = () => {
+const run_cron = async () => {
   console.log("run_cron");
   let cron_str = "*/2 * * * *";
   const c_itvl = cron_parser.parseExpression(cron_str);
@@ -138,14 +138,14 @@ const run_cron = () => {
   cron.schedule(cron_str, runner, utils.cron_conf);
 };
 
-const now_h = () => {
+const now_h = async () => {
   await init_run();
   for (let chu of _.chunk(all_hids, 25)) {
     await Promise.all(chu.map(calc_horse_points));
   }
 };
 
-const run_cron_h = () => {
+const run_cron_h = async () => {
   console.log("run_cron_h");
   let cron_str = "*/5 * * * *";
   const c_itvl = cron_parser.parseExpression(cron_str);
