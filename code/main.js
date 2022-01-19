@@ -252,6 +252,12 @@ const main = async (args) => {
     if (arg2 == "run_cron") {
       tourneyr01.run_cron();
     }
+    if (arg2 == "now_h") {
+      tourneyr01.now_h();
+    }
+    if (arg2 == "run_cron_h") {
+      tourneyr01.run_cron_h();
+    }
     if (arg2 == "run_dur") {
       tourneyr01.run_dur(arg3);
     }

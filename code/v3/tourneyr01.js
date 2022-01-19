@@ -137,6 +137,22 @@ const run_cron = () => {
   let runner = now;
   cron.schedule(cron_str, runner, utils.cron_conf);
 };
+
+const now_h = () => {
+  await init_run();
+  for (let chu of _.chunk(all_hids, 25)) {
+    await Promise.all(chu.map(calc_horse_points));
+  }
+};
+
+const run_cron_h = () => {
+  console.log("run_cron_h");
+  let cron_str = "*/5 * * * *";
+  const c_itvl = cron_parser.parseExpression(cron_str);
+  console.log("Next run:", c_itvl.next().toISOString(), "\n");
+  let runner = now_h;
+  cron.schedule(cron_str, runner, utils.cron_conf);
+};
 const test = async () => {
   // let ar = await zed_db.db
   //   .collection(coll)
@@ -156,5 +172,5 @@ const test = async () => {
   console.log("done");
 };
 const main = () => {};
-const tourneyr01 = { test, run_cron, now, run_dur };
+const tourneyr01 = { test, run_cron, now, run_dur, now_h, run_cron_h };
 module.exports = tourneyr01;
