@@ -141,9 +141,11 @@ const run_cron = async () => {
 
 const now_h = async () => {
   await init_run();
+  console.log("now_h:", iso());
   for (let chu of _.chunk(all_hids, 25)) {
     await Promise.all(chu.map(calc_horse_points));
   }
+  console.log("now_h:", iso(), "\n----------");
 };
 
 const run_cron_h = async () => {
