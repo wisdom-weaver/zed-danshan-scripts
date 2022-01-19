@@ -36,7 +36,7 @@ const calc_horse_points = async (hid) => {
   let stable_name = get_stable_name(hid);
   let ob = { hid, pts, avg, traces_n, stable_name };
   console.log(`::${hid} #${traces_n}`, { avg, pts });
-  console.log(poss);
+  // console.log(poss);
   await zed_db.db
     .collection(coll2)
     .updateOne({ hid }, { $set: ob }, { upsert: true });
