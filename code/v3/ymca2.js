@@ -3,6 +3,7 @@ const { zed_db, zed_ch } = require("../connection/mongo_connect");
 const global_req = require("../global_req/global_req");
 const bulk = require("../utils/bulk");
 const { struct_race_row_data } = require("../utils/cyclic_dependency");
+const utils = require("../utils/utils");
 const { calc_race_score } = require("./race_score");
 
 let test_mode = 0;
@@ -22,6 +23,7 @@ const get_reqs = () => {
 const get_z_med = async ({ bloodline, breed_type, genotype }) => {
   if (!genotype) return null;
   let id = "";
+  console.log(id);
   let z = genotype?.slice(1);
   z = "z" + z.toString().padStart(3, "0");
   bloodline = bloodline.toString().toLowerCase();
@@ -44,23 +46,48 @@ const get_z_ALL_meds = async () => {
   return ob;
 };
 
+const get_z_avg_of_race = async (rid) => {
+  let docs = await zed_ch.db
+    .collection("zed")
+    .find({ 4: rid }, { projection: { 6: 1 } })
+    .toArray();
+  let hids = _.map(docs, 6);
+  let docs2 = await zed_db.db
+    .collection("horse_details")
+    .find(
+      { hid: { $in: hids } },
+      { projection: { genotype: 1, hid: 1, _id: 0 } }
+    )
+    .toArray();
+  let avg_z = _.map(docs2, "genotype");
+  avg_z = avg_z.map((e) => utils.geno(e));
+  avg_z = _.mean(avg_z);
+  return avg_z;
+};
+
 const calc = async ({ hid, races = [], details }) => {
   try {
     if (!z_ALL || !ymca2_avgs) get_reqs();
     if (_.isEmpty(races)) return null;
     races = _.sortBy(races, "date");
     races = races.slice(0, first_n_races);
-    let avg_z = await get_z_med(details);
-    if (test_mode) console.log("avg_z", avg_z);
+    // if (test_mode) console.log("avg_z", avg_z);
+    let rids = _.map(races, "raceid");
+    let avg_z_ob = await Promise.all(
+      rids.map((rid) => get_z_avg_of_race(rid).then((d) => [rid, d]))
+    );
+    avg_z_ob = _.fromPairs(avg_z_ob);
     let r_ob = races.map((r) => {
-      let { thisclass: rc, fee_tag, place: position, flame } = r;
+      let { thisclass: rc, fee_tag, place: position, flame, raceid } = r;
       let score = calc_race_score({ rc, fee_tag, position, flame });
+      let avg_z = Math.min(avg_z_ob[raceid], 29);
       let final_score = score * 0.1 - avg_z * 0.02;
       return {
         rc,
         fee_tag,
         position,
         flame,
+        avg_z,
         score,
         final_score,
       };
