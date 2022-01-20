@@ -1,10 +1,13 @@
 const _ = require("lodash");
 const { zed_ch, zed_db } = require("../connection/mongo_connect");
 const { options } = require("../utils/options");
+const utils = require("../utils/utils");
 const { geno, dec } = require("../utils/utils");
 
 const coll = "rating_breed3";
 let doc_id = "ymca2-global-avgs";
+
+let ymca2_avgs;
 
 const bloodlines = ["Nakamoto", "Szabo", "Finney", "Buterin"];
 const breed_types = [
@@ -42,7 +45,10 @@ const z_mi_mx = {
   "Buterin-pacer": [13, 268],
 };
 
-const get_z_table_for_id = async (id) => {
+const get_z_table_for_id_bkp = async (id) => {
+  return ymca2_avgs[id];
+};
+const get_z_table_for_id_v1 = async (id) => {
   let [bl, bt, z] = id.split("-");
   let ar = await zed_db.db
     .collection("horse_details")
@@ -95,7 +101,67 @@ const get_z_table_for_id = async (id) => {
     br_max,
   };
 };
-const generate = async () => {
+const get_z_table_for_id_v2 = async (id) => {
+  let [bl, bt, z] = id.split("-");
+  let ar = await zed_db.db
+    .collection("horse_details")
+    .find(
+      {
+        bloodline: bl,
+        breed_type: bt,
+        genotype: z,
+      },
+      { projection: { _id: 0, hid: 1 } }
+    )
+    .toArray();
+  let hids = _.map(ar, "hid") || [];
+  let docs = await zed_db.db
+    .collection(coll)
+    .find({ hid: { $in: hids } }, { projection: { _id: 0, ymca2: 1, br: 1 } })
+    .toArray();
+
+  let scores = _.chain(docs).map("ymca2").compact().value();
+  let filt_scores = utils.remove_bullshits(scores);
+  // console.log("all__scores.length", scores.length);
+  // console.log("filt_scores.length", filt_scores.length);
+
+  let brs = _.chain(docs)
+    .map("br")
+    .filter((i) => i !== Infinity)
+    .compact()
+    .value();
+
+  let y_avg = _.mean(filt_scores);
+  if (!y_avg || _.isNaN(y_avg)) y_avg = null;
+
+  let y_min = _.min(scores);
+  if (!y_min || _.isNaN(y_min)) y_min = null;
+  let y_max = _.max(scores);
+  if (!y_max || _.isNaN(y_max)) y_max = null;
+
+  let br_avg = _.mean(brs);
+  if (!br_avg || _.isNaN(br_avg)) br_avg = null;
+  let br_min = _.min(brs);
+  if (!br_min || _.isNaN(br_min)) br_min = null;
+  let br_max = _.max(brs);
+  if (!br_max || _.isNaN(br_max)) br_max = null;
+
+  console.log(id);
+  return {
+    count_all: ar.length,
+    count: scores.length,
+    count_: brs.length,
+    y_avg,
+    y_min,
+    y_max,
+    br_min,
+    br_avg,
+    br_max,
+  };
+};
+const get_z_table_for_id = get_z_table_for_id_v2;
+
+const generate_v1 = async () => {
   let ob = {};
   let keys = [];
 
@@ -144,6 +210,43 @@ const generate = async () => {
     );
   console.log("done");
 };
+const generate_v2 = async () => {
+  let ob = {};
+  for (let [bl_idx, bl] of _.entries(bloodlines)) {
+    for (let [bt_idx, bt] of _.entries(breed_types)) {
+      let id_st = `${bl}-${bt}`;
+      let [z_mi, z_mx] = z_mi_mx[id_st];
+      for (let z = z_mi; z <= z_mx; z++) {
+        let id = `${bl}-${bt}-Z${z}`;
+        let id_ob = await get_z_table_for_id(id);
+        y_avg = id_ob?.y_avg;
+        if (bt == "genesis" && z == z_mi) {
+          ob[id] = { base: y_avg, y_avg };
+        } else if (z == z_mi) {
+          let prev_id = `${bl}-${breed_types[bt_idx - 1]}-Z${z}`;
+          let prev = ob[prev_id];
+          ob[id] = { base: prev.base * 0.85, y_avg };
+        } else {
+          let prev_id = `${bl}-${bt}-Z${z - 1}`;
+          let prev = ob[prev_id];
+          ob[id] = { base: prev.base * 0.95, y_avg };
+        }
+        ob[id] = { ...id_ob, ...ob[id] };
+      }
+    }
+  }
+  for (let [id, { base, y_avg, count_all }] of _.entries(ob)) {
+    let final;
+    if (count_all < 50) {
+      if (y_avg == null) final = base;
+      else if (_.inRange(y_avg, base * 0.9, base * 1.1 + 1e-14)) final = y_avg;
+      else if (y_avg < base * 0.9) final = base * 0.9;
+      else if (y_avg > base * 1.1) final = base * 1.1;
+    } else final = y_avg;
+    ob[id].avg = final;
+  }
+  console.table(ob);
+};
 
 const get = async (print = 0) => {
   let doc = await zed_db.db.collection("requirements").findOne({ id: doc_id });
@@ -153,8 +256,13 @@ const get = async (print = 0) => {
   return avgs;
 };
 
-const test = async () => {};
+const test = async () => {
+  let id = "Buterin-pacer-Z208";
+  let ob = await get_z_table_for_id2(id);
+  console.log(ob);
+};
+
+const generate = generate_v2;
 
 const ymca2_table = { generate, get, test };
-
 module.exports = ymca2_table;

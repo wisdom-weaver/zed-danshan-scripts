@@ -213,6 +213,34 @@ const get_n = (n) => {
   return n;
 };
 
+const remove_bullshits = (ar) => {
+  let n = ar.length;
+  let nar = [];
+  let idx_ar = new Array(n).fill(0).map((e, i) => i);
+  for (let c = 0; c < n; c++) {
+    let val = ar[c];
+    nar[c] = { val };
+  }
+
+  const mean_diff = _.mean(_.compact(_.map(_.values(nar), "val")));
+  // console.log(mean_diff)
+
+  nar = nar.map((i, idx) => {
+    let { val } = nar[idx];
+    let onlys = _.filter(idx_ar, (i) => ar[i] !== val);
+    onlys = _.compact(onlys.map((ec) => nar[ec].val || null));
+    let ex_mean = _.mean(onlys);
+    if (_.sum(onlys) == 0) ex_mean = mean_diff;
+    let ex_val = mean_diff / ex_mean;
+    let range_pm = 0.25;
+    let bullshit = !_.inRange(ex_val, 1 - range_pm, 1 + range_pm);
+    return { val, ex_mean, ex_val, bullshit };
+  });
+  nar = _.filter(nar, (i) => i.bullshit !== true);
+  // console.table(nar);
+  return _.map(nar, "val");
+};
+
 const utils = {
   calc_avg,
   write_to_path,
@@ -238,6 +266,7 @@ const utils = {
   get_hids,
   cron_conf,
   get_n,
+  remove_bullshits,
 };
 
 module.exports = utils;
