@@ -247,6 +247,14 @@ const generate_v2 = async () => {
     ob[id].avg = final;
   }
   console.table(ob);
+  await zed_db.db
+    .collection("requirements")
+    .updateOne(
+      { id: doc_id },
+      { $set: { id: doc_id, avg_ob: ob } },
+      { upsert: true }
+    );
+  console.log("done");
 };
 
 const get = async (print = 0) => {
