@@ -132,6 +132,7 @@ const get_z_table_for_id_v2 = async (id) => {
     .value();
 
   let y_avg = _.mean(filt_scores);
+  if (!y_avg || _.isNaN(y_avg)) y_avg = _.mean(scores);
   if (!y_avg || _.isNaN(y_avg)) y_avg = null;
 
   let y_min = _.min(scores);
