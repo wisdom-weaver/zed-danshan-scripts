@@ -147,11 +147,15 @@ const get_z_table_for_id_v2 = async (id) => {
   let br_max = _.max(brs);
   if (!br_max || _.isNaN(br_max)) br_max = null;
 
-  console.log(id);
+  let avg = y_avg;
+  console.log(id, avg);
+
   return {
     count_all: ar.length,
     count: scores.length,
     count_: brs.length,
+    base: null,
+    avg,
     y_avg,
     y_min,
     y_max,
@@ -266,9 +270,35 @@ const get = async (print = 0) => {
 };
 
 const test = async () => {
-  let id = "Buterin-pacer-Z208";
-  let ob = await get_z_table_for_id2(id);
-  console.log(ob);
+  // let ob = await get();
+  // let keys = [];
+  // for (let [bl_idx, bl] of _.entries(bloodlines)) {
+  //   for (let [bt_idx, bt] of _.entries(breed_types)) {
+  //     let id_st = `${bl}-${bt}`;
+  //     let [z_mi, z_mx] = z_mi_mx[id_st];
+  //     for (let z = z_mi; z <= z_mx; z++) {
+  //       keys.push(`${bl}-${bt}-Z${z}`);
+  //     }
+  //   }
+  // }
+  // ob = _.entries(ob).map(([id, e], idx) => {
+  //   return [keys[idx], { ...e, avg: e.y_avg, base: null }];
+  // });
+  // console.log(ob.length);
+  // ob = _.fromPairs(ob);
+  // // console.table(ob);
+  // console.log(keys.length);
+  // await zed_db.db
+  //   .collection("requirements")
+  //   .updateOne(
+  //     { id: doc_id },
+  //     { $set: { id: doc_id, avg_ob: ob } },
+  //     { upsert: true }
+  //   );
+  // await zed_db.db
+  //   .collection("rating_breed3")
+  //   .updateMany({}, { $set: { br: 1 } });
+  console.log("done");
 };
 
 const generate = generate_v2;
