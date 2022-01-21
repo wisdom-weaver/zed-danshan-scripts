@@ -141,6 +141,20 @@ const get_ymca_global_avg = async ({ bloodline, breed_type, genotype }) => {
   let id = `${bloodline}-${breed_type}-${genotype}`;
   return ymca2_avgs[id]?.avg || null;
 };
+let logi_bonus_ar = [
+  [0.0, 0.5, 0.0],
+  [0.5, 0.6, 0.1],
+  [0.6, 0.7, 0.2],
+  [0.7, 0.8, 0.3],
+  [0.8, 0.9, 0.4],
+  [0.9, 1.0, 0.5],
+];
+
+const get_logi_bonus = (logi) => {
+  for (let [mi, mx, val] of logi_bonus_ar)
+    if (_.inRange(logi, mi, mx + 1e-14)) return val;
+  return 0;
+};
 
 const calc = async ({ hid }) => {
   if (!z_ALL || !ymca2_avgs) get_reqs();
@@ -241,6 +255,20 @@ const calc = async ({ hid }) => {
     let avg = _.chain(kids_scores_ob).values().compact().mean().value();
     let adjs = _.chain(kids).map("adj").values().compact().value();
     let good_adjs = _.chain(kids).map("good_adj").compact().sum().value();
+
+    let good_n = _.chain(kids)
+      .map("good_adj")
+      .filter((i) => i.ymca2 !== null && i.good_adj > 0)
+      .value();
+    let bad_n = _.chain(kids)
+      .map("good_adj")
+      .filter((i) => i.ymca2 !== null && i.good_adj < 0)
+      .value();
+    let logi = (good_n ?? 0) / (bad_n ?? 1);
+    let bonus = get_logi_bonus(logi);
+    let diff = Math.max(0, good_n, bad_n);
+    let kids_n_bonus = Math.log((diff == 0 && 1) || (diff == 1 && 1.6) || diff);
+    let added_bonus = Math.max(0.5, bonus * kids_n_bonus);
     let br;
     if (adjs.length == 0) br = null;
     else {
@@ -250,10 +278,13 @@ const calc = async ({ hid }) => {
 
     if (test_mode) console.log({ adjs });
     if (test_mode) console.log({ good_adjs });
+    if (test_mode) console.log({ added_bonus });
 
     if (br !== null) {
       br += good_adjs;
     }
+    if (!added_bonus || _.isNaN(added_bonus)) added_bonus = 0;
+    br += added_bonus;
 
     let kg = {
       hid,
