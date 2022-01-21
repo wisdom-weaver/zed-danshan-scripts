@@ -287,6 +287,17 @@ const generate = async (hid) => {
   return ob;
 };
 const test = async (hids) => {
+  hids = await zed_db.db
+    .collection("rating_breed3")
+    .find({ kids_n: { $ne: 0 }, br: null }, { projection: { _id: 0, hid: 1 } })
+    .toArray();
+  console.log(hids);
+  hids = _.map(hids, "hid");
+  hids = _.sortBy(hids, (hid) => +hid);
+  console.log("need to fix:", hids.length);
+  await only(hids);
+  return;
+
   test_mode = 1;
   for (let hid of hids) {
     let ob = await generate(hid);
