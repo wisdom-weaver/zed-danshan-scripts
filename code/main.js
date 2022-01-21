@@ -213,6 +213,14 @@ const main = async (args) => {
     if (arg2 == "new_hdocs") {
       mod.horses.get_new_hdocs();
     }
+    if (arg2 == "range_hdocs") {
+      arg3 = JSON.parse(arg3) ?? [0, 0];
+      mod.horses.get_range_hdocs(arg3);
+    }
+    if (arg2 == "only_hdocs") {
+      arg3 = JSON.parse(arg3) ?? [0];
+      mod.horses.get_only_hdocs(arg3);
+    }
     if (arg2 == "fix_unnamed") {
       mod.horses.fix_unnamed();
     }

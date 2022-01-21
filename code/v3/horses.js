@@ -302,6 +302,31 @@ const get_new_hdocs = async () => {
     await delay(120000);
   }
 };
+const get_only_hdocs = async (hids) => {
+  let cs = def_cs;
+  let hids_all = hids.map((h) => parseInt(h));
+  console.log("hids_all", hids_all.length);
+  for (let chunk_hids of _.chunk(hids_all, cs)) {
+    console.log("GETTING", chunk_hids);
+    let resps = await add_hdocs(chunk_hids, cs);
+    await delay(100);
+    if (resps?.length == 0) {
+      console.log("break");
+      break;
+    }
+  }
+  console.log("end")
+};
+const get_range_hdocs = async (range) => {
+  let [st, ed] = range;
+  st = utils.get_n(st);
+  ed = utils.get_n(ed);
+  if (ed == "ed" || ed == null) ed = await get_ed_horse();
+  let cs = def_cs;
+  let hids_all = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
+  console.log([st, ed]);
+  await get_only_hdocs(hids_all);
+};
 
 const fix_unnamed = async () => {
   let cs = 10;
@@ -326,35 +351,7 @@ const fix_unnamed = async () => {
     )
     .toArray();
   let hids = _.map(docs, "hid");
-  console.log("got", hids.length, "Unnamed Foal");
-  for (let chunk of _.chunk(hids, cs)) {
-    let data = await Promise.all(
-      chunk.map((hid) => zed_horse_data_from_api(hid))
-    );
-    console.log(chunk.toString());
-    data = _.chain(data)
-      .compact()
-      .map((i) => {
-        let { hid, name } = i;
-        if (name == "Unnamed Foal") return null;
-        return [hid, name];
-      })
-      .compact()
-      .value();
-
-    let bulk = [];
-    for (let [hid, name] of data) {
-      bulk.push({
-        updateOne: {
-          filter: { hid },
-          update: { $set: { name } },
-        },
-      });
-    }
-    if (!_.isEmpty(bulk))
-      await zed_db.db.collection("horse_details").bulkWrite(bulk);
-    console.log("named:", data.length, _.map(data, 1).toString());
-  }
+  get_only_hdocs(hids);
   console.log("completed zed_horses_fix_unnamed_foal");
 };
 const fix_unnamed_cron = async () => {
@@ -368,11 +365,11 @@ const fix_unnamed_cron = async () => {
 const fix_stable_h1 = async (hid) => {
   hid = parseInt(hid);
   let doc = await zedf.horse(hid);
-  let name = doc.name;
+  // let name = doc.name;
   let oid = doc.owner;
   let stable_name = doc.owner_stable;
   let slug = doc.owner_stable_slug;
-  return { hid, name, oid, stable_name, slug };
+  return { hid, oid, stable_name, slug };
 };
 
 const fix_stable = () =>
@@ -395,6 +392,8 @@ const horses = {
   fix_stable,
   fix_stable_cron,
   get_new_hdocs,
+  get_only_hdocs,
+  get_range_hdocs,
   get_missings,
 };
 
