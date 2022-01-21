@@ -224,33 +224,11 @@ const generate_v2 = async () => {
       for (let z = z_mi; z <= z_mx; z++) {
         let id = `${bl}-${bt}-Z${z}`;
         let id_ob = await get_z_table_for_id(id);
-        y_avg = id_ob?.y_avg;
-        if (bt == "genesis" && z == z_mi) {
-          ob[id] = { base: y_avg, y_avg };
-        } else if (z == z_mi) {
-          let prev_id = `${bl}-${breed_types[bt_idx - 1]}-Z${z}`;
-          let prev = ob[prev_id];
-          ob[id] = { base: prev.base * 0.85, y_avg };
-        } else {
-          let prev_id = `${bl}-${bt}-Z${z - 1}`;
-          let prev = ob[prev_id];
-          ob[id] = { base: prev.base * 0.95, y_avg };
-        }
-        ob[id] = { ...id_ob, ...ob[id] };
+        ob[id] = { ...id_ob };
       }
     }
   }
-  for (let [id, { base, y_avg, count_all }] of _.entries(ob)) {
-    let final;
-    if (count_all < 50) {
-      if (y_avg == null) final = base;
-      else if (_.inRange(y_avg, base * 0.9, base * 1.1 + 1e-14)) final = y_avg;
-      else if (y_avg < base * 0.9) final = base * 0.9;
-      else if (y_avg > base * 1.1) final = base * 1.1;
-    } else final = y_avg;
-    ob[id].avg = final;
-  }
-  console.table(ob);
+  // console.table(ob);
   await zed_db.db
     .collection("requirements")
     .updateOne(
@@ -259,6 +237,7 @@ const generate_v2 = async () => {
       { upsert: true }
     );
   console.log("done");
+  return ob;
 };
 
 const get = async (print = 0) => {
@@ -281,11 +260,15 @@ const test = async () => {
   //     }
   //   }
   // }
+  // let a1 = await generate();
+  // console.log(a1);
   // ob = _.entries(ob).map(([id, e], idx) => {
-  //   return [keys[idx], { ...e, avg: e.y_avg, base: null }];
+  //   return [id, { ...e, avg: e.y_avg, base: null }];
   // });
-  // console.log(ob.length);
+  // ob = _.compact(ob);
   // ob = _.fromPairs(ob);
+  // console.table(ob);
+  // console.log(ob.length);
   // // console.table(ob);
   // console.log(keys.length);
   // await zed_db.db
