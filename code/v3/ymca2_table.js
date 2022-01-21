@@ -278,9 +278,9 @@ const test = async () => {
   //     { $set: { id: doc_id, avg_ob: ob } },
   //     { upsert: true }
   //   );
-  // await zed_db.db
-  //   .collection("rating_breed3")
-  //   .updateMany({}, { $set: { br: 1 } });
+  await zed_db.db
+    .collection("rating_breed3")
+    .updateMany({ br: { $gte: 3.5 } }, { $set: { br: null } });
   console.log("done");
 };
 
