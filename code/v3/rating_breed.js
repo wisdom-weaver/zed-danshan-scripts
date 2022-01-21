@@ -168,7 +168,7 @@ const calc = async ({ hid }) => {
           "kids_n:",
           0,
           "br:",
-          null,
+          null
           // "ymca2:",
           // dec(ymca2, 2)
         );
@@ -213,8 +213,8 @@ const calc = async ({ hid }) => {
     }));
     kids = kids.map((e) => {
       let fact;
-      if (e.ymca2 == 0 || e.gavg == 0 || _.isNaN(e.ymca2) || _.isNaN(e.gavg))
-        fact = null;
+      if (e.ymca2 == 0 || _.isNaN(e.ymca2)) fact = null;
+      else if (e.gavg == 0 || _.isNaN(e.gavg)) fact = e.ymca2;
       else fact = e.ymca2 / e.gavg;
       let adj;
       if (fact == null) adj = null;
@@ -271,7 +271,7 @@ const calc = async ({ hid }) => {
         "kids_n:",
         kids_n,
         "br:",
-        dec(br, 2),
+        dec(br, 2)
         // "ymca2:",
         // dec(ymca2, 2)
       );

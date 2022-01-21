@@ -3,6 +3,7 @@ const { zed_ch, zed_db } = require("../connection/mongo_connect");
 const { options } = require("../utils/options");
 const utils = require("../utils/utils");
 const { geno, dec } = require("../utils/utils");
+const rating_breed = require("./rating_breed");
 
 const coll = "rating_breed3";
 let doc_id = "ymca2-global-avgs";
@@ -281,6 +282,13 @@ const test = async () => {
   // await zed_db.db
   //   .collection("rating_breed3")
   //   .updateMany({ br: { $gte: 3.5 } }, { $set: { br: null } });
+  let hids = await zed_db.db
+    .collection("rating_breed3")
+    .find({ kids_n: { $ne: 0 }, br: null }, { projection: { _id: 0, hid: 1 } })
+    .toArray();
+  hids = _.sortBy(hids, (hid) => +hid);
+  console.log("need to fix:", hids.length);
+  rating_breed.only(hids);
   console.log("done");
 };
 
