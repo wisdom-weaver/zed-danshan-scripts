@@ -158,7 +158,7 @@ const get_logi_bonus = (logi) => {
 
 const N = 10;
 const log_fact = 0.07;
-const bonus_cap = 2;
+const bonus_cap = 0.9;
 const bad_fact = 0.8;
 
 const calc = async ({ hid }) => {
