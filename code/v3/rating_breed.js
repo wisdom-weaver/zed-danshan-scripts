@@ -142,19 +142,24 @@ const get_ymca_global_avg = async ({ bloodline, breed_type, genotype }) => {
   return ymca2_avgs[id]?.avg || null;
 };
 let logi_bonus_ar = [
-  [0.0, 0.5, 0.0],
-  [0.5, 0.6, 0.1],
-  [0.6, 0.7, 0.2],
-  [0.7, 0.8, 0.3],
-  [0.8, 0.9, 0.4],
-  [0.9, 1.0, 0.5],
+  [0.1, 0.5, 0.6],
+  [0.2, 0.6, 0.7],
+  [0.3, 0.7, 0.8],
+  [0.4, 0.8, 0.9],
+  [0.5, 0.9, 0.99],
+  [0.6, 1.0, 1.0],
 ];
 
 const get_logi_bonus = (logi) => {
-  for (let [mi, mx, val] of logi_bonus_ar)
+  for (let [val, mi, mx] of logi_bonus_ar)
     if (_.inRange(logi, mi, mx + 1e-14)) return val;
   return 0;
 };
+
+const N = 10;
+const log_fact = 0.07;
+const bonus_cap = 2;
+const bad_fact = 0.8;
 
 const calc = async ({ hid }) => {
   if (!z_ALL || !ymca2_avgs) get_reqs();
@@ -256,19 +261,27 @@ const calc = async ({ hid }) => {
     let adjs = _.chain(kids).map("adj").values().compact().value();
     let good_adjs = _.chain(kids).map("good_adj").compact().sum().value();
 
-    let good_n = _.chain(kids)
-      .map("good_adj")
-      .filter((i) => i.ymca2 !== null && i.good_adj > 0)
-      .value();
-    let bad_n = _.chain(kids)
-      .map("good_adj")
-      .filter((i) => i.ymca2 !== null && i.good_adj < 0)
-      .value();
-    let logi = (good_n ?? 0) / (bad_n ?? 1);
-    let bonus = get_logi_bonus(logi);
-    let diff = Math.max(0, good_n, bad_n);
-    let kids_n_bonus = Math.log((diff == 0 && 1) || (diff == 1 && 1.6) || diff);
-    let added_bonus = Math.max(0.5, bonus * kids_n_bonus);
+    let good_n =
+      _.chain(kids)
+        .filter((i) => i?.ymca2 !== null && i.good_adj > 0)
+        .value()?.length ?? 0;
+    let bad_n =
+      _.chain(kids)
+        .filter((i) => i?.ymca2 !== null && i.good_adj < 0)
+        .value()?.length ?? 0;
+    if (test_mode) console.log({ good_n, bad_n });
+    let logi = (good_n ?? 0) / (kids_n || 1);
+    if (test_mode) console.log("good/total", logi);
+    let base_bonus = get_logi_bonus(logi);
+    if (test_mode) console.log("base bonus", base_bonus);
+    let diff = Math.max(0, good_n - bad_n * bad_fact);
+    if (test_mode) console.log("diff", diff);
+    let log_n = (diff <= 0 && 1) || (diff == 1 && 1.2) || diff;
+    if (test_mode) console.log("log_n", log_n);
+    let kids_n_bonus = Math.log(log_n) * log_fact;
+    if (test_mode) console.log("kids_n bonus", kids_n_bonus);
+    let added_bonus = Math.min(bonus_cap, base_bonus + kids_n_bonus);
+    if (test_mode) console.log("added bonus", added_bonus);
     let br;
     if (adjs.length == 0) br = null;
     else {
