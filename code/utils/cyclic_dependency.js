@@ -135,6 +135,13 @@ const get_ed_horse = async () => {
   return end_doc?.hid;
 };
 
+const get_all_hids = async () => {
+  let ed = await get_ed_horse();
+  let st = 1;
+  let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
+  return hids;
+};
+
 const cyclic_depedency = {
   get_races_of_hid,
   from_ch_zed_collection,
@@ -143,6 +150,7 @@ const cyclic_depedency = {
   initiate,
   general_bulk_push,
   get_ed_horse,
+  get_all_hids,
 };
 
 module.exports = cyclic_depedency;
