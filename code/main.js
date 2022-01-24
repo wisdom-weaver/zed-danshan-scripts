@@ -258,6 +258,9 @@ const main = async (args) => {
     if (arg2 == "run") {
       z_stats.run();
     }
+    if (arg2 == "generate") {
+      z_stats.generate();
+    }
   } else if (arg1 == "--tourneyr01") {
     if (arg2 == "test") {
       tourneyr01.test();
