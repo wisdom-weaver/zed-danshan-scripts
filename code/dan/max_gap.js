@@ -23,6 +23,7 @@ const raw_race_runner = async (races) => {
     // console.log(rid, ar.length);
     if (_.isEmpty(ar)) continue;
     let date = ar[0].date;
+    let dist = ar[0].distance;
     let f_ob = _.chain(ar).keyBy("place").mapValues("flame").value();
     let hid_ob = _.chain(ar).keyBy("place").mapValues("hid").value();
     let t_ob = _.chain(ar).keyBy("place").mapValues("finishtime").value();
@@ -35,7 +36,23 @@ const raw_race_runner = async (races) => {
     let hid_12 = hid_ob[12];
     let f_1 = f_ob[1];
     let f_12 = f_ob[12];
-    let ob = { rid, hid_1, hid_12, g_1_2, g_11_12, f_1, f_12, date };
+
+    let eg_1_2 = (g_1_2 * 1000) / dist;
+    let eg_11_12 = (g_11_12 * 1000) / dist;
+
+    let ob = {
+      rid,
+      hid_1,
+      hid_12,
+      g_1_2,
+      g_11_12,
+      eg_1_2,
+      eg_11_12,
+      f_1,
+      f_12,
+      date,
+      dist,
+    };
     data.push(ob);
   }
   let bulk = [];
