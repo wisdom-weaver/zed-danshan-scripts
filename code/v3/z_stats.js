@@ -134,7 +134,11 @@ const generate = async () => {
           let ob = await get_z_stats({ genotype, place, dist, flame });
           await zed_db.db
             .collection("z_stats")
-            .updateOne({ genotype, place, dist, flame }, { $set: ob });
+            .updateOne(
+              { genotype, place, dist, flame },
+              { $set: ob },
+              { upsert: true }
+            );
         }
   console.log("Ended");
 };
