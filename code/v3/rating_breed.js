@@ -21,6 +21,7 @@ const ymca2_s = require("./ymca2");
 const global_req = require("../global_req/global_req");
 const bulk = require("../utils/bulk");
 const cyclic_depedency = require("../utils/cyclic_dependency");
+const utils = require("../utils/utils");
 
 let mx = 11000;
 let st = 1;
@@ -354,7 +355,7 @@ const fixer = async () => {
     let hids = await zed_db.db
       .collection(coll)
       .find(
-        { hid: { $in: chunk }, br: { $ne: null, $gt: 3 } },
+        { hid: { $in: chunk }, br: { $ne: null, $gt: 6 } },
         { projection: { hid: 1 } }
       )
       .toArray();
@@ -366,6 +367,7 @@ const fixer = async () => {
   await zed_db.db
     .collection(coll)
     .updateMany({ hid: { $in: fix_hids } }, { $set: { br: 1 } });
+  await utils.delay(3000);
   await only(fix_hids);
   console.log("ENDED fixer");
 };
