@@ -105,6 +105,7 @@ const get_zed_raw_data = async (from, to) => {
       let node_raceId = node.raceId;
       let node_class = node.class;
       let horses = node.horses;
+      let race_name = node.name;
 
       racesData[node_raceId] = {};
       for (let horseIndex in horses) {
@@ -130,6 +131,7 @@ const get_zed_raw_data = async (from, to) => {
           11: 0,
           12: 0,
           16: horses_class,
+          17: race_name,
         };
       }
     }
@@ -457,11 +459,12 @@ const zed_race_base_data = async (rid) => {
     length: distance,
     start_time: date,
     status,
+    name: race_name,
   } = doc;
   if (status !== "finished") return null;
   let hids = _.values(gates);
   if (!date.endsWith("Z")) date += "Z";
-  let ob = { rid, thisclass, hids, entryfee, distance, date };
+  let ob = { rid, thisclass, hids, entryfee, distance, date, race_name };
   // console.log("base struct", ob);
   return ob;
 };
@@ -477,7 +480,7 @@ const zed_races_zrapi_rid_runner = async (rid, conf = { mode: "err" }) => {
     console.log("couldnt get race", rid);
     return [];
   }
-  let { hids, thisclass, entryfee, distance, date } = base;
+  let { hids, thisclass, entryfee, distance, date, race_name } = base;
   let fee_cat = get_fee_cat_on({ date, fee: entryfee });
   let ar = hids.map((hid) => {
     return {
@@ -502,6 +505,7 @@ const zed_races_zrapi_rid_runner = async (rid, conf = { mode: "err" }) => {
     13: i.flame,
     14: fee_cat,
     15: 0,
+    17: race_name,
   }));
   let adj_ob = await get_adjusted_finish_times(rid, "raw_data", ar);
   // console.log(rid, adj_ob);
