@@ -20,6 +20,7 @@ const {
 const ymca2_s = require("./ymca2");
 const global_req = require("../global_req/global_req");
 const bulk = require("../utils/bulk");
+const cyclic_depedency = require("../utils/cyclic_dependency");
 
 let mx = 11000;
 let st = 1;
@@ -344,6 +345,28 @@ const only = async (hids) =>
 const range = async (st, ed) =>
   bulk.run_bulk_range(name, generate, coll, st, ed, cs, test_mode);
 
+const fixer = async () => {
+  let fix_hids = [];
+  let all_hids = await cyclic_depedency.get_all_hids();
+  for (let chunk of _.chunk(all_hids, 5000)) {
+    let hids = await zed_db.db
+      .collection(coll)
+      .find(
+        { hid: { $in: chunk }, br: { $ne: null, $gt: 3 } },
+        { projection: { hid: 1 } }
+      )
+      .toArray();
+    hids = _.map(hids, "hid");
+    console.log("GOT", hids.length);
+    fix_hids = [...fix_hids, ...hids];
+    // console.log(fix_hids)
+  }
+  await zed_db.db
+    .collection(coll)
+    .updateMany({ hid: { $in: fix_hids } }, { $set: { br: 1 } });
+  await only(fix_hids);
+};
+
 const rating_breed = {
   generate,
   calc,
@@ -351,5 +374,6 @@ const rating_breed = {
   all,
   only,
   range,
+  fixer,
 };
 module.exports = rating_breed;

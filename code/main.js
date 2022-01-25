@@ -149,6 +149,9 @@ const main = async (args) => {
       let [a, b] = [parseInt(arg3), parseInt(arg4)];
       mod.rating_breed.range(a, b);
     }
+    if (arg2 == "fixer") {
+      mod.rating_breed.fixer();
+    }
   } else if (arg1 == "--ymca2_table") {
     if (arg2 == "generate") mod.ymca2_table.generate();
     if (arg2 == "get") {

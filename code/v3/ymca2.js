@@ -165,7 +165,7 @@ const fixer = async () => {
     let hids = await zed_db.db
       .collection(coll)
       .find(
-        { hid: { $in: chunk }, ymca2: { $ne: null, $lte: 0.05 } },
+        { hid: { $in: chunk }, ymca2: { $ne: null, $lt: 0.05 } },
         { projection: { hid: 1 } }
       )
       .toArray();
