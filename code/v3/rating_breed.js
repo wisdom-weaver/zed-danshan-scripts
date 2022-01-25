@@ -349,6 +349,8 @@ const fixer = async () => {
   let fix_hids = [];
   let all_hids = await cyclic_depedency.get_all_hids();
   for (let chunk of _.chunk(all_hids, 5000)) {
+    let [a, b] = [chunk[0], chunk[chunk.length - 1]];
+    console.log("get", a, b);
     let hids = await zed_db.db
       .collection(coll)
       .find(
