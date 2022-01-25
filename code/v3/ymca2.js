@@ -175,6 +175,7 @@ const fixer = async () => {
     console.log("GOT", hids.length);
     await only(hids);
   }
+  console.log("ENDED fixer")
 };
 
 const ymca2_s = { calc, generate, test, get_z_med, all, only, range, fixer };

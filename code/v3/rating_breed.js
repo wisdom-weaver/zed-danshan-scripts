@@ -367,6 +367,7 @@ const fixer = async () => {
     .collection(coll)
     .updateMany({ hid: { $in: fix_hids } }, { $set: { br: 1 } });
   await only(fix_hids);
+  console.log("ENDED fixer");
 };
 
 const rating_breed = {
