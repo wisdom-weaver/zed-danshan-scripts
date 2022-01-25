@@ -118,6 +118,20 @@ const main = async (args) => {
       let conf = JSON.parse(arg3) || {};
       mod.ymca2.test(conf);
     }
+  } else if (arg1 == "--est_ymca") {
+    if (arg2 == "all") mod.est_ymca.all();
+    if (arg2 == "only") {
+      let conf = JSON.parse(arg3) || {};
+      mod.est_ymca.only(conf);
+    }
+    if (arg2 == "range") {
+      let [a, b] = [parseInt(arg3), parseInt(arg4)];
+      mod.est_ymca.range(a, b);
+    }
+    if (arg2 == "test") {
+      let conf = JSON.parse(arg3) || {};
+      mod.est_ymca.test(conf);
+    }
   } else if (arg1 == "--rating_breed") {
     if (arg2 == "test") {
       let conf = JSON.parse(arg3) || {};
