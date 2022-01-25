@@ -95,6 +95,7 @@ const calc = async ({ hid, races = [], details }) => {
     if (test_mode) console.table(r_ob);
 
     let ymca2 = _.meanBy(r_ob, "final_score") ?? null;
+    if (ymca2 !== null) ymca2 = Math.max(ymca2, 0.05);
     if (test_mode) console.log(hid, "ymca2", ymca2);
 
     return ymca2;
