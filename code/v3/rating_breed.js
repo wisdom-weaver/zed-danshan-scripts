@@ -362,13 +362,18 @@ const fixer = async () => {
     hids = _.map(hids, "hid");
     console.log("GOT", hids.length);
     fix_hids = [...fix_hids, ...hids];
-    console.log(fix_hids)
   }
-  await zed_db.db
-    .collection(coll)
-    .updateMany({ hid: { $in: fix_hids } }, { $set: { br: 1 } });
+  console.log(fix_hids.toString());
+  // await zed_db.db
+  //   .collection(coll)
+  //   .updateMany({ hid: { $in: fix_hids } }, { $set: { br: 1 } });
+  for (let hid of fix_hids) {
+    await zed_db.db
+      .collection(coll)
+      .updateOne({ hid }, { $set: { br: 1, flag: 1 } });
+  }
   await utils.delay(3000);
-  await only(fix_hids);
+  // await only(fix_hids);
   console.log("ENDED fixer");
 };
 
