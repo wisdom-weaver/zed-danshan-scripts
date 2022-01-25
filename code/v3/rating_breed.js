@@ -355,14 +355,14 @@ const fixer = async () => {
     let hids = await zed_db.db
       .collection(coll)
       .find(
-        { hid: { $in: chunk }, br: { $ne: null, $gt: 6 } },
+        { hid: { $in: chunk }, br: { $ne: null, $gt: 5 } },
         { projection: { hid: 1 } }
       )
       .toArray();
     hids = _.map(hids, "hid");
     console.log("GOT", hids.length);
     fix_hids = [...fix_hids, ...hids];
-    // console.log(fix_hids)
+    console.log(fix_hids)
   }
   await zed_db.db
     .collection(coll)
