@@ -13,6 +13,8 @@ const dur = 2.2 * 60 * 1000;
 
 let t_st_date = "2022-01-19T00:00:00.000Z";
 let t_ed_date = "2022-01-26T00:00:00.000Z";
+let r2_st = t_ed_date;
+let r2_ed = "2022-01-26T22:30:00.000Z";
 
 let stable_ob = [];
 let all_hids = [];
@@ -42,6 +44,36 @@ const calc_horse_points = async (hid) => {
     .updateOne({ hid }, { $set: ob }, { upsert: true });
 };
 
+const r2_horse_eval = async (hid) => {
+  let races =
+    (await zed_ch.db
+      .collection("zed")
+      .find(
+        { 2: { $gte: r2_st, $lte: r2_ed }, 6: hid },
+        { projection: { 6: 1, 4: 1, 8: 1, 17: 1 } }
+      )
+      .toArray()) ?? [];
+
+  let update_ob = { qf: 0, sf: 0, f: 0 };
+  for (let race of races) {
+    let { 17: race_name, 8: place, 4: rid } = race;
+    if (race_name.includes("A QF")) {
+      update_ob.qf = 1;
+      update_ob.qf_ob = { rid, place };
+    }
+    if (race_name.includes("A SF")) {
+      update_ob.sf = 1;
+      update_ob.sf_ob = { rid, place };
+    }
+    if (race_name.includes("A Final")) {
+      update_ob.f = 1;
+      update_ob.f_ob = { rid, place };
+    }
+  }
+  // console.log(hid, update_ob);
+  await zed_db.db.collection(coll2).updateOne({ hid }, { $set: update_ob });
+};
+
 const run_dur = async ([st, ed]) => {
   await init_run();
   console.log("run_dur", [st, ed]);
@@ -51,7 +83,7 @@ const run_dur = async ([st, ed]) => {
     .collection("zed")
     .find(
       { 2: { $gte: st, $lte: ed } },
-      { projection: { 4: 1, 6: 1, 8: 1, 5: 1 } }
+      { projection: { 4: 1, 6: 1, 8: 1, 5: 1, 2: 1 } }
     )
     .toArray();
   console.log("docs.len", races.length);
@@ -62,8 +94,16 @@ const run_dur = async ([st, ed]) => {
     let hids = _.map(race, 6);
     let top3 = hids.slice(0, 3);
     console.log(rid, `C${c}`, race.length, "top3:", top3);
-    let to_eval = top3.filter((h) => all_hids.includes(h));
-    await Promise.all(to_eval.map((h) => calc_horse_points(h)));
+
+    let rdate = race[0][2];
+    if (rdate >= t_st_date && rdate <= t_ed_date) {
+      let to_eval = top3.filter((h) => all_hids.includes(h));
+      await Promise.all(to_eval.map((h) => calc_horse_points(h)));
+    }
+    if (rdate >= r2_st && rdate <= r2_ed) {
+      let to_eval = hids.filter((h) => all_hids.includes(h));
+      await Promise.all(to_eval.map((h) => r2_horse_eval(h)));
+    }
   }
 };
 const now = async () => {
@@ -144,6 +184,7 @@ const now_h = async () => {
   console.log("now_h:", iso());
   for (let chu of _.chunk(all_hids, 25)) {
     await Promise.all(chu.map(calc_horse_points));
+    await Promise.all(chu.map(r2_horse_eval));
   }
   console.log("now_h:", iso(), "\n----------");
 };
