@@ -114,6 +114,9 @@ const main = async (args) => {
       let [a, b] = [parseInt(arg3), parseInt(arg4)];
       mod.ymca2.range(a, b);
     }
+    if (arg2 == "fixer") {
+      mod.ymca2.fixer();
+    }
     if (arg2 == "test") {
       let conf = JSON.parse(arg3) || {};
       mod.ymca2.test(conf);

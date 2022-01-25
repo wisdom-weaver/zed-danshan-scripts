@@ -158,5 +158,17 @@ const test = async (hids) => {
   }
 };
 
-const ymca2_s = { calc, generate, test, get_z_med, all, only, range };
+const fixer = async () => {
+  let hids = await zed_db.db
+    .collection(coll)
+    .find(
+      { ymca2: { $ne: null, ymca2: { $lte: 0.05 } } },
+      { projection: { hid: 1 } }
+    )
+    .toArray();
+  hids = _.map(hids, "hid");
+  await only(hids);
+};
+
+const ymca2_s = { calc, generate, test, get_z_med, all, only, range, fixer };
 module.exports = ymca2_s;
