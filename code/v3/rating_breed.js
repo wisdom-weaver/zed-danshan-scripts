@@ -348,31 +348,39 @@ const range = async (st, ed) =>
 
 const fixer = async () => {
   let fix_hids = [];
-  let all_hids = await cyclic_depedency.get_all_hids();
-  for (let chunk of _.chunk(all_hids, 5000)) {
-    let [a, b] = [chunk[0], chunk[chunk.length - 1]];
-    console.log("get", a, b);
-    let hids = await zed_db.db
-      .collection(coll)
-      .find(
-        { hid: { $in: chunk }, br: { $ne: null, $gt: 5 } },
-        { projection: { hid: 1 } }
-      )
-      .toArray();
-    hids = _.map(hids, "hid");
-    console.log("GOT", hids.length);
-    fix_hids = [...fix_hids, ...hids];
-  }
-  console.log(fix_hids.toString());
+  // let all_hids = await cyclic_depedency.get_all_hids();
+  // for (let chunk of _.chunk(all_hids, 5000)) {
+  //   let [a, b] = [chunk[0], chunk[chunk.length - 1]];
+  //   console.log("get", a, b);
+  //   let hids = await zed_db.db
+  //     .collection(coll)
+  //     .find(
+  //       { hid: { $in: chunk }, br: { $ne: null, $gt: 5 } },
+  //       { projection: { hid: 1 } }
+  //     )
+  //     .toArray();
+  //   hids = _.map(hids, "hid");
+  //   console.log("GOT", hids.length);
+  //   fix_hids = [...fix_hids, ...hids];
+  // }
+  // console.log(fix_hids.toString());
+
   // await zed_db.db
   //   .collection(coll)
   //   .updateMany({ hid: { $in: fix_hids } }, { $set: { br: 1 } });
+
+  fix_hids = await zed_db.db
+    .collection(coll)
+    .find({ flag: 1 }, { projection: { hid: 1 } })
+    .toArray();
+  fix_hids = _.map(fix_hids, "hid");
   for (let hid of fix_hids) {
     await zed_db.db
       .collection(coll)
-      .updateOne({ hid }, { $set: { br: 1, flag: 1 } });
+      .updateOne({ hid }, { $set: { br: 1, flag: 2 } });
+    await only([hid]);
   }
-  await utils.delay(3000);
+  // await utils.delay(3000);
   // await only(fix_hids);
   console.log("ENDED fixer");
 };
