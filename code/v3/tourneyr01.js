@@ -133,6 +133,7 @@ const update_hids_list = async () => {
     }
   }
   all_hids = _.compact(_.flatten(hids));
+  all_hids = _.uniq(all_hids);
   unpaid_hids = _.compact(_.flatten(un));
 };
 
@@ -179,12 +180,17 @@ const run_cron = async () => {
   cron.schedule(cron_str, runner, utils.cron_conf);
 };
 
+const do_horse = async (hid) => {
+  await calc_horse_points(hid);
+  await utils.delay(200);
+  await r2_horse_eval(hid);
+};
+
 const now_h = async () => {
   await init_run();
   console.log("now_h:", iso());
   for (let chu of _.chunk(all_hids, 25)) {
-    await Promise.all(chu.map(calc_horse_points));
-    await Promise.all(chu.map(r2_horse_eval));
+    await Promise.all(chu.map(do_horse));
   }
   console.log("now_h:", iso(), "\n----------");
 };
@@ -198,9 +204,12 @@ const run_cron_h = async () => {
   cron.schedule(cron_str, runner, utils.cron_conf);
 };
 const test = async () => {
-  let hid = 191385;
-  await calc_horse_points(hid);
-  console.log("done");
+  // let hid = 196297;
+  // await calc_horse_points(hid);
+  // await r2_horse_eval(hid);
+  // console.log("done");
+  // await zed_db.db.collection(coll2).createIndex({ hid: 1 }, { unique: true });
+  // console.log("done")
 };
 const main = () => {};
 const tourneyr01 = { test, run_cron, now, run_dur, now_h, run_cron_h };
