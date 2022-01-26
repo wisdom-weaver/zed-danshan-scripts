@@ -111,7 +111,7 @@ const r2_tr_sraces_eval = async () => {
     if (_.isEmpty(our_hids)) continue;
     for (let hid of our_hids) {
       let update_ob = {};
-      let flame = flames_doc[hid];
+      let flame = flames_doc[hid] ?? 0;
       if (race_name.includes("A QF")) {
         update_ob.qf = 1;
         update_ob[`qf_ob.rid`] = race_id;
