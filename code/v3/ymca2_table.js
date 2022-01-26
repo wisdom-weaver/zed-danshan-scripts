@@ -178,10 +178,10 @@ const update_z_id_row = async (id) => {
     console.log("err update_z_is_row");
     return;
   }
-  console.log(id, ob);
-  // await zed_db.db
-  //   .collection("requirements")
-  //   .updateOne({ id: doc_id }, { $set: { [`avg_ob.${id}`]: ob } });
+  // console.log(id, ob);
+  await zed_db.db
+    .collection("requirements")
+    .updateOne({ id: doc_id }, { $set: { [`avg_ob.${id}`]: ob } });
 };
 
 const generate_v1 = async () => {
