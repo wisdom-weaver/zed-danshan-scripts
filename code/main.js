@@ -300,6 +300,12 @@ const main = async (args) => {
     if (arg2 == "run_dur") {
       tourneyr01.run_dur(arg3);
     }
+    if (arg2 == "now_scheduled") {
+      tourneyr01.now_scheduled();
+    }
+    if (arg2 == "run_cron_scheduled") {
+      tourneyr01.run_cron_scheduled();
+    }
   } else if (arg1 == "--tests") {
     try {
       arg3 = JSON.parse(arg3);

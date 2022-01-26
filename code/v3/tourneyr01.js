@@ -6,9 +6,12 @@ const { zed_ch, zed_db } = require("../connection/mongo_connect");
 const cyclic_depedency = require("../utils/cyclic_dependency");
 const { nano, iso } = require("../utils/utils");
 const utils = require("../utils/utils");
+const zedf = require("../utils/zedf");
+const { zed_race_base_data } = require("../races/races_base");
 
 const coll = "tourneyr01";
 const coll2 = "tourneyr01_leader";
+const coll3 = "tourneyr01_sraces";
 const dur = 2.2 * 60 * 1000;
 
 let t_st_date = "2022-01-19T00:00:00.000Z";
@@ -72,6 +75,91 @@ const r2_horse_eval = async (hid) => {
   }
   if (!_.isEmpty(update_ob))
     await zed_db.db.collection(coll2).updateOne({ hid }, { $set: update_ob });
+};
+const r2_tr_sraces_eval = async () => {
+  await init_run();
+  let races = await zed_db.db
+    .collection(coll)
+    .find(
+      { hids: { $in: all_hids } },
+      { projection: { hids: 1, race_name: 1, race_id: 1 } }
+    )
+    .toArray();
+  if (_.isEmpty(races)) {
+    console.log("no races");
+    return;
+  }
+  for (let race of races) {
+    let { hids, race_name, race_id } = race;
+    let our_hids = _.intersection(hids, all_hids);
+    console.log("got", race_id, race_name, our_hids);
+    let;
+  }
+};
+
+let tr_sch_api = `https://racing-api.zed.run/api/v1/races?status=scheduled&class=99`;
+// let tr_sch_api = `https://racing-api.zed.run/api/v1/races?status=scheduled`;
+const get_scheduled_races = async () => {
+  let races = [];
+  let n = [];
+  let offset = 0;
+  do {
+    let api = tr_sch_api + `&offset=${offset}`;
+    n = await zedf.get(api);
+    console.log({ offset, n: n.length });
+    if (_.isEmpty(n)) n = [];
+    races = [...races, ...n];
+    offset += n.length;
+  } while (n.length !== 0);
+  return races;
+};
+const struct_race = (doc) => {
+  let {
+    race_id,
+    class: thisclass,
+    fee: entryfee,
+    gates,
+    length: distance,
+    start_time: date,
+    status,
+    name: race_name,
+    prize,
+  } = doc;
+  entryfee = parseFloat(entryfee);
+  let hids = _.values(gates);
+  return {
+    race_id,
+    thisclass,
+    entryfee,
+    gates,
+    hids,
+    distance,
+    date,
+    status,
+    race_name,
+    prize,
+  };
+};
+const r2_get_scheduled = async () => {
+  console.log("r2_get_scheduled");
+  let races = (await get_scheduled_races()) ?? [];
+  console.log("#scheduled_races:", races.length);
+  if (_.isEmpty(races)) return;
+  races = races.map(struct_race);
+
+  let race_ids = _.map(races, "race_id");
+  let exists = await zed_db.db
+    .collection(coll3)
+    .find({ race_id: { $in: race_ids } }, { projection: { race_id: 1 } })
+    .toArray();
+  exists = _.map(exists, "race_id");
+  let eval_raceids = _.difference(race_ids, exists);
+  let eval_races = races.filter((r) => eval_raceids.includes(r.race_id));
+  console.log("new_races", eval_races.length);
+  console.log(JSON.stringify(eval_raceids));
+  if (!_.isEmpty(races))
+    await zed_db.db.collection(coll3).insertMany(eval_races);
+  console.log(races[0]);
 };
 
 const run_dur = async ([st, ed]) => {
@@ -195,6 +283,12 @@ const now_h = async () => {
   console.log("now_h:", iso(), "\n----------");
 };
 
+const now_scheduled = async () => {
+  console.log("now_scheduled", iso());
+  await r2_get_scheduled();
+  console.log("now_scheduled ended", iso());
+};
+
 const run_cron_h = async () => {
   console.log("run_cron_h");
   let cron_str = "*/5 * * * *";
@@ -203,6 +297,16 @@ const run_cron_h = async () => {
   let runner = now_h;
   cron.schedule(cron_str, runner, utils.cron_conf);
 };
+
+const run_cron_scheduled = async () => {
+  console.log("run_cron_h");
+  let cron_str = "*/5 * * * *";
+  const c_itvl = cron_parser.parseExpression(cron_str);
+  console.log("Next run:", c_itvl.next().toISOString(), "\n");
+  let runner = now_scheduled;
+  cron.schedule(cron_str, runner, utils.cron_conf);
+};
+
 const test = async () => {
   // let hid = 196297;
   // await calc_horse_points(hid);
@@ -212,5 +316,14 @@ const test = async () => {
   // console.log("done")
 };
 const main = () => {};
-const tourneyr01 = { test, run_cron, now, run_dur, now_h, run_cron_h };
+const tourneyr01 = {
+  test,
+  run_cron,
+  now,
+  run_dur,
+  now_h,
+  run_cron_h,
+  now_scheduled,
+  run_cron_scheduled,
+};
 module.exports = tourneyr01;

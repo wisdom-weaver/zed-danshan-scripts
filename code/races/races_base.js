@@ -590,5 +590,6 @@ const zed_races_zrapi_runner = async (
 const races_base = {
   zed_races_gql_runner,
   zed_races_zrapi_runner,
+  zed_race_base_data,
 };
 module.exports = races_base;
