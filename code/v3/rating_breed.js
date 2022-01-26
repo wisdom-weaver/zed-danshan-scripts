@@ -476,6 +476,30 @@ const fixer3 = async () => {
 
   console.log("Running Z_IDs");
   for (let id of all_z_ids) await ymca2_table.update_z_id_row(id);
+
+  let all_parents_docs = await zed_db.db
+    .collection("horse_details")
+    .find(
+      { hid: { $in: all_parents } },
+      {
+        projection: {
+          hid: 1,
+          bloodline: 1,
+          breed_type: 1,
+          genotype: 1,
+        },
+      }
+    )
+    .toArray();
+  let parents_z_ids = all_parents_docs.map((e) => {
+    let { bloodline, breed_type, genotype } = e;
+    if (!bloodline || !breed_type || !genotype) return null;
+    return `${bloodline}-${breed_type}-${genotype}`;
+  });
+  parents_z_ids = _.compact(_.uniq(parents_z_ids));
+  console.log("Running Parents Z_IDs", parents_z_ids.length);
+  for (let id of parents_z_ids) await ymca2_table.update_z_id_row(id);
+
   console.log("ENDED FIXER");
 };
 const fixer4 = async () => {
