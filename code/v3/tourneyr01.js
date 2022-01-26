@@ -77,23 +77,53 @@ const r2_horse_eval = async (hid) => {
     await zed_db.db.collection(coll2).updateOne({ hid }, { $set: update_ob });
 };
 const r2_tr_sraces_eval = async () => {
-  await init_run();
-  let races = await zed_db.db
-    .collection(coll)
-    .find(
-      { hids: { $in: all_hids } },
-      { projection: { hids: 1, race_name: 1, race_id: 1 } }
-    )
-    .toArray();
+  // await init_run();
+  let races =
+    (await zed_db.db
+      .collection(coll3)
+      .find(
+        {
+          hids: { $in: all_hids },
+          thisclass: 99,
+        },
+        { projection: { hids: 1, race_name: 1, race_id: 1, thisclass: 1 } }
+      )
+      .toArray()) ?? [];
   if (_.isEmpty(races)) {
     console.log("no races");
     return;
   }
   for (let race of races) {
-    let { hids, race_name, race_id } = race;
+    let { hids, race_name, race_id, thisclass } = race;
     let our_hids = _.intersection(hids, all_hids);
-    console.log("got", race_id, race_name, our_hids);
-    let;
+    console.log("got", race_id, `(${thisclass})`, race_name, our_hids);
+    if (_.isEmpty(our_hids)) continue;
+    race_name = "A QF";
+    for (let hid of our_hids) {
+      let update_ob = {};
+      let obid = null;
+      if (race_name.includes("A QF")) {
+        update_ob.qf = 1;
+        obid = "qf_ob";
+      }
+      if (race_name.includes("A SF")) {
+        update_ob.sf = 1;
+        obid = "sf_ob";
+      }
+      if (race_name.includes("A Final")) {
+        update_ob.f = 1;
+        obid = "f_ob";
+      }
+      console.log(update_ob);
+      if (!_.isEmpty(update_ob)) {
+        await zed_db.db
+          .collection(coll2)
+          .updateOne(
+            { hid },
+            { $set: { ...update_ob, [`${obid}.rid`]: race_id } }
+          );
+      }
+    }
   }
 };
 
@@ -159,7 +189,6 @@ const r2_get_scheduled = async () => {
   console.log(JSON.stringify(eval_raceids));
   if (!_.isEmpty(races))
     await zed_db.db.collection(coll3).insertMany(eval_races);
-  console.log(races[0]);
 };
 
 const run_dur = async ([st, ed]) => {
@@ -274,11 +303,20 @@ const do_horse = async (hid) => {
   await r2_horse_eval(hid);
 };
 
-const now_h = async () => {
+const now_h_old = async () => {
   await init_run();
   console.log("now_h:", iso());
   for (let chu of _.chunk(all_hids, 25)) {
     await Promise.all(chu.map(do_horse));
+  }
+  console.log("now_h:", iso(), "\n----------");
+};
+const now_h = async () => {
+  await init_run();
+  console.log("now_h:", iso());
+  await r2_tr_sraces_eval();
+  for (let chu of _.chunk(all_hids, 25)) {
+    await Promise.all(chu.map(r2_horse_eval));
   }
   console.log("now_h:", iso(), "\n----------");
 };
@@ -291,7 +329,7 @@ const now_scheduled = async () => {
 
 const run_cron_h = async () => {
   console.log("run_cron_h");
-  let cron_str = "*/5 * * * *";
+  let cron_str = "*/1 * * * *";
   const c_itvl = cron_parser.parseExpression(cron_str);
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
   let runner = now_h;
@@ -308,12 +346,8 @@ const run_cron_scheduled = async () => {
 };
 
 const test = async () => {
-  // let hid = 196297;
-  // await calc_horse_points(hid);
-  // await r2_horse_eval(hid);
-  // console.log("done");
   // await zed_db.db.collection(coll2).createIndex({ hid: 1 }, { unique: true });
-  // console.log("done")
+  await zed_db.db.collection("tourneyr01_sraces").deleteMany({ thisclass: { $ne: 99 } });
 };
 const main = () => {};
 const tourneyr01 = {
