@@ -62,15 +62,18 @@ const r2_horse_eval = async (hid) => {
     let { 17: race_name, 8: place, 4: rid } = race;
     if (race_name.includes("A QF")) {
       update_ob.qf = 1;
-      update_ob.qf_ob = { rid, place };
+      update_ob[`qf_ob.rid`] = rid;
+      update_ob[`qf_ob.place`] = place;
     }
     if (race_name.includes("A SF")) {
       update_ob.sf = 1;
-      update_ob.sf_ob = { rid, place };
+      update_ob[`sf_ob.rid`] = rid;
+      update_ob[`sf_ob.place`] = place;
     }
     if (race_name.includes("A Final")) {
       update_ob.f = 1;
-      update_ob.f_ob = { rid, place };
+      update_ob[`f_ob.rid`] = rid;
+      update_ob[`f_ob.place`] = place;
     }
   }
   if (!_.isEmpty(update_ob))
@@ -86,7 +89,15 @@ const r2_tr_sraces_eval = async () => {
           hids: { $in: all_hids },
           thisclass: 99,
         },
-        { projection: { hids: 1, race_name: 1, race_id: 1, thisclass: 1 } }
+        {
+          projection: {
+            hids: 1,
+            race_name: 1,
+            race_id: 1,
+            thisclass: 1,
+            flames_doc: 1,
+          },
+        }
       )
       .toArray()) ?? [];
   if (_.isEmpty(races)) {
@@ -94,34 +105,33 @@ const r2_tr_sraces_eval = async () => {
     return;
   }
   for (let race of races) {
-    let { hids, race_name, race_id, thisclass } = race;
+    let { hids, race_name, race_id, thisclass, flames_doc } = race;
     let our_hids = _.intersection(hids, all_hids);
     console.log("got", race_id, `(${thisclass})`, race_name, our_hids);
     if (_.isEmpty(our_hids)) continue;
     for (let hid of our_hids) {
       let update_ob = {};
-      let obid = null;
+      let flame = flames_doc[hid];
       if (race_name.includes("A QF")) {
         update_ob.qf = 1;
-        obid = "qf_ob";
+        update_ob[`qf_ob.rid`] = rid;
+        update_ob[`qf_ob.flame`] = flame;
       }
       if (race_name.includes("A SF")) {
         update_ob.sf = 1;
-        obid = "sf_ob";
-        console.log(hid, update_ob);
+        update_ob[`sf_ob.rid`] = rid;
+        update_ob[`sf_ob.flame`] = flame;
       }
       if (race_name.includes("A Final")) {
         update_ob.f = 1;
-        obid = "f_ob";
+        update_ob[`f_ob.rid`] = rid;
+        update_ob[`f_ob.flame`] = flame;
       }
       // console.log(update_ob);
       if (!_.isEmpty(update_ob)) {
         await zed_db.db
           .collection(coll2)
-          .updateOne(
-            { hid },
-            { $set: { ...update_ob, [`${obid}.rid`]: race_id } }
-          );
+          .updateOne({ hid }, { $set: update_ob });
       }
     }
   }
