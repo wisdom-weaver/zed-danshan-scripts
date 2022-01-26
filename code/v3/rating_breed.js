@@ -410,6 +410,7 @@ const fixer3 = async () => {
     fix_hids = [...fix_hids, ...hids];
   }
   console.log("\n--\nGOT fix_hids", fix_hids.length);
+  console.log(fix_hids);
   let kids = await zed_db.db
     .collection("horse_details")
     .find({ hid: { $in: fix_hids } }, { projection: { offsprings: 1 } })
@@ -485,7 +486,7 @@ const fixer4 = async () => {
   await zed_db.db
     .collection(coll)
     .updateMany({ hid: { $in: hids } }, { $set: { br: 5.1 } });
-    console.log("done")
+  console.log("done");
 };
 
 const fixer = fixer3;
