@@ -102,71 +102,87 @@ const get_z_table_for_id_v1 = async (id) => {
   };
 };
 const get_z_table_for_id_v2 = async (id) => {
-  let [bl, bt, z] = id.split("-");
-  let ar = await zed_db.db
-    .collection("horse_details")
-    .find(
-      {
-        bloodline: bl,
-        breed_type: bt,
-        genotype: z,
-      },
-      { projection: { _id: 0, hid: 1 } }
-    )
-    .toArray();
-  let hids = _.map(ar, "hid") || [];
-  let docs = await zed_db.db
-    .collection(coll)
-    .find({ hid: { $in: hids } }, { projection: { _id: 0, ymca2: 1, br: 1 } })
-    .toArray();
+  try {
+    let [bl, bt, z] = id.split("-");
+    if (!bl || !bt || !z) return null;
+    let ar = await zed_db.db
+      .collection("horse_details")
+      .find(
+        {
+          bloodline: bl,
+          breed_type: bt,
+          genotype: z,
+        },
+        { projection: { _id: 0, hid: 1 } }
+      )
+      .toArray();
+    let hids = _.map(ar, "hid") || [];
+    let docs = await zed_db.db
+      .collection(coll)
+      .find({ hid: { $in: hids } }, { projection: { _id: 0, ymca2: 1, br: 1 } })
+      .toArray();
 
-  let scores = _.chain(docs).map("ymca2").compact().value();
-  let filt_scores = utils.remove_bullshits(scores);
-  // console.log("all__scores.length", scores.length);
-  // console.log("filt_scores.length", filt_scores.length);
+    let scores = _.chain(docs).map("ymca2").compact().value();
+    let filt_scores = utils.remove_bullshits(scores);
+    // console.log("all__scores.length", scores.length);
+    // console.log("filt_scores.length", filt_scores.length);
 
-  let brs = _.chain(docs)
-    .map("br")
-    .filter((i) => i !== Infinity)
-    .compact()
-    .value();
+    let brs = _.chain(docs)
+      .map("br")
+      .filter((i) => i !== Infinity)
+      .compact()
+      .value();
 
-  let y_avg = _.mean(filt_scores);
-  if (!y_avg || _.isNaN(y_avg)) y_avg = _.mean(scores);
-  if (!y_avg || _.isNaN(y_avg)) y_avg = null;
+    let y_avg = _.mean(filt_scores);
+    if (!y_avg || _.isNaN(y_avg)) y_avg = _.mean(scores);
+    if (!y_avg || _.isNaN(y_avg)) y_avg = null;
 
-  let y_min = _.min(scores);
-  if (!y_min || _.isNaN(y_min)) y_min = null;
-  let y_max = _.max(scores);
-  if (!y_max || _.isNaN(y_max)) y_max = null;
+    let y_min = _.min(scores);
+    if (!y_min || _.isNaN(y_min)) y_min = null;
+    let y_max = _.max(scores);
+    if (!y_max || _.isNaN(y_max)) y_max = null;
 
-  let br_avg = _.mean(brs);
-  if (!br_avg || _.isNaN(br_avg)) br_avg = null;
-  let br_min = _.min(brs);
-  if (!br_min || _.isNaN(br_min)) br_min = null;
-  let br_max = _.max(brs);
-  if (!br_max || _.isNaN(br_max)) br_max = null;
+    let br_avg = _.mean(brs);
+    if (!br_avg || _.isNaN(br_avg)) br_avg = null;
+    let br_min = _.min(brs);
+    if (!br_min || _.isNaN(br_min)) br_min = null;
+    let br_max = _.max(brs);
+    if (!br_max || _.isNaN(br_max)) br_max = null;
 
-  let avg = y_avg;
-  console.log(id, avg);
+    let avg = y_avg;
+    console.log(id, avg);
 
-  return {
-    count_all: ar.length,
-    count: scores.length,
-    count_: brs.length,
-    base: null,
-    avg,
-    y_avg,
-    y_min,
-    y_max,
-    br_min,
-    br_avg,
-    br_max,
-  };
+    return {
+      count_all: ar.length,
+      count: scores.length,
+      count_: brs.length,
+      base: null,
+      avg,
+      y_avg,
+      y_min,
+      y_max,
+      br_min,
+      br_avg,
+      br_max,
+    };
+  } catch (err) {
+    console.log("err at get_z_table_for_id_v2");
+    return null;
+  }
 };
 const get_z_table_for_id = get_z_table_for_id_v2;
 
-const update_z_is_row = async (id) => {};
+const update_z_id_row = async (id) => {
+  let ob = await get_z_table_for_id_v2(id);
+  if (_.isEmpty(ob)) {
+    console.log("err update_z_is_row");
+    return;
+  }
+  console.log(id, ob);
+  // await zed_db.db
+  //   .collection("requirements")
+  //   .updateOne({ id: doc_id }, { $set: { [`avg_ob.${id}`]: ob } });
+};
 
 const generate_v1 = async () => {
   let ob = {};
@@ -295,5 +311,5 @@ const test = async () => {
 
 const generate = generate_v2;
 
-const ymca2_table = { generate, get, test };
+const ymca2_table = { generate, get, test, update_z_id_row };
 module.exports = ymca2_table;

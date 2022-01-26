@@ -22,6 +22,7 @@ const global_req = require("../global_req/global_req");
 const bulk = require("../utils/bulk");
 const cyclic_depedency = require("../utils/cyclic_dependency");
 const utils = require("../utils/utils");
+const ymca2_table = require("./ymca2_table");
 
 let mx = 11000;
 let st = 1;
@@ -413,7 +414,6 @@ const fixer3 = async () => {
     .collection("horse_details")
     .find({ hid }, { projection: { offsprings: 1 } });
   kids = _.chain(kids).map("offsprings").flatten().value();
-  await ymca2_s.only(kids);
   let kids_docs = await zed_db.db
     .collection("horse_details")
     .find(
@@ -429,12 +429,43 @@ const fixer3 = async () => {
       }
     )
     .toArray();
+
   let all_parents = [];
+  let all_z_ids = [];
   for (let doc of kids_docs) {
-    let ps = (all_parents = [...all_parents]);
+    let { bloodline, breed_type, genotype } = doc;
+    let ps = _.values(doc?.parents) ?? [];
+    all_parents = [...all_parents, ...ps];
+    let id = `${bloodline}-${breed_type}-${genotype}`;
+    all_z_ids = [...all_z_ids, id];
   }
+
   all_parents = _.uniq(_.compact(all_parents));
-  // need to comintue from here
+  all_z_ids = _.uniq(_.compact(all_z_ids));
+
+  console.log("kids:", kids.length);
+  console.log("parents:", all_parents.length);
+  console.log("z_ids:", all_z_ids.length);
+
+  // console.log("Running YMCA2");
+  // await ymca2_s.only(kids);
+
+  // console.log("Running Z_IDs");
+  // for (let id of all_z_ids) await ymca2_table.update_z_id_row(id);
+
+  // console.log("Running Parents BR");
+  // await zed_db.db
+  //   .collection(coll)
+  //   .updateMany({ hid: { $in: all_parents } }, { $set: { br: 1 } });
+  // for (let hid of all_parents) await only([hid]);
+
+  // console.log("Running Z_IDs");
+  // for (let id of all_z_ids) await ymca2_table.update_z_id_row(id);
+  // console.log("ENDED FIXER");
+};
+const fixer4 = async () => {
+  let id = "Nakamoto-cross-Z19";
+  await ymca2_table.update_z_id_row(id);
 };
 
 const fixer = fixer3;
