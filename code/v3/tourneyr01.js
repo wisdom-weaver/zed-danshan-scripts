@@ -170,6 +170,7 @@ const struct_race = (doc) => {
     prize,
   };
 };
+let prev_flames = 1;
 const r2_get_scheduled = async () => {
   console.log("r2_get_scheduled");
   let races = (await get_scheduled_races()) ?? [];
@@ -185,10 +186,32 @@ const r2_get_scheduled = async () => {
   exists = _.map(exists, "race_id");
   let eval_raceids = _.difference(race_ids, exists);
   let eval_races = races.filter((r) => eval_raceids.includes(r.race_id));
+  if (prev_flames) eval_races = races;
   console.log("new_races", eval_races.length);
-  console.log(JSON.stringify(eval_raceids));
-  if (!_.isEmpty(races))
+  console.log(JSON.stringify(_.map(eval_races, "race_id")));
+  if (_.isEmpty(eval_races)) return;
+  for (let r of eval_races) {
+    let { race_id } = r;
+    let flames_doc = await zedf.race_flames(race_id);
+    flames_doc = flames_doc.rpi;
+    r.flames_doc = flames_doc;
+  }
+  if (prev_flames) {
+    let bulk = eval_races.map((r) => {
+      return {
+        updateOne: {
+          filter: { race_id: r.race_id },
+          update: { $set: r },
+          upsert: true,
+        },
+      };
+    });
+    await zed_db.db.collection(coll3).bulkWrite(bulk);
+    console.log("done", bulk.length);
+  } else {
     await zed_db.db.collection(coll3).insertMany(eval_races);
+    console.log("done", eval_races.length);
+  }
 };
 
 const run_dur = async ([st, ed]) => {
