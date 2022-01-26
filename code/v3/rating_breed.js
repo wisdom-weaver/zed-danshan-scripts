@@ -238,11 +238,12 @@ const calc = async ({ hid }) => {
       if (e.ymca2 == 0 || _.isNaN(e.ymca2)) fact = null;
       else if (e.gavg == 0 || _.isNaN(e.gavg)) fact = e.ymca2;
       else fact = e.ymca2 / e.gavg;
-      let adj;
-      if (fact == null) adj = null;
       
       if (fact == Infinity) fact = null;
       if (fact > 4.5) fact = 4.4 + 0.05 * fact;
+      
+      let adj;
+      if (fact == null) adj = null;
 
       if (e.op_br == 0 || _.isNaN(e.op_br)) adj = fact;
       else if (e.op_br > 1.05) adj = fact * 0.98;
