@@ -300,7 +300,7 @@ const run_cron_h = async () => {
 
 const run_cron_scheduled = async () => {
   console.log("run_cron_h");
-  let cron_str = "*/5 * * * *";
+  let cron_str = "*/2 * * * *";
   const c_itvl = cron_parser.parseExpression(cron_str);
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
   let runner = now_scheduled;
