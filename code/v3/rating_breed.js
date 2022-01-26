@@ -412,7 +412,8 @@ const fixer3 = async () => {
   console.log("\n--\nGOT fix_hids", fix_hids.length);
   let kids = await zed_db.db
     .collection("horse_details")
-    .find({ hid: { $in: fix_hids } }, { projection: { offsprings: 1 } });
+    .find({ hid: { $in: fix_hids } }, { projection: { offsprings: 1 } })
+    .toArray();
   kids = _.chain(kids).map("offsprings").flatten().value();
   let kids_docs = await zed_db.db
     .collection("horse_details")
