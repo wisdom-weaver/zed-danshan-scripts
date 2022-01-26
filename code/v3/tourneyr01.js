@@ -170,7 +170,7 @@ const struct_race = (doc) => {
     prize,
   };
 };
-let prev_flames = 1;
+let prev_flames = 0;
 const r2_get_scheduled = async () => {
   console.log("r2_get_scheduled");
   let races = (await get_scheduled_races()) ?? [];
