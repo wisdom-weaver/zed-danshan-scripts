@@ -240,12 +240,12 @@ const calc = async ({ hid }) => {
       else fact = e.ymca2 / e.gavg;
 
       if (fact == Infinity) fact = null;
-      if (fact > 4.5) fact = 4.4 + 0.05 * fact;
+      if (fact > 3.5) fact = 3.5 + 0.03 * fact;
 
       let adj;
       if (fact == null) adj = null;
 
-      if (e.op_br > 4.6) e.op_br = 4.6;
+      if (e.op_br > 3.5) e.op_br = 3.5;
 
       if (e.op_br == 0 || _.isNaN(e.op_br)) adj = fact;
       else if (e.op_br > 1.05) adj = fact * 0.98;
@@ -407,7 +407,7 @@ const fixer3 = async () => {
     let hids = await zed_db.db
       .collection(coll)
       .find(
-        { hid: { $in: chunk }, br: { $ne: null, $gt: 4.5 } },
+        { hid: { $in: chunk }, br: { $ne: null, $gt: 3.5 } },
         { projection: { hid: 1 } }
       )
       .toArray();
