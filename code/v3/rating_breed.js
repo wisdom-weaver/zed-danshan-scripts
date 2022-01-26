@@ -451,25 +451,25 @@ const fixer3 = async () => {
   console.log("parents:", all_parents.length);
   console.log("z_ids:", all_z_ids.length);
 
-  console.log("kids:", kids);
-  console.log("parents:", all_parents);
-  console.log("z_ids:", all_z_ids);
+  // console.log("kids:", kids);
+  // console.log("parents:", all_parents);
+  // console.log("z_ids:", all_z_ids);
 
-  // console.log("Running YMCA2");
-  // await ymca2_s.only(kids);
+  console.log("Running YMCA2");
+  await ymca2_s.only(kids);
 
-  // console.log("Running Z_IDs");
-  // for (let id of all_z_ids) await ymca2_table.update_z_id_row(id);
+  console.log("Running Z_IDs");
+  for (let id of all_z_ids) await ymca2_table.update_z_id_row(id);
 
-  // console.log("Running Parents BR");
-  // await zed_db.db
-  //   .collection(coll)
-  //   .updateMany({ hid: { $in: all_parents } }, { $set: { br: 1 } });
-  // for (let hid of all_parents) await only([hid]);
+  console.log("Running Parents BR");
+  await zed_db.db
+    .collection(coll)
+    .updateMany({ hid: { $in: all_parents } }, { $set: { br: 1 } });
+  for (let hid of all_parents) await only([hid]);
 
-  // console.log("Running Z_IDs");
-  // for (let id of all_z_ids) await ymca2_table.update_z_id_row(id);
-  // console.log("ENDED FIXER");
+  console.log("Running Z_IDs");
+  for (let id of all_z_ids) await ymca2_table.update_z_id_row(id);
+  console.log("ENDED FIXER");
 };
 const fixer4 = async () => {
   let id = "Nakamoto-cross-Z19";
