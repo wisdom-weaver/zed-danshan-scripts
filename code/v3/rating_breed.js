@@ -415,7 +415,8 @@ const fixer3 = async () => {
     .find({ hid: { $in: fix_hids } }, { projection: { offsprings: 1 } })
     .toArray();
   kids = _.chain(kids).map("offsprings").flatten().value();
-  console.log(kids);
+  // console.log(kids);
+
   let kids_docs = await zed_db.db
     .collection("horse_details")
     .find(
@@ -431,7 +432,8 @@ const fixer3 = async () => {
       }
     )
     .toArray();
-  console.log(kids_docs);
+  // console.log(kids_docs);
+  
   let all_parents = [];
   let all_z_ids = [];
   for (let doc of kids_docs) {
@@ -448,6 +450,10 @@ const fixer3 = async () => {
   console.log("kids:", kids.length);
   console.log("parents:", all_parents.length);
   console.log("z_ids:", all_z_ids.length);
+
+  console.log("kids:", kids);
+  console.log("parents:", all_parents);
+  console.log("z_ids:", all_z_ids);
 
   // console.log("Running YMCA2");
   // await ymca2_s.only(kids);
