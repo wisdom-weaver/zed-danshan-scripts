@@ -114,17 +114,17 @@ const r2_tr_sraces_eval = async () => {
       let flame = flames_doc[hid];
       if (race_name.includes("A QF")) {
         update_ob.qf = 1;
-        update_ob[`qf_ob.rid`] = rid;
+        update_ob[`qf_ob.rid`] = race_id;
         update_ob[`qf_ob.flame`] = flame;
       }
       if (race_name.includes("A SF")) {
         update_ob.sf = 1;
-        update_ob[`sf_ob.rid`] = rid;
+        update_ob[`sf_ob.rid`] = race_id;
         update_ob[`sf_ob.flame`] = flame;
       }
       if (race_name.includes("A Final")) {
         update_ob.f = 1;
-        update_ob[`f_ob.rid`] = rid;
+        update_ob[`f_ob.rid`] = race_id;
         update_ob[`f_ob.flame`] = flame;
       }
       // console.log(update_ob);
