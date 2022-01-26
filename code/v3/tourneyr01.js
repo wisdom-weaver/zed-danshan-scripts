@@ -105,7 +105,7 @@ const r2_tr_sraces_eval = async () => {
     return;
   }
   for (let race of races) {
-    let { hids, race_name, race_id, thisclass, flames_doc } = race;
+    let { hids, race_name, race_id, thisclass, flames_doc={} } = race;
     let our_hids = _.intersection(hids, all_hids);
     console.log("got", race_id, `(${thisclass})`, race_name, our_hids);
     if (_.isEmpty(our_hids)) continue;
