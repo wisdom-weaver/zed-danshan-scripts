@@ -54,7 +54,7 @@ const r2_horse_eval = async (hid) => {
       )
       .toArray()) ?? [];
 
-  let update_ob = { qf: 0, sf: 0, f: 0 };
+  let update_ob = {};
   for (let race of races) {
     let { 17: race_name, 8: place, 4: rid } = race;
     if (race_name.includes("A QF")) {
@@ -70,8 +70,8 @@ const r2_horse_eval = async (hid) => {
       update_ob.f_ob = { rid, place };
     }
   }
-  // console.log(hid, update_ob);
-  await zed_db.db.collection(coll2).updateOne({ hid }, { $set: update_ob });
+  if (!_.isEmpty(update_ob))
+    await zed_db.db.collection(coll2).updateOne({ hid }, { $set: update_ob });
 };
 
 const run_dur = async ([st, ed]) => {

@@ -166,6 +166,8 @@ const get_z_table_for_id_v2 = async (id) => {
 };
 const get_z_table_for_id = get_z_table_for_id_v2;
 
+const update_z_is_row = async (id) => {};
+
 const generate_v1 = async () => {
   let ob = {};
   let keys = [];

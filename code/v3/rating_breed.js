@@ -346,44 +346,98 @@ const only = async (hids) =>
 const range = async (st, ed) =>
   bulk.run_bulk_range(name, generate, coll, st, ed, cs, test_mode);
 
-const fixer = async () => {
+const fixer1 = async () => {
   let fix_hids = [];
-  // let all_hids = await cyclic_depedency.get_all_hids();
-  // for (let chunk of _.chunk(all_hids, 5000)) {
-  //   let [a, b] = [chunk[0], chunk[chunk.length - 1]];
-  //   console.log("get", a, b);
-  //   let hids = await zed_db.db
-  //     .collection(coll)
-  //     .find(
-  //       { hid: { $in: chunk }, br: { $ne: null, $gt: 5 } },
-  //       { projection: { hid: 1 } }
-  //     )
-  //     .toArray();
-  //   hids = _.map(hids, "hid");
-  //   console.log("GOT", hids.length);
-  //   fix_hids = [...fix_hids, ...hids];
-  // }
-  // console.log(fix_hids.toString());
+  let all_hids = await cyclic_depedency.get_all_hids();
+  for (let chunk of _.chunk(all_hids, 5000)) {
+    let [a, b] = [chunk[0], chunk[chunk.length - 1]];
+    console.log("get", a, b);
+    let hids = await zed_db.db
+      .collection(coll)
+      .find(
+        { hid: { $in: chunk }, br: { $ne: null, $gt: 5 } },
+        { projection: { hid: 1 } }
+      )
+      .toArray();
+    hids = _.map(hids, "hid");
+    console.log("GOT", hids.length);
+    fix_hids = [...fix_hids, ...hids];
+  }
+  console.log(fix_hids.toString());
 
-  // await zed_db.db
-  //   .collection(coll)
-  //   .updateMany({ hid: { $in: fix_hids } }, { $set: { br: 1 } });
-
-  fix_hids = await zed_db.db
+  await zed_db.db
     .collection(coll)
-    .find({ flag: 1 }, { projection: { hid: 1 } })
+    .updateMany({ hid: { $in: fix_hids } }, { $set: { br: 1 } });
+
+  await utils.delay(3000);
+  await only(fix_hids);
+  console.log("ENDED fixer");
+};
+
+const fixer2 = async () => {
+  let flag = 2;
+  let fix_hids = await zed_db.db
+    .collection(coll)
+    .find({ flag }, { projection: { hid: 1 } })
     .toArray();
   fix_hids = _.map(fix_hids, "hid");
   for (let hid of fix_hids) {
     await zed_db.db
       .collection(coll)
-      .updateOne({ hid }, { $set: { br: 1, flag: 2 } });
+      .updateOne({ hid }, { $set: { br: 1, flag: flag + 1 } });
+  }
+  for (let hid of fix_hids) {
     await only([hid]);
   }
-  // await utils.delay(3000);
-  // await only(fix_hids);
-  console.log("ENDED fixer");
 };
+
+const fixer3 = async () => {
+  let fix_hids = [];
+  let all_hids = await cyclic_depedency.get_all_hids();
+  for (let chunk of _.chunk(all_hids, 5000)) {
+    let [a, b] = [chunk[0], chunk[chunk.length - 1]];
+    console.log("get", a, b);
+    let hids = await zed_db.db
+      .collection(coll)
+      .find(
+        { hid: { $in: chunk }, br: { $ne: null, $gt: 5 } },
+        { projection: { hid: 1 } }
+      )
+      .toArray();
+    hids = _.map(hids, "hid");
+    console.log("GOT", hids.length);
+    fix_hids = [...fix_hids, ...hids];
+  }
+  console.log("\n--\nGOT fix_hids", fix_hids.length);
+  let kids = await zed_db.db
+    .collection("horse_details")
+    .find({ hid }, { projection: { offsprings: 1 } });
+  kids = _.chain(kids).map("offsprings").flatten().value();
+  await ymca2_s.only(kids);
+  let kids_docs = await zed_db.db
+    .collection("horse_details")
+    .find(
+      { hid: { $in: kids } },
+      {
+        projection: {
+          hid: 1,
+          bloodline: 1,
+          breed_type: 1,
+          genotype: 1,
+          parents: 1,
+        },
+      }
+    )
+    .toArray();
+  let all_parents = [];
+  for (let doc of kids_docs) {
+    let ps = (all_parents = [...all_parents]);
+  }
+  all_parents = _.uniq(_.compact(all_parents));
+  // need to comintue from here
+};
+
+const fixer = fixer3;
 
 const rating_breed = {
   generate,
