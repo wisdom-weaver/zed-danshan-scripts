@@ -395,7 +395,7 @@ const fixer2 = async () => {
 const fixer3 = async () => {
   let fix_hids = [];
   let all_hids = await cyclic_depedency.get_all_hids();
-  for (let chunk of _.chunk(all_hids, 5000)) {
+  for (let chunk of _.chunk(all_hids, 15000)) {
     let [a, b] = [chunk[0], chunk[chunk.length - 1]];
     console.log("get", a, b);
     let hids = await zed_db.db
@@ -415,6 +415,7 @@ const fixer3 = async () => {
     .find({ hid: { $in: fix_hids } }, { projection: { offsprings: 1 } })
     .toArray();
   kids = _.chain(kids).map("offsprings").flatten().value();
+  console.log(kids);
   let kids_docs = await zed_db.db
     .collection("horse_details")
     .find(
@@ -430,7 +431,7 @@ const fixer3 = async () => {
       }
     )
     .toArray();
-
+  console.log(kids_docs);
   let all_parents = [];
   let all_z_ids = [];
   for (let doc of kids_docs) {
