@@ -245,7 +245,7 @@ const calc = async ({ hid }) => {
       let adj;
       if (fact == null) adj = null;
 
-      if (e.op_br > 4.5) e.op_br = 4.5;
+      if (e.op_br > 4.6) e.op_br = 4.6;
 
       if (e.op_br == 0 || _.isNaN(e.op_br)) adj = fact;
       else if (e.op_br > 1.05) adj = fact * 0.98;
