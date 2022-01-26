@@ -240,6 +240,9 @@ const calc = async ({ hid }) => {
       else fact = e.ymca2 / e.gavg;
       let adj;
       if (fact == null) adj = null;
+      
+      if (fact == Infinity) fact = null;
+      if (fact > 4.5) fact = 4.4 + 0.05 * fact;
 
       if (e.op_br == 0 || _.isNaN(e.op_br)) adj = fact;
       else if (e.op_br > 1.05) adj = fact * 0.98;
@@ -473,19 +476,12 @@ const fixer3 = async () => {
   console.log("ENDED FIXER");
 };
 const fixer4 = async () => {
-  let hids = [
-    7023, 7032, 27522, 15787, 27373, 27226, 28540, 16806, 46265, 18347, 41368,
-    45295, 19594, 36247, 16044, 15546, 38613, 38274, 39429, 62599, 10946, 19215,
-    61965, 66844, 57551, 41444, 17646, 18634, 80507, 80527, 63582, 18380, 86217,
-    21927, 90655, 64882, 92307, 90669, 91834, 92525, 104565, 75216, 64492,
-    112778, 77177, 119858, 119524, 65219, 113801, 93937, 63764, 34293, 137017,
-    148145, 136276, 150880, 110095, 150060, 158603, 162565, 162677, 162539,
-    154201, 129683, 167039, 167049, 73724, 168191, 162947, 137844, 169714,
-    153143,
-  ];
-  await zed_db.db
-    .collection(coll)
-    .updateMany({ hid: { $in: hids } }, { $set: { br: 5.1 } });
+  let hids = [];
+  let br = -10;
+  if (!_.isEmpty(hids))
+    await zed_db.db
+      .collection(coll)
+      .updateMany({ hid: { $in: hids } }, { $set: { br } });
   console.log("done");
 };
 
