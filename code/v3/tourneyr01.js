@@ -98,7 +98,6 @@ const r2_tr_sraces_eval = async () => {
     let our_hids = _.intersection(hids, all_hids);
     console.log("got", race_id, `(${thisclass})`, race_name, our_hids);
     if (_.isEmpty(our_hids)) continue;
-    race_name = "A QF";
     for (let hid of our_hids) {
       let update_ob = {};
       let obid = null;
@@ -109,12 +108,13 @@ const r2_tr_sraces_eval = async () => {
       if (race_name.includes("A SF")) {
         update_ob.sf = 1;
         obid = "sf_ob";
+        console.log(hid, update_ob);
       }
       if (race_name.includes("A Final")) {
         update_ob.f = 1;
         obid = "f_ob";
       }
-      console.log(update_ob);
+      // console.log(update_ob);
       if (!_.isEmpty(update_ob)) {
         await zed_db.db
           .collection(coll2)
@@ -347,7 +347,9 @@ const run_cron_scheduled = async () => {
 
 const test = async () => {
   // await zed_db.db.collection(coll2).createIndex({ hid: 1 }, { unique: true });
-  await zed_db.db.collection("tourneyr01_sraces").deleteMany({ thisclass: { $ne: 99 } });
+  await zed_db.db
+    .collection("tourneyr01_sraces")
+    .deleteMany({ thisclass: { $ne: 99 } });
 };
 const main = () => {};
 const tourneyr01 = {
