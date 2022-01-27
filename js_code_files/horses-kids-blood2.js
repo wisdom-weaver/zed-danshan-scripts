@@ -796,7 +796,7 @@ const get_ymca_tag = (val) => {
 const download_hids_br_ymca = async () => {
   await init();
   let st = 112001;
-  let ed = 200000;
+  let ed = 400000;
   let cs = 2000;
   let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
   let i = 0;
@@ -863,7 +863,7 @@ const download_hids_br_ymca = async () => {
 const tabulate_hids_br_ymca = async () => {
   // await init();
   let st = 1;
-  let ed = 2000000;
+  let ed = 4000000;
   let cs = 2000;
   let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
   let i = 0;

@@ -743,7 +743,7 @@ const odds_generator_all_horses = async () => {
     await initiate();
     await init_btbtz();
     let st = 1;
-    let ed = 200000;
+    let ed = 400000;
     let cs = 500;
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
     // let hids = [77052, 78991, 80769, 87790, 88329, 88427];
@@ -780,7 +780,7 @@ const blood_generator_all_horses = async (st, ed) => {
     await init_btbtz();
     if (!st) st = 1;
     else st = parseFloat(st);
-    if (!ed) ed = 200000;
+    if (!ed) ed = 400000;
     else ed = parseFloat(ed);
     let cs = 20;
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
@@ -820,7 +820,7 @@ const blood_generator_dist_all_horses = async (st, ed) => {
     await init_btbtz();
     if (!st) st = 1;
     else st = parseFloat(st);
-    if (!ed) ed = 200000;
+    if (!ed) ed = 400000;
     let cs = 20;
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
     // let hids = [26646, 21744, 21512];
@@ -861,7 +861,7 @@ const blood_generator_both_all_horses = async (st, ed) => {
     await init_btbtz();
     if (!st) st = 1;
     else st = parseFloat(st);
-    if (!ed) ed = 200000;
+    if (!ed) ed = 400000;
     let cs = 20;
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
     // let hids = [26646, 21744, 21512];
@@ -916,7 +916,7 @@ const breed_generator_all_horses = async () => {
     await initiate();
     await init_btbtz();
     let st = 1;
-    let ed = 2000000;
+    let ed = 4000000;
     let cs = 500;
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
     // hids = [3722];
@@ -954,7 +954,7 @@ const breed_generator_m1_all_horses = async () => {
     await initiate();
     await init_btbtz();
     let st = 1;
-    let ed = 2000000;
+    let ed = 4000000;
     let cs = 500;
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
     // let hids = [26646, 21744, 21512];
@@ -992,7 +992,7 @@ const odds_flames_generator_all_horses = async () => {
     console.log("breed_generator_all_horses");
     await initiate();
     let st = 1;
-    let ed = 2000000;
+    let ed = 4000000;
     let cs = 500;
     let hids = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
     // let hids = [3312];

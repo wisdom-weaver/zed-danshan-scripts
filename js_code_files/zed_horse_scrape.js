@@ -880,7 +880,7 @@ const zed_horses_needed_manual_using_hawku = async () => {
   end_doc = end_doc && end_doc[0];
   let st = end_doc?.hid || 125000;
   st = st - 10000;
-  let ed = 200000;
+  let ed = 400000;
   console.log({ st, ed });
   let cs = 3;
   let hids_all = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
@@ -972,7 +972,7 @@ const zed_horses_needed_manual_using_api = async () => {
   st = st - 15000;
   // st = 128479;
   // let ed = 131000;
-  let ed = 200000;
+  let ed = 400000;
   console.log({ st, ed });
   let cs = 5;
   let hids_all = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
