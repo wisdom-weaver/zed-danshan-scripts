@@ -16,6 +16,7 @@ const {
 const bulk = require("../utils/bulk");
 const { get_hids } = require("../utils/utils");
 const utils = require("../utils/utils");
+const est_ymca = require("./est_ymca");
 
 const s_ = {
   rating_flames,
@@ -25,6 +26,7 @@ const s_ = {
   ymca2,
   ymca2_table,
   parents_comb,
+  est_ymca,
 };
 
 let test_mode = 0;
@@ -50,6 +52,7 @@ const calc = async ({ hid }) => {
     rating_flames,
     base_ability,
     ymca2,
+    est_ymca,
     // parents_comb
   ] = await Promise.all([
     s_.rating_blood.calc({ hid, races, tc }),
@@ -57,6 +60,7 @@ const calc = async ({ hid }) => {
     s_.rating_flames.calc({ hid, races, tc }),
     s_.base_ability.calc({ hid, races, tc }),
     s_.ymca2.calc({ hid, races, details: hdoc }),
+    s_.est_ymca.calc({ hid, races, hdoc }),
     // s_.parents_comb.calc({ hid, races, hdoc }),
   ]);
   if (test_mode) {
@@ -67,7 +71,8 @@ const calc = async ({ hid }) => {
     console.log("ymca2", ymca2);
     // console.log("parents_comb", parents_comb);
   }
-  ymca2_doc = { hid, ymca2 };
+  let ymca2_doc = { hid, ymca2 };
+  let est_ymca_doc = { hid, est_ymca };
   return {
     hid,
     rating_blood,
@@ -75,6 +80,7 @@ const calc = async ({ hid }) => {
     rating_flames,
     base_ability,
     ymca2_doc,
+    est_ymca_doc,
     // parents_comb,
   };
 };
@@ -90,6 +96,7 @@ const push_mega_bulk = async (datas_ar) => {
   let rating_flames_bulk = [];
   let base_ability_bulk = [];
   let ymca2_doc_bulk = [];
+  let est_ymca_doc_bulk = [];
   // let parents_comb_bulk = [];
 
   datas_ar = _.compact(datas_ar);
@@ -101,6 +108,7 @@ const push_mega_bulk = async (datas_ar) => {
       rating_flames,
       base_ability,
       ymca2_doc,
+      est_ymca_doc,
       // parents_comb,
     } = data;
     if (!_.isEmpty(rating_blood)) rating_blood_bulk.push(rating_blood);
@@ -108,6 +116,7 @@ const push_mega_bulk = async (datas_ar) => {
     if (!_.isEmpty(rating_flames)) rating_flames_bulk.push(rating_flames);
     if (!_.isEmpty(base_ability)) base_ability_bulk.push(base_ability);
     if (!_.isEmpty(ymca2_doc)) ymca2_doc_bulk.push(ymca2_doc);
+    if (!_.isEmpty(est_ymca_doc)) est_ymca_doc_bulk.push(est_ymca_doc);
     // if (!_.isEmpty(parents_comb)) parents_comb_bulk.push(parents_comb);
   });
   if (test_mode) {
@@ -116,6 +125,7 @@ const push_mega_bulk = async (datas_ar) => {
     console.log("rating_flames_bulk.len", rating_flames_bulk.length);
     console.log("base_ability_bulk.len", base_ability_bulk.length);
     console.log("ymca2_doc_bulk.len", ymca2_doc_bulk.length);
+    console.log("est_ymca_doc_bulk.len", est_ymca_doc_bulk.length);
     // console.log("parents_comb_bulk.len", parents_comb_bulk.length);
   }
   await Promise.all([
@@ -124,6 +134,7 @@ const push_mega_bulk = async (datas_ar) => {
     bulk.push_bulk("rating_flames3", rating_flames_bulk, "rating_flames"),
     bulk.push_bulk("rating_blood3", base_ability_bulk, "base_ability"),
     bulk.push_bulk("rating_breed3", ymca2_doc_bulk, "ymca2"),
+    bulk.push_bulk("rating_breed3", est_ymca_doc_bulk, "est_ymca"),
     // bulk.push_bulk("rating_breed3", parents_comb_bulk, "parents_comb"),
   ]);
   let [a, b] = [datas_ar[0]?.hid, datas_ar[datas_ar.length - 1]?.hid];
