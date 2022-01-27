@@ -12,7 +12,7 @@ const ancestry = require("./ancestry");
 const utils = require("../utils/utils");
 const cyclic_depedency = require("../utils/cyclic_dependency");
 
-const def_cs = 10;
+const def_cs = 20;
 
 const bulk_write_kid_to_parent = async (obar) => {
   let mgp = [];
