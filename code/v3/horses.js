@@ -158,6 +158,7 @@ const get_new = async () => {
           console.log("found consec", chunk_hids.length, "empty horses");
           console.log("continue from start after 5 minutes");
           await delay(60 * 1000);
+          continue outer;
         } else {
           continue;
         }
