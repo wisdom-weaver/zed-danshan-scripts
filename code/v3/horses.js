@@ -123,41 +123,45 @@ const get_new = async () => {
     let now = st;
     let cs = 80;
     let max_fail = 3;
+    let fail = max_fail;
     do {
       let [now_st, now_ed] = [now, now + cs - 1];
-      let resp = await get_missings([now_st, now_ed]);
+      let resp = await get_missings([now_st, now_ed], 0);
       now += cs;
       if (now <= ed) continue;
       console.log("CROSSED");
-      if (resp == 0) max_fail--;
-    } while (max_fail);
+      if (resp == 0) fail--;
+      else fail = max_fail;
+    } while (fail);
     console.log("REACHED END");
+    console.log("====\n===\n===\n");
     await delay(60 * 1000);
+    console.log("====\n===\n===\n");
     continue s_start;
   }
   // await mega.only_w_parents_br(chunk_hids);
   // await parents.fix_horse_type_using_kid_ids(chunk_hids);
 };
-const get_only = async (hids) => {
+const get_only = async (hids, p = 1) => {
   let cs = def_cs;
   let hids_all = hids.map((h) => parseInt(h));
-  console.log("hids_all", hids_all.length);
+  if (p) console.log("hids_all", hids_all.length);
   let fet = [];
   for (let chunk_hids of _.chunk(hids_all, cs)) {
-    console.log("GETTING", chunk_hids);
+    if (p) console.log("GETTING", chunk_hids);
     let resps = await add_hdocs(chunk_hids, cs);
     await delay(100);
     if (resps?.length == 0) {
-      console.log("break");
+      if (p) console.log("break");
       break;
     }
-    console.log("wrote", resps.length, "to horse_details");
+    if (p) console.log("wrote", resps.length, "to horse_details");
 
     chunk_hids = _.map(resps, "hid");
     await mega.only_w_parents_br(chunk_hids);
     await parents.fix_horse_type_using_kid_ids(chunk_hids);
     await ancestry.only(chunk_hids);
-    console.log("## GOT ", chunk_hids.toString(), "\n");
+    if (p) console.log("## GOT ", chunk_hids.toString(), "\n");
     fet = [...fet, ...(chunk_hids || [])];
   }
   return fet;
@@ -194,7 +198,7 @@ const get_valid_hids_in_ancestry = async (hids) => {
   return hids5;
 };
 
-const get_missings = async (range) => {
+const get_missings = async (range, p = 1) => {
   let [st, ed] = range;
   st = utils.get_n(st);
   ed = utils.get_n(ed);
@@ -211,18 +215,23 @@ const get_missings = async (range) => {
     let hids4 = await get_valid_hids_in_coll(chunk_hids, "rating_flames3");
     let hids5 = await get_valid_hids_in_ancestry(chunk_hids);
 
-    console.log("hids1:", hids1.length);
-    console.log("hids2:", hids2.length);
-    console.log("hids3:", hids3.length);
-    console.log("hids4:", hids4.length);
-    console.log("hids5:", hids5.length);
+    if (p) console.log("hids1:", hids1.length);
+    if (p) console.log("hids2:", hids2.length);
+    if (p) console.log("hids3:", hids3.length);
+    if (p) console.log("hids4:", hids4.length);
+    if (p) console.log("hids5:", hids5.length);
 
     let hids_exists = _.intersection(hids1, hids2, hids3, hids4, hids5);
-    console.log("hids_exists", hids_exists.length);
+    if (p) console.log("hids_exists", hids_exists.length);
     let missings = _.difference(chunk_hids, hids_exists);
-    console.log("missings", missings.length, missings);
+    if (p) console.log("missings", missings.length, missings);
+    else {
+      let [a, b] = [missings[0], missings[missings.length - 1]];
+      console.log("missings", missings.length, a ? `${a} -> ${b}` : "");
+    }
     if (_.isEmpty(missings)) continue;
-    let got = await get_only(missings);
+    let got = await get_only(missings, p);
+    console.log("#GOT", got.length);
     fet = [...fet, ...(got || [])];
   }
   return fet;

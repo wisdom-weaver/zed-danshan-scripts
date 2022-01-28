@@ -231,7 +231,7 @@ const main = async (args) => {
       arg3 = JSON.parse(arg3) ?? [0];
       mod.horses.get_only(arg3);
     }
-    if (arg2 == "missing") {
+    if (arg2 == "miss") {
       arg3 = JSON.parse(arg3) ?? [0];
       mod.horses.get_missings(arg3);
     }
