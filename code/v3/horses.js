@@ -121,6 +121,8 @@ const get_new = async () => {
   let cs = def_cs;
   let hids_all = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
 
+  let fail_count = 0;
+
   outer: while (true) {
     let docs_exists1 =
       (await zed_db.db
@@ -151,11 +153,15 @@ const get_new = async () => {
       let resps = await add_hdocs(chunk_hids, cs);
       await delay(100);
       if (resps?.length == 0) {
-        console.log("found consec", chunk_hids.length, "empty horses");
-        console.log("continue from start after 5 minutes");
-        await delay(300000);
-        continue outer;
-      }
+        fail_count++;
+        if (fail_count > 10) {
+          console.log("found consec", chunk_hids.length, "empty horses");
+          console.log("continue from start after 5 minutes");
+          await delay(60 * 1000);
+        } else {
+          continue;
+        }
+      } else fail_count = 0;
       console.log("wrote", resps.length, "to horse_details");
 
       chunk_hids = _.map(resps, "hid");
@@ -165,7 +171,7 @@ const get_new = async () => {
       console.log("## GOT ", chunk_hids.toString(), "\n");
     }
     console.log("completed zed_horses_needed_bucket_using_zed_api ");
-    await delay(120000);
+    await delay(60 * 1000);
   }
 };
 const get_only = async (hids) => {
@@ -315,7 +321,7 @@ const get_only_hdocs = async (hids) => {
       break;
     }
   }
-  console.log("end")
+  console.log("end");
 };
 const get_range_hdocs = async (range) => {
   let [st, ed] = range;
