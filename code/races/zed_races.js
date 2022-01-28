@@ -42,21 +42,37 @@ const miss = async (from, to, push_race_horses_on = 0) => {
   });
 };
 const miss_cron = async () => {
-  const runner = async () => {
+  let cron_str1 = "*/1 * * * *";
+  const runner1 = async () => {
     let push_race_horses_on = 1;
     try {
       let now = Date.now();
       let from = moment(new Date(now)).subtract(10, "minutes").toISOString();
-      let to = moment(new Date(now)).subtract(5, "minute").toISOString();
+      let to = moment(new Date(now)).toISOString();
       await miss(from, to, push_race_horses_on);
     } catch (err) {
       console.log(err);
     }
   };
-  let cron_str = "*/5 * * * *";
-  const c_itvl = cron_parser.parseExpression(cron_str);
-  console.log("Next run:", c_itvl.next().toISOString(), "\n");
-  cron.schedule(cron_str, runner, cron_conf);
+  let cron_str2 = "*/5 * * * *";
+  const runner2 = async () => {
+    let push_race_horses_on = 1;
+    try {
+      let now = Date.now();
+      let from = moment(new Date(now)).subtract(1, "hour").toISOString();
+      let to = moment(new Date(now)).toISOString();
+      await miss(from, to, push_race_horses_on);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+  const c_itvl1 = cron_parser.parseExpression(cron_str1);
+  console.log("Next run:", c_itvl1.next().toISOString(), "\n");
+  cron.schedule(cron_str1, runner1, cron_conf);
+
+  const c_itvl2 = cron_parser.parseExpression(cron_str2);
+  console.log("Next run:", c_itvl2.next().toISOString(), "\n");
+  cron.schedule(cron_str2, runner2, cron_conf);
 };
 
 const test = async () => {
