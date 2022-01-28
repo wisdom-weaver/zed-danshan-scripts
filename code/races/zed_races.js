@@ -67,11 +67,11 @@ const miss_cron = async () => {
     }
   };
   const c_itvl1 = cron_parser.parseExpression(cron_str1);
-  console.log("Next run:", c_itvl1.next().toISOString(), "\n");
+  console.log("Next run:", c_itvl1.next().toISOString());
   cron.schedule(cron_str1, runner1, cron_conf);
 
   const c_itvl2 = cron_parser.parseExpression(cron_str2);
-  console.log("Next run:", c_itvl2.next().toISOString(), "\n");
+  console.log("Next run:", c_itvl2.next().toISOString());
   cron.schedule(cron_str2, runner2, cron_conf);
 };
 
