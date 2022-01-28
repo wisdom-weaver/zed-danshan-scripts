@@ -22,6 +22,10 @@ const main = async (args) => {
     if (arg2 == "live_cron") zed_races.live_cron();
     if (arg2 == "miss") zed_races.miss(arg3, arg4);
     if (arg2 == "miss_cron") zed_races.miss_cron();
+    if (arg2 == "manual") {
+      arg3 = arg3?.slice(",") ?? [];
+      zed_races.manual(arg3);
+    }
   } else if (arg1 == "--rating_flames") {
     if (arg2 == "all") mod.rating_flames.all();
     if (arg2 == "only") {

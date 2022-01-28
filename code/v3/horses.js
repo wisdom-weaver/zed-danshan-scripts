@@ -113,72 +113,36 @@ const add_hdocs = async (hids, cs = def_cs) => {
 };
 
 const get_new = async () => {
-  let st = await get_ed_horse();
-  console.log("last:", st);
-  st = st - 15000;
-  let ed = st * 2;
-  console.log({ st, ed });
-  let cs = def_cs;
-  let hids_all = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
-
-  let fail_count = 0;
-
-  outer: while (true) {
-    let docs_exists1 =
-      (await zed_db.db
-        .collection("horse_details")
-        .find(
-          { hid: { $gt: st - 1 } },
-          { projection: { _id: 0, hid: 1, bloodline: 1 } }
-        )
-        .toArray()) || {};
-    let docs_exists2 =
-      (await zed_db.db
-        .collection("rating_blood3")
-        .find({ hid: { $gt: st - 1 } }, { projection: { _id: 0, hid: 1 } })
-        .toArray()) || {};
-
-    let hids_exists1 = _.map(docs_exists1, (i) => {
-      if (i?.bloodline) return i.hid;
-      return null;
-    });
-    let hids_exists2 = _.map(docs_exists2, "hid");
-    let hids_exists = _.intersection(hids_exists1, hids_exists2);
-
-    let hids = _.difference(hids_all, hids_exists);
-    console.log("hids.len: ", hids.length);
-
-    for (let chunk_hids of _.chunk(hids, cs)) {
-      console.log("GETTING", chunk_hids);
-      let resps = await add_hdocs(chunk_hids, cs);
-      await delay(100);
-      if (resps?.length == 0) {
-        fail_count++;
-        if (fail_count > 10) {
-          console.log("found consec", chunk_hids.length, "empty horses");
-          console.log("continue from start after 5 minutes");
-          await delay(60 * 1000);
-          continue outer;
-        } else {
-          continue;
-        }
-      } else fail_count = 0;
-      console.log("wrote", resps.length, "to horse_details");
-
-      chunk_hids = _.map(resps, "hid");
-      await mega.only_w_parents_br(chunk_hids);
-      await parents.fix_horse_type_using_kid_ids(chunk_hids);
-      await ancestry.only(chunk_hids);
-      console.log("## GOT ", chunk_hids.toString(), "\n");
-    }
-    console.log("completed zed_horses_needed_bucket_using_zed_api ");
+  s_start: while (true) {
+    console.log("get_new");
+    let back = 500;
+    // let hids = await cyclic_depedency.get_all_hids();
+    // hids = hids.slice(hids.length - back);
+    let ed = await cyclic_depedency.get_ed_horse();
+    let st = ed - back;
+    let now = st;
+    let cs = 80;
+    let max_fail = 3;
+    do {
+      let [now_st, now_ed] = [now, now + cs - 1];
+      let resp = await get_missings([now_st, now_ed]);
+      now += cs;
+      if (now <= ed) continue;
+      console.log("CROSSED");
+      if (resp == 0) max_fail--;
+    } while (max_fail);
+    console.log("REACHED END");
     await delay(60 * 1000);
+    continue s_start;
   }
+  // await mega.only_w_parents_br(chunk_hids);
+  // await parents.fix_horse_type_using_kid_ids(chunk_hids);
 };
 const get_only = async (hids) => {
   let cs = def_cs;
   let hids_all = hids.map((h) => parseInt(h));
   console.log("hids_all", hids_all.length);
+  let fet = [];
   for (let chunk_hids of _.chunk(hids_all, cs)) {
     console.log("GETTING", chunk_hids);
     let resps = await add_hdocs(chunk_hids, cs);
@@ -194,7 +158,9 @@ const get_only = async (hids) => {
     await parents.fix_horse_type_using_kid_ids(chunk_hids);
     await ancestry.only(chunk_hids);
     console.log("## GOT ", chunk_hids.toString(), "\n");
+    fet = [...fet, ...(chunk_hids || [])];
   }
+  return fet;
 };
 const get_range = async (range) => {
   let [st, ed] = range;
@@ -235,6 +201,7 @@ const get_missings = async (range) => {
   if (ed == "ed" || ed == null) ed = await get_ed_horse();
   let cs = def_cs;
   let hids_all = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
+  let fet = [];
   for (let chunk_hids of _.chunk(hids_all, 100)) {
     let [a, b] = [chunk_hids[0], chunk_hids[chunk_hids.length - 1]];
     console.log("checking", a, "->", b);
@@ -255,8 +222,10 @@ const get_missings = async (range) => {
     let missings = _.difference(chunk_hids, hids_exists);
     console.log("missings", missings.length, missings);
     if (_.isEmpty(missings)) continue;
-    await get_only(missings);
+    let got = await get_only(missings);
+    fet = [...fet, ...(got || [])];
   }
+  return fet;
 };
 
 const get_new_hdocs = async () => {

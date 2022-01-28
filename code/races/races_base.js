@@ -586,10 +586,28 @@ const zed_races_zrapi_runner = async (
   }
   console.log("ENDED");
 };
+const zed_race_rids = async (rids, cs = 10) => {
+  for (let chunk_rids of _.chunk(rids, cs)) {
+    console.log("getting", chunk_rids.toString());
+    let races = await Promise.all(
+      chunk_rids.map((rid) =>
+        zed_races_zrapi_rid_runner(rid).then((d) => [rid, d])
+      )
+    );
+    races.forEach(([rid, d]) => {
+      console.log("GOT at", _.values(d)[0][2], "rid:", rid);
+    });
+    let n = races.length;
+    races = _.fromPairs(races);
+    await zed_push_races_to_mongo(races);
+    console.log("pushed", n, "races\n");
+  }
+};
 
 const races_base = {
   zed_races_gql_runner,
   zed_races_zrapi_runner,
   zed_race_base_data,
+  zed_race_rids,
 };
 module.exports = races_base;

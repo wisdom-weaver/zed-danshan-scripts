@@ -75,17 +75,12 @@ const miss_cron = async () => {
   cron.schedule(cron_str2, runner2, cron_conf);
 };
 
-const test = async () => {
-  console.log("zed_races", "test");
-  let d = "2021-12-28T21:27:08Z";
-  // let from = "2021-12-28T21:27:24Z"
-  let from = moment(d).subtract(5, "minutes").toISOString();
-  // let to = "2021-12-28T21:32:19Z"
-  let to = moment(d).add(5, "minutes").toISOString();
-  console.log("from:", from);
-  console.log("to  :", to);
-  await races_base.zed_races_gql_runner(from, to);
+const manual = async (rids) => {
+  console.log("zed_races", "manual");
+  await races_base.zed_race_rids(rids);
+  console.log("manual ended");
 };
+const test = async () => {};
 
 const zed_races = {
   live,
@@ -93,5 +88,6 @@ const zed_races = {
   test,
   miss,
   miss_cron,
+  manual,
 };
 module.exports = zed_races;
