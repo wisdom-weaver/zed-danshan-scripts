@@ -219,7 +219,7 @@ const run_07 = async () => {
             // 10:1, //"gate",
             // 11:1, //"odds",
             // 12:1, //"unknown",
-            // 13: 1, //"flame",
+            13: 1, //"flame",
             // 14:1, //"fee_cat",
             // 15:1, //"adjfinishtime",
             // 16:1, //"htc",
