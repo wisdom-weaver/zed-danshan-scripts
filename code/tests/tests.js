@@ -123,7 +123,7 @@ const run_06 = async () => {
   console.log("run_06");
   let docs = [];
   let st = nano("2022-01-01T00:00Z");
-  let ed = Date.now();
+  let ed = nano("2022-01-02T00:00Z") //Date.now();
   let now = st;
   let off = 1 * 60 * 60 * 1000;
   while (now < ed) {
