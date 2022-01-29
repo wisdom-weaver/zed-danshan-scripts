@@ -119,5 +119,58 @@ const run_05 = async (range) => {
   await mega.only(hids);
 };
 
-const tests = { run: run_05 };
+const run_06 = async () => {
+  console.log("run_06")
+  let docs = await zed_ch.db
+    .collection("zed")
+    .find(
+      {
+        2: { $gte: iso("2022-01-01Z") },
+      },
+      {
+        projection: {
+          // 1:1, //"distance",
+          // 2:1, //"date",
+          3: 1, //"entryfee",
+          4: 1, //"raceid",
+          5: 1, //"thisclass",
+          6: 1, //"hid",
+          // 7:1, //"finishtime",
+          // 8:1, //"place",
+          // 9:1, //"name",
+          // 10:1, //"gate",
+          // 11:1, //"odds",
+          // 12:1, //"unknown",
+          13: 1, //"flame",
+          // 14:1, //"fee_cat",
+          // 15:1, //"adjfinishtime",
+          // 16:1, //"htc",
+          // 17:1, //"race_name",
+        },
+      }
+    )
+    .toArray();
+  let ob = {};
+  ob = _.groupBy(docs, "5");
+  ob = _.entries(ob).map(([c, rs]) => {
+    let filt = _.filter(rs, (r) => r[5] == 99 || parseFloat(r[3]) != 0);
+    let filt_f = _.filter(filt, { 13: 1 });
+    let races_n = _.uniqBy(filt, (i) => i[4])?.length;
+    let uniq_hids = _.uniq(_.map(filt, 6));
+    let uniq_hids_f = _.uniq(_.map(filt_f, 6));
+    let new_horses = uniq_hids.filter((e) => e >= 178250);
+    let new_horses_f = uniq_hids_f.filter((e) => e >= 178250);
+    return {
+      class: c,
+      races_n,
+      uniq_hids: uniq_hids.length,
+      uniq_hids_f: uniq_hids_f.length,
+      new_horses: new_horses.length,
+      new_horses_f: new_horses_f.length,
+    };
+  });
+  console.table(ob);
+};
+
+const tests = { run: run_06 };
 module.exports = tests;
