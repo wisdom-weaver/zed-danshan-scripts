@@ -187,5 +187,49 @@ const run_06 = async () => {
   console.table(ob);
 };
 
-const tests = { run: run_06 };
+const run_07 = async () => {
+  let st = nano("2022-01-01T00:00Z");
+  let ed = Date.now(); // nano("2022-01-02T00:00Z") //
+  let ndocs = await zed_ch.db
+    .collection("zed")
+    .find(
+      {
+        2: {
+          $gte: iso(st),
+          $lte: iso(ed),
+        },
+        5: 1,
+        6: { $gte: 178250 },
+        13: 1,
+        3: { $ne: "0.0" },
+      },
+      {
+        projection: {
+          // 1:1, //"distance",
+          // 2:1, //"date",
+          // 3: 1, //"entryfee",
+          // 4: 1, //"raceid",
+          // 5: 1, //"thisclass",
+          6: 1, //"hid",
+          // 7:1, //"finishtime",
+          // 8:1, //"place",
+          // 9:1, //"name",
+          // 10:1, //"gate",
+          // 11:1, //"odds",
+          // 12:1, //"unknown",
+          // 13: 1, //"flame",
+          // 14:1, //"fee_cat",
+          // 15:1, //"adjfinishtime",
+          // 16:1, //"htc",
+          // 17:1, //"race_name",
+        },
+      }
+    )
+    .toArray();
+  let hids = _.map(ndocs, 6);
+  hids = _.uniq(hids);
+  console.log(hids);
+};
+
+const tests = { run: run_07 };
 module.exports = tests;
