@@ -120,36 +120,50 @@ const run_05 = async (range) => {
 };
 
 const run_06 = async () => {
-  console.log("run_06")
-  let docs = await zed_ch.db
-    .collection("zed")
-    .find(
-      {
-        2: { $gte: iso("2022-01-01Z") },
-      },
-      {
-        projection: {
-          // 1:1, //"distance",
-          // 2:1, //"date",
-          3: 1, //"entryfee",
-          4: 1, //"raceid",
-          5: 1, //"thisclass",
-          6: 1, //"hid",
-          // 7:1, //"finishtime",
-          // 8:1, //"place",
-          // 9:1, //"name",
-          // 10:1, //"gate",
-          // 11:1, //"odds",
-          // 12:1, //"unknown",
-          13: 1, //"flame",
-          // 14:1, //"fee_cat",
-          // 15:1, //"adjfinishtime",
-          // 16:1, //"htc",
-          // 17:1, //"race_name",
+  console.log("run_06");
+  let docs = [];
+  let st = nano("2022-01-01T00:00Z");
+  let ed = Date.now();
+  let now = st;
+  let off = 1 * 60 * 60 * 1000;
+  while (now < ed) {
+    console.log([iso(now), iso(now + off)]);
+    let ndocs = await zed_ch.db
+      .collection("zed")
+      .find(
+        {
+          2: {
+            $gte: iso(now),
+            $lte: iso(now + off),
+          },
         },
-      }
-    )
-    .toArray();
+        {
+          projection: {
+            // 1:1, //"distance",
+            // 2:1, //"date",
+            3: 1, //"entryfee",
+            4: 1, //"raceid",
+            5: 1, //"thisclass",
+            6: 1, //"hid",
+            // 7:1, //"finishtime",
+            // 8:1, //"place",
+            // 9:1, //"name",
+            // 10:1, //"gate",
+            // 11:1, //"odds",
+            // 12:1, //"unknown",
+            13: 1, //"flame",
+            // 14:1, //"fee_cat",
+            // 15:1, //"adjfinishtime",
+            // 16:1, //"htc",
+            // 17:1, //"race_name",
+          },
+        }
+      )
+      .toArray();
+    docs = [...docs, ...(ndocs || [])];
+    console.log("got", ndocs.length);
+    now += off;
+  }
   let ob = {};
   ob = _.groupBy(docs, "5");
   ob = _.entries(ob).map(([c, rs]) => {
@@ -157,6 +171,7 @@ const run_06 = async () => {
     let filt_f = _.filter(filt, { 13: 1 });
     let races_n = _.uniqBy(filt, (i) => i[4])?.length;
     let uniq_hids = _.uniq(_.map(filt, 6));
+    console;
     let uniq_hids_f = _.uniq(_.map(filt_f, 6));
     let new_horses = uniq_hids.filter((e) => e >= 178250);
     let new_horses_f = uniq_hids_f.filter((e) => e >= 178250);
