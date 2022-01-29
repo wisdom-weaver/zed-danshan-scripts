@@ -140,7 +140,7 @@ const run_06 = async () => {
         {
           projection: {
             // 1:1, //"distance",
-            // 2:1, //"date",
+            2: 1, //"date",
             3: 1, //"entryfee",
             4: 1, //"raceid",
             5: 1, //"thisclass",
@@ -190,46 +190,75 @@ const run_06 = async () => {
 const run_07 = async () => {
   let st = nano("2022-01-01T00:00Z");
   let ed = Date.now(); // nano("2022-01-02T00:00Z") //
-  let ndocs = await zed_ch.db
-    .collection("zed")
-    .find(
-      {
-        2: {
-          $gte: iso(st),
-          $lte: iso(ed),
+  let ob = {};
+  for (let c of [1, 2, 3, 4, 5, 99]) {
+    let ndocs = await zed_ch.db
+      .collection("zed")
+      .find(
+        {
+          2: {
+            $gte: iso(st),
+            $lte: iso(ed),
+          },
+          5: c,
+          // 6: { $gte: 178250 },
+          // 13: 1,
+          ...(c !== 99 ? { 3: { $ne: "0.0" } } : {}),
         },
-        5: 1,
-        6: { $gte: 178250 },
-        13: 1,
-        3: { $ne: "0.0" },
-      },
-      {
-        projection: {
-          // 1:1, //"distance",
-          // 2:1, //"date",
-          // 3: 1, //"entryfee",
-          // 4: 1, //"raceid",
-          // 5: 1, //"thisclass",
-          6: 1, //"hid",
-          // 7:1, //"finishtime",
-          // 8:1, //"place",
-          // 9:1, //"name",
-          // 10:1, //"gate",
-          // 11:1, //"odds",
-          // 12:1, //"unknown",
-          // 13: 1, //"flame",
-          // 14:1, //"fee_cat",
-          // 15:1, //"adjfinishtime",
-          // 16:1, //"htc",
-          // 17:1, //"race_name",
-        },
-      }
-    )
-    .toArray();
-  let hids = _.map(ndocs, 6);
-  hids = _.uniq(hids);
-  console.log(hids);
-};
+        {
+          projection: {
+            // 1:1, //"distance",
+            2: 1, //"date",
+            3: 1, //"entryfee",
+            4: 1, //"raceid",
+            // 5: 1, //"thisclass",
+            6: 1, //"hid",
+            // 7:1, //"finishtime",
+            // 8:1, //"place",
+            // 9:1, //"name",
+            // 10:1, //"gate",
+            // 11:1, //"odds",
+            // 12:1, //"unknown",
+            // 13: 1, //"flame",
+            // 14:1, //"fee_cat",
+            // 15:1, //"adjfinishtime",
+            // 16:1, //"htc",
+            // 17:1, //"race_name",
+          },
+        }
+      )
+      .toArray();
+    ndocs = cyclic_depedency.struct_race_row_data(ndocs);
+    if (c !== 99)
+      ndocs = ndocs.filter((e) => ["A", "B", "C", "D"].includes(e.fee_tag));
+    // console.table(ndocs);
+    let hids = _.uniq(_.map(ndocs, "hid"));
+    let new_hids = _.filter(hids, (e) => e > 178250);
 
+    let ndocs_F = _.filter(ndocs, { flame: 1 });
+    let hids_F = _.uniq(_.map(ndocs_F, "hid"));
+    let new_hids_F = _.filter(hids_F, (e) => e > 178250);
+
+    races_n = _.uniqBy(ndocs, (i) => i.raceid)?.length;
+
+    hids = _.uniq(hids);
+    ob[c] = hids;
+    console.log("Class", c);
+    console.log("races_n", races_n);
+    console.log(hids.length, "hids\n", hids);
+    console.log(hids_F.length, "hids_F\n", hids_F);
+    console.log(new_hids.length, "new_hids\n", new_hids);
+    console.log(new_hids_F.length, "new_hids_F\n", new_hids_F);
+    console.log("===========================");
+    ob[c] = {
+      races_n,
+      hids: hids.length,
+      hids_F: hids_F.length,
+      new_hids: new_hids.length,
+      new_hids_F: new_hids_F.length,
+    };
+  }
+  console.table(ob);
+};
 const tests = { run: run_07 };
 module.exports = tests;
