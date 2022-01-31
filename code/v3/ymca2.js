@@ -5,7 +5,7 @@ const bulk = require("../utils/bulk");
 const cyclic_depedency = require("../utils/cyclic_dependency");
 const { struct_race_row_data } = require("../utils/cyclic_dependency");
 const utils = require("../utils/utils");
-const { calc_race_score } = require("./race_score");
+const { calc_race_score, calc_race_score_det } = require("./race_score");
 
 let test_mode = 0;
 let cs = 200;
@@ -80,16 +80,17 @@ const calc = async ({ hid, races = [], details }) => {
     avg_z_ob = _.fromPairs(avg_z_ob);
     let r_ob = races.map((r) => {
       let { thisclass: rc, fee_tag, place: position, flame, raceid } = r;
-      let score = calc_race_score({ rc, fee_tag, position, flame });
+      let score = calc_race_score_det({ rc, fee_tag, position, flame });
       let avg_z = Math.min(avg_z_ob[raceid], 29);
-      let final_score = score * 0.1 - avg_z * 0.02;
+      let sc = score?.sc;
+      let final_score = sc * 0.1 - avg_z * 0.02;
       return {
         rc,
         fee_tag,
         position,
         flame,
         avg_z,
-        score,
+        ...score,
         final_score,
       };
     });
@@ -175,7 +176,7 @@ const fixer = async () => {
     console.log("GOT", hids.length);
     await only(hids);
   }
-  console.log("ENDED fixer")
+  console.log("ENDED fixer");
 };
 
 const ymca2_s = { calc, generate, test, get_z_med, all, only, range, fixer };
