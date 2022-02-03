@@ -94,7 +94,7 @@ const update_hids_list = async () => {
 const generate_leader = async () => {
   let leader = [];
   let gp = _.groupBy(leader_old, "pts");
-  for (let chu of _.chunk(all_hids, 5)) {
+  for (let chu of _.chunk(active_hids, 5)) {
     let ar = await Promise.all(
       chu.map((hid) => {
         let { traces_n = 0, pts = 0 } = _.find(leader_old, { hid }) ?? {};
