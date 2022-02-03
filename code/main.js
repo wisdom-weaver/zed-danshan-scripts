@@ -5,8 +5,9 @@ const global_req = require("./global_req/global_req");
 const race_horses = require("./races/race_horses");
 const zed_races = require("./races/zed_races");
 const tests = require("./tests/tests");
+const tourneyr02 = require("./tourney/tourneyr02");
 const utils = require("./utils/utils");
-const tourneyr01 = require("./v3/tourneyr01");
+const tourneyr01 = require("./tourney/tourneyr01");
 const v3 = require("./v3/v3");
 const z_stats = require("./v3/z_stats");
 const mod = v3;
@@ -285,31 +286,10 @@ const main = async (args) => {
     if (arg2 == "generate") {
       z_stats.generate();
     }
-  } else if (arg1 == "--tourneyr01") {
-    if (arg2 == "test") {
-      tourneyr01.test();
-    }
-    if (arg2 == "now") {
-      tourneyr01.now();
-    }
-    if (arg2 == "run_cron") {
-      tourneyr01.run_cron();
-    }
-    if (arg2 == "now_h") {
-      tourneyr01.now_h();
-    }
-    if (arg2 == "run_cron_h") {
-      tourneyr01.run_cron_h();
-    }
-    if (arg2 == "run_dur") {
-      tourneyr01.run_dur(arg3);
-    }
-    if (arg2 == "now_scheduled") {
-      tourneyr01.now_scheduled();
-    }
-    if (arg2 == "run_cron_scheduled") {
-      tourneyr01.run_cron_scheduled();
-    }
+  } else if (arg1 == "--tourney") {
+    if (arg2 == "test") tourneyr02.test();
+    if (arg2 == "now_h") tourneyr02.now_h();
+    if (arg2 == "run_cron_h") tourneyr02.run_cron_h();
   } else if (arg1 == "--tests") {
     try {
       arg3 = JSON.parse(arg3);
