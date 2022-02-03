@@ -48,20 +48,6 @@ const get_horse_poins = async (hid, lim = 8) => {
   return { hid, traces_n, pts };
 };
 
-const calc_horse_points = async (hid, lim = 8) => {
-  if (!active_hids.includes(hid))
-    //delete doc;
-    hid = parseFloat(hid);
-  let { traces_n, pts } = get_horse_poins;
-  let stable_name = get_stable_name(hid);
-  let ob = { hid, pts, traces_n, stable_name };
-  console.log(`:: ${hid} #${traces_n}`, { pts });
-  // console.log(poss);
-  await zed_db.db
-    .collection(coll2)
-    .updateOne({ hid }, { $set: ob }, { upsert: true });
-};
-
 const get_stable_ob = async () => {
   let ob = await zed_db.db
     .collection(coll)
@@ -98,6 +84,11 @@ const update_hids_list = async () => {
   console.log("stables:", stable_ob.length);
   console.log("all_hids   :", all_hids.length);
   console.log("active_hids:", active_hids.length);
+
+  //delete not actives
+  await zed_db.db
+    .collection(coll2)
+    .deleteMany({ hid: { $not: { $in: active_hids } } });
 };
 
 const generate_leader = async () => {
