@@ -13,7 +13,7 @@ const coll = "tourney02";
 const coll2 = "tourney02_leader";
 const coll3 = "tourney02_sraces";
 const dur = 2.2 * 60 * 1000;
-const t = 0;
+let t = 0;
 
 let t_st_date = "2022-02-04T16:00:00.000Z";
 let t_ed_date = "2022-02-06T00:00:00.000Z";
@@ -38,7 +38,7 @@ const get_horse_poins = async (hid, lim = 8) => {
   if (h_date > t_st_date) {
     st_date = h_date;
   }
-  if (t) console.log(h_date);
+  if (t) console.log(stable_eaob);
   let races =
     (await zed_ch.db
       .collection("zed")
@@ -95,9 +95,10 @@ const update_hids_list = async () => {
   console.log("active_hids:", active_hids.length);
 
   //delete not actives
-  await zed_db.db
-    .collection(coll2)
-    .deleteMany({ hid: { $not: { $in: active_hids } } });
+  if (t !== 1)
+    await zed_db.db
+      .collection(coll2)
+      .deleteMany({ hid: { $not: { $in: active_hids } } });
 
   leader_old =
     (await zed_db.db
@@ -185,6 +186,7 @@ const run_cron_h = async () => {
 
 const test = async (hids) => {
   t = 1;
+  await update_hids_list();
   for (let hid of hids) {
     let ob = await get_horse_poins(hid, 8);
     console.log(hid, ob);
