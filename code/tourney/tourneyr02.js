@@ -13,6 +13,7 @@ const coll = "tourney02";
 const coll2 = "tourney02_leader";
 const coll3 = "tourney02_sraces";
 const dur = 2.2 * 60 * 1000;
+const test_mode = 1;
 
 let t_st_date = "2022-02-04T16:00:00.000Z";
 let t_ed_date = "2022-02-06T00:00:00.000Z";
@@ -30,11 +31,17 @@ let get_points = {
 };
 
 const get_horse_poins = async (hid, lim = 8) => {
+  let stable_eaob = get_stable_eaob(hid);
+  let st_date = t_st_date;
+  // console.log(hid, t_st_date, stable_eaob.date, stable_eaob.date > t_st_date);
+  if (stable_eaob.date > t_st_date) {
+    st_date = stable_eaob.date;
+  }
   let races =
     (await zed_ch.db
       .collection("zed")
       .find(
-        { 2: { $gte: t_st_date, $lte: t_ed_date }, 6: hid },
+        { 2: { $gte: st_date, $lte: t_ed_date }, 6: hid },
         { projection: { 6: 1, 8: 1 } }
       )
       .sort({ 2: 1 })
@@ -45,6 +52,7 @@ const get_horse_poins = async (hid, lim = 8) => {
   let pts = poss.reduce((acc, e) => acc + (get_points[e] ?? 0), 0);
   if (poss.length == 0) pts = 0;
   let traces_n = poss.length;
+  console.log(`::${hid} #${traces_n}`, { pts });
   return { hid, traces_n, pts };
 };
 
@@ -52,8 +60,8 @@ const get_stable_ob = async () => {
   let ob = await zed_db.db
     .collection(coll)
     .find(
-      { stable_name: { $ne: null } },
-      { projection: { active: 1, stable_name: 1, hids: 1 } }
+      { stable_name: { $ne: null } }
+      // { projection: { active: 1, stable_name: 1, hids: 1 } }
     )
     .toArray();
   return ob;
@@ -125,7 +133,7 @@ const generate_leader = async () => {
       },
     });
   }
-  await zed_db.db.collection(coll2).bulkWrite(bulk);
+  if (test_mode !== 1) await zed_db.db.collection(coll2).bulkWrite(bulk);
 };
 
 const get_stable_name = (hid) => {
@@ -134,6 +142,15 @@ const get_stable_name = (hid) => {
     if (hids.includes(hid)) return stable;
   }
   return "na-stable";
+};
+const get_stable_eaob = (hid) => {
+  let ob = _.chain(stable_ob).keyBy("stable_name").value();
+  for (let [stable, stable_eaob] of _.entries(ob)) {
+    // console.log(stable, stable_eaob);
+    let hids = stable_eaob?.hids || [];
+    if (hids.includes(hid)) return stable_eaob;
+  }
+  return {};
 };
 
 const now_h = async () => {
