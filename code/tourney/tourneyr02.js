@@ -35,7 +35,6 @@ const get_horse_poins = async (hid, lim = 8) => {
   let st_date = t_st_date;
   let hids_ob = stable_eaob.hids_ob || {};
   let h_date = hids_ob[hid] || stable_eaob.date;
-  if (hid == 165046) console.log(hid, h_date, _.isEmpty(hids_ob));
   if (h_date > t_st_date) {
     st_date = h_date;
   }
@@ -109,12 +108,12 @@ const generate_leader = async () => {
     let ar = await Promise.all(
       chu.map((hid) => {
         let { traces_n = 0, pts = 0 } = _.find(leader_old, { hid }) ?? {};
-        let lim;
+        let lim = 8;
         let ns = gp[pts]?.length ?? 0;
         if (traces_n == 0) lim = 8;
-        if (traces_n >= 8 && ns > 1) {
-          lim = Math.max(8, traces_n + 1);
-        }
+        // if (traces_n >= 8 && ns > 1) {
+        //   lim = Math.max(8, traces_n + 1);
+        // }
         return get_horse_poins(hid, lim);
       })
     );
@@ -176,10 +175,7 @@ const run_cron_h = async () => {
 };
 
 const test = async () => {
-  // await zed_db.db.collection(coll2).createIndex({ hid: 1 }, { unique: true });
-  await zed_db.db
-    .collection("tourneyr01_sraces")
-    .deleteMany({ thisclass: { $ne: 99 } });
+  
 };
 const main = () => {};
 const tourneyr02 = {
