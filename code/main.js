@@ -287,7 +287,10 @@ const main = async (args) => {
       z_stats.generate();
     }
   } else if (arg1 == "--tourney") {
-    if (arg2 == "test") tourneyr02.test();
+    if (arg2 == "test") {
+      arg3 = JSON.parse(arg3);
+      tourneyr02.test(arg3);
+    }
     if (arg2 == "now_h") tourneyr02.now_h();
     if (arg2 == "run_cron_h") tourneyr02.run_cron_h();
   } else if (arg1 == "--tests") {

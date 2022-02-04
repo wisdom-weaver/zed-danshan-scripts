@@ -43,13 +43,15 @@ const get_horse_poins = async (hid, lim = 8) => {
       .collection("zed")
       .find(
         { 2: { $gte: st_date, $lte: t_ed_date }, 6: hid },
-        { projection: { 6: 1, 8: 1 } }
+        { projection: { 4: 1, 6: 1, 8: 1 } }
       )
       .sort({ 2: 1 })
       .limit(lim)
       .toArray()) ?? [];
+  races = _.uniqBy(races, (i) => i[4]);
   // let filt_races = filter_races(races,
   let poss = _.map(races, (i) => parseFloat(i[8]));
+  console.log("poss:", poss);
   let pts = poss.reduce((acc, e) => acc + (get_points[e] ?? 0), 0);
   if (poss.length == 0) pts = 0;
   let traces_n = poss.length;
@@ -177,7 +179,12 @@ const run_cron_h = async () => {
   cron.schedule(cron_str, runner, utils.cron_conf);
 };
 
-const test = async () => {};
+const test = async (hids) => {
+  for (let hid of hids) {
+    let ob = await get_horse_poins(hid, 8);
+    console.log(hid, ob);
+  }
+};
 const main = () => {};
 const tourneyr02 = {
   test,
