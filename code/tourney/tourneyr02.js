@@ -75,12 +75,6 @@ const update_hids_list = async () => {
     .compact()
     .map((e) => parseInt(e))
     .value();
-  leader_old =
-    (await zed_db.db
-      .collection(coll2)
-      .find({ hid: { $exists: true, $in: all_hids } })
-      .sort({ pts: -1, traces_n: -1 })
-      .toArray()) ?? [];
   console.log("stables:", stable_ob.length);
   console.log("all_hids   :", all_hids.length);
   console.log("active_hids:", active_hids.length);
@@ -89,6 +83,13 @@ const update_hids_list = async () => {
   await zed_db.db
     .collection(coll2)
     .deleteMany({ hid: { $not: { $in: active_hids } } });
+
+  leader_old =
+    (await zed_db.db
+      .collection(coll2)
+      .find({ hid: { $exists: true, $in: all_hids } })
+      .sort({ pts: -1, traces_n: -1 })
+      .toArray()) ?? [];
 };
 
 const generate_leader = async () => {
