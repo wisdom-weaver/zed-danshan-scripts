@@ -13,7 +13,7 @@ const coll = "tourney02";
 const coll2 = "tourney02_leader";
 const coll3 = "tourney02_sraces";
 const dur = 2.2 * 60 * 1000;
-const test_mode = 1;
+const test_mode = 0;
 
 let t_st_date = "2022-02-04T16:00:00.000Z";
 let t_ed_date = "2022-02-06T00:00:00.000Z";
@@ -35,7 +35,7 @@ const get_horse_poins = async (hid, lim = 8) => {
   let st_date = t_st_date;
   let hids_ob = stable_eaob.hids_ob || {};
   let h_date = hids_ob[hid] || stable_eaob.date;
-  // console.log(hid, h_date, _.isEmpty(hids_ob))
+  if (hid == 165046) console.log(hid, h_date, _.isEmpty(hids_ob));
   if (h_date > t_st_date) {
     st_date = h_date;
   }
