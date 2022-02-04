@@ -103,13 +103,16 @@ const update_hids_list = async () => {
 
 const generate_leader = async () => {
   let leader = [];
-  let gp = _.groupBy(leader_old, "pts");
+  let gp = _.groupBy(leader_old, (e) => {
+    return `${e.traces_n}-${e.pts}`;
+  });
   for (let chu of _.chunk(active_hids, 5)) {
     let ar = await Promise.all(
       chu.map((hid) => {
         let { traces_n = 0, pts = 0 } = _.find(leader_old, { hid }) ?? {};
         let lim = 8;
-        let ns = gp[pts]?.length ?? 0;
+        let ns = gp[`${traces_n}-${pts}`]?.length ?? 0;
+        if (traces_n >= 8) console.log(hid, ns);
         if (traces_n == 0) lim = 8;
         // if (traces_n >= 8 && ns > 1) {
         //   lim = Math.max(8, traces_n + 1);
@@ -174,9 +177,7 @@ const run_cron_h = async () => {
   cron.schedule(cron_str, runner, utils.cron_conf);
 };
 
-const test = async () => {
-  
-};
+const test = async () => {};
 const main = () => {};
 const tourneyr02 = {
   test,
