@@ -5,7 +5,7 @@ const { dec } = require("../utils/utils");
 
 const name = "ancestry";
 const coll = "horse_details";
-let cs = 1;
+let cs = 25;
 let test_mode = 0;
 
 const get_ans_ob = async (hid) => {
@@ -32,6 +32,16 @@ const calc = async ({ hid, hdoc }) => {
   }
   let m_ob = await get_ans_ob(mother);
   let f_ob = await get_ans_ob(father);
+
+  if (!m_ob) {
+    await only([mother]);
+    m_ob = await get_ans_ob(mother);
+  }
+  if (!f_ob) {
+    await only([father]);
+    f_ob = await get_ans_ob(father);
+  }
+
   if (test_mode) console.log({ m_ob, f_ob });
   let ancestry = {
     n: _.mean([m_ob.n, f_ob.n]),
