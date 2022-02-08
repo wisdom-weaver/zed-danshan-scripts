@@ -6,7 +6,7 @@ const cron_parser = require("cron-parser");
 const utils = require("../utils/utils");
 
 const def_cs = 300;
-const run_cs = 30;
+const run_cs = 10;
 
 const coll = "race_horses";
 const push = async (ob) => {
