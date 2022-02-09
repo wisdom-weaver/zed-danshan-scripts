@@ -7,7 +7,7 @@ const cyclic_depedency = require("../utils/cyclic_dependency");
 const { zed_db, zed_ch } = require("../connection/mongo_connect");
 const _ = require("lodash");
 
-const coll = "base_ability";
+const coll = "gap4";
 const cron_conf = { scheduled: true };
 const mint = 60 * 1000;
 const dur_offset = 1 * 60 * mint;
@@ -73,7 +73,7 @@ const run_raw_races = async (races_ar) => {
     let chunk_races = _.map(chunk, 1);
     await Promise.all(chunk_races.map(run_race));
   }
-  console.log("GAP:: DONE");
+  // console.log("GAP:: DONE");
 };
 
 const run_rid = async (rid) => {
@@ -110,6 +110,7 @@ const run_dur = async (from, to) => {
     await run_1dur(now, now_ed);
     now = now_ed + 1;
   }
+  console.log("GAP:: DONE run_dur");
 };
 const manual = async (rids) => {
   for (let rid of rids) {
