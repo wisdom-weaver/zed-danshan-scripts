@@ -67,6 +67,20 @@ const main = async (args) => {
       let [a, b] = [parseInt(arg3), parseInt(arg4)];
       mod.rating_flames.range(a, b);
     }
+  } else if (arg1 == "--dp") {
+    if (arg2 == "all") mod.dp.all();
+    if (arg2 == "only") {
+      let conf = JSON.parse(arg3) || {};
+      mod.dp.only(conf);
+    }
+    if (arg2 == "range") {
+      let [a, b] = [parseInt(arg3), parseInt(arg4)];
+      mod.dp.range(a, b);
+    }
+    if (arg2 == "test") {
+      let conf = JSON.parse(arg3) || {};
+      mod.dp.test(conf);
+    }
   } else if (arg1 == "--rating_blood") {
     if (arg2 == "all") mod.rating_blood.all();
     if (arg2 == "only") {

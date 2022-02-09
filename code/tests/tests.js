@@ -261,5 +261,23 @@ const run_07 = async () => {
   }
   console.table(ob);
 };
-const tests = { run: run_07 };
+
+const run_08 = async () => {
+  let hid = 34750
+  // let hid = 19526
+  let ob = {};
+  for (let d of [1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600]) {
+    ob[d] = {};
+    for (let p of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
+      ob[d][p] = await zed_ch.db.collection("zed").countDocuments({
+        6: hid,
+        1: { $in: [d, d.toString()] },
+        8: { $in: [p, p.toString()] },
+      });
+    }
+  }
+  console.table(ob)
+};
+
+const tests = { run: run_08 };
 module.exports = tests;
