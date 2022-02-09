@@ -212,6 +212,11 @@ const get_n = (n) => {
   if (!_.isNaN(parseFloat(n))) return parseFloat(n);
   return n;
 };
+const get_N = (n, e = 10) => {
+  if (!_.isNaN(parseFloat(n))) return parseFloat(n);
+  if (e === 10) return undefined;
+  else return e;
+};
 
 const remove_bullshits = (ar) => {
   let n = ar.length;
@@ -266,6 +271,7 @@ const utils = {
   get_hids,
   cron_conf,
   get_n,
+  get_N,
   remove_bullshits,
 };
 

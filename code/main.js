@@ -10,6 +10,7 @@ const utils = require("./utils/utils");
 const tourneyr01 = require("./tourney/tourneyr01");
 const v3 = require("./v3/v3");
 const z_stats = require("./v3/z_stats");
+const gap = require("./v3/gaps");
 const mod = v3;
 
 const main = async (args) => {
@@ -18,14 +19,22 @@ const main = async (args) => {
   console.log("main");
   let [_node, _cfile, arg1, arg2, arg3, arg4, arg5] = args;
   if (arg1 == "--races") {
-    if (arg2 == "test") zed_races.test();
-    if (arg2 == "live") zed_races.live();
-    if (arg2 == "live_cron") zed_races.live_cron();
-    if (arg2 == "miss") zed_races.miss(arg3, arg4);
-    if (arg2 == "miss_cron") zed_races.miss_cron();
+    if (arg2 == "test") await zed_races.test();
+    if (arg2 == "live") await zed_races.live();
+    if (arg2 == "live_cron") await zed_races.live_cron();
+    if (arg2 == "miss") await zed_races.miss(arg3, arg4);
+    if (arg2 == "miss_cron") await zed_races.miss_cron();
     if (arg2 == "manual") {
       arg3 = arg3?.split(",") ?? [];
-      zed_races.manual(arg3);
+      await zed_races.manual(arg3);
+    }
+  }
+  if (arg1 == "--gap") {
+    if (arg2 == "test") await gap.test();
+    if (arg2 == "run_dur") await gap.run_dur(arg3, arg4);
+    if (arg2 == "manual") {
+      arg3 = arg3?.split(",") ?? [];
+      await gap.manual(arg3);
     }
   } else if (arg1 == "--rating_flames") {
     if (arg2 == "all") mod.rating_flames.all();
