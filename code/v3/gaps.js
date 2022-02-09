@@ -31,33 +31,39 @@ const update_horse_gap = async ({ hid, gap, raceid }) => {
 };
 
 const run_race = async (race = []) => {
-  if (_.isEmpty(race)) return null;
-  race = cyclic_depedency.struct_race_row_data(race);
-  race = _.uniqBy(race, (e) => `${e.raceid}-${e.hid}`);
-  race = race.map((ea) => {
-    let { place, flame } = ea;
-    place = parseInt(place);
-    flame = parseInt(flame);
-    return { ...ea, place, flame };
-  });
-  race = _.keyBy(race, "place");
+  try {
+    if (_.isEmpty(race)) return null;
+    race = cyclic_depedency.struct_race_row_data(race);
+    race = _.uniqBy(race, (e) => `${e.raceid}-${e.hid}`);
+    race = race.map((ea) => {
+      let { place, flame } = ea;
+      place = parseInt(place);
+      flame = parseInt(flame);
+      return { ...ea, place, flame };
+    });
+    race = _.keyBy(race, "place");
 
-  let raceid = race[1]?.raceid;
-  let dist = race[1]?.distance;
-  dist = parseInt(dist);
-  // console.log({ raceid, dist });
+    let raceid = race[1]?.raceid;
+    let dist = race[1]?.distance;
+    dist = parseInt(dist);
+    // console.log({ raceid, dist });
 
-  if (race[1] && race[2]) {
-    let gap_win = Math.abs(race[1].finishtime - race[2].finishtime);
-    gap_win = (gap_win * 1000) / dist;
-    if ([0, 1].includes(race[1].flame))
-      await update_horse_gap({ hid: race[1].hid, gap: gap_win, raceid });
-  }
-  if (race[1] && race[2]) {
-    let gap_lose = Math.abs(race[11].finishtime - race[12].finishtime);
-    gap_lose = (gap_lose * 1000) / dist;
-    if ([1].includes(race[12].flame))
-      await update_horse_gap({ hid: race[12].hid, gap: gap_lose, raceid });
+    if (race[1] && race[2]) {
+      let gap_win = Math.abs(race[1].finishtime - race[2].finishtime);
+      gap_win = (gap_win * 1000) / dist;
+      if ([0, 1].includes(race[1].flame))
+        await update_horse_gap({ hid: race[1].hid, gap: gap_win, raceid });
+    }
+    if (race[1] && race[2]) {
+      let gap_lose = Math.abs(race[11].finishtime - race[12].finishtime);
+      gap_lose = (gap_lose * 1000) / dist;
+      if ([1].includes(race[12].flame))
+        await update_horse_gap({ hid: race[12].hid, gap: gap_lose, raceid });
+    }
+  } catch (err) {
+    let r = race && race[0];
+    r = r && r[4];
+    console.log(`err at ${r}`, err.message);
   }
 };
 const run_raw_races = async (races_ar) => {
