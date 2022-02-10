@@ -18,9 +18,7 @@ const update_horse_gap = async ({ hid, gap, raceid, date }) => {
   hid = parseInt(hid);
   gap = get_N(gap, undefined);
 
-  let coll;
-  if (date < "2021-08-30") coll = "gap5";
-  else coll = "gap6";
+  if (gap && date < "2021-08-30") gap = gap / 2;
 
   console.log(`${raceid}:`, { hid, gap });
   if (!hid || gap === undefined) return null;
@@ -138,10 +136,45 @@ const manual = async (rids) => {
   }
 };
 
+const fix1 = async (hid) => {
+  let aft = await zed_db.db.collection("gap6").findOne({ hid });
+  if (aft?.gap) {
+    await zed_db.db
+      .collection(coll)
+      .updateOne(
+        { hid },
+        { $set: { gap: aft.gap, date: aft.date } },
+        { upsert: true }
+      );
+    return;
+  }
+  let bef = await zed_db.db.collection("gap5").findOne({ hid });
+  if (bef?.gap) {
+    await zed_db.db
+      .collection(coll)
+      .updateOne(
+        { hid },
+        { $set: { gap: bef.gap / 2, date: bef.date } },
+        { upsert: true }
+      );
+    return;
+  }
+};
+
+const fix = async () => {
+  let hids = await cyclic_depedency.get_all_hids();
+  for (let chu of _.chunk(hids, 2000)) {
+    await Promise.all(chu.map(fix1));
+    let [a, b] = [chu[0], chu[chu.length - 1]];
+    console.log(a, "->", b);
+  }
+};
+
 const gap = {
   run_race,
   run_raw_races,
   run_dur,
+  fix,
   manual,
 };
 module.exports = gap;

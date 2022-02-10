@@ -295,5 +295,48 @@ const run_09 = async () => {
   console.table(data);
 };
 
-const tests = { run: run_09 };
+const run_10 = async () => {
+  let ranges = [
+    [0, 1],
+    [1, 2],
+    [2, 3],
+    [3, 4],
+    [4, 5],
+    [5, 6],
+    [6, 7],
+    [7, 8],
+    [8, 9],
+  ];
+  let data = [];
+  for (let [mi, mx] of ranges) {
+    let gap5docs = await zed_db.db
+      .collection("gap5")
+      .find({ gap: { $gte: mi, $lte: mx } })
+      .limit(30)
+      .toArray();
+    let hids = _.map(gap5docs, "hid");
+    gap5docs = _.keyBy(gap5docs, "hid");
+
+    let gap6docs = await zed_db.db
+      .collection("gap6")
+      .find({ hid: { $in: hids } })
+      .toArray();
+    gap6docs = _.keyBy(gap6docs, "hid");
+    let after_hids = _.keys(gap6docs);
+    console.log(after_hids);
+
+    data = [
+      ...data,
+      ...after_hids.map((hid) => {
+        let { gap: before, date: before_date } = gap5docs[hid];
+        let { gap: after, date: after_date } = gap6docs[hid];
+        return { hid, before, after, before_date, after_date };
+      }),
+    ];
+    console.log(mi, mx, "got", after_hids.length);
+  }
+  console.table(data);
+};
+
+const tests = { run: run_10 };
 module.exports = tests;

@@ -31,6 +31,7 @@ const main = async (args) => {
   }
   if (arg1 == "--gap") {
     if (arg2 == "test") await gap.test();
+    if (arg2 == "fix") await gap.fix();
     if (arg2 == "run_dur") await gap.run_dur(arg3, arg4);
     if (arg2 == "manual") {
       arg3 = arg3?.split(",") ?? [];
