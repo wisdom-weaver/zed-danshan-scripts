@@ -69,6 +69,7 @@ const main = async (args) => {
     }
   } else if (arg1 == "--dp") {
     if (arg2 == "all") mod.dp.all();
+    if (arg2 == "fix") await mod.dp.fix();
     if (arg2 == "only") {
       let conf = JSON.parse(arg3) || {};
       mod.dp.only(conf);

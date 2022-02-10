@@ -1,6 +1,8 @@
 const _ = require("lodash");
 const { zed_db, zed_ch } = require("../connection/mongo_connect");
 const bulk = require("../utils/bulk");
+const cyclic_depedency = require("../utils/cyclic_dependency");
+const utils = require("../utils/utils");
 const { dec } = require("../utils/utils");
 
 const name = "dp";
@@ -65,6 +67,10 @@ const calc = async ({ hid }) => {
     let { pts, dist } = mx;
     let dp = pts * 0.0001 + wt_d[dist];
     dist = parseInt(dist);
+    if (pts == 0 || pts == null || _.isNaN(pts)) {
+      dp = null;
+      dist = null;
+    }
     let ob = { hid, dp, dist, pts };
     return ob;
   } catch (err) {
@@ -85,6 +91,19 @@ const only = async (hids) =>
 const range = async (st, ed) =>
   bulk.run_bulk_range(name, generate, coll, st, ed, cs, test_mode);
 
+const fix = async () => {
+  let hids = await cyclic_depedency.get_all_hids();
+  for (let chu of _.chunk(hids, 1000)) {
+    let ar = await zed_db.db
+      .collection(coll)
+      .find({ hid: { $in: chu }, pts: 3 }, { projection: { hid: 1 } })
+      .toArray();
+    ar = _.map(ar, "hid");
+    if (!_.isEmpty(ar)) await only(ar);
+  }
+  console.log("Fixed");
+};
+
 const test = async (hids) => {
   test_mode = 1;
   for (let hid of hids) {
@@ -93,5 +112,5 @@ const test = async (hids) => {
   }
 };
 
-const dp = { calc, generate, all, only, range, test };
+const dp = { calc, generate, all, only, range, test, fix };
 module.exports = dp;
