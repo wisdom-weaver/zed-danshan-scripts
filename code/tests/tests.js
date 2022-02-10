@@ -263,7 +263,7 @@ const run_07 = async () => {
 };
 
 const run_08 = async () => {
-  let hid = 34750
+  let hid = 34750;
   // let hid = 19526
   let ob = {};
   for (let d of [1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600]) {
@@ -276,12 +276,24 @@ const run_08 = async () => {
       });
     }
   }
-  console.table(ob)
+  console.table(ob);
 };
 
 const run_09 = async () => {
-  // const hids_all = utils.
-}
+  const hids_all = utils.get_hids(1, 210000);
+  let data = [];
+  for (let chunk of _.chunk(hids_all, 2000)) {
+    let ar =
+      (await zed_db.db
+        .collection("gap4")
+        .find({ hid: { $in: chunk } })
+        .toArray()) || {};
+    let [a, b] = [ar[0].hid, ar[ar.length - 1].hid];
+    console.log(`${a} -> ${b}`);
+    data = [...data, ...ar];
+  }
+  console.table(data);
+};
 
 const tests = { run: run_09 };
 module.exports = tests;

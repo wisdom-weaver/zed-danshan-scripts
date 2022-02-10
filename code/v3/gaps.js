@@ -14,9 +14,14 @@ const dur_offset = 1 * 60 * mint;
 const def_cs = 15;
 let t = 0;
 
-const update_horse_gap = async ({ hid, gap, raceid }) => {
+const update_horse_gap = async ({ hid, gap, raceid, date }) => {
   hid = parseInt(hid);
   gap = get_N(gap, undefined);
+
+  let coll;
+  if (date < "2021-08-30") coll = "gap5";
+  else coll = "gap6";
+
   console.log(`${raceid}:`, { hid, gap });
   if (!hid || gap === undefined) return null;
   let doc = await zed_db.db
@@ -26,7 +31,7 @@ const update_horse_gap = async ({ hid, gap, raceid }) => {
   if (gap_ext === undefined || gap_ext < gap) {
     await zed_db.db
       .collection(coll)
-      .updateOne({ hid }, { $set: { gap } }, { upsert: true });
+      .updateOne({ hid }, { $set: { gap, date } }, { upsert: true });
   }
 };
 
@@ -45,6 +50,7 @@ const run_race = async (race = []) => {
 
     let raceid = race[1]?.raceid;
     let dist = race[1]?.distance;
+    let date = race[1]?.date;
     dist = parseInt(dist);
     // console.log({ raceid, dist });
 
@@ -52,13 +58,23 @@ const run_race = async (race = []) => {
       let gap_win = Math.abs(race[1].finishtime - race[2].finishtime);
       gap_win = (gap_win * 1000) / dist;
       if ([0, 1].includes(race[1].flame))
-        await update_horse_gap({ hid: race[1].hid, gap: gap_win, raceid });
+        await update_horse_gap({
+          hid: race[1].hid,
+          gap: gap_win,
+          raceid,
+          date,
+        });
     }
     if (race[1] && race[2]) {
       let gap_lose = Math.abs(race[11].finishtime - race[12].finishtime);
       gap_lose = (gap_lose * 1000) / dist;
       if ([1].includes(race[12].flame))
-        await update_horse_gap({ hid: race[12].hid, gap: gap_lose, raceid });
+        await update_horse_gap({
+          hid: race[12].hid,
+          gap: gap_lose,
+          raceid,
+          date,
+        });
     }
   } catch (err) {
     let r = race && race[0];
@@ -80,7 +96,10 @@ const run_rid = async (rid) => {
   if (!rid) return;
   const race = await zed_ch.db
     .collection("zed")
-    .find({ 4: rid }, { projection: { 1: 1, 4: 1, 6: 1, 8: 1, 13: 1, 7: 1 } })
+    .find(
+      { 4: rid },
+      { projection: { 1: 1, 2: 1, 4: 1, 6: 1, 8: 1, 13: 1, 7: 1 } }
+    )
     .toArray();
   await run_race(race);
 };
@@ -92,7 +111,7 @@ const run_1dur = async (st, ed) => {
     .collection("zed")
     .find(
       { 2: { $gte: st, $lte: ed } },
-      { projection: { 1: 1, 4: 1, 6: 1, 8: 1, 13: 1, 7: 1 } }
+      { projection: { 1: 1, 2: 1, 4: 1, 6: 1, 8: 1, 13: 1, 7: 1 } }
     )
     .toArray();
   await run_raw_races(races);

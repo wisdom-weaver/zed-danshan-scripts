@@ -306,7 +306,7 @@ const zed_push_races_to_mongo = async (races) => {
   }
   if (!_.isEmpty(races_ar)) {
     await max_gap.raw_race_runner(races_ar);
-    await gap.run_raw_races(races_ar);
+    // await gap.run_raw_races(races_ar);
   }
 };
 
