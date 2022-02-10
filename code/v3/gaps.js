@@ -163,7 +163,7 @@ const fix1 = async (hid) => {
 
 const fix = async () => {
   let hids = await cyclic_depedency.get_all_hids();
-  for (let chu of _.chunk(hids, 2000)) {
+  for (let chu of _.chunk(hids, 1000)) {
     await Promise.all(chu.map(fix1));
     let [a, b] = [chu[0], chu[chu.length - 1]];
     console.log(a, "->", b);
