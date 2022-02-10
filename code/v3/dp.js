@@ -96,9 +96,10 @@ const fix = async () => {
   for (let chu of _.chunk(hids, 1000)) {
     let ar = await zed_db.db
       .collection(coll)
-      .find({ hid: { $in: chu }, pts: 3 }, { projection: { hid: 1 } })
+      .find({ hid: { $in: chu }, dp: 3 }, { projection: { hid: 1 } })
       .toArray();
     ar = _.map(ar, "hid");
+    console.log(ar)
     if (!_.isEmpty(ar)) await only(ar);
   }
   console.log("Fixed");
