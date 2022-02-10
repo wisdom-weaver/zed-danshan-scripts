@@ -52,18 +52,18 @@ const get_dist_pos_ob = async (hid) => {
 const calc = async ({ hid }) => {
   try {
     let dob = await get_dist_pos_ob(hid);
-    // console.log(dob)
+    if (test_mode) console.table(dob);
     let dist_rows = _.entries(dob).map(([d, ar]) => {
       // console.log(ar);
       let pts = _.entries(ar).map(([p, n]) => parseInt(n) * wt_p[p]);
       pts = _.sum(pts);
       return { pts, dist: d };
     });
-    // console.log(dist_rows);
+    if (test_mode) console.log(dist_rows);
     let mx = _.maxBy(dist_rows, (e) => e.pts);
-    // console.log(mx);
+    if (test_mode) console.log(mx);
     let { pts, dist } = mx;
-    let dp = pts * wt_d[dist] * 0.0001;
+    let dp = pts * 0.0001 + wt_d[dist];
     dist = parseInt(dist);
     let ob = { hid, dp, dist, pts };
     return ob;
