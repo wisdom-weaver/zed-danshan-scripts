@@ -113,10 +113,15 @@ const get_z_table_for_id_v2 = async (id) => {
           breed_type: bt,
           genotype: z,
         },
-        { projection: { _id: 0, hid: 1 } }
+        { projection: { _id: 0, hid: 1, tc: 1 } }
       )
       .toArray();
     let hids = _.map(ar, "hid") || [];
+    let tcs = _.map(ar, "tc") || [];
+    let avg_tc = _.mean(
+      _.filter(tcs, (e) => !_.isNaN(e) && ![null, undefined].includes(e))
+    );
+
     let docs = await zed_db.db
       .collection(coll)
       .find({ hid: { $in: hids } }, { projection: { _id: 0, ymca2: 1, br: 1 } })
@@ -164,6 +169,7 @@ const get_z_table_for_id_v2 = async (id) => {
       br_min,
       br_avg,
       br_max,
+      avg_tc,
     };
   } catch (err) {
     console.log("err at get_z_table_for_id_v2");
@@ -172,6 +178,34 @@ const get_z_table_for_id_v2 = async (id) => {
 };
 const get_z_table_for_id = get_z_table_for_id_v2;
 
+const get_z_table_for_id_avg_tc = async (id) => {
+  let [bl, bt, z] = id.split("-");
+  if (!bl || !bt || !z) return null;
+  let ar = await zed_db.db
+    .collection("horse_details")
+    .find(
+      {
+        bloodline: bl,
+        breed_type: bt,
+        genotype: z,
+      },
+      { projection: { _id: 0, hid: 1, tc: 1 } }
+    )
+    .toArray();
+  let hids = _.map(ar, "hid") || [];
+  let tcs = _.map(ar, "tc") || [];
+  let avg_tc = _.mean(
+    _.filter(tcs, (e) => !_.isNaN(e) && ![null, undefined].includes(e))
+  );
+  return avg_tc;
+};
+const update_z_id_tc = async (id) => {
+  let avg_tc = await get_z_table_for_id_avg_tc(id);
+  // console.log(id, ob);
+  await zed_db.db
+    .collection("requirements")
+    .updateOne({ id: doc_id }, { $set: { [`avg_ob.${id}.avg_tc`]: avg_tc } });
+};
 const update_z_id_row = async (id) => {
   let ob = await get_z_table_for_id_v2(id);
   if (_.isEmpty(ob)) {
@@ -267,45 +301,16 @@ const get = async (print = 0) => {
 };
 
 const test = async () => {
-  // let ob = await get();
-  // let keys = [];
-  // for (let [bl_idx, bl] of _.entries(bloodlines)) {
-  //   for (let [bt_idx, bt] of _.entries(breed_types)) {
-  //     let id_st = `${bl}-${bt}`;
-  //     let [z_mi, z_mx] = z_mi_mx[id_st];
-  //     for (let z = z_mi; z <= z_mx; z++) {
-  //       keys.push(`${bl}-${bt}-Z${z}`);
-  //     }
-  //   }
-  // }
-  // let a1 = await generate();
-  // console.log(a1);
-  // ob = _.entries(ob).map(([id, e], idx) => {
-  //   return [id, { ...e, avg: e.y_avg, base: null }];
-  // });
-  // ob = _.compact(ob);
-  // ob = _.fromPairs(ob);
-  // console.table(ob);
-  // console.log(ob.length);
-  // // console.table(ob);
-  // console.log(keys.length);
-  // await zed_db.db
-  //   .collection("requirements")
-  //   .updateOne(
-  //     { id: doc_id },
-  //     { $set: { id: doc_id, avg_ob: ob } },
-  //     { upsert: true }
-  //   );
-  // await zed_db.db
-  //   .collection("rating_breed3")
-  //   .updateMany({ br: { $gte: 3.5 } }, { $set: { br: null } });
-  // let hids = await zed_db.db
-  //   .collection("rating_breed3")
-  //   .find({ kids_n: { $ne: 0 }, br: null }, { projection: { _id: 0, hid: 1 } })
-  //   .toArray();
-  // hids = _.sortBy(hids, (hid) => +hid);
-  // console.log("need to fix:", hids.length);
-  // rating_breed.only(hids);
+  for (let [bl_idx, bl] of _.entries(bloodlines)) {
+    for (let [bt_idx, bt] of _.entries(breed_types)) {
+      let id_st = `${bl}-${bt}`;
+      let [z_mi, z_mx] = z_mi_mx[id_st];
+      for (let z = z_mi; z <= z_mx; z++) {
+        let id = `${bl}-${bt}-Z${z}`;
+        await update_z_id_tc(id);
+      }
+    }
+  }
   console.log("done");
 };
 

@@ -94,6 +94,7 @@ const pick_c = (ratio_ar) => {
     if (c == 1 || c == 5) tot_diff *= 2;
     ratio_ar[c] = { ...ratio_ar[c], difft, diffb, tot_diff, tb_diff };
   }
+  console.table(ratio_ar)
   const mean_diff = _.mean(_.compact(_.map(_.values(ratio_ar), "tot_diff")));
   if (test_mode) console.log({ mean_diff });
   ratio_ar = [1, 2, 3, 4, 5].map((i) => {
