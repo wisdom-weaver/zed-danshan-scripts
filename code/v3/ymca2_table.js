@@ -201,7 +201,7 @@ const get_z_table_for_id_avg_tc = async (id) => {
 };
 const update_z_id_tc = async (id) => {
   let avg_tc = await get_z_table_for_id_avg_tc(id);
-  // console.log(id, ob);
+  console.log(id, { avg_tc });
   await zed_db.db
     .collection("requirements")
     .updateOne({ id: doc_id }, { $set: { [`avg_ob.${id}.avg_tc`]: avg_tc } });
