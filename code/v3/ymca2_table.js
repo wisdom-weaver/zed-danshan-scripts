@@ -122,6 +122,18 @@ const get_z_table_for_id_v2 = async (id) => {
       _.filter(tcs, (e) => !_.isNaN(e) && ![null, undefined].includes(e))
     );
 
+    let docs2 = await zed_db
+      .collection("rating_blood3")
+      .find(
+        { hid: { $in: hids } },
+        { projection: { _id: 0, "base_ability.n": 1 } }
+      )
+      .toArray();
+    let bases = _.map(docs2, (e) => e?.base_ability?.n || null);
+    let avg_base = _.mean(
+      _.filter(bases, (e) => ![null, undefined, NaN].includes(e))
+    );
+
     let docs = await zed_db.db
       .collection(coll)
       .find({ hid: { $in: hids } }, { projection: { _id: 0, ymca2: 1, br: 1 } })
@@ -170,6 +182,7 @@ const get_z_table_for_id_v2 = async (id) => {
       br_avg,
       br_max,
       avg_tc,
+      avg_base,
     };
   } catch (err) {
     console.log("err at get_z_table_for_id_v2");
@@ -178,7 +191,7 @@ const get_z_table_for_id_v2 = async (id) => {
 };
 const get_z_table_for_id = get_z_table_for_id_v2;
 
-const get_z_table_for_id_avg_tc = async (id) => {
+const get_z_table_for_id_avg_base = async (id) => {
   let [bl, bt, z] = id.split("-");
   if (!bl || !bt || !z) return null;
   let ar = await zed_db.db
@@ -189,22 +202,32 @@ const get_z_table_for_id_avg_tc = async (id) => {
         breed_type: bt,
         genotype: z,
       },
-      { projection: { _id: 0, hid: 1, tc: 1 } }
+      { projection: { _id: 0, hid: 1 } }
     )
     .toArray();
   let hids = _.map(ar, "hid") || [];
-  let tcs = _.map(ar, "tc") || [];
-  let avg_tc = _.mean(
-    _.filter(tcs, (e) => !_.isNaN(e) && ![null, undefined].includes(e))
+  let docs2 = await zed_db
+    .collection("rating_blood3")
+    .find(
+      { hid: { $in: hids } },
+      { projection: { _id: 0, "base_ability.n": 1 } }
+    )
+    .toArray();
+  let bases = _.map(docs2, (e) => e?.base_ability?.n || null);
+  let avg_base = _.mean(
+    _.filter(bases, (e) => ![null, undefined, NaN].includes(e))
   );
-  return avg_tc;
+  return avg_base;
 };
-const update_z_id_tc = async (id) => {
-  let avg_tc = await get_z_table_for_id_avg_tc(id);
-  console.log(id, { avg_tc });
+const update_z_id_avg_base = async (id) => {
+  let avg_base = await get_z_table_for_id_avg_base(id);
+  console.log(id, { avg_base });
   await zed_db.db
     .collection("requirements")
-    .updateOne({ id: doc_id }, { $set: { [`avg_ob.${id}.avg_tc`]: avg_tc } });
+    .updateOne(
+      { id: doc_id },
+      { $set: { [`avg_ob.${id}.avg_base`]: avg_base } }
+    );
 };
 const update_z_id_row = async (id) => {
   let ob = await get_z_table_for_id_v2(id);
@@ -307,7 +330,8 @@ const test = async () => {
       let [z_mi, z_mx] = z_mi_mx[id_st];
       for (let z = z_mi; z <= z_mx; z++) {
         let id = `${bl}-${bt}-Z${z}`;
-        await update_z_id_tc(id);
+        await update_z_id_avg_base(id);
+        // return;
       }
     }
   }
