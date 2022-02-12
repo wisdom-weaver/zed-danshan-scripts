@@ -9,7 +9,14 @@ const coll = "rating_blood3";
 const name = "base_ability v3";
 let cs = 200;
 let test_mode = 0;
-
+const class_val = {
+  1: 4,
+  2: 3,
+  3: 2,
+  4: 1,
+  5: 0.5,
+  6: 0,
+};
 const c_ob = {
   0: 0,
   1: 5,
@@ -94,7 +101,7 @@ const pick_c = (ratio_ar) => {
     if (c == 1 || c == 5) tot_diff *= 2;
     ratio_ar[c] = { ...ratio_ar[c], difft, diffb, tot_diff, tb_diff };
   }
-  console.table(ratio_ar)
+  // console.table(ratio_ar);
   const mean_diff = _.mean(_.compact(_.map(_.values(ratio_ar), "tot_diff")));
   if (test_mode) console.log({ mean_diff });
   ratio_ar = [1, 2, 3, 4, 5].map((i) => {
@@ -183,14 +190,19 @@ const calc = async ({ hid, races = [], tc }) => {
     }
     const c_ob = pick_c(ratio_ar);
     if (!c_ob)
-      return { hid, base_ability: { c: null, ratio: null, avg_fee: null } };
+      return {
+        hid,
+        base_ability: { c: null, ratio: null, avg_fee: null, n: null },
+      };
     let { c, left, right, ratio } = c_ob;
     if (test_mode) console.table([c_ob]);
     let avg_fee = pick_avg_fee({ c, races: dist_races });
     let c_races_n = left + right;
     if (!c_races_n || _.isNaN(c_races_n)) c_races_n = 0;
     let conf = Math.min(99, c_races_n * 2);
-    return { hid, base_ability: { c, ratio, avg_fee, c_races_n, conf } };
+    let n = class_val[c] + avg_fee * 0.01 + ratio * 0.05;
+    if (_.isNaN(n)) n = null;
+    return { hid, base_ability: { c, ratio, avg_fee, c_races_n, conf, n } };
   } catch (err) {
     console.log("err on rating", hid);
     console.log(err);
