@@ -161,10 +161,23 @@ const fix1 = async (hid) => {
   }
 };
 
+const fix2 = async (hid) => {
+  let g4 = (await zed_db.db.collection("gap4").findOne({ hid })) || {};
+  let gap = g4?.gap || null;
+  if (_.isNaN(gap) || !gap) {
+    gap = ((hid % 100) + 1) * 0.001;
+    console.log({ hid, gap });
+    await zed_db.db
+      .collection("gap4")
+      .updateOne({ hid }, { $set: { gap } }, { upsert: true });
+  }
+};
+
 const fix = async () => {
   let hids = await cyclic_depedency.get_all_hids();
+  // let hids = [9439,3312];
   for (let chu of _.chunk(hids, 1000)) {
-    await Promise.all(chu.map(fix1));
+    await Promise.all(chu.map(fix2));
     let [a, b] = [chu[0], chu[chu.length - 1]];
     console.log(a, "->", b);
   }

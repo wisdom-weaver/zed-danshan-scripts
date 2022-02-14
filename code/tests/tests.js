@@ -338,5 +338,101 @@ const run_10 = async () => {
   console.table(data);
 };
 
-const tests = { run: run_10 };
+const get_race_gap = (race) => {
+  try {
+    if (_.isEmpty(race)) return [];
+    race = cyclic_depedency.struct_race_row_data(race);
+    race = _.uniqBy(race, (e) => `${e.raceid}-${e.hid}`);
+    // console.table(_.sortBy(race,i=>+i.place))
+    race = race.map((ea) => {
+      let { place, flame } = ea;
+      place = parseInt(place);
+      flame = parseInt(flame);
+      return { ...ea, place, flame };
+    });
+    race = _.keyBy(race, "place");
+
+    let raceid = race[1]?.raceid;
+    let dist = race[1]?.distance;
+    let date = race[1]?.date;
+    dist = parseInt(dist);
+    // console.log({ raceid, dist });
+
+    let ar = [];
+    if (race[1] && race[2]) {
+      let gap_win = Math.abs(race[1].finishtime - race[2].finishtime);
+      gap_win = (gap_win * 1000) / dist;
+      let gap = gap_win;
+      if (gap && date < "2021-08-30") gap = gap / 2;
+      if ([0, 1].includes(race[1].flame))
+        ar.push({
+          hid: race[1].hid,
+          gap,
+          raceid,
+          date,
+          pos: race[1].place,
+          flame: race[1].flame,
+        });
+    }
+    if (race[1] && race[2]) {
+      let gap_lose = Math.abs(race[11].finishtime - race[12].finishtime);
+      gap_lose = (gap_lose * 1000) / dist;
+      let gap = gap_lose;
+      if (gap && date < "2021-08-30") gap = gap / 2;
+      if ([1].includes(race[12].flame))
+        ar.push({
+          hid: race[12].hid,
+          gap,
+          raceid,
+          date,
+          pos: race[12].place,
+          flame: race[12].flame,
+        });
+    }
+    return ar;
+  } catch (err) {
+    let r = race && race[0];
+    r = r && r[4];
+    console.log(`err at ${r}`, err.message);
+    return [];
+  }
+};
+const run_raw_races = async (races_ar) => {
+  races_ar = _.groupBy(races_ar, "4");
+  console.log(`GAP:: got ${_.keys(races_ar).length} races`);
+  for (let chunk of _.chunk(_.entries(races_ar), def_cs)) {
+    let chunk_races = _.map(chunk, 1);
+    await Promise.all(chunk_races.map(run_race));
+  }
+  // console.log("GAP:: DONE");
+};
+
+const run_11 = async () => {
+  const hid = 9439;
+  let rids = await zed_ch.db
+    .collection("zed")
+    .find({
+      6: hid,
+      // 8: { $in: [1, 2, 3, 10, 11, 12, "1", "2", "3", "10", "11", "12"] },
+    })
+    .toArray();
+  rids = rids.map((e) => {
+    return [e[4], e[8], e[13]];
+  });
+  console.log(rids);
+  let ar = [];
+  for (let [rid, horse_place, horse_flame] of rids) {
+    let raw_race = await zed_ch.db.collection("zed").find({ 4: rid }).toArray();
+    e = get_race_gap(raw_race);
+    horse_place = parseFloat(horse_place)
+    horse_flame = parseFloat(horse_flame)
+    e = e.map((i) => {
+      return { horse_place, horse_flame, ...i };
+    });
+    ar = [...ar, ...e];
+  }
+  console.table(ar);
+};
+
+const tests = { run: run_11 };
 module.exports = tests;

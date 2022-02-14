@@ -324,7 +324,7 @@ const main = async (args) => {
     } catch (err) {
       arg3 = null;
     }
-    if (arg2 == "run") tests.run(arg3);
+    if (arg2 == "run") await tests.run(arg3);
   }
   console.log("---ed");
 };
