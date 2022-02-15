@@ -178,6 +178,7 @@ const get_prize = async ({ race_id, hid }) => {
       `r.id AS rid`,
       `r.start_time AS date`,
       knex_conn.raw(`rh.details -> 'position' AS position`),
+      knex_conn.raw(`r.details -> 'fee' AS fee`),
       knex_conn.raw(`r.details -> 'prizePool' AS prizepool`)
     )
     .from(`race_horses as rh`)

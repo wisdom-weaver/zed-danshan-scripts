@@ -53,18 +53,18 @@ const main = async (args) => {
       mod.rating_flames.range(a, b);
     }
   } else if (arg1 == "--hraces_stats") {
-    if (arg2 == "all") mod.hraces_stats.all();
+    if (arg2 == "all") await mod.hraces_stats.all();
     if (arg2 == "only") {
       let conf = jparse(arg3) || {};
-      mod.hraces_stats.only(conf);
+      await mod.hraces_stats.only(conf);
     }
     if (arg2 == "test") {
       let conf = JSON.parse(arg3) || {};
-      mod.hraces_stats.test(conf);
+      await mod.hraces_stats.test(conf);
     }
     if (arg2 == "range") {
       let [a, b] = [parseInt(arg3), parseInt(arg4)];
-      mod.hraces_stats.range(a, b);
+      await mod.hraces_stats.range(a, b);
     }
   } else if (arg1 == "--race_horses") {
     if (arg2 == "test") {

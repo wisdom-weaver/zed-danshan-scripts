@@ -6,7 +6,7 @@ const { zed_db } = require("../connection/mongo_connect");
 const cyclic_depedency = require("../utils/cyclic_dependency");
 const coll = "hraces_stats";
 const name = "hraces_stats v3";
-const cs = 100;
+const cs = 500;
 let test_mode = 0;
 
 const get_races_stats = async ({ hid, races }) => {
@@ -15,7 +15,11 @@ const get_races_stats = async ({ hid, races }) => {
   let profits = await Promise.all(
     rids.map((race_id) =>
       cyclic_depedency.get_prize({ hid, race_id }).then((d) => {
-        return d?.prize || 0;
+        if (_.isEmpty(d)) return 0;
+        let { prize = 0, fee = 0 } = d;
+        let profit = parseFloat(prize) - parseFloat(fee);
+        if (!profit || _.isNaN(profit)) profit = 0;
+        return profit;
       })
     )
   );
@@ -74,9 +78,15 @@ const range = async (st, ed) =>
 
 const test = async (hids) => {
   for (let hid of hids) {
-    test_mode = 1;
-    let ob = await generate(hid);
-    console.log(hid, ob);
+    try {
+      test_mode = 1;
+      let ob = await generate(hid);
+      console.log(hid, ob);
+      // let o = await cyclic_depedency.get_prize({race_id: "0jznIhpd",hid: 586,});
+      // console.log(o);
+    } catch (err) {
+      console.log(err);
+    }
   }
 };
 
