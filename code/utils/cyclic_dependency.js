@@ -6,6 +6,7 @@ const {
 const _ = require("lodash");
 const { zed_ch, init, zed_db } = require("../connection/mongo_connect");
 const { get_fee_tag } = require("./utils");
+const { knex_conn } = require("../connection/knex_connect");
 
 const key_mapping_bs_zed = [
   ["_id", "_id"],
@@ -144,6 +145,64 @@ const get_all_hids = async () => {
   return hids;
 };
 
+const prize_id = (pos) => {
+  if (pos == 1) return "first";
+  if (pos == 2) return "second";
+  if (pos == 3) return "third";
+  return null;
+};
+
+const get_prize = async ({ race_id, hid }) => {
+  // console.log("get_prize");
+  /*
+  select
+    rh.horse_id as hid,
+    r.id as rid,
+    r.start_time as date,
+    rh.details->'position' as pos,
+    r.details->'prizePool' as prizepool
+  from race_horses rh
+  JOIN races r on r.id = rh.race_id
+  where
+   rh.race_id='maM3O6O2'
+  and
+   rh.horse_id=209973
+  limit 1
+  */
+  // let { race_id, hid } = ob;
+  hid = parseInt(hid);
+  if (!hid || _.isNaN(hid) || !race_id) return {};
+  let result = await knex_conn
+    .select(
+      `rh.horse_id AS hid`,
+      `r.id AS rid`,
+      `r.start_time AS date`,
+      knex_conn.raw(`rh.details -> 'position' AS position`),
+      knex_conn.raw(`r.details -> 'prizePool' AS prizepool`)
+    )
+    .from(`race_horses as rh`)
+    .innerJoin(`races as r`, function () {
+      this.on("r.id", "=", "rh.race_id");
+    })
+    .where("rh.race_id", "=", race_id)
+    .andWhere("rh.horse_id", "=", hid)
+    .limit(1);
+  if (_.isEmpty(result)) return {};
+  result = Array.from(result)[0];
+  let prize = result.prizepool[prize_id(result.position)] ?? 0;
+  delete result.prizepool;
+  result.prize = parseFloat(prize) / 1e18;
+  return result;
+};
+
+const jparse = (c) => {
+  try {
+    return JSON.parse(c);
+  } catch (err) {
+    return [];
+  }
+};
+
 const cyclic_depedency = {
   get_races_of_hid,
   from_ch_zed_collection,
@@ -153,6 +212,9 @@ const cyclic_depedency = {
   general_bulk_push,
   get_ed_horse,
   get_all_hids,
+  get_prize,
+  prize_id,
+  jparse,
 };
 
 module.exports = cyclic_depedency;

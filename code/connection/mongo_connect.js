@@ -4,10 +4,9 @@ const mongoose = require("mongoose");
 const fetch = require("node-fetch");
 
 require("dotenv").config();
-const MONGO_ROOT_PASS = process.env.MONGO_ROOT_PASS;
 
-const uri_db = `mongodb+srv://root:${MONGO_ROOT_PASS}@cluster0.hvyg7.mongodb.net`;
-const uri_ch = `mongodb+srv://zed:zed@cluster0.vyaud.mongodb.net`;
+const uri_db = process.env.MONGO_DB_URI;
+const uri_ch = process.env.MONGO_CH_URI;
 const options = { useNewUrlParser: true, useUnifiedTopology: true };
 
 // let conn_db = MongoClient.connect(uri_db, options);

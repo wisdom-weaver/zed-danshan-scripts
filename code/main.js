@@ -11,6 +11,7 @@ const tourneyr01 = require("./tourney/tourneyr01");
 const v3 = require("./v3/v3");
 const z_stats = require("./v3/z_stats");
 const gap = require("./v3/gaps");
+const { jparse } = require("./utils/cyclic_dependency");
 const mod = v3;
 
 const main = async (args) => {
@@ -50,6 +51,20 @@ const main = async (args) => {
     if (arg2 == "range") {
       let [a, b] = [parseInt(arg3), parseInt(arg4)];
       mod.rating_flames.range(a, b);
+    }
+  } else if (arg1 == "--hraces_stats") {
+    if (arg2 == "all") mod.hraces_stats.all();
+    if (arg2 == "only") {
+      let conf = jparse(arg3) || {};
+      mod.hraces_stats.only(conf);
+    }
+    if (arg2 == "test") {
+      let conf = JSON.parse(arg3) || {};
+      mod.hraces_stats.test(conf);
+    }
+    if (arg2 == "range") {
+      let [a, b] = [parseInt(arg3), parseInt(arg4)];
+      mod.hraces_stats.range(a, b);
     }
   } else if (arg1 == "--race_horses") {
     if (arg2 == "test") {
