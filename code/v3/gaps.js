@@ -163,19 +163,25 @@ const fix1 = async (hid) => {
 
 const fix2 = async (hid) => {
   let g4 = (await zed_db.db.collection("gap4").findOne({ hid })) || {};
-  let gap = g4?.gap || null;
-  if (_.isNaN(gap) || !gap) {
-    gap = ((hid % 100) + 1) * 0.001;
-    console.log({ hid, gap });
-    await zed_db.db
-      .collection("gap4")
-      .updateOne({ hid }, { $set: { gap } }, { upsert: true });
+  let bb =
+    (await zed_db.db
+      .collection("rating_blood3")
+      .findOne({ hid }, { projection: { hid: 1, races_n: 1 } })) || {};
+  let ngap = null;
+  if (bb.races_n == 0) ngap = null;
+  else {
+    if (g4.gap) return;
+    else ngap = ((hid % 100) + 1) * 0.001;
   }
+  // console.log("fix", { hid, ngap });
+  await zed_db.db
+    .collection("gap4")
+    .updateOne({ hid }, { $set: { gap: ngap } }, { upsert: true });
 };
 
 const fix = async () => {
   let hids = await cyclic_depedency.get_all_hids();
-  // let hids = [9439,3312];
+  // let hids = [22882, 9439, 3312];
   for (let chu of _.chunk(hids, 1000)) {
     await Promise.all(chu.map(fix2));
     let [a, b] = [chu[0], chu[chu.length - 1]];
