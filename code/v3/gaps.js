@@ -168,7 +168,7 @@ const fix2 = async (hid) => {
       .collection("rating_blood3")
       .findOne({ hid }, { projection: { hid: 1, races_n: 1 } })) || {};
   let ngap = null;
-  if (bb.races_n == 0) ngap = null;
+  if (bb?.races_n == undefined || bb?.races_n == 0) ngap = null;
   else {
     if (g4.gap) return;
     else ngap = ((hid % 100) + 1) * 0.001;
