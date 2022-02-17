@@ -110,21 +110,22 @@ const main = async (args) => {
       mod.dp.test(conf);
     }
   } else if (arg1 == "--rating_blood") {
-    if (arg2 == "all") mod.rating_blood.all();
+    if (arg2 == "all") await mod.rating_blood.all();
+    if (arg2 == "fix") await mod.rating_blood.fix();
     if (arg2 == "only") {
       let conf = JSON.parse(arg3) || {};
-      mod.rating_blood.only(conf);
+      await mod.rating_blood.only(conf);
     }
     if (arg2 == "range") {
       let [a, b] = [parseInt(arg3), parseInt(arg4)];
-      mod.rating_blood.range(a, b);
+      await mod.rating_blood.range(a, b);
     }
     if (arg2 == "generate_ranks") {
-      mod.rating_blood.generate_ranks();
+      await mod.rating_blood.generate_ranks();
     }
     if (arg2 == "test") {
       let conf = JSON.parse(arg3) || {};
-      mod.rating_blood.test(conf);
+      await mod.rating_blood.test(conf);
     }
   } else if (arg1 == "--ancestry") {
     if (arg2 == "all") mod.ancestry.all();

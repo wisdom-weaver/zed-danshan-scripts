@@ -308,6 +308,15 @@ const test = async (hid) => {
   let ob3 = await calc_tunnel_rat({ hid, races });
   console.table(ob3);
 };
+const fix = async () => {
+  let hids = await zed_db.db
+    .collection("rating_blood3")
+    .find({ races_n: { $exists: false } })
+    .toArray();
+  hids = _.map(hids, "hid");
+  console.log("hids.length", hids.length);
+  if (!_.isEmpty(hids)) await only(hids);
+};
 
 const rating_blood = {
   test,
@@ -317,5 +326,6 @@ const rating_blood = {
   only,
   range,
   generate_ranks,
+  fix,
 };
 module.exports = rating_blood;
