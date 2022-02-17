@@ -9,7 +9,7 @@ const { race } = require("../utils/zedf");
 
 const name = "dp";
 const coll = "dp4";
-let cs = 25;
+let cs = 50;
 let test_mode = 0;
 
 const wt_p = {
