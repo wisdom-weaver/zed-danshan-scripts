@@ -91,6 +91,8 @@ const run = async () => {
       let tot = docs.length;
       let doc = {
         bucket,
+        dist_f,
+        dist_m,
         tot,
         dist_ob: ob,
       };
@@ -107,7 +109,12 @@ const run_cron = async () => {
   cron.schedule(cron_str, run, { scheduled: true });
 };
 
-const test = async () => {};
+const test = async () => {
+  let bucket = "16-18";
+  let doc = await zed_db.db.collection(coll).findOne({ bucket });
+  console.log({ bucket });
+  console.table(doc.dist_ob);
+};
 
 const compiler = {
   run,
