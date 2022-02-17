@@ -6,6 +6,7 @@ const { get } = require("lodash");
 const cyclic_depedency = require("../utils/cyclic_dependency");
 const { zed_db, zed_ch } = require("../connection/mongo_connect");
 const _ = require("lodash");
+const zedf = require("../utils/zedf");
 
 const coll = "gap4";
 const cron_conf = { scheduled: true };
@@ -168,7 +169,17 @@ const fix2 = async (hid) => {
       .collection("rating_blood3")
       .findOne({ hid }, { projection: { hid: 1, races_n: 1 } })) || {};
   let ngap = null;
-  if (bb?.races_n == undefined || bb?.races_n == 0) ngap = null;
+  let races_n = bb?.races_n ?? null;
+  if (races_n == null) {
+    let zedd = await zedf.horse(hid);
+    races_n = zedd.number_of_races;
+    await zed_db.db
+      .collection("rating_blood3")
+      .updateOne({ hid }, { $set: { races_n } });
+  }
+
+  if (races_n == undefined) return console.log("races undefined", hid);
+  if (races_n == 0) ngap = null;
   else {
     if (g4.gap) return;
     else ngap = ((hid % 100) + 1) * 0.001;
@@ -180,8 +191,8 @@ const fix2 = async (hid) => {
 };
 
 const fix = async () => {
-  let hids = await cyclic_depedency.get_all_hids();
-  // let hids = [22882, 9439, 3312];
+  // let hids = await cyclic_depedency.get_all_hids();
+  let hids = [11084];
   for (let chu of _.chunk(hids, 1000)) {
     await Promise.all(chu.map(fix2));
     let [a, b] = [chu[0], chu[chu.length - 1]];
