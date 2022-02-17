@@ -29,8 +29,15 @@ const main = async (args) => {
       arg3 = arg3?.split(",") ?? [];
       await zed_races.manual(arg3);
     }
-  }
-  if (arg1 == "--gap") {
+  } else if (arg1 == "--compiler") {
+    if (arg2 == "test") await dan.compiler.test();
+    if (arg2 == "run") await dan.compiler.run();
+    if (arg2 == "run_cron") await dan.compiler.run_cron();
+    if (arg2 == "run_hs") {
+      arg3 = jparse(arg3) ?? [];
+      await dan.compiler.run_hs(arg3);
+    }
+  } else if (arg1 == "--gap") {
     if (arg2 == "test") await gap.test();
     if (arg2 == "fix") await gap.fix();
     if (arg2 == "run_dur") await gap.run_dur(arg3, arg4);

@@ -7,6 +7,7 @@ const _ = require("lodash");
 const { zed_ch, init, zed_db } = require("../connection/mongo_connect");
 const { get_fee_tag } = require("./utils");
 const { knex_conn } = require("../connection/knex_connect");
+const cron_parser = require("cron-parser");
 
 const key_mapping_bs_zed = [
   ["_id", "_id"],
@@ -204,6 +205,11 @@ const jparse = (c) => {
   }
 };
 
+const next_run = (cron_str) => {
+  const c_itvl = cron_parser.parseExpression(cron_str);
+  return c_itvl.next().toISOString()
+};
+
 const cyclic_depedency = {
   get_races_of_hid,
   from_ch_zed_collection,
@@ -216,6 +222,7 @@ const cyclic_depedency = {
   get_prize,
   prize_id,
   jparse,
+  next_run,
 };
 
 module.exports = cyclic_depedency;

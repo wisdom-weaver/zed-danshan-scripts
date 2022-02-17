@@ -11,6 +11,7 @@ const zedf = require("../utils/zedf");
 const race_horses = require("./race_horses");
 const max_gap = require("../dan/max_gap");
 const gap = require("../v3/gaps");
+const compiler = require("../dan/compiler");
 
 const zed_gql = "https://zed-ql.zed.run/graphql/getRaceResults";
 const zed_secret_key = process.env.zed_secret_key;
@@ -296,6 +297,7 @@ const zed_push_races_to_mongo = async (races) => {
       });
     }
   }
+  let hids = _.map(horses_ar, "hid");
   if (push_race_horses_on) {
     console.log("race_horses.len:", horses_ar.length);
     // console.table(horses_ar)
@@ -307,6 +309,9 @@ const zed_push_races_to_mongo = async (races) => {
   if (!_.isEmpty(races_ar)) {
     await max_gap.raw_race_runner(races_ar);
     await gap.run_raw_races(races_ar);
+  }
+  if (!_.isEmpty(hids)) {
+    await compiler.run_hs(hids);
   }
 };
 
