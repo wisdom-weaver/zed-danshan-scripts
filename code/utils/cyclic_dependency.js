@@ -207,7 +207,17 @@ const jparse = (c) => {
 
 const next_run = (cron_str) => {
   const c_itvl = cron_parser.parseExpression(cron_str);
-  return c_itvl.next().toISOString()
+  return c_itvl.next().toISOString();
+};
+
+const get_races_n = async () => {
+  let bb =
+    (await zed_db.db
+      .collection("rating_blood3")
+      .findOne({ hid }, { projection: { hid: 1, races_n: 1 } })) || {};
+  let races_n = bb?.races_n ?? null;
+
+  return races_n;
 };
 
 const cyclic_depedency = {
@@ -223,6 +233,7 @@ const cyclic_depedency = {
   prize_id,
   jparse,
   next_run,
+  get_races_n,
 };
 
 module.exports = cyclic_depedency;

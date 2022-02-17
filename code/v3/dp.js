@@ -1,9 +1,11 @@
 const _ = require("lodash");
 const { zed_db, zed_ch } = require("../connection/mongo_connect");
 const bulk = require("../utils/bulk");
+const { get_races_n } = require("../utils/cyclic_dependency");
 const cyclic_depedency = require("../utils/cyclic_dependency");
 const utils = require("../utils/utils");
 const { dec } = require("../utils/utils");
+const { race } = require("../utils/zedf");
 
 const name = "dp";
 const coll = "dp4";
@@ -53,6 +55,8 @@ const get_dist_pos_ob = async (hid) => {
 
 const calc = async ({ hid }) => {
   try {
+    let races_n = await get_races_n(hid);
+    if (races_n === 0) return { hid, dp: null, dist: null, pts: 0 };
     let dob = await get_dist_pos_ob(hid);
     if (test_mode) console.table(dob);
     let dist_rows = _.entries(dob).map(([d, ar]) => {
@@ -99,7 +103,7 @@ const fix = async () => {
       .find({ hid: { $in: chu }, dp: 3 }, { projection: { hid: 1 } })
       .toArray();
     ar = _.map(ar, "hid");
-    console.log(ar)
+    console.log(ar);
     if (!_.isEmpty(ar)) await only(ar);
   }
   console.log("Fixed");
