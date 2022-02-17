@@ -1,7 +1,7 @@
 const _ = require("lodash");
 const cron = require("node-cron");
 const { zed_db } = require("../connection/mongo_connect");
-const { next_run } = require("../utils/cyclic_dependency");
+const { next_run, get_ed_horse } = require("../utils/cyclic_dependency");
 const { dp } = require("../v3/v3");
 
 const coll = "compiler";
@@ -58,9 +58,11 @@ const run_hs = async (hids) => {
   }
 };
 const run_range = async ([st, ed]) => {
-  let hids = Array.from(ed - st + 1)
-    .fill(0)
-    .map((e, i) => st + i);
+  console.log("compiler", [st, ed]);
+  if (ed == null) ed = await get_ed_horse();
+
+  let hids = new Array(ed - st + 1).fill(0).map((e, i) => st + i);
+  console.log(hids);
   await run_hs(hids);
 };
 

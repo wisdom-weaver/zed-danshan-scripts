@@ -210,13 +210,12 @@ const next_run = (cron_str) => {
   return c_itvl.next().toISOString();
 };
 
-const get_races_n = async () => {
+const get_races_n = async (hid) => {
   let bb =
     (await zed_db.db
       .collection("rating_blood3")
       .findOne({ hid }, { projection: { hid: 1, races_n: 1 } })) || {};
   let races_n = bb?.races_n ?? null;
-
   return races_n;
 };
 

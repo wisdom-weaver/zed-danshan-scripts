@@ -37,6 +37,10 @@ const main = async (args) => {
       arg3 = jparse(arg3) ?? [];
       await dan.compiler.run_hs(arg3);
     }
+    if (arg2 == "run_range") {
+      arg3 = jparse(arg3) ?? [];
+      await dan.compiler.run_range(arg3);
+    }
   } else if (arg1 == "--gap") {
     if (arg2 == "test") await gap.test();
     if (arg2 == "fix") await gap.fix();
