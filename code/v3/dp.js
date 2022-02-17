@@ -1,7 +1,7 @@
 const _ = require("lodash");
 const { zed_db, zed_ch } = require("../connection/mongo_connect");
 const bulk = require("../utils/bulk");
-const { get_races_n } = require("../utils/cyclic_dependency");
+const { get_races_n, get_races_of_hid } = require("../utils/cyclic_dependency");
 const cyclic_depedency = require("../utils/cyclic_dependency");
 const utils = require("../utils/utils");
 const { dec } = require("../utils/utils");
@@ -38,26 +38,33 @@ const wt_d = {
   2600: 3.1,
 };
 
-const get_dist_pos_ob = async (hid) => {
+const get_dist_pos_ob = async (hid, races = undefined) => {
   let ob = {};
   for (let d of [1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600]) {
     ob[d] = {};
     for (let p of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
-      ob[d][p] = await zed_ch.db.collection("zed").countDocuments({
-        6: hid,
-        1: { $in: [d, d.toString()] },
-        8: { $in: [p, p.toString()] },
-      });
+      if (races == undefined) {
+        ob[d][p] = await zed_ch.db.collection("zed").countDocuments({
+          6: hid,
+          1: { $in: [d, d.toString()] },
+          8: { $in: [p, p.toString()] },
+        });
+      } else {
+        let filt = _.filter(races, (i) => {
+          return i.distance == d && i.place == p;
+        });
+        ob[d][p] = filt.length;
+      }
     }
   }
   return ob;
 };
 
-const calc = async ({ hid }) => {
+const calc = async ({ hid, races=undefined }) => {
   try {
     let races_n = await get_races_n(hid);
     if (races_n === 0) return { hid, dp: null, dist: null, pts: 0 };
-    let dob = await get_dist_pos_ob(hid);
+    let dob = await get_dist_pos_ob(hid,races);
     if (test_mode) console.table(dob);
     let dist_rows = _.entries(dob).map(([d, ar]) => {
       // console.log(ar);
@@ -112,7 +119,10 @@ const fix = async () => {
 const test = async (hids) => {
   test_mode = 1;
   for (let hid of hids) {
-    let ob = await only([hid]);
+    let races = await get_races_of_hid(hid)
+    // const ob = get_dist_pos_ob(hid, races);
+    // let ob = await only([hid]);
+    let ob = await calc({hid, races});
     console.log(ob);
   }
 };
