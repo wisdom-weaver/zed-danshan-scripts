@@ -54,6 +54,12 @@ const run_hs = async (hids) => {
     await Promise.all(chu.map(run_h));
   }
 };
+const run_range = async ([st, ed]) => {
+  let hids = Array.from(ed - st + 1)
+    .fill(0)
+    .map((e, i) => st + i);
+  await run_hs(hids);
+};
 
 const run = async () => {
   console.log("compiler run");
@@ -65,8 +71,8 @@ const run = async () => {
           .collection("dp4")
           .find(
             {
-              "compiler.dist_f": dist_f,
-              "compiler.dist_m": dist_m,
+              "compiler.dist_f": { $eq: dist_f, $exists: true },
+              "compiler.dist_m": { $eq: dist_m, $exists: true },
             },
             {
               projection: { hid: 1, compiler: 1, dist: 1 },
@@ -109,5 +115,6 @@ const compiler = {
   test,
   run_h,
   run_hs,
+  run_range,
 };
 module.exports = compiler;
