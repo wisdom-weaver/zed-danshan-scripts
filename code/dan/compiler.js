@@ -62,7 +62,7 @@ const run_range = async ([st, ed]) => {
   if (ed == null) ed = await get_ed_horse();
 
   let hids = new Array(ed - st + 1).fill(0).map((e, i) => st + i);
-  console.log(hids);
+  // console.log(hids);
   await run_hs(hids);
 };
 
