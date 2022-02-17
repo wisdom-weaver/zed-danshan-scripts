@@ -108,7 +108,7 @@ const range = async (st, ed) =>
 
 const fix = async () => {
   let hids = await cyclic_depedency.get_all_hids();
-  hids = hids.slice(10000);
+  hids = hids.slice(11400);
   await only(hids);
   // for (let chu of _.chunk(hids, 1000)) {
   //   let ar = await zed_db.db
