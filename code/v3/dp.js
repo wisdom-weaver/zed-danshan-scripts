@@ -60,23 +60,26 @@ const get_dist_pos_ob = async (hid, races = undefined) => {
   return ob;
 };
 
-const calc = async ({ hid, races=undefined }) => {
+const calc = async ({ hid, races = undefined }) => {
   try {
     let races_n = await get_races_n(hid);
     if (races_n === 0) return { hid, dp: null, dist: null, pts: 0 };
-    let dob = await get_dist_pos_ob(hid,races);
+    let dob = await get_dist_pos_ob(hid, races);
     if (test_mode) console.table(dob);
     let dist_rows = _.entries(dob).map(([d, ar]) => {
       // console.log(ar);
-      let pts = _.entries(ar).map(([p, n]) => parseInt(n) * wt_p[p]);
-      pts = _.sum(pts);
+      let diff = [];
+      for (let i = 1; i < 12; i++) {
+        diff[i] = ar[i] - ar[i + 1];
+      }
+      let pts = _.mean(diff);
       return { pts, dist: d };
     });
     if (test_mode) console.log(dist_rows);
     let mx = _.maxBy(dist_rows, (e) => e.pts);
     if (test_mode) console.log(mx);
     let { pts, dist } = mx;
-    let dp = pts * 0.0001 + wt_d[dist];
+    let dp = pts + wt_d[dist];
     dist = parseInt(dist);
     if (pts == 0 || pts == null || _.isNaN(pts)) {
       dp = null;
@@ -119,10 +122,10 @@ const fix = async () => {
 const test = async (hids) => {
   test_mode = 1;
   for (let hid of hids) {
-    let races = await get_races_of_hid(hid)
+    let races = await get_races_of_hid(hid);
     // const ob = get_dist_pos_ob(hid, races);
     // let ob = await only([hid]);
-    let ob = await calc({hid, races});
+    let ob = await calc({ hid, races });
     console.log(ob);
   }
 };
