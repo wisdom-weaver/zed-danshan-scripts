@@ -315,7 +315,10 @@ const fix = async () => {
     .toArray();
   hids = _.map(hids, "hid");
   console.log("hids.length", hids.length);
-  if (!_.isEmpty(hids)) await only(hids);
+  if (!_.isEmpty(hids)) {
+    await zed_db.db.collection(coll).deleteMany({ hid: { $in: hids } });
+    await only(hids);
+  }
 };
 
 const rating_blood = {
