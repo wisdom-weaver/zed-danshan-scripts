@@ -94,8 +94,8 @@ const calc = async ({ hid, races = undefined }) => {
 };
 const generate = async (hid) => {
   hid = parseInt(hid);
-  let races = await get_races_of_hid(hid);
-  let ob = await calc({ hid, races });
+  // let races = await get_races_of_hid(hid);
+  let ob = await calc({ hid, races: undefined });
   if (test_mode) console.log(ob);
   return ob;
 };
