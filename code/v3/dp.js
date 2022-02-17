@@ -9,7 +9,7 @@ const { race } = require("../utils/zedf");
 
 const name = "dp";
 const coll = "dp4";
-let cs = 50;
+let cs = 200;
 let test_mode = 0;
 
 const wt_p = {
@@ -94,7 +94,8 @@ const calc = async ({ hid, races = undefined }) => {
 };
 const generate = async (hid) => {
   hid = parseInt(hid);
-  let ob = await calc({ hid });
+  let races = await get_races_of_hid(hid);
+  let ob = await calc({ hid, races });
   if (test_mode) console.log(ob);
   return ob;
 };
@@ -107,16 +108,18 @@ const range = async (st, ed) =>
 
 const fix = async () => {
   let hids = await cyclic_depedency.get_all_hids();
-  for (let chu of _.chunk(hids, 1000)) {
-    let ar = await zed_db.db
-      .collection(coll)
-      .find({ hid: { $in: chu }, dp: 3 }, { projection: { hid: 1 } })
-      .toArray();
-    ar = _.map(ar, "hid");
-    console.log(ar);
-    if (!_.isEmpty(ar)) await only(ar);
-  }
-  console.log("Fixed");
+  hids = hids.slice(10000);
+  await only(hids);
+  // for (let chu of _.chunk(hids, 1000)) {
+  //   let ar = await zed_db.db
+  //     .collection(coll)
+  //     .find({ hid: { $in: chu }, dp: 3 }, { projection: { hid: 1 } })
+  //     .toArray();
+  //   ar = _.map(ar, "hid");
+  //   console.log(ar);
+  //   if (!_.isEmpty(ar)) await only(ar);
+  // }
+  // console.log("Fixed");
 };
 
 const test = async (hids) => {
