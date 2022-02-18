@@ -311,7 +311,7 @@ const zed_push_races_to_mongo = async (races) => {
     await gap.run_raw_races(races_ar);
   }
   if (!_.isEmpty(hids)) {
-    await compiler.run_hs(hids);
+    // await compiler.run_hs(hids);
   }
 };
 

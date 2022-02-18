@@ -6,11 +6,12 @@ const { dp } = require("../../v3/v3");
 
 const coll = "compiler_dp";
 const name = "compiler_dp";
+const st = 213000;
 
 const run_h = async (hid) => {
   try {
     hid = parseInt(hid);
-    if (hid < 213000) return;
+    if (hid < st) return;
     let hdoc = await zed_db.db
       .collection("horse_details")
       .findOne({ hid }, { projection: { parents: 1 } });
@@ -109,9 +110,13 @@ const run = async () => {
 };
 
 const run_cron = async () => {
-  const cron_str = "*/5 * * * *";
+  const cron_str = "*/30 * * * *";
   console.log("compiler next run ::", next_run(cron_str));
-  cron.schedule(cron_str, run, { scheduled: true });
+  const runner = async () => {
+    await run_range([st]);
+    await run();
+  };
+  cron.schedule(cron_str, runner, { scheduled: true });
 };
 
 const test = async () => {
