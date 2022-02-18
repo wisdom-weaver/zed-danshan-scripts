@@ -24,19 +24,20 @@ const run_h = async (hid) => {
     // await dp.only([hid]);
     let dp_m = await zed_db.db.collection("dp4").findOne({ hid: mother });
     let dist_m = dp_m?.dist || null;
-    if (_.isEmpty(dp_m) || dist_m == null) {
-      await dp.only([mother]);
-      dp_m = await zed_db.db.collection("dp4").findOne({ hid: mother });
-      dist_m = dp_m?.dist || null;
-    }
+    // if (_.isEmpty(dp_m) || dist_m == null) {
+    //   await dp.only([mother]);
+    //   dp_m = await zed_db.db.collection("dp4").findOne({ hid: mother });
+    //   dist_m = dp_m?.dist || null;
+    // }
 
     let dp_f = await zed_db.db.collection("dp4").findOne({ hid: father });
     let dist_f = dp_f?.dist || null;
-    if (_.isEmpty(dp_f) || dist_f == null) {
-      await dp.only([father]);
-      dp_f = await zed_db.db.collection("dp4").findOne({ hid: father });
-      dist_f = dp_f?.dist || null;
-    }
+    // if (_.isEmpty(dp_f) || dist_f == null) {
+    //   await dp.only([father]);
+    //   dp_f = await zed_db.db.collection("dp4").findOne({ hid: father });
+    //   dist_f = dp_f?.dist || null;
+    // }
+
     // console.log(dp_f)
     // console.log(dp_m)
     let bucket = `${dist_f / 100}-${dist_m / 100}`;
