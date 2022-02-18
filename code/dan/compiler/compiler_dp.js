@@ -21,7 +21,7 @@ const run_h = async (hid) => {
     let { mother, father } = parents;
     if (mother == null || father == null) return;
 
-    await dp.only([hid]);
+    // await dp.only([hid]);
     let dp_m = await zed_db.db.collection("dp4").findOne({ hid: mother });
     let dist_m = dp_m?.dist || null;
     if (_.isEmpty(dp_m) || dist_m == null) {
