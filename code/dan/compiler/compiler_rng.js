@@ -61,7 +61,6 @@ const run_h = async (hid) => {
     if (rng_rep_m !== null && rng_rep_f !== null) {
       let a = rng_rep_f == "<.20" ? 0.2 : parseFloat(rng_rep_f);
       let b = rng_rep_m == "<.20" ? 0.2 : parseFloat(rng_rep_m);
-      console.log(a, b);
       comb_rng_rep = a + b;
     }
 
