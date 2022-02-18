@@ -130,7 +130,13 @@ const run = async () => {
         ) ?? null;
       if (_.isNaN(baby_rng)) baby_rng = null;
 
-      let comb_rng_rep = rng_rep_f + rng_rep_m;
+      let comb_rng_rep = null;
+      if (rng_rep_m !== null && rng_rep_f !== null) {
+        let a = rng_rep_f == "<.20" ? 0.2 : parseFloat(rng_rep_f);
+        let b = rng_rep_m == "<.20" ? 0.2 : parseFloat(rng_rep_m);
+        comb_rng_rep = a + b;
+      }
+      
       let bucket = `${rng_rep_f} - ${rng_rep_m}`;
       let doc = {
         bucket,
