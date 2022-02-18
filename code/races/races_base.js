@@ -11,7 +11,7 @@ const zedf = require("../utils/zedf");
 const race_horses = require("./race_horses");
 const max_gap = require("../dan/max_gap");
 const gap = require("../v3/gaps");
-const compiler = require("../dan/compiler");
+const compiler = require("../dan/compiler/compiler_dp");
 
 const zed_gql = "https://zed-ql.zed.run/graphql/getRaceResults";
 const zed_secret_key = process.env.zed_secret_key;

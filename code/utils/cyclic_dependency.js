@@ -219,6 +219,19 @@ const get_races_n = async (hid) => {
   return races_n;
 };
 
+const get_parents = async (hid) => {
+  hid = parseInt(hid);
+  let hdoc = await zed_db.db
+    .collection("horse_details")
+    .findOne({ hid }, { projection: { parents: 1 } });
+  // console.log(hid, hdoc);
+  let { parents = null } = hdoc;
+  if (_.isEmpty(parents)) return null;
+  let { mother, father } = parents;
+  if (mother == null || father == null) return null;
+  return { mother, father };
+};
+
 const cyclic_depedency = {
   get_races_of_hid,
   from_ch_zed_collection,
@@ -233,6 +246,7 @@ const cyclic_depedency = {
   jparse,
   next_run,
   get_races_n,
+  get_parents,
 };
 
 module.exports = cyclic_depedency;

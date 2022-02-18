@@ -1,11 +1,11 @@
 const _ = require("lodash");
 const cron = require("node-cron");
-const { zed_db } = require("../connection/mongo_connect");
-const { next_run, get_ed_horse } = require("../utils/cyclic_dependency");
-const { dp } = require("../v3/v3");
+const { zed_db } = require("../../connection/mongo_connect");
+const { next_run, get_ed_horse } = require("../../utils/cyclic_dependency");
+const { dp } = require("../../v3/v3");
 
-const coll = "compiler";
-const name = "compiler";
+const coll = "compiler_dp";
+const name = "compiler_dp";
 
 const run_h = async (hid) => {
   try {
@@ -121,7 +121,7 @@ const test = async () => {
   console.table(doc.dist_ob);
 };
 
-const compiler = {
+const compiler_dp = {
   run,
   run_cron,
   test,
@@ -129,4 +129,4 @@ const compiler = {
   run_hs,
   run_range,
 };
-module.exports = compiler;
+module.exports = compiler_dp;
