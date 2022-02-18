@@ -102,9 +102,9 @@ const run = async () => {
         dist_ob: ob,
       };
       await zed_db.db
-        .collection("compiler")
+        .collection(coll)
         .updateOne({ bucket }, { $set: doc }, { upsert: true });
-      console.log(bucket, { tot });
+      console.log(name, bucket, { tot });
     }
 };
 
