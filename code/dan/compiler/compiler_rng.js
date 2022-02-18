@@ -91,8 +91,8 @@ const run_range = async ([st, ed]) => {
 
 const run = async () => {
   console.log("compiler run");
-  for (let rng_rep_m of dists)
-    for (let rng_rep_f of dists) {
+  for (let rng_rep_m of reps)
+    for (let rng_rep_f of reps) {
       let docs =
         (await zed_db.db
           .collection("gap4")
