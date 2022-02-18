@@ -65,7 +65,15 @@ const run_h = async (hid) => {
     }
 
     let bucket = `${rng_rep_f} - ${rng_rep_m}`;
-    let doc = { bucket, rng_m, rng_f, comb_rng, comb_rng_rep };
+    let doc = {
+      bucket,
+      rng_m,
+      rng_f,
+      comb_rng,
+      comb_rng_rep,
+      rng_rep_f,
+      rng_rep_m,
+    };
     if (t == 0)
       await zed_db.db
         .collection("gap4")
