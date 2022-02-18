@@ -123,10 +123,12 @@ const run = async () => {
             (e) => ![null, undefined, NaN].includes(e)
           )
         ) ?? null;
+      if (_.isNaN(comb_rng_avg)) comb_rng_avg = null;
       let baby_rng =
         _.mean(
           _.map(docs, "gap").filter((e) => ![null, undefined, NaN].includes(e))
         ) ?? null;
+      if (_.isNaN(baby_rng)) baby_rng = null;
 
       let comb_rng_rep = rng_rep_f + rng_rep_m;
       let bucket = `${rng_rep_f} - ${rng_rep_m}`;
@@ -138,7 +140,7 @@ const run = async () => {
         hids,
         comb_rng_rep,
         comb_rng_avg,
-        baby_rng
+        baby_rng,
       };
       if (t == 0)
         await zed_db.db
