@@ -61,6 +61,7 @@ const run_h = async (hid) => {
     if (rng_rep_m !== null && rng_rep_f !== null) {
       let a = rng_rep_f == "<.20" ? 0.2 : parseFloat(rng_rep_f);
       let b = rng_rep_m == "<.20" ? 0.2 : parseFloat(rng_rep_m);
+      console.log(a, b);
       comb_rng_rep = a + b;
     }
 
@@ -119,12 +120,16 @@ const run = async () => {
       let tot = hids.length;
       let comb_rng_avg =
         _.mean(
-          _.map(docs, "comb_rng").filter(
+          _.map(docs, "compiler.comb_rng").filter(
             (e) => ![null, undefined, NaN].includes(e)
           )
         ) ?? null;
-      let comb_rng_rep = rng_rep_f + rng_rep_m;
+      let baby_rng =
+        _.mean(
+          _.map(docs, "gap").filter((e) => ![null, undefined, NaN].includes(e))
+        ) ?? null;
 
+      let comb_rng_rep = rng_rep_f + rng_rep_m;
       let bucket = `${rng_rep_f} - ${rng_rep_m}`;
       let doc = {
         bucket,
@@ -134,12 +139,13 @@ const run = async () => {
         hids,
         comb_rng_rep,
         comb_rng_avg,
+        baby_rng
       };
       if (t == 0)
         await zed_db.db
           .collection(coll)
           .updateOne({ bucket }, { $set: doc }, { upsert: true });
-      console.log(name, bucket, { tot });
+      console.log(name, bucket, { tot, comb_rng_rep, comb_rng_avg });
     }
 };
 
