@@ -39,7 +39,7 @@ const main = async (args) => {
     }
     if (arg2 == "run_range") {
       arg3 = jparse(arg3) ?? [];
-      await dan.compiler.run_range(arg3);
+      await dan.compiler_dp.run_range(arg3);
     }
   } else if (arg1 == "--compiler_rng") {
     if (arg2 == "test") await dan.compiler_rng.test();
