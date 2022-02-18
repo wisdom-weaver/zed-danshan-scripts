@@ -64,7 +64,7 @@ const run_h = async (hid) => {
       comb_rng_rep = a + b;
     }
 
-    let bucket = `${rng_rep_f}-${rng_rep_m}`;
+    let bucket = `${rng_rep_f} - ${rng_rep_m}`;
     let doc = { bucket, rng_m, rng_f, comb_rng, comb_rng_rep };
     if (t == 0)
       await zed_db.db
@@ -117,7 +117,7 @@ const run = async () => {
         ) ?? null;
       let comb_rng_rep = rng_rep_f + rng_rep_m;
 
-      let bucket = `${rng_rep_f}-${rng_rep_m}`;
+      let bucket = `${rng_rep_f} - ${rng_rep_m}`;
       let doc = {
         bucket,
         rng_rep_m,
