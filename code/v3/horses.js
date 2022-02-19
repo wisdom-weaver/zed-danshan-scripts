@@ -12,8 +12,9 @@ const ancestry = require("./ancestry");
 const utils = require("../utils/utils");
 const cyclic_depedency = require("../utils/cyclic_dependency");
 const rating_blood_S = require("./rating_blood");
+const mega2 = require("./mega2");
 
-const def_cs = 30;
+const def_cs = 50;
 
 const bulk_write_kid_to_parent = async (obar) => {
   let mgp = [];
@@ -174,19 +175,18 @@ const get_only2 = async (hids, p = 1) => {
   let fet = [];
   for (let chunk_hids of _.chunk(hids_all, cs)) {
     if (p) console.log("GETTING", chunk_hids);
-    let resps = await add_hdocs(chunk_hids, cs);
-    await delay(100);
-    if (resps?.length == 0) {
-      if (p) console.log("break");
-      break;
-    }
-    if (p) console.log("wrote", resps.length, "to horse_details");
+    // let resps = await add_hdocs(chunk_hids, cs);
+    // await delay(100);
+    // if (resps?.length == 0) {
+    //   if (p) console.log("break");
+    //   break;
+    // }
+    // if (p) console.log("wrote", resps.length, "to horse_details");
 
-    chunk_hids = _.map(resps, "hid");
-    // await mega.only_w_parents_br(chunk_hids);
+    // chunk_hids = _.map(resps, "hid");
+    await mega2.only(chunk_hids);
     // await parents.fix_horse_type_using_kid_ids(chunk_hids);
     // await ancestry.only(chunk_hids);
-    await rating_blood_S.only(chunk_hids);
     if (p) console.log("## GOT ", chunk_hids.toString(), "\n");
     fet = [...fet, ...(chunk_hids || [])];
   }
@@ -278,7 +278,8 @@ const get_missings = async (range, p = 1) => {
       console.log("missings", missings.length, a ? `${a} -> ${b}` : "");
     }
     if (_.isEmpty(missings)) continue;
-    let got = await get_only(missings, p);
+    // let got = await get_only(missings, p);
+    let got = await get_only2(missings, p);
     console.log("#GOT", got.length);
     fet = [...fet, ...(got || [])];
   }
