@@ -75,7 +75,7 @@ const run_h = async (hid) => {
     };
     if (t == 0)
       await zed_db.db
-        .collection("gap4")
+        .collection("rating_blood3")
         .updateOne({ hid }, { $set: { compiler: doc } });
     console.log(name, hid, bucket, comb_ba_rep);
   } catch (err) {
