@@ -126,10 +126,11 @@ const run = async () => {
           )
         ) ?? null;
       if (_.isNaN(comb_rng_avg)) comb_rng_avg = null;
-      let baby_rng_avg =
-        _.mean(
-          _.map(docs, "gap").filter((e) => ![null, undefined, NaN].includes(e))
-        ) ?? null;
+      let baby_rngs = _.map(docs, "gap").filter(
+        (e) => ![null, undefined, NaN].includes(e)
+      );
+      let rated = baby_rngs?.length || 0;
+      let baby_rng_avg = _.mean(baby_rngs) ?? null;
       if (_.isNaN(baby_rng_avg)) baby_rng_avg = null;
 
       let comb_rng_rep = null;
@@ -145,6 +146,7 @@ const run = async () => {
         rng_rep_m,
         rng_rep_f,
         tot,
+        rated,
         hids,
         comb_rng_rep,
         comb_rng_avg,

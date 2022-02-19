@@ -125,12 +125,11 @@ const run = async () => {
           )
         ) ?? null;
       if (_.isNaN(comb_ba_avg)) comb_ba_avg = null;
-      let baby_ba_avg =
-        _.mean(
-          _.map(docs, "base_ability.n").filter(
-            (e) => ![null, undefined, NaN].includes(e)
-          )
-        ) ?? null;
+      let baby_bas = _.map(docs, "base_ability.n").filter(
+        (e) => ![null, undefined, NaN].includes(e)
+      );
+      let rated = baby_bas?.length || 0;
+      let baby_ba_avg = _.mean(baby_bas) ?? null;
       if (_.isNaN(baby_ba_avg)) baby_ba_avg = null;
 
       let comb_ba_rep = null;
@@ -146,6 +145,7 @@ const run = async () => {
         ba_rep_m,
         ba_rep_f,
         tot,
+        rated,
         hids,
         comb_ba_rep,
         comb_ba_avg,
@@ -169,13 +169,7 @@ const run_cron = async () => {
   cron.schedule(cron_str, runner, { scheduled: true });
 };
 
-const test = async () => {
-  t = 1;
-  let hids = [213002];
-  for (let hid of hids) {
-    await run_h(hid);
-  }
-};
+const test = async () => {};
 
 const compiler_ba = {
   run,
