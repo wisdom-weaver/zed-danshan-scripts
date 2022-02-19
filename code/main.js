@@ -56,6 +56,7 @@ const main = async (args) => {
   } else if (arg1 == "--compiler_ba") {
     if (arg2 == "test") await dan.compiler_ba.test();
     if (arg2 == "run") await dan.compiler_ba.run();
+    if (arg2 == "runner") await dan.compiler_ba.runner();
     if (arg2 == "run_cron") await dan.compiler_ba.run_cron();
     if (arg2 == "run_hs") {
       arg3 = jparse(arg3) ?? [];
