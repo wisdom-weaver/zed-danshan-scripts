@@ -3,7 +3,10 @@ const { zed_db, zed_ch } = require("../connection/mongo_connect");
 const global_req = require("../global_req/global_req");
 const bulk = require("../utils/bulk");
 const cyclic_depedency = require("../utils/cyclic_dependency");
-const { struct_race_row_data } = require("../utils/cyclic_dependency");
+const {
+  struct_race_row_data,
+  get_races_n,
+} = require("../utils/cyclic_dependency");
 const utils = require("../utils/utils");
 const { calc_race_score, calc_race_score_det } = require("./race_score");
 
@@ -160,21 +163,19 @@ const test = async (hids) => {
   }
 };
 
+const fix = async (hid) => {
+  let races_n = await get_races_n(hid);
+  let doc = await zed_db.db
+    .collection(coll)
+    .findOne({ hid }, { projection: { ymca2: 1 } });
+  let ymca2 = doc?.ymca2 ?? null;
+  if (races_n > 0 && ymca2 == null) await only([hid]);
+};
 const fixer = async () => {
   let all_hids = await cyclic_depedency.get_all_hids();
   for (let chunk of _.chunk(all_hids, 5000)) {
     let [a, b] = [chunk[0], chunk[chunk.length - 1]];
-    console.log("get", a, b);
-    let hids = await zed_db.db
-      .collection(coll)
-      .find(
-        { hid: { $in: chunk }, ymca2: { $ne: null, $lt: 0.05 } },
-        { projection: { hid: 1 } }
-      )
-      .toArray();
-    hids = _.map(hids, "hid");
-    console.log("GOT", hids.length);
-    await only(hids);
+    await Promise.all(hids.map(fix));
   }
   console.log("ENDED fixer");
 };
