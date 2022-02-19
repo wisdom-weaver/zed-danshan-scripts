@@ -53,6 +53,18 @@ const main = async (args) => {
       arg3 = jparse(arg3) ?? [];
       await dan.compiler_rng.run_range(arg3);
     }
+  } else if (arg1 == "--compiler_ba") {
+    if (arg2 == "test") await dan.compiler_ba.test();
+    if (arg2 == "run") await dan.compiler_ba.run();
+    if (arg2 == "run_cron") await dan.compiler_ba.run_cron();
+    if (arg2 == "run_hs") {
+      arg3 = jparse(arg3) ?? [];
+      await dan.compiler_ba.run_hs(arg3);
+    }
+    if (arg2 == "run_range") {
+      arg3 = jparse(arg3) ?? [];
+      await dan.compiler_ba.run_range(arg3);
+    }
   } else if (arg1 == "--gap") {
     if (arg2 == "test") await gap.test();
     if (arg2 == "fix") await gap.fix();
