@@ -227,14 +227,16 @@ const get_valid_hids_in_blood = async (hids) => {
   let hids5 = await zed_db.db
     .collection("rating_blood3")
     .find(
-      { hid: { $in: hids } },
+      {
+        hid: { $in: hids },
+        base_ability: { $exists: true },
+        ymca2: { $exists: true },
+        races_n: { $exists: true },
+      },
       {
         projection: {
-          _id: 1,
+          _id: 0,
           hid: 1,
-          base_ability: { $exists: true },
-          ymca2: { $exists: true },
-          races_n: { $exists: true },
         },
       }
     )
