@@ -8,6 +8,7 @@ const { zed_ch, init, zed_db } = require("../connection/mongo_connect");
 const { get_fee_tag } = require("./utils");
 const { knex_conn } = require("../connection/knex_connect");
 const cron_parser = require("cron-parser");
+const zedf = require("./zedf");
 
 const key_mapping_bs_zed = [
   ["_id", "_id"],
@@ -218,6 +219,11 @@ const get_races_n = async (hid) => {
   let races_n = bb?.races_n ?? null;
   return races_n;
 };
+const get_races_n_zed = async (hid) => {
+  let bb = await zedf.horse(hid);
+  let races_n = bb?.number_of_races ?? null;
+  return races_n;
+};
 
 const get_parents = async (hid) => {
   hid = parseInt(hid);
@@ -247,6 +253,7 @@ const cyclic_depedency = {
   next_run,
   get_races_n,
   get_parents,
+  get_races_n_zed,
 };
 
 module.exports = cyclic_depedency;
