@@ -317,9 +317,9 @@ const fix = async () => {
     .toArray();
   hids = _.map(hids, "hid");
   console.log("hids.length", hids.length);
-  for (let chu of _.chunk(hdis, 1000)) {
+  for (let chu of _.chunk(hids, 1000)) {
     if (!_.isEmpty(chu)) {
-      await zed_db.db.collection(coll).deleteMany({ hid: { $in: hids } });
+      // await zed_db.db.collection(coll).deleteMany({ hid: { $in: hids } });
       await only(hids);
     }
   }
