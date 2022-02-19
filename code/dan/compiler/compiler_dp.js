@@ -70,7 +70,7 @@ const run_range = async ([st, ed]) => {
 
 const run = async () => {
   console.log("compiler run");
-  let dists = [null, 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600];
+  let dists = [1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600];
   for (let dist_f of dists)
     for (let dist_m of dists) {
       let docs =
@@ -87,6 +87,7 @@ const run = async () => {
           )
           .toArray()) ?? [];
       let dist_seg = _.groupBy(docs, "dist");
+      if (dist_seg && dist_seg["null"]) delete dist_seg["null"];
       let ob = {};
       for (let [d, ar] of _.entries(dist_seg)) {
         let n = ar.length;
