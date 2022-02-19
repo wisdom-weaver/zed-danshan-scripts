@@ -32,7 +32,7 @@ const s_ = {
 };
 
 let test_mode = 0;
-const def_cs = 25;
+const def_cs = 100;
 
 const calc = async ({ hid }) => {
   hid = parseInt(hid);

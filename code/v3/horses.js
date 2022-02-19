@@ -14,7 +14,7 @@ const cyclic_depedency = require("../utils/cyclic_dependency");
 const rating_blood_S = require("./rating_blood");
 const mega2 = require("./mega2");
 
-const def_cs = 50;
+const def_cs = 100;
 
 const bulk_write_kid_to_parent = async (obar) => {
   let mgp = [];
