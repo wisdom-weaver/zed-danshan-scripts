@@ -223,6 +223,26 @@ const get_valid_hids_in_ancestry = async (hids) => {
   hids5 = _.compact(hids5);
   return hids5;
 };
+const get_valid_hids_in_blood = async (hids) => {
+  let hids5 = await zed_db.db
+    .collection("rating_blood3")
+    .find(
+      { hid: { $in: hids } },
+      {
+        projection: {
+          _id: 1,
+          hid: 1,
+          base_ability: { $exists: true },
+          ymca2: { $exists: true },
+          races_n: { $exists: true },
+        },
+      }
+    )
+    .toArray();
+  hids5 = hids5.map((h) => (_.isEmpty(h.ancestry) ? null : h.hid));
+  hids5 = _.compact(hids5);
+  return hids5;
+};
 
 const get_missings = async (range, p = 1) => {
   let [st, ed] = range;
@@ -236,7 +256,7 @@ const get_missings = async (range, p = 1) => {
     let [a, b] = [chunk_hids[0], chunk_hids[chunk_hids.length - 1]];
     console.log("checking", a, "->", b);
     let hids1 = await get_valid_hids_in_coll(chunk_hids, "horse_details");
-    let hids2 = await get_valid_hids_in_coll(chunk_hids, "rating_blood3");
+    let hids2 = await get_valid_hids_in_blood(chunk_hids);
     let hids3 = await get_valid_hids_in_coll(chunk_hids, "rating_breed3");
     let hids4 = await get_valid_hids_in_coll(chunk_hids, "rating_flames3");
     let hids5 = await get_valid_hids_in_ancestry(chunk_hids);
