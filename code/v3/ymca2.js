@@ -170,7 +170,7 @@ const fix = async (hid) => {
     .findOne({ hid }, { projection: { ymca2: 1 } });
   let ymca2 = doc?.ymca2 ?? null;
   if (races_n > 0 && ymca2 == null) {
-    console.log("fixing", hi);
+    console.log("fixing", hid);
     await only([hid]);
   }
 };
