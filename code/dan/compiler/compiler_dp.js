@@ -80,7 +80,7 @@ const run = async () => {
             {
               "compiler.dist_f": { $eq: dist_f, $exists: true },
               "compiler.dist_m": { $eq: dist_m, $exists: true },
-              dist: { $ne: { $in: [null, NaN] } },
+              // dist: { $ne: { $in: [null, NaN] } },
             },
             {
               projection: { hid: 1, compiler: 1, dist: 1 },
