@@ -6,7 +6,9 @@ const cyclic_depedency = require("../../utils/cyclic_dependency");
 
 const coll = "compiler_ba";
 const name = "compiler_ba";
+const st = 213000;
 let t = 0;
+
 const ba_rep = {
   "<1.00": [-1e4, 1.0 - +1e-5],
   "01.50": [1.0, 1.5],
@@ -40,7 +42,7 @@ const conv_num = (n) => {
 const run_h = async (hid) => {
   try {
     hid = parseInt(hid);
-    if (hid < 213000) return;
+    if (hid < st) return;
 
     let races_n = await cyclic_depedency.get_races_n(hid);
     if (races_n < 5) return;
