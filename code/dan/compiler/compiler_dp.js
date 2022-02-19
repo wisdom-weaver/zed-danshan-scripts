@@ -115,7 +115,7 @@ const runner = async () => {
   await run();
 };
 const run_cron = async () => {
-  const cron_str = "*/20 * * * *";
+  const cron_str = "0 * * * *";
   console.log("compiler next run ::", next_run(cron_str));
   cron.schedule(cron_str, runner, { scheduled: true });
 };

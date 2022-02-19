@@ -11,3 +11,8 @@ pm2 start npm  --name "bt_tour_leader_cron" -- run zed_tour_leader_cron
 pm2 start npm  --name "bt_tour_missed_cron" -- run zed_tour_missed_cron
 pm2 start npm --name "leader_b2_cron" -- run leaderboard_b2_cron
 pm2 start npm --name "cmap_combs" -- run get_parents_color_pair_chart_cron
+
+compiler
+pm2 start node --name "comp_dp" -- code/main.js --compiler_dp run_cron
+pm2 start node --name "comp_ba" -- code/main.js --compiler_ba run_cron
+pm2 start node --name "comp_rng" -- code/main.js --compiler_rng run_cron
