@@ -88,7 +88,7 @@ const run = async () => {
           )
           .toArray()) ?? [];
       // docs = _.filter(docs, (i) => i.dist !== null);
-      // let dist_seg = _.groupBy(docs, "dist");
+      let dist_seg = _.groupBy(docs, "dist");
       // if (dist_seg && dist_seg["null"]) delete dist_seg["null"];
 
       let ob = {};
