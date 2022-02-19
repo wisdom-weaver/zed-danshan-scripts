@@ -169,6 +169,7 @@ const fix = async (hid) => {
     .collection(coll)
     .findOne({ hid }, { projection: { ymca2: 1 } });
   let ymca2 = doc?.ymca2 ?? null;
+  console.log({ races_n, ymca2 });
   if (races_n > 0 && ymca2 == null) {
     console.log("fixing", hid);
     await only([hid]);
@@ -176,6 +177,7 @@ const fix = async (hid) => {
 };
 const fixer = async () => {
   let all_hids = await cyclic_depedency.get_all_hids();
+  // let all_hids = [46092];
   for (let chunk of _.chunk(all_hids, 1000)) {
     let [a, b] = [chunk[0], chunk[chunk.length - 1]];
     console.log(a, "->", b);
