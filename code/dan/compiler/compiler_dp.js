@@ -80,14 +80,17 @@ const run = async () => {
             {
               "compiler.dist_f": { $eq: dist_f, $exists: true },
               "compiler.dist_m": { $eq: dist_m, $exists: true },
+              dist: { $ne: { $in: [null, NaN] } },
             },
             {
               projection: { hid: 1, compiler: 1, dist: 1 },
             }
           )
           .toArray()) ?? [];
-      let dist_seg = _.groupBy(docs, "dist");
-      if (dist_seg && dist_seg["null"]) delete dist_seg["null"];
+      // docs = _.filter(docs, (i) => i.dist !== null);
+      // let dist_seg = _.groupBy(docs, "dist");
+      // if (dist_seg && dist_seg["null"]) delete dist_seg["null"];
+
       let ob = {};
       for (let [d, ar] of _.entries(dist_seg)) {
         let n = ar.length;
