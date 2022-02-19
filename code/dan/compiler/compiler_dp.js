@@ -110,13 +110,13 @@ const run = async () => {
     }
 };
 
+const runner = async () => {
+  await run_range([st]);
+  await run();
+};
 const run_cron = async () => {
-  const cron_str = "*/30 * * * *";
+  const cron_str = "*/20 * * * *";
   console.log("compiler next run ::", next_run(cron_str));
-  const runner = async () => {
-    await run_range([st]);
-    await run();
-  };
   cron.schedule(cron_str, runner, { scheduled: true });
 };
 
@@ -129,6 +129,7 @@ const test = async () => {
 
 const compiler_dp = {
   run,
+  runner,
   run_cron,
   test,
   run_h,

@@ -32,6 +32,7 @@ const main = async (args) => {
   } else if (arg1 == "--compiler_dp") {
     if (arg2 == "test") await dan.compiler_dp.test();
     if (arg2 == "run") await dan.compiler_dp.run();
+    if (arg2 == "runner") await dan.compiler_dp.runner();
     if (arg2 == "run_cron") await dan.compiler_dp.run_cron();
     if (arg2 == "run_hs") {
       arg3 = jparse(arg3) ?? [];
@@ -44,6 +45,7 @@ const main = async (args) => {
   } else if (arg1 == "--compiler_rng") {
     if (arg2 == "test") await dan.compiler_rng.test();
     if (arg2 == "run") await dan.compiler_rng.run();
+    if (arg2 == "runner") await dan.compiler_rng.runner();
     if (arg2 == "run_cron") await dan.compiler_rng.run_cron();
     if (arg2 == "run_hs") {
       arg3 = jparse(arg3) ?? [];
