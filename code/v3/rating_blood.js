@@ -311,10 +311,9 @@ const test = async (hid) => {
 const fix = async () => {
   let hids = await zed_db.db
     .collection("rating_blood3")
-    .find({ races_n: {$or:[
-      { $exists: false },
-      { $eq: 0 },
-    ]} })
+    .find({
+      $or: [{ races_n: { $exists: false } }, { races_n: { $eq: 0 } }],
+    })
     .toArray();
   hids = _.map(hids, "hid");
   console.log("hids.length", hids.length);
