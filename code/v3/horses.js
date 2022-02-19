@@ -230,7 +230,6 @@ const get_valid_hids_in_blood = async (hids) => {
       {
         hid: { $in: hids },
         base_ability: { $exists: true },
-        ymca2: { $exists: true },
         races_n: { $exists: true },
       },
       {
