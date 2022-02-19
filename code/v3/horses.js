@@ -256,7 +256,7 @@ const get_missings = async (range, p = 1) => {
       console.log("missings", missings.length, a ? `${a} -> ${b}` : "");
     }
     if (_.isEmpty(missings)) continue;
-    let got = await get_only2(missings, p);
+    let got = await get_only(missings, p);
     console.log("#GOT", got.length);
     fet = [...fet, ...(got || [])];
   }
