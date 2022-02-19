@@ -240,7 +240,6 @@ const get_valid_hids_in_blood = async (hids) => {
       }
     )
     .toArray();
-  hids5 = hids5.map((h) => (_.isEmpty(h.ancestry) ? null : h.hid));
   hids5 = _.compact(hids5);
   return hids5;
 };
