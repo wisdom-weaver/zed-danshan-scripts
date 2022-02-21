@@ -68,7 +68,7 @@ const calc = async ({ hid, races = undefined }) => {
     let races_n = await get_races_n(hid);
     if (test_mode) console.log({ races_n });
     if (!races_n) {
-      let d = await zedf.race(hid);
+      let d = await zedf.horse(hid);
       races_n = d.number_of_races;
       if (test_mode) console.log({ races_n });
       if (races_n !== 0) {
