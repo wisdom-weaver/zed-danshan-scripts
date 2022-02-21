@@ -5,37 +5,39 @@ const { get_races_n, get_races_of_hid } = require("../utils/cyclic_dependency");
 const cyclic_depedency = require("../utils/cyclic_dependency");
 const utils = require("../utils/utils");
 const { dec } = require("../utils/utils");
-const { race } = require("../utils/zedf");
+const zedf = require("../utils/zedf");
+const rating_blood = require("./rating_blood");
 
 const name = "dp";
 const coll = "dp4";
 let cs = 25;
 let test_mode = 0;
 
-const wt_p = {
-  1: 12,
-  2: 11,
-  3: 10,
-  4: 9,
-  5: 8,
-  6: 7,
-  7: 6,
-  8: 5,
-  9: 4,
-  10: 3,
-  11: 2,
-  12: 1,
+const wt_pos = {
+  1: [6, 0.006],
+  2: [5, 0.005],
+  3: [4, 0.004],
+  4: [3, 0.003],
+  5: [2, 0.002],
+  6: [1, 0.001],
+  7: [-1, -0.001],
+  8: [-2, -0.002],
+  9: [-3, -0.003],
+  10: [-4, -0.004],
+  11: [-5, -0.005],
+  12: [-6, -0.006],
+  //pos: [choose, add]
 };
-const wt_d = {
-  1000: 3,
-  1200: 2,
-  1400: 1,
+const add_dist = {
+  1000: 0.021,
+  1200: 0.015,
+  1400: 0.01,
   1600: 0,
-  1800: 1,
-  2000: 2,
-  2200: 3,
-  2400: 3.05,
-  2600: 3.1,
+  1800: 0.01,
+  2000: 0.015,
+  2200: 0.021,
+  2400: 0.021,
+  2600: 0.022,
 };
 
 const get_dist_pos_ob = async (hid, races = undefined) => {
@@ -62,30 +64,53 @@ const get_dist_pos_ob = async (hid, races = undefined) => {
 
 const calc = async ({ hid, races = undefined }) => {
   try {
+    hid = parseInt(hid);
     let races_n = await get_races_n(hid);
-    if (races_n === 0) return { hid, dp: null, dist: null, pts: 0 };
+    if (test_mode) console.log({ races_n });
+    if (!races_n) {
+      let d = await zedf.race(hid);
+      races_n = d.number_of_races;
+      if (test_mode) console.log({ races_n });
+      if (races_n !== 0) {
+        await rating_blood.only([hid]);
+      }
+    }
+    if (races_n === 0) return { hid, dp: null, dist: null };
     let dob = await get_dist_pos_ob(hid, races);
     if (test_mode) console.table(dob);
-    let dist_rows = _.entries(dob).map(([d, ar]) => {
+    let dist_rows = _.entries(dob).map(([dist, pos_ar]) => {
       // console.log(ar);
-      let diff = [];
+      let choose_dp = 0;
+      let count = 0;
       for (let i = 1; i < 12; i++) {
-        diff[i] = ar[i] - ar[i + 1];
+        choose_dp += wt_pos[i][0] * pos_ar[i];
+        count += pos_ar[i];
       }
-      let pts = _.mean(diff);
-      return { pts, dist: d };
+
+      return { choose_dp, dist, count, pos_ar };
     });
-    if (test_mode) console.log(dist_rows);
-    let mx = _.maxBy(dist_rows, (e) => e.pts);
+    if (test_mode) console.table(dist_rows);
+    let mx = _.maxBy(dist_rows, (e) => e.choose_dp);
+
     if (test_mode) console.log(mx);
-    let { pts, dist } = mx;
-    let dp = pts + wt_d[dist];
+    let { count, dist, pos_ar, choose_dp } = mx;
     dist = parseInt(dist);
-    if (pts == 0 || pts == null || _.isNaN(pts)) {
+    let add_dp =
+      _.sum(
+        _.entries(pos_ar).map(([p, c]) => {
+          return c * wt_pos[p][1];
+        })
+      ) / count;
+    let adder = add_dist[dist];
+    let skill = count > 9 ? 10 * add_dp : count * add_dp;
+    let dp = _.sum([skill, adder, add_dp]) * 65;
+    if (test_mode)
+      console.log({ dist, choose_dp, count, add_dp, adder, skill, dp });
+    if (dp == 0 || dp == null || _.isNaN(dp)) {
       dp = null;
       dist = null;
     }
-    let ob = { hid, dp, dist, pts };
+    let ob = { hid, dp, dist };
     return ob;
   } catch (err) {
     console.log(err.message);
