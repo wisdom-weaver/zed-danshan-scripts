@@ -5,6 +5,7 @@ const { zed_db } = require("../connection/mongo_connect");
 const { options } = require("../utils/options");
 const { geno, dec, get_fee_tag } = require("../utils/utils");
 const race_utils = require("../utils/race_utils");
+const cyclic_depedency = require("../utils/cyclic_dependency");
 const coll = "rating_blood3";
 const name = "base_ability v3";
 let cs = 200;
@@ -172,7 +173,7 @@ const pick_avg_fee = ({ c, races }) => {
 
 const diff = () => {};
 
-const calc = async ({ hid, races = [], tc }) => {
+const calc = async ({ hid, races = [], tc, hdoc }) => {
   try {
     hid = parseInt(hid);
     let dist_races = race_utils.filter_races(
@@ -200,8 +201,26 @@ const calc = async ({ hid, races = [], tc }) => {
     let c_races_n = left + right;
     if (!c_races_n || _.isNaN(c_races_n)) c_races_n = 0;
     let conf = Math.min(99, c_races_n * 2);
-    let n = class_val[c] + avg_fee * 0.01 + ratio * 0.05;
-    if (_.isNaN(n)) n = null;
+    let base = class_val[c] + avg_fee * 0.01 + ratio * 0.05;
+
+    let n;
+    if (_.isNaN(base) || base == null) {
+      n = null;
+    } else {
+      let avg_ob = await cyclic_depedency.get_ymca_avgs(hdoc);
+      let avg_base = avg_ob?.avg_base;
+      let high = avg_base * 1.25;
+      let low = avg_base * 0.75;
+      let adjuster = Math.random() * 54 * 0.001;
+      let final_base;
+      if (base > low && base < high) final_base = base;
+      else final_base = base > high ? high * 1.098 : low * 0.904;
+      final_base += adjuster;
+      n = final_base;
+      if (test_mode)
+        console.log({ base, avg_base, low, high, adjuster, final_base });
+    }
+
     return { hid, base_ability: { c, ratio, avg_fee, c_races_n, conf, n } };
   } catch (err) {
     console.log("err on rating", hid);
@@ -210,13 +229,12 @@ const calc = async ({ hid, races = [], tc }) => {
 };
 const generate = async (hid) => {
   hid = parseInt(hid);
-  let races = await get_races_of_hid(hid);
-  // console.log(races[0]);
-  let doc = await zed_db.db
+  let hdoc = await zed_db.db
     .collection("horse_details")
-    .findOne({ hid }, { tc: 1 });
-  let tc = doc?.tc || undefined;
-  let ob = await calc({ races, tc, hid });
+    .findOne({ hid }, { tc: 1, bloodline: 1, breed_type: 1, genotype: 1 });
+  let races = await get_races_of_hid(hid);
+  let tc = hdoc?.tc;
+  let ob = await calc({ races, tc, hid, hdoc });
   if (test_mode) console.log(hid, ob, "\n\n");
   return ob;
 };

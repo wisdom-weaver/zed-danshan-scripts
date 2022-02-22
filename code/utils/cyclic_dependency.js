@@ -238,6 +238,17 @@ const get_parents = async (hid) => {
   return { mother, father };
 };
 
+const get_ymca_avgs = async ({ bloodline, breed_type, genotype }) => {
+  let doc_id = "ymca2-global-avgs";
+  let id = `${bloodline}-${breed_type}-${genotype}`;
+  let doc = await zed_db.db
+    .collection("requirements")
+    .findOne({ id: doc_id }, { projection: { [`avg_ob.${id}`]: 1 } });
+  // console.log(id);
+  let this_ob = doc.avg_ob[id] || {};
+  return this_ob;
+};
+
 const cyclic_depedency = {
   get_races_of_hid,
   from_ch_zed_collection,
@@ -254,6 +265,7 @@ const cyclic_depedency = {
   get_races_n,
   get_parents,
   get_races_n_zed,
+  get_ymca_avgs,
 };
 
 module.exports = cyclic_depedency;
