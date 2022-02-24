@@ -215,7 +215,7 @@ const next_run = (cron_str) => {
 const print_cron_details = (cron_str) => {
   const c_itvl = cron_parser.parseExpression(cron_str);
   let next = c_itvl.next().toISOString();
-  let every = cronstrue.toString(cronstrue);
+  let every = cronstrue.toString(cron_str);
   console.log("next:", next);
   console.log("every:", every);
 };

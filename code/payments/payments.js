@@ -100,7 +100,13 @@ const verify_user_payments = async ([st, ed]) => {
           if (!(req.reciever == tx.to)) return false;
           let tnano = utils.nano(req.date);
           console.log(req.date, tnano);
-          if (!_.inRange(timeStamp, tnano, tnano + allowed_buffer))
+          if (
+            !_.inRange(
+              timeStamp,
+              tnano - allowed_buffer,
+              tnano + allowed_buffer
+            )
+          )
             return false;
           let req_amt = req.req_amt * 1e18;
           if (!_.inRange(amt, req_amt - mimi, req_amt + mimi)) return false;
