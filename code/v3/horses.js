@@ -279,7 +279,7 @@ const get_missings = async (range, p = 1) => {
     if (_.isEmpty(missings)) continue;
     let got = await get_only(missings, p);
     // let got = await get_only2(missings, p);
-    console.log("#GOT", got.length);
+    console.log("#GOT", got.length, "\n\n");
     fet = [...fet, ...(got || [])];
   }
   return fet;
