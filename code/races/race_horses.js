@@ -26,7 +26,7 @@ const pull = async (cs = def_cs) => {
   let ar =
     (await zed_db.db
       .collection(coll)
-      .find({}, { projection: { hid: 1, tc: 1 } })
+      .find({}, { projection: { hid: 1, tc: 1, date: 1 } })
       .sort({ date: -1 })
       .limit(cs)
       .toArray()) || [];
@@ -49,10 +49,12 @@ const run = async (cs = def_cs) => {
   }
   await Promise.all(ar.map(update_horse_tc));
   let hids = _.map(ar, "hid");
+  let dates = _.chain(ar).map("date").value() ?? [];
+  console.log("dates:", dates[0], dates[dates.length - 1]);
   for (let chunk_hids of _.chunk(hids, run_cs)) {
     await mega.only_w_parents_br(chunk_hids, run_cs);
   }
-  console.log("updated", hids.length);
+  console.log("updated", hids.length, "\n--\n\n");
   await zed_db.db.collection(coll).deleteMany({ hid: { $in: hids } });
 };
 

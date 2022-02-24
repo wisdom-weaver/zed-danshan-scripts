@@ -3,5 +3,5 @@
 /data
 /data_files/data/blood
 /data_files
-/log
+/logs
 *.log

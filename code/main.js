@@ -111,6 +111,9 @@ const main = async (args) => {
     if (arg2 == "run_cron") {
       race_horses.run_cron();
     }
+    if (arg2 == "run") {
+      race_horses.run();
+    }
   } else if (arg1 == "--rating_flames") {
     if (arg2 == "all") mod.rating_flames.all();
     if (arg2 == "only") {
