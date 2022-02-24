@@ -44,6 +44,10 @@ const get_dist_pos_ob = async (hid, races = undefined) => {
   let ob = {};
   for (let d of [1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600]) {
     ob[d] = {};
+    let dist_races = [];
+    if (races !== undefined)
+      dist_races = _.filter(races, (i) => i.distance == d) ?? [];
+    
     for (let p of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
       if (races == undefined) {
         ob[d][p] = await zed_ch.db.collection("zed").countDocuments({
@@ -52,9 +56,7 @@ const get_dist_pos_ob = async (hid, races = undefined) => {
           8: { $in: [p, p.toString()] },
         });
       } else {
-        let filt = _.filter(races, (i) => {
-          return i.distance == d && i.place == p;
-        });
+        let filt = _.filter(dist_races, (i) => i.place == p);
         ob[d][p] = filt.length;
       }
     }
@@ -65,16 +67,17 @@ const get_dist_pos_ob = async (hid, races = undefined) => {
 const calc = async ({ hid, races = undefined }) => {
   try {
     hid = parseInt(hid);
-    let races_n = await get_races_n(hid);
-    if (test_mode) console.log({ races_n });
-    if (!races_n) {
-      let d = await zedf.horse(hid);
-      races_n = d.number_of_races;
-      if (test_mode) console.log({ races_n });
-      if (races_n !== 0) {
-        await rating_blood.only([hid]);
-      }
-    }
+    let races_n = races.length;
+    // let races_n = await get_races_n(hid);
+    // if (test_mode) console.log({ races_n });
+    // if (!races_n) {
+    //   let d = await zedf.horse(hid);
+    //   races_n = d.number_of_races;
+    //   if (test_mode) console.log({ races_n });
+    //   if (races_n !== 0) {
+    //     await rating_blood.only([hid]);
+    //   }
+    // }
     if (races_n === 0) return { hid, dp: null, dist: null };
     let dob = await get_dist_pos_ob(hid, races);
     if (test_mode) console.table(dob);
@@ -113,14 +116,15 @@ const calc = async ({ hid, races = undefined }) => {
     let ob = { hid, dp, dist };
     return ob;
   } catch (err) {
+    console.log(err);
     console.log(err.message);
     return null;
   }
 };
 const generate = async (hid) => {
   hid = parseInt(hid);
-  // let races = await get_races_of_hid(hid);
-  let ob = await calc({ hid, races: undefined });
+  let races = await get_races_of_hid(hid);
+  let ob = await calc({ hid, races });
   if (test_mode) console.log(ob);
   return ob;
 };
