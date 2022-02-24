@@ -59,7 +59,7 @@ const run = async (cs = def_cs) => {
 };
 
 const run_cron = (cs = def_cs) => {
-  let cron_str = "0 */1 * * * *";
+  let cron_str = "*/15 * * * * *";
   const c_itvl = cron_parser.parseExpression(cron_str);
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
   cron.schedule(cron_str, () => run(cs), utils.cron_conf);
