@@ -187,7 +187,7 @@ const get_only2 = async (hids, p = 1) => {
     await mega2.only(chunk_hids);
     // await parents.fix_horse_type_using_kid_ids(chunk_hids);
     // await ancestry.only(chunk_hids);
-    if (p) console.log("## GOT ", chunk_hids.toString(), "\n");
+    if (p) console.log("## GOT ", chunk_hids.toString(), "\n\n");
     fet = [...fet, ...(chunk_hids || [])];
   }
   return fet;
