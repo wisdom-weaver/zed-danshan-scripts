@@ -138,7 +138,7 @@ const range = async (st, ed) =>
 const fix = async () => {
   let hids = await cyclic_depedency.get_all_hids();
   // await only(hids);
-  for (let chu of _.chunk(hids, 1000)) {
+  for (let chu of _.chunk(hids, 30)) {
     let ar = await zed_db.db
       .collection(coll)
       .find({ hid: { $in: chu }, dp: null }, { projection: { hid: 1 } })
