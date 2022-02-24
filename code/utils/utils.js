@@ -178,14 +178,17 @@ const dec_per = (a, b) => {
 
 const iso = (d = new Date()) => {
   try {
+    if (parseInt(d) == d) d = parseInt(d);
     return new Date(d).toISOString();
   } catch (err) {
     return "iso-err";
   }
 };
-const nano = (d) => {
+const nano = (d = new Date()) => {
   try {
-    return new Date(d).getTime();
+    if (parseInt(d) == d) d = parseInt(d);
+    d = new Date(d);
+    return d.getTime();
   } catch (err) {
     return "nano-err";
   }
@@ -246,6 +249,8 @@ const remove_bullshits = (ar) => {
   return _.map(nar, "val");
 };
 
+const mt = 60 * 1000;
+
 const utils = {
   calc_avg,
   write_to_path,
@@ -273,6 +278,7 @@ const utils = {
   get_n,
   get_N,
   remove_bullshits,
+  mt,
 };
 
 module.exports = utils;

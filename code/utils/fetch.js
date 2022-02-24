@@ -1,5 +1,5 @@
 const fetch = require("node-fetch");
-const axios = require("axios")
+const axios = require("axios");
 const _ = require("lodash");
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -35,10 +35,20 @@ const sn_fget = async (api) => {
   return resp?.data || null;
 };
 
+const fget = (api) => fetch(api).then((r) => r.json());
+const fpost = (api, data) =>
+  fetch(api, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  }).then((r) => r.json());
+
 module.exports = {
   delay,
   fetch_r,
   api_zed_hid,
   sn_fget,
   sn_bk,
+  fget,
+  fpost,
 };

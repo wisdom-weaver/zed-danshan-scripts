@@ -12,6 +12,7 @@ const v3 = require("./v3/v3");
 const z_stats = require("./v3/z_stats");
 const gap = require("./v3/gaps");
 const { jparse } = require("./utils/cyclic_dependency");
+const payments = require("./payments/payments");
 const mod = v3;
 
 const main = async (args) => {
@@ -375,6 +376,14 @@ const main = async (args) => {
     }
     if (arg2 == "now_h") tourneyr02.now_h();
     if (arg2 == "run_cron_h") tourneyr02.run_cron_h();
+  } else if (arg1 == "--payments") {
+    if (arg2 == "test") await payments.test();
+    if (arg2 == "runner") await payments.runner();
+    if (arg2 == "run_cron") await payments.run_cron();
+    if (arg2 == "run_dur") {
+      arg3 = jparse(arg3);
+      await payments.run_cron(arg3);
+    }
   } else if (arg1 == "--tests") {
     try {
       arg3 = JSON.parse(arg3);

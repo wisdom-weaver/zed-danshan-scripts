@@ -9,6 +9,7 @@ const { get_fee_tag } = require("./utils");
 const { knex_conn } = require("../connection/knex_connect");
 const cron_parser = require("cron-parser");
 const zedf = require("./zedf");
+const cronstrue = require("cronstrue");
 
 const key_mapping_bs_zed = [
   ["_id", "_id"],
@@ -211,6 +212,14 @@ const next_run = (cron_str) => {
   return c_itvl.next().toISOString();
 };
 
+const print_cron_details = (cstr) => {
+  const c_itvl = cron_parser.parseExpression(cron_str);
+  let next = c_itvl.next().toISOString();
+  let every = cronstrue.toString(cronstrue);
+  console.log("next:", next);
+  console.log("every:", every);
+};
+
 const get_races_n = async (hid) => {
   let bb =
     (await zed_db.db
@@ -266,6 +275,7 @@ const cyclic_depedency = {
   get_parents,
   get_races_n_zed,
   get_ymca_avgs,
+  print_cron_details,
 };
 
 module.exports = cyclic_depedency;
