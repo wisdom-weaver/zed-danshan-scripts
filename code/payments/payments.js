@@ -57,6 +57,7 @@ const get_if_existing_txns = async (txids = []) => {
   return ids;
 };
 const verify_user_payments = async ([st, ed]) => {
+  console.log("verify_user_payments\n", st, "->", ed);
   for (let { token, get_balance, get_txs } of _.values(tokens_ob)) {
     console.log("\n------------\n");
     console.log("started", utils.iso());
