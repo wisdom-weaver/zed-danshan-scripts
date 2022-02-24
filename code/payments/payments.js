@@ -105,9 +105,9 @@ const verify_user_payments = async ([st, ed]) => {
           if (!_.inRange(amt, req_amt - mimi, req_amt + mimi)) return false;
           return true;
         });
-        console.log(got_request);
+
         if (!got_request) continue;
-        console.log("found", got_request);
+        // console.log("found", got_request);
         got_request = {
           pay_id: got_request.pay_id,
           meta: { tx },
@@ -119,7 +119,7 @@ const verify_user_payments = async ([st, ed]) => {
     }
     let paid_ids = _.map(update_paid, "pay_id");
     console.log("found paid:", update_paid.length);
-    // await push_bulk(coll, update_paid, "update_paid");
+    await push_bulk(coll, update_paid, "update_paid");
 
     let now = utils.nano();
     // console.log(now);
@@ -164,9 +164,7 @@ const push_bulk = async (coll, obar, name = "-") => {
     }
     await zed_db.db.collection(coll).bulkWrite(bulk);
     let len = obar.length;
-    let sth = obar[0].hid;
-    let edh = obar[obar.length - 1].hid;
-    console.log(`bulk@${coll} --`, `[${name}]`, len, "..", sth, "->", edh);
+    console.log(`bulk@${coll} --`, `[${name}]`, len);
   } catch (err) {
     console.log("err mongo bulk", coll, coll, obar && obar[0]?.hid);
     console.log(err);
@@ -174,6 +172,26 @@ const push_bulk = async (coll, obar, name = "-") => {
 };
 
 const test = async () => {
+  let test_doc = {
+    pay_id: "b0c8f5",
+    sender: "0x4e8c5dcd73df0448058e28b5205d1c63df7b30d9",
+    reciever: "0xa0d9665e163f498082cd73048da17e7d69fd9224",
+    req_amt: 0.01,
+    token: "MATIC",
+    service: "get-payment-test",
+    status: "pending",
+    status_code: 0,
+    date: "2021-04-01T17:48:51.000Z",
+    meta_req: {},
+    meta: {},
+  };
+  pay_id = test_doc.pay_id;
+  await zed_db.db.collection(coll).deleteOne({ pay_id });
+  console.log("deleted doc", pay_id);
+  await zed_db.db.collection(coll).insertOne(test_doc);
+  console.log("inserted doc", pay_id);
+  console.log("waiting 1 minute");
+  await utils.delay(60 * 1000);
   let st = "2021-04-01T17:48:50.000Z";
   let ed = "2021-04-01T17:48:53.000Z";
   await verify_user_payments([st, ed]);
