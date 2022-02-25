@@ -275,7 +275,7 @@ const add_times_flames_odds_to_races = async (raw_data, config) => {
 };
 
 const zed_push_races_to_mongo = async (races) => {
-  if (_.isEmpty(races)) return;
+  if (_.isEmpty(races)) return [];
   let horses_ar = [];
   let mongo_push = [];
   let races_ar = [];
@@ -313,6 +313,7 @@ const zed_push_races_to_mongo = async (races) => {
   if (!_.isEmpty(hids)) {
     // await compiler.run_hs(hids);
   }
+  return _.keys(races);
 };
 
 const zed_races_gql_runner_inner = async (

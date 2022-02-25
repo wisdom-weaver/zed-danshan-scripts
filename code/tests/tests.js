@@ -7,6 +7,7 @@ const moment = require("moment");
 const { iso, nano } = require("../utils/utils");
 const mega = require("../v3/mega");
 const utils = require("../utils/utils");
+const scheduled_races = require("../races/scheduled_races");
 
 const run_01 = async () => {
   let st = "2022-01-06T00:00:00Z";
@@ -424,8 +425,8 @@ const run_11 = async () => {
   for (let [rid, horse_place, horse_flame] of rids) {
     let raw_race = await zed_ch.db.collection("zed").find({ 4: rid }).toArray();
     e = get_race_gap(raw_race);
-    horse_place = parseFloat(horse_place)
-    horse_flame = parseFloat(horse_flame)
+    horse_place = parseFloat(horse_place);
+    horse_flame = parseFloat(horse_flame);
     e = e.map((i) => {
       return { horse_place, horse_flame, ...i };
     });
@@ -434,5 +435,7 @@ const run_11 = async () => {
   console.table(ar);
 };
 
-const tests = { run: run_11 };
+const run_12 = scheduled_races.test;
+
+const tests = { run: run_12 };
 module.exports = tests;
