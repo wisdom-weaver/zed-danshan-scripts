@@ -366,6 +366,7 @@ const get = async (print = 0) => {
 };
 
 const test = async () => {
+  let i = 0;
   for (let [bl_idx, bl] of _.entries(bloodlines)) {
     for (let [bt_idx, bt] of _.entries(breed_types)) {
       let id_st = `${bl}-${bt}`;
@@ -373,7 +374,7 @@ const test = async () => {
       for (let z = z_mi; z <= z_mx; z++) {
         let id = `${bl}-${bt}-Z${z}`;
         await update_z_id_row(id);
-        return;
+        if (++i == 10) return;
         // return;
       }
     }
