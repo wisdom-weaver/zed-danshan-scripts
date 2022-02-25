@@ -339,6 +339,7 @@ const zed_races_gql_runner_inner = async (
     let miss_rids = [];
     let rids = _.keys(races);
     console.log("fetched", rids.length, "race ids");
+    console.log(rids);
     if (race_conf.check_exists) {
       let rids_ch = await get_zed_ch_rids_only(from, to);
       let rids_overlap = _.intersection(rids, rids_ch);

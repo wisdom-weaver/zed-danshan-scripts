@@ -4,7 +4,7 @@ const { get_races_of_hid } = require("../utils/cyclic_dependency");
 const norminv = require("../utils/norminv");
 const zedf = require("../utils/zedf");
 
-const sim_n = 10;
+const sim_n = 100;
 
 let preset_global = {
   "0_1000": { mean: 57.74942398611325, sd: 0.7496875127154612 },
