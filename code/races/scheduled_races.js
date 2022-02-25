@@ -70,9 +70,15 @@ const process = async () => {
   let rids =
     (await zed_db.db
       .collection(coll)
-      .find({ start_time: { $lte: st } }, { projection: { rid: 1 } })
+      .find(
+        { start_time: { $lte: st }, processing: 0 },
+        { projection: { rid: 1 } }
+      )
       .toArray()) ?? [];
   rids = _.map(rids, "rid");
+  await zed_db.db
+    .collection(coll)
+    .updateMany({ rid: { $in: rids } }, { $set: { processing: 1 } });
   console.log("races to-process:", rids.length);
   let evals = await races_base.zed_race_rids(rids);
   console.log("races processed:", evals.length);
