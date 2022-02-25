@@ -339,13 +339,13 @@ const zed_races_gql_runner_inner = async (
     let miss_rids = [];
     let rids = _.keys(races);
     console.log("fetched", rids.length, "race ids");
-    console.log(rids?.join(", "));
     if (race_conf.check_exists) {
       let rids_ch = await get_zed_ch_rids_only(from, to);
       let rids_overlap = _.intersection(rids, rids_ch);
       console.log("exists ", rids_overlap.length, "race ids");
       rids = _.filter(rids, (rid) => !rids_overlap.includes(rid));
       console.log("running", rids.length, "race ids");
+      console.log(rids?.join(", "));
       races = _.chain(races)
         .entries()
         .filter(([rid, r]) => {
@@ -354,6 +354,8 @@ const zed_races_gql_runner_inner = async (
         .toPairs()
         .value();
     }
+
+    console.log(races)
 
     for (let [rid, r] of _.entries(races)) {
       if (_.isEmpty(r)) {
