@@ -7,22 +7,19 @@ const cron_conf = { scheduled: true };
 const race_conf_gql = { check_exists: true, durr: 1 * 60 * 60 * 1000 };
 const race_conf_zrapi = { check_exists: false, durr: 2 * 60 * 1000 };
 
-const live_offset_to_s = 60 * 2;
-const live_offset_from_s = 17 + live_offset_to_s;
-
 const live = async () => {
   console.log("zed_races", "live");
   let d = Date.now();
-  let from = moment(d).subtract(live_offset_from_s, "seconds").toISOString();
-  let to = moment(d).subtract(live_offset_to_s, "seconds").toISOString();
+  let to = moment(d).subtract(5, "minutes").toISOString();
+  let from = moment(new Date(to)).subtract(5, "minutes").toISOString();
   await races_base.zed_races_gql_runner(from, to, {
-    check_exists: false,
+    check_exists: true,
     durr: 1 * 60 * 60 * 1000,
     push_race_horses_on: 1,
   });
 };
 const live_cron = async () => {
-  let cron_str = "*/15 * * * * *";
+  let cron_str = "0 */5 * * * *";
   const c_itvl = cron_parser.parseExpression(cron_str);
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
   cron.schedule(cron_str, live, cron_conf);
