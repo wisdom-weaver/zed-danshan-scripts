@@ -195,6 +195,8 @@ const test = async () => {
     meta: {},
   };
   pay_id = test_doc.pay_id;
+  test_doc.sender = test_doc.sender.toLowerCase()
+  test_doc.reciever = test_doc.reciever.toLowerCase()
   await zed_db.db.collection(coll).deleteOne({ pay_id });
   console.log("deleted doc", pay_id);
   await zed_db.db.collection(coll).insertOne(test_doc);
