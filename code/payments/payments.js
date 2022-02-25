@@ -94,7 +94,7 @@ const verify_user_payments = async ([st, ed]) => {
       let amt = parseFloat(tx.value);
       let timeStamp = parseFloat(tx.timeStamp) * 1000;
       for (let [sender, sender_reqs] of _.entries(list_gp)) {
-        if (tx.from !== sender) continue;
+        if (tx.from.toLowerCase() !== sender.toLowerCase()) continue;
         let got_request = _.find(sender_reqs, (req) => {
           if (!(req?.sender?.toLowerCase() == tx.from.toLowerCase()))
             return false;
