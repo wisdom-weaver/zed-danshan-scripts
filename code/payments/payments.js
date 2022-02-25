@@ -86,9 +86,9 @@ const verify_user_payments = async ([st, ed]) => {
     console.log("existing_txns:", existing_txns.length);
 
     for (let tx of all_txns) {
-      // console.log("tx:", tx.hash);
+      // console.log("tx:", tx.hash, tx.from);
       if (existing_txns.includes(tx.hash)) {
-        // console.log("tx exists already");
+        console.log("tx exists already");
         continue;
       }
       let amt = parseFloat(tx.value);
@@ -96,8 +96,10 @@ const verify_user_payments = async ([st, ed]) => {
       for (let [sender, sender_reqs] of _.entries(list_gp)) {
         if (tx.from !== sender) continue;
         let got_request = _.find(sender_reqs, (req) => {
-          if (!(req.sender == tx.from)) return false;
-          if (!(req.reciever == tx.to)) return false;
+          if (!(req?.sender?.toLowerCase() == tx.from.toLowerCase()))
+            return false;
+          if (!(req?.reciever?.toLowerCase() == tx.to.toLowerCase()))
+            return false;
           let tnano = utils.nano(req.date);
           console.log(req.date, tnano);
           if (
