@@ -130,9 +130,7 @@ const get_z_table_for_id_v2 = async (id) => {
       )
       .toArray();
     let bases = _.map(docs2, (e) => e?.base_ability?.n || null);
-    let avg_base = _.mean(
-      _.filter(bases, (e) => ![null, undefined, NaN].includes(e))
-    );
+    bases = _.filter(bases, (e) => ![null, undefined, NaN].includes(e));
 
     let docs = await zed_db.db
       .collection(coll)
@@ -149,6 +147,18 @@ const get_z_table_for_id_v2 = async (id) => {
       .filter((i) => i !== Infinity)
       .compact()
       .value();
+
+    let dps = await zed_db.db
+      .collection("dp4")
+      .find({ hid: { $in: hids } }, { projection: { dp: 1, _id: 0 } })
+      .toArray();
+    dps = _.map(dps, "dp");
+
+    let rngs = await zed_db.db
+      .collection("gap4")
+      .find({ hid: { $in: hids } }, { projection: { gap: 1, _id: 0 } })
+      .toArray();
+    rngs = _.map(rngs, "gap");
 
     let y_avg = _.mean(filt_scores);
     if (!y_avg || _.isNaN(y_avg)) y_avg = _.mean(scores);
@@ -167,9 +177,31 @@ const get_z_table_for_id_v2 = async (id) => {
     if (!br_max || _.isNaN(br_max)) br_max = null;
 
     let avg = y_avg;
-    console.log(id, avg);
+    // console.log(id, avg);
+    console.log(id);
 
-    return {
+    let dp_avg = _.mean(dps);
+    if (!dp_avg || _.isNaN(dp_avg)) dp_avg = null;
+    let dp_min = _.min(dps);
+    if (!dp_min || _.isNaN(dp_min)) dp_min = null;
+    let dp_max = _.max(dps);
+    if (!dp_max || _.isNaN(dp_max)) dp_max = null;
+
+    let rng_avg = _.mean(rngs);
+    if (!rng_avg || _.isNaN(rng_avg)) rng_avg = null;
+    let rng_min = _.min(rngs);
+    if (!rng_min || _.isNaN(rng_min)) rng_min = null;
+    let rng_max = _.max(rngs);
+    if (!rng_max || _.isNaN(rng_max)) rng_max = null;
+
+    let avg_base = _.mean(bases);
+    if (!avg_base || _.isNaN(avg_base)) avg_base = null;
+    let base_min = _.min(bases);
+    if (!base_min || _.isNaN(base_min)) base_min = null;
+    let base_max = _.max(bases);
+    if (!base_max || _.isNaN(base_max)) base_max = null;
+
+    let ob = {
       count_all: ar.length,
       count: scores.length,
       count_: brs.length,
@@ -183,7 +215,17 @@ const get_z_table_for_id_v2 = async (id) => {
       br_max,
       avg_tc,
       avg_base,
+      base_min,
+      base_max,
+      dp_avg,
+      dp_min,
+      dp_max,
+      rng_avg,
+      rng_min,
+      rng_max,
     };
+    console.log(ob);
+    return ob;
   } catch (err) {
     console.log("err at get_z_table_for_id_v2");
     return null;
@@ -330,7 +372,8 @@ const test = async () => {
       let [z_mi, z_mx] = z_mi_mx[id_st];
       for (let z = z_mi; z <= z_mx; z++) {
         let id = `${bl}-${bt}-Z${z}`;
-        await update_z_id_avg_base(id);
+        await update_z_id_row(id);
+        return;
         // return;
       }
     }
