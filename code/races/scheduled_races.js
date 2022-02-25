@@ -51,7 +51,7 @@ const push = async (sraces) => {
     return {
       updateOne: {
         filter: { rid: e.rid },
-        update: { $set: e },
+        update: { $set: { ...e, processing: 0 } },
         upsert: true,
       },
     };
