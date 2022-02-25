@@ -224,7 +224,7 @@ const get_z_table_for_id_v2 = async (id) => {
       rng_min,
       rng_max,
     };
-    console.log(ob);
+    // console.log(ob);
     return ob;
   } catch (err) {
     console.log("err at get_z_table_for_id_v2");
