@@ -611,6 +611,7 @@ const zed_race_rids = async (rids, cs = 10) => {
     let n = races.length;
     races = _.fromPairs(races);
     let pushed_n = await zed_push_races_to_mongo(races);
+    await zed_db.db.collection("sraces").deleteMany({ rid: { $in: pushed_n } });
     console.log("pushed", n, "races\n");
     all_pushed_n = [...all_pushed_n, pushed_n];
   }
