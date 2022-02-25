@@ -13,6 +13,7 @@ const z_stats = require("./v3/z_stats");
 const gap = require("./v3/gaps");
 const { jparse } = require("./utils/cyclic_dependency");
 const payments = require("./payments/payments");
+const scheduled_races = require("./races/scheduled_races");
 const mod = v3;
 
 const main = async (args) => {
@@ -30,6 +31,10 @@ const main = async (args) => {
       arg3 = arg3?.split(",") ?? [];
       await zed_races.manual(arg3);
     }
+  } else if (arg1 == "--scheduled_races") {
+    if (arg2 == "test") await scheduled_races.test();
+    if (arg2 == "runner") await scheduled_races.runner();
+    if (arg2 == "run_cron") await scheduled_races.run_cron();
   } else if (arg1 == "--compiler_dp") {
     if (arg2 == "test") await dan.compiler_dp.test();
     if (arg2 == "run") await dan.compiler_dp.run();

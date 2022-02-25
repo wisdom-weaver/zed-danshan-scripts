@@ -1,9 +1,11 @@
 const moment = require("moment");
+const cron = require("node-cron");
 const zedf = require("../utils/zedf");
 const _ = require("lodash");
 const utils = require("../utils/utils");
 const { zed_db } = require("../connection/mongo_connect");
 const races_base = require("./races_base");
+const cyclic_depedency = require("../utils/cyclic_dependency");
 
 const coll = "sraces";
 
@@ -22,19 +24,23 @@ const get_scheduled_races_c = async (c) => {
   return races;
 };
 const get_all = async () => {
-  let all = [];
-  for (let c of [0, 1, 2, 3, 4, 5, 6, 99]) {
-    let curr = await get_scheduled_races_c(c);
-    console.log(`C${c}:`, curr.length);
-    all = [...all, ...curr];
-  }
+  // let all = [];
+  // for (let c of [0, 1, 2, 3, 4, 5, 6, 99]) {
+  //   let curr = await get_scheduled_races_c(c);
+  //   console.log(`C${c}:`, curr.length);
+  //   all = [...all, ...curr];
+  // }
+  let ar = await Promise.all(
+    [0, 1, 2, 3, 4, 5, 6, 99].map(get_scheduled_races_c)
+  );
+  let all = _.flatten(ar);
   console.log(`scheduled:`, all.length);
   return all;
 };
 
 const push = async (sraces) => {
   if (_.isEmpty(sraces)) return;
-  let ar = await sraces.map((e) => {
+  let ar = sraces.map((e) => {
     let rid = e.race_id;
     let start_time = e.start_time;
     if (!start_time.endsWith("Z")) start_time += "Z";
@@ -46,12 +52,12 @@ const push = async (sraces) => {
       updateOne: {
         filter: { rid: e.rid },
         update: { $set: e },
-        upset: true,
+        upsert: true,
       },
     };
   });
   if (!_.isEmpty(bulk)) {
-    await zed_db.db.collection(coll).bulkWrite(bulk);
+    let resp = await zed_db.db.collection(coll).bulkWrite(bulk);
     console.log("wrote %d to %s", bulk.length, coll);
   } else {
     console.log("no races to write");
@@ -67,8 +73,10 @@ const process = async () => {
       .find({ start_time: { $lte: st } }, { projection: { rid: 1 } })
       .toArray()) ?? [];
   rids = _.map(rids, "rid");
-  let evals = races_base.zed_race_rids(rids);
-  console.log("races added:", evals.length);
+  console.log("races to-process:", rids.length);
+  let evals = await races_base.zed_race_rids(rids);
+  console.log("races processed:", evals.length);
+  await zed_db.db.collection(coll).deleteMany({ rid: { $in: evals } });
 };
 
 const runner = async () => {
@@ -78,13 +86,22 @@ const runner = async () => {
 };
 
 const test = async () => {
-  runner();
+  // runner();
+  run_cron();
+};
+
+const run_cron = async () => {
+  let cron_str = "0 * * * * *";
+  cyclic_depedency.print_cron_details(cron_str);
+  cron.schedule(cron_str, runner, { scheduled: true });
 };
 
 const scheduled_races = {
+  test,
   get_all,
   runner,
   test,
+  run_cron,
 };
 
 module.exports = scheduled_races;

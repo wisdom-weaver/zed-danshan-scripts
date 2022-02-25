@@ -597,6 +597,7 @@ const zed_races_zrapi_runner = async (
   console.log("ENDED");
 };
 const zed_race_rids = async (rids, cs = 10) => {
+  let all_pushed_n = [];
   for (let chunk_rids of _.chunk(rids, cs)) {
     console.log("getting", chunk_rids.toString());
     let races = await Promise.all(
@@ -609,9 +610,11 @@ const zed_race_rids = async (rids, cs = 10) => {
     });
     let n = races.length;
     races = _.fromPairs(races);
-    await zed_push_races_to_mongo(races);
+    let pushed_n = await zed_push_races_to_mongo(races);
     console.log("pushed", n, "races\n");
+    all_pushed_n = [...all_pushed_n, pushed_n];
   }
+  return all_pushed_n;
 };
 
 const races_base = {
