@@ -121,7 +121,7 @@ const get_new = async () => {
     // let hids = await cyclic_depedency.get_all_hids();
     // hids = hids.slice(hids.length - back);
     let ed = await cyclic_depedency.get_ed_horse();
-    let st = ed - back;
+    let st = 0;
     let now = st;
     let cs = 80;
     let max_fail = 3;
@@ -137,7 +137,7 @@ const get_new = async () => {
     } while (fail);
     console.log("REACHED END");
     console.log("====\n===\n===\n");
-    await delay(60 * 1000);
+    await delay(2 * 60 * 1000);
     console.log("====\n===\n===\n");
     continue s_start;
   }
