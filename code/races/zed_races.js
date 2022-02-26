@@ -2,7 +2,8 @@ const cron = require("node-cron");
 const cron_parser = require("cron-parser");
 const moment = require("moment");
 const races_base = require("./races_base");
-const scheduled_races = require("./scheduled_races");
+const races_scheduled = require("./races_scheduled");
+const races_duplicate = require("./races_duplicate");
 
 const cron_conf = { scheduled: true };
 const race_conf_gql = { check_exists: true, durr: 1 * 60 * 60 * 1000 };
@@ -77,7 +78,7 @@ const miss_cron = async () => {
 
 const manual = async (rids) => {
   console.log("zed_races", "manual");
-  await races_base.zed_race_rids(rids);
+  await races_base.zed_race_run_rids(rids);
   console.log("manual ended");
 };
 const test = async () => {};
@@ -88,9 +89,10 @@ const zed_races = {
   miss,
   miss_cron,
   manual,
-  test,
-  scheduled: scheduled_races.runner,
-  scheduled_cron: scheduled_races.run_cron,
-  scheduled_process: scheduled_races.process,
+  scheduled: races_scheduled.runner,
+  scheduled_cron: races_scheduled.run_cron,
+  scheduled_process: races_scheduled.process,
+  duplicate: races_duplicate.runner,
+  duplicate_cron: races_duplicate.run_cron,
 };
 module.exports = zed_races;

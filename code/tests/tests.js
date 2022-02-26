@@ -7,7 +7,7 @@ const moment = require("moment");
 const { iso, nano } = require("../utils/utils");
 const mega = require("../v3/mega");
 const utils = require("../utils/utils");
-const scheduled_races = require("../races/scheduled_races");
+const races_scheduled = require("../races/races_scheduled");
 
 const run_01 = async () => {
   let st = "2022-01-06T00:00:00Z";
@@ -435,7 +435,7 @@ const run_11 = async () => {
   console.table(ar);
 };
 
-const run_12 = scheduled_races.test;
+const run_12 = races_scheduled.test;
 
 const tests = { run: run_12 };
 module.exports = tests;

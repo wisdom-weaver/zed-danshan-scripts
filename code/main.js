@@ -13,7 +13,6 @@ const z_stats = require("./v3/z_stats");
 const gap = require("./v3/gaps");
 const { jparse } = require("./utils/cyclic_dependency");
 const payments = require("./payments/payments");
-const scheduled_races = require("./races/scheduled_races");
 const mod = v3;
 
 const main = async (args) => {
@@ -32,6 +31,9 @@ const main = async (args) => {
     if (arg2 == "scheduled") await zed_races.scheduled();
     if (arg2 == "scheduled_cron") await zed_races.scheduled_cron();
     if (arg2 == "scheduled_process") await zed_races.scheduled_process();
+
+    if (arg2 == "duplicate") await zed_races.duplicate();
+    if (arg2 == "duplicate_cron") await zed_races.duplicate_cron();
 
     if (arg2 == "manual") {
       arg3 = arg3?.split(",") ?? [];

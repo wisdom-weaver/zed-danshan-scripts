@@ -12,7 +12,7 @@ const coll = "sraces";
 const scheduled_api = (c, offset = 0) =>
   `https://racing-api.zed.run/api/v1/races?status=scheduled&offset=${offset}&class=${c}`;
 const get_sraces = (c, offset) => zedf.get(scheduled_api(c, offset));
-const get_scheduled_races_c = async (c) => {
+const get_races_scheduled_c = async (c) => {
   let races = [];
   let offset = 0;
   do {
@@ -26,12 +26,12 @@ const get_scheduled_races_c = async (c) => {
 const get_all = async () => {
   // let all = [];
   // for (let c of [0, 1, 2, 3, 4, 5, 6, 99]) {
-  //   let curr = await get_scheduled_races_c(c);
+  //   let curr = await get_races_scheduled_c(c);
   //   console.log(`C${c}:`, curr.length);
   //   all = [...all, ...curr];
   // }
   let ar = await Promise.all(
-    [0, 1, 2, 3, 4, 5, 6, 99].map(get_scheduled_races_c)
+    [0, 1, 2, 3, 4, 5, 6, 99].map(get_races_scheduled_c)
   );
   let all = _.flatten(ar);
   console.log(`scheduled:`, all.length);
@@ -104,11 +104,11 @@ const process = async () => {
     await zed_db.db
       .collection(coll)
       .updateMany({ rid: { $in: rids } }, { $set: { processing: 1 } });
-    let evals = await races_base.zed_race_rids(rids);
+    let evals = await races_base.zed_race_run_rids(rids);
     console.log("races processed:", evals.length);
     await zed_db.db.collection(coll).deleteMany({ rid: { $in: evals } });
   } catch (err) {
-    console.log("err process scheduled_races", err);
+    console.log("err process races_scheduled", err);
   }
 };
 
@@ -129,7 +129,7 @@ const run_cron = async () => {
   cron.schedule(cron_str, runner, { scheduled: true });
 };
 
-const scheduled_races = {
+const races_scheduled = {
   test,
   get_all,
   runner,
@@ -138,4 +138,4 @@ const scheduled_races = {
   run_cron,
 };
 
-module.exports = scheduled_races;
+module.exports = races_scheduled;

@@ -117,7 +117,7 @@ const add_hdocs = async (hids, cs = def_cs) => {
 const get_new = async () => {
   s_start: while (true) {
     console.log("get_new");
-    let back = 20000;
+    let back = 50000;
     // let hids = await cyclic_depedency.get_all_hids();
     // hids = hids.slice(hids.length - back);
     let ed = await cyclic_depedency.get_ed_horse();

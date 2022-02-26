@@ -633,7 +633,7 @@ const zed_races_zrapi_runner = async (
   }
   console.log("ENDED");
 };
-const zed_race_rids = async (rids, cs = def_cs) => {
+const zed_race_run_rids = async (rids, cs = def_cs) => {
   let all_pushed_n = [];
   for (let chunk_rids of _.chunk(rids, cs)) {
     console.log("getting", chunk_rids.toString());
@@ -664,8 +664,9 @@ const races_base = {
   zed_races_gql_runner,
   zed_races_zrapi_runner,
   zed_race_base_data,
-  zed_race_rids,
+  zed_race_run_rids,
   check_exists_rids,
   check_missing_rids,
+  get_zed_rids_only,
 };
 module.exports = races_base;
