@@ -12,6 +12,7 @@ const race_horses = require("./race_horses");
 const max_gap = require("../dan/max_gap");
 const gap = require("../v3/gaps");
 const compiler = require("../dan/compiler/compiler_dp");
+const utils = require("../utils/utils");
 
 const zed_gql = "https://zed-ql.zed.run/graphql/getRaceResults";
 const zed_secret_key = process.env.zed_secret_key;
@@ -202,7 +203,7 @@ const get_zed_rids_only = async (from, to) => {
 const get_zed_ch_rids_only = async (from, to) => {
   try {
     from = iso(from);
-    to = iso(to);
+    to = utils.iso(utils.nano(to) + 1000);
     let docs =
       (await zed_ch.db
         .collection("zed")
