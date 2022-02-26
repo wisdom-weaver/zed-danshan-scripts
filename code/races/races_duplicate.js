@@ -78,8 +78,8 @@ const process = async ([st, ed]) => {
     console.log("dups_ids", dup_ids.length);
     // console.log("dups_ids", dup_ids);
     const resp = await zed_ch.db
-    .collection("zed")
-    .deleteMany({ _id: { $in: dup_ids.map((id) => ObjectId(id)) } });
+      .collection("zed")
+      .deleteMany({ _id: { $in: dup_ids.map((id) => ObjectId(id)) } });
     console.log("deleted duplicate docs: ", resp?.deletedCount);
 
     console.log("emp_rids", emp_rids.length);
@@ -112,16 +112,13 @@ const run_dur = async ([st, ed]) => {
 };
 
 const runner = async () => {
-  let ed = moment().subtract("2", "minutes").toISOString();
+  let ed = moment().subtract("10", "minutes").toISOString();
   let st = moment(new Date(ed)).subtract("5", "minutes").toISOString();
   console.log("duplicate: %s -> %s", st, ed);
   await process([st, ed]);
 };
 
-const test = async () => {
-  // runner();
-  run_cron();
-};
+const test = async () => {};
 
 const run_cron = async () => {
   let cron_str = "0 */5 * * * *";
