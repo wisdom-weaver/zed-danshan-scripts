@@ -21,7 +21,7 @@ const update_horse_gap = async ({ hid, gap, raceid, date }, p = 1) => {
 
   if (gap && date < "2021-08-30") gap = gap / 2;
 
-  // if (p) console.log(`${raceid}:`, { hid, gap });
+  if (p) console.log(`${raceid}:`, { hid, gap });
   if (!hid || gap === undefined) return null;
   let doc = await zed_db.db
     .collection(coll)

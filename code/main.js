@@ -34,6 +34,9 @@ const main = async (args) => {
 
     if (arg2 == "duplicate") await zed_races.duplicate();
     if (arg2 == "duplicate_cron") await zed_races.duplicate_cron();
+    if (arg2 == "duplicate_run_dur") {
+      await zed_races.duplicate_run_dur([arg3, arg4]);
+    }
 
     if (arg2 == "manual") {
       arg3 = arg3?.split(",") ?? [];

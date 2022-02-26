@@ -94,5 +94,6 @@ const zed_races = {
   scheduled_process: races_scheduled.process,
   duplicate: races_duplicate.runner,
   duplicate_cron: races_duplicate.run_cron,
+  duplicate_run_dur: races_duplicate.run_dur,
 };
 module.exports = zed_races;
