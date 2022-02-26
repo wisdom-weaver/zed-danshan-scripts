@@ -2,6 +2,7 @@ const cron = require("node-cron");
 const cron_parser = require("cron-parser");
 const moment = require("moment");
 const races_base = require("./races_base");
+const scheduled_races = require("./scheduled_races");
 
 const cron_conf = { scheduled: true };
 const race_conf_gql = { check_exists: true, durr: 1 * 60 * 60 * 1000 };
@@ -19,6 +20,7 @@ const live = async () => {
   });
 };
 const live_cron = async () => {
+  // let cron_str = "*/30 * * * * *"; // testing
   let cron_str = "0 */5 * * * *";
   const c_itvl = cron_parser.parseExpression(cron_str);
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
@@ -34,12 +36,13 @@ const miss = async (from, to, push_race_horses_on = 0) => {
   await races_base.zed_races_zrapi_runner(from, to, {
     check_exists: true,
     durr: 1 * 60 * 60 * 1000,
-    cs: 10,
+    cs: 15,
     push_race_horses_on,
   });
 };
 const miss_cron = async () => {
-  let cron_str1 = "*/1 * * * *";
+  // let cron_str = "*/30 * * * * *"; // testing
+  let cron_str1 = "0 */1 * * * *";
   const runner1 = async () => {
     let push_race_horses_on = 1;
     try {
@@ -82,9 +85,12 @@ const test = async () => {};
 const zed_races = {
   live,
   live_cron,
-  test,
   miss,
   miss_cron,
   manual,
+  test,
+  scheduled: scheduled_races.runner,
+  scheduled_cron: scheduled_races.run_cron,
+  scheduled_process: scheduled_races.process,
 };
 module.exports = zed_races;

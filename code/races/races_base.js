@@ -24,6 +24,8 @@ const g_h = 72;
 
 let push_race_horses_on = 0;
 
+const def_cs = 15;
+
 const cron_conf = {
   scheduled: true,
 };
@@ -257,7 +259,7 @@ const add_times_flames_odds_to_races = async (raw_data, config) => {
   // let ret = {};
   if (_.isEmpty(raw_data)) return {};
   let ret = [];
-  let cs = 5;
+  let cs = def_cs;
   for (let data_chunk of _.chunk(_.entries(raw_data), cs)) {
     let this_chunk = await Promise.all(
       data_chunk.map(([rid, race]) =>
@@ -345,17 +347,17 @@ const zed_races_gql_runner_inner = async (
       console.log("exists ", rids_overlap.length, "race ids");
       rids = _.filter(rids, (rid) => !rids_overlap.includes(rid));
       console.log("running", rids.length, "race ids");
-      console.log(rids?.join(", "));
       races = _.chain(races)
         .entries()
         .filter(([rid, r]) => {
           return rids.includes(rid);
         })
-        .toPairs()
+        .fromPairs()
         .value();
     }
 
-    console.log(races)
+    console.log(rids?.join(", "));
+    // console.log(_.keys(races))
 
     for (let [rid, r] of _.entries(races)) {
       if (_.isEmpty(r)) {
@@ -482,15 +484,41 @@ const zed_race_base_data = async (rid) => {
   return ob;
 };
 
-const zed_races_zrapi_rid_runner = async (rid, conf = { mode: "err" }) => {
+const check_exists_rids = async (rids) => {
+  let docs = await zed_ch.db
+    .collection("zed")
+    .find({ 4: { $in: rids } }, { projection: { 4: 1, 6: 1, _id: 0 } })
+    .toArray();
+  docs = _.groupBy(docs, 4);
+  let rids_exists = _.chain(docs)
+    .entries()
+    .filter(([rid, r]) => {
+      // console.log(rid, r.length);
+      if (_.isEmpty(r)) return false;
+      return r?.length >= 12;
+    })
+    .map(0)
+    .value();
+  return rids_exists;
+};
+const check_missing_rids = async (rids) => {
+  let exists = await check_exists_rids(rids);
+  let miss = _.difference(rids, exists);
+  return miss;
+};
+
+const zed_races_zrapi_rid_runner = async (
+  rid,
+  conf = { mode: "err", check_exists: 0 }
+) => {
   let { mode = "err" } = conf;
   let [base, results, flames] = await Promise.all([
     zed_race_base_data(rid),
     zed_results_data(rid),
     zed_flames_data(rid),
   ]);
-  if (_.isEmpty(base)) {
-    console.log("couldnt get race", rid);
+  if (_.isEmpty(base) || _.isEmpty(results) || _.isEmpty(flames)) {
+    // console.log("couldnt get race", rid);
     return [];
   }
   let { hids, thisclass, entryfee, distance, date, race_name } = base;
@@ -549,12 +577,12 @@ const zed_races_zrapi_runner = async (
   race_conf = {
     check_exists: true,
     durr: 1 * 60 * 60 * 1000,
-    cs: 10,
+    cs: def_cs,
     push_race_horses_on: 1,
   }
 ) => {
   let offset = race_conf.durr;
-  let cs = race_conf?.cs || 10;
+  let cs = race_conf?.cs || def_cs;
   if (race_conf.push_race_horses_on)
     push_race_horses_on = race_conf.push_race_horses_on;
   // console.log({ from, to });
@@ -583,8 +611,14 @@ const zed_races_zrapi_runner = async (
             zed_races_zrapi_rid_runner(rid).then((d) => [rid, d])
           )
         );
-        races.forEach(([rid, d]) => {
-          console.log("GOT at", _.values(d)[0][2], "rid:", rid);
+        races = _.compact(races);
+        races = races.filter(([rid, d]) => {
+          let n = _.values(d)?.length || 0;
+          if (n == 0) console.log("EMPTY", "rid:", rid);
+          else if (n == 12)
+            console.log("GOT", _.values(d)[0][2], "rid:", rid, n);
+          else console.log("ERR", _.values(d)[0][2], "rid:", rid, n);
+          return n == 12;
         });
         let n = races.length;
         races = _.fromPairs(races);
@@ -599,7 +633,7 @@ const zed_races_zrapi_runner = async (
   }
   console.log("ENDED");
 };
-const zed_race_rids = async (rids, cs = 10) => {
+const zed_race_rids = async (rids, cs = def_cs) => {
   let all_pushed_n = [];
   for (let chunk_rids of _.chunk(rids, cs)) {
     console.log("getting", chunk_rids.toString());
@@ -608,13 +642,18 @@ const zed_race_rids = async (rids, cs = 10) => {
         zed_races_zrapi_rid_runner(rid).then((d) => [rid, d])
       )
     );
-    races.forEach(([rid, d]) => {
-      console.log("GOT at", _.values(d)[0][2], "rid:", rid);
+    races = _.compact(races);
+    races = races.filter(([rid, d]) => {
+      let n = _.values(d)?.length || 0;
+      if (n == 0) console.log("EMPTY", "rid:", rid);
+      else if (n == 12) console.log("GOT", _.values(d)[0][2], "rid:", rid, n);
+      else console.log("ERR", _.values(d)[0][2], "rid:", rid, n);
+      return n == 12;
     });
     let n = races.length;
     races = _.fromPairs(races);
     let pushed_n = await zed_push_races_to_mongo(races);
-    await zed_db.db.collection("sraces").deleteMany({ rid: { $in: pushed_n } });
+    // await zed_db.db.collection("sraces").deleteMany({ rid: { $in: pushed_n } });
     console.log("pushed", n, "races\n");
     all_pushed_n = [...all_pushed_n, ...pushed_n];
   }
@@ -626,5 +665,7 @@ const races_base = {
   zed_races_zrapi_runner,
   zed_race_base_data,
   zed_race_rids,
+  check_exists_rids,
+  check_missing_rids,
 };
 module.exports = races_base;

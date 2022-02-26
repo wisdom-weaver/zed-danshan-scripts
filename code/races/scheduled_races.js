@@ -58,31 +58,58 @@ const push = async (sraces) => {
   });
   if (!_.isEmpty(bulk)) {
     let resp = await zed_db.db.collection(coll).bulkWrite(bulk);
-    console.log("wrote %d to %s", bulk.length, coll);
+    console.log(
+      "wrote new:%d & upsert:%d to %s",
+      resp?.insertedCount,
+      resp?.upsertedCount,
+      coll
+    );
   } else {
     console.log("no races to write");
   }
 };
 
 const process = async () => {
-  let st = moment().subtract("3", "minutes").toISOString();
-  console.log("processing scheduled before", st);
-  let rids =
-    (await zed_db.db
+  try {
+    let st1 = moment().subtract("3", "minutes").toISOString();
+    let st2 = moment().subtract("5", "minutes").toISOString();
+    console.log("scheduled not_processed:%s  also:%s", st1, st2);
+    let rids =
+      (await zed_db.db
+        .collection(coll)
+        .find(
+          {
+            $or: [
+              { start_time: { $lte: st1 }, processing: 0 },
+              { start_time: { $lte: st2 } },
+            ],
+          },
+          { projection: { rid: 1, _id: 1 } }
+        )
+        .toArray()) ?? [];
+
+    rids = _.map(rids, "rid");
+
+    let exists = await races_base.check_exists_rids(rids);
+    console.log("exists:", exists.length);
+    let missing = _.difference(rids, exists);
+    console.log("missing:", missing.length);
+
+    await zed_db.db.collection(coll).deleteMany({ rid: { $in: exists } });
+
+    rids = missing;
+    console.log("races to-process:", rids.length);
+    if (rids.length == 0) return;
+
+    await zed_db.db
       .collection(coll)
-      .find(
-        { start_time: { $lte: st }, processing: 0 },
-        { projection: { rid: 1 } }
-      )
-      .toArray()) ?? [];
-  rids = _.map(rids, "rid");
-  await zed_db.db
-    .collection(coll)
-    .updateMany({ rid: { $in: rids } }, { $set: { processing: 1 } });
-  console.log("races to-process:", rids.length);
-  let evals = await races_base.zed_race_rids(rids);
-  console.log("races processed:", evals.length);
-  await zed_db.db.collection(coll).deleteMany({ rid: { $in: evals } });
+      .updateMany({ rid: { $in: rids } }, { $set: { processing: 1 } });
+    let evals = await races_base.zed_race_rids(rids);
+    console.log("races processed:", evals.length);
+    await zed_db.db.collection(coll).deleteMany({ rid: { $in: evals } });
+  } catch (err) {
+    console.log("err process scheduled_races", err);
+  }
 };
 
 const runner = async () => {
@@ -106,6 +133,7 @@ const scheduled_races = {
   test,
   get_all,
   runner,
+  process,
   test,
   run_cron,
 };

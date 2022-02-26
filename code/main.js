@@ -25,16 +25,18 @@ const main = async (args) => {
     if (arg2 == "test") await zed_races.test();
     if (arg2 == "live") await zed_races.live();
     if (arg2 == "live_cron") await zed_races.live_cron();
+
     if (arg2 == "miss") await zed_races.miss(arg3, arg4);
     if (arg2 == "miss_cron") await zed_races.miss_cron();
+
+    if (arg2 == "scheduled") await zed_races.scheduled();
+    if (arg2 == "scheduled_cron") await zed_races.scheduled_cron();
+    if (arg2 == "scheduled_process") await zed_races.scheduled_process();
+
     if (arg2 == "manual") {
       arg3 = arg3?.split(",") ?? [];
       await zed_races.manual(arg3);
     }
-  } else if (arg1 == "--scheduled_races") {
-    if (arg2 == "test") await scheduled_races.test();
-    if (arg2 == "runner") await scheduled_races.runner();
-    if (arg2 == "run_cron") await scheduled_races.run_cron();
   } else if (arg1 == "--compiler_dp") {
     if (arg2 == "test") await dan.compiler_dp.test();
     if (arg2 == "run") await dan.compiler_dp.run();
