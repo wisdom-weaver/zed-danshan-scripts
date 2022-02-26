@@ -16,7 +16,7 @@ const live = async () => {
   let from = moment(new Date(to)).subtract(5, "minutes").toISOString();
   await races_base.zed_races_gql_runner(from, to, {
     check_exists: true,
-    durr: 1 * 60 * 60 * 1000,
+    durr: 0.25 * 60 * 60 * 1000,
     push_race_horses_on: 1,
   });
 };
@@ -36,7 +36,7 @@ const miss = async (from, to, push_race_horses_on = 0) => {
   to = moment(new Date(to)).toISOString();
   await races_base.zed_races_zrapi_runner(from, to, {
     check_exists: true,
-    durr: 1 * 60 * 60 * 1000,
+    durr: 0.25 * 60 * 60 * 1000,
     cs: 15,
     push_race_horses_on,
   });
