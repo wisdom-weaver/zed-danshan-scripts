@@ -124,7 +124,7 @@ const get_new = async () => {
     let st = 0;
     let now = st;
     let cs = 80;
-    let max_fail = 3;
+    let max_fail = 100;
     let fail = max_fail;
     do {
       let [now_st, now_ed] = [now, now + cs - 1];
@@ -137,7 +137,7 @@ const get_new = async () => {
     } while (fail);
     console.log("REACHED END");
     console.log("====\n===\n===\n");
-    await delay(2 * 60 * 1000);
+    await delay(5 * 60 * 1000);
     console.log("====\n===\n===\n");
     continue s_start;
   }
