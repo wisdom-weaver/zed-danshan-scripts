@@ -14,7 +14,7 @@ const cyclic_depedency = require("../utils/cyclic_dependency");
 const rating_blood_S = require("./rating_blood");
 const mega2 = require("./mega2");
 
-const def_cs = 30;
+const def_cs = 10;
 
 const bulk_write_kid_to_parent = async (obar) => {
   let mgp = [];
@@ -123,7 +123,7 @@ const get_new = async () => {
     let ed = await cyclic_depedency.get_ed_horse();
     let st = 0;
     let now = st;
-    let cs = 80;
+    let cs = 10;
     let max_fail = 100;
     let fail = max_fail;
     do {
@@ -250,7 +250,7 @@ const get_missings = async (range, p = 1) => {
   st = utils.get_n(st);
   ed = utils.get_n(ed);
   if (ed == "ed" || ed == null) ed = await get_ed_horse();
-  let cs = def_cs;
+  let cs = 10;
   let hids_all = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
   let fet = [];
   for (let chunk_hids of _.chunk(hids_all, 100)) {
