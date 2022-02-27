@@ -253,7 +253,7 @@ const get_missings = async (range, p = 1) => {
   let cs = 10;
   let hids_all = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
   let fet = [];
-  for (let chunk_hids of _.chunk(hids_all, 100)) {
+  for (let chunk_hids of _.chunk(hids_all, cs)) {
     let [a, b] = [chunk_hids[0], chunk_hids[chunk_hids.length - 1]];
     console.log("checking", a, "->", b);
     let hids1 = await get_valid_hids_in_coll(chunk_hids, "horse_details");
