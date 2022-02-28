@@ -47,7 +47,6 @@ const calc = async ({ hid }) => {
     await zed_db.db
       .collection("horse_details")
       .updateOne({ hid }, { $set: hdoc }, { upsert: true });
-    return null;
   }
   let tc = hdoc?.tc || null;
   let races = await get_races_of_hid(hid);
