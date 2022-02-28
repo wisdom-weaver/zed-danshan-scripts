@@ -11,6 +11,7 @@ const run_cs = 20;
 const coll = "race_horses";
 const push = async (ob) => {
   let { hid, date } = ob;
+  ob.processing = 0;
   let doc = await zed_db.db.collection(coll).findOne({ hid }, { date: 1 });
   if (!doc || date > doc.date)
     await zed_db.db
@@ -23,10 +24,20 @@ const push_ar = async (ar) => {
 };
 
 const pull = async (cs = def_cs) => {
+  let st1 = moment().subtract("4", "minutes").toISOString();
+  let st2 = moment().subtract("5", "minutes").toISOString();
   let ar =
     (await zed_db.db
       .collection(coll)
-      .find({}, { projection: { hid: 1, tc: 1, date: 1 } })
+      .find(
+        {
+          $or: [
+            { date: { $lte: st1 }, processing: 0 },
+            { date: { $lte: st2 } },
+          ],
+        },
+        { projection: { hid: 1, tc: 1, date: 1 } }
+      )
       .sort({ date: -1 })
       .limit(cs)
       .toArray()) || [];
