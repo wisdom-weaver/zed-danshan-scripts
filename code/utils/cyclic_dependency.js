@@ -258,6 +258,76 @@ const get_ymca_avgs = async ({ bloodline, breed_type, genotype }) => {
   return this_ob;
 };
 
+const struct_zed_hdoc = (hid, doc) => {
+  // console.log(hid, doc);
+  hid = parseInt(hid);
+  if (_.isEmpty(doc) || doc?.err) return null;
+  let {
+    bloodline,
+    breed_type,
+    genotype,
+    horse_type,
+    class: tc,
+    hash_info,
+    parents: parents_raw,
+    owner_stable_slug: slug,
+    rating,
+  } = doc;
+  let oid = doc.owner;
+  let stable_name = doc.owner_stable;
+  let { color, hex_code, name } = hash_info;
+  let parents = {
+    mother: parents_raw?.mother?.horse_id || null,
+    father: parents_raw?.father?.horse_id || null,
+  };
+  let parents_d = {};
+  if (parents.mother) {
+    let { bloodline, breed_type, genotype, horse_type } = parents_raw?.mother;
+    parents_d.mother = { bloodline, breed_type, genotype, horse_type };
+  } else parents_d.mother = null;
+  if (parents.father) {
+    let { bloodline, breed_type, genotype, horse_type } = parents_raw?.father;
+    parents_d.father = { bloodline, breed_type, genotype, horse_type };
+  } else parents_d.father = null;
+  let ob = {
+    hid,
+    bloodline,
+    breed_type,
+    genotype,
+    horse_type,
+    color,
+    hex_code,
+    name,
+    tc,
+    rating,
+    slug,
+    oid,
+    stable_name,
+    parents,
+    parents_d,
+  };
+  // console.log(hid, ob);
+  return ob;
+};
+const add_hdocs = async (hids, cs = def_cs) => {
+  for (let chunk_hids of _.chunk(hids, cs)) {
+    let obar = await Promise.all(
+      chunk_hids.map((hid) =>
+        zedf.horse(hid).then((doc) => struct_zed_hdoc(hid, doc))
+      )
+    );
+    obar = _.compact(obar);
+    bulk.push_bulk("horse_details", obar, "new_horses");
+    await bulk_write_kid_to_parent(obar);
+    console.log("done", chunk_hids.toString());
+
+    return _.chain(obar)
+      .map((i) => (i && i.bloodline ? { hid: i.hid, tc: i.tc } : null))
+      .compact()
+      .value();
+  }
+};
+
 const cyclic_depedency = {
   get_races_of_hid,
   from_ch_zed_collection,
@@ -276,6 +346,8 @@ const cyclic_depedency = {
   get_races_n_zed,
   get_ymca_avgs,
   print_cron_details,
+  add_hdocs,
+  struct_zed_hdoc,
 };
 
 module.exports = cyclic_depedency;

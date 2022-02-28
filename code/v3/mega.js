@@ -18,7 +18,8 @@ const { get_hids } = require("../utils/utils");
 const utils = require("../utils/utils");
 const est_ymca = require("./est_ymca");
 const dp = require("./dp");
-const horses = require("./horses");
+const zedf = require("../utils/zedf");
+const cyclic_depedency = require("../utils/cyclic_dependency");
 
 const s_ = {
   rating_flames,
@@ -42,7 +43,10 @@ const calc = async ({ hid }) => {
     .findOne({ hid }, { tc: 1 });
   if (_.isEmpty(hdoc)) {
     console.log("empty horse", hid);
-    await horses.get_missings([hid, hid]);
+    hdoc = zedf.horse(hid).then(cyclic_depedency.struct_zed_hdoc);
+    await zed_db.db
+      .collection("horse_details")
+      .updateOne({ hid }, { $set: hdoc }, { upsert: true });
     return null;
   }
   let tc = hdoc?.tc || null;
