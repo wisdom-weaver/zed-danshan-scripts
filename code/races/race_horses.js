@@ -51,6 +51,7 @@ const run = async (cs = def_cs) => {
   let hids = _.map(ar, "hid");
   let dates = _.chain(ar).map("date").value() ?? [];
   console.log("dates:", dates[0], dates[dates.length - 1]);
+  console.log("hids:", hids.join(", "));
   for (let chunk_hids of _.chunk(hids, run_cs)) {
     await mega.only_w_parents_br(chunk_hids, run_cs);
   }
