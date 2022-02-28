@@ -4,6 +4,7 @@ const mega = require("../v3/mega");
 const cron = require("node-cron");
 const cron_parser = require("cron-parser");
 const utils = require("../utils/utils");
+const cyclic_depedency = require("../utils/cyclic_dependency");
 
 const def_cs = 300;
 const run_cs = 20;
@@ -72,8 +73,7 @@ const run = async (cs = def_cs) => {
 
 const run_cron = (cs = def_cs) => {
   let cron_str = "*/5 * * * * *";
-  const c_itvl = cron_parser.parseExpression(cron_str);
-  console.log("Next run:", c_itvl.next().toISOString(), "\n");
+  cyclic_depedency.print_cron_details(cron_str);
   cron.schedule(cron_str, () => run(cs), utils.cron_conf);
 };
 
