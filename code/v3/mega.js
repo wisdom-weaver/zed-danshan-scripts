@@ -46,6 +46,7 @@ const calc = async ({ hid }) => {
     hdoc = await zedf
       .horse(hid)
       .then((doc) => cyclic_depedency.struct_zed_hdoc(hid, doc));
+    console.log(hdoc)
     if (!hdoc) return null;
     await zed_db.db
       .collection("horse_details")
