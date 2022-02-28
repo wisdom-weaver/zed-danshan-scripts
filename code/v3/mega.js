@@ -18,6 +18,7 @@ const { get_hids } = require("../utils/utils");
 const utils = require("../utils/utils");
 const est_ymca = require("./est_ymca");
 const dp = require("./dp");
+const horses = require("./horses");
 
 const s_ = {
   rating_flames,
@@ -41,6 +42,7 @@ const calc = async ({ hid }) => {
     .findOne({ hid }, { tc: 1 });
   if (_.isEmpty(hdoc)) {
     console.log("empty horse", hid);
+    await horses.get_missings([hid, hid]);
     return null;
   }
   let tc = hdoc?.tc || null;
