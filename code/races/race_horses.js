@@ -27,7 +27,7 @@ const push_ar = async (ar) => {
 
 const pull = async (cs = def_cs) => {
   let st1 = moment().subtract("4", "minutes").toISOString();
-  let st2 = moment().subtract("5", "minutes").toISOString();
+  let st2 = moment().subtract("10", "minutes").toISOString();
   let st3 = moment().subtract("3", "hours").toISOString();
   let ar =
     (await zed_db.db
@@ -72,6 +72,7 @@ const run = async (cs = def_cs) => {
     .updateMany({ hid: { $in: hids } }, { $set: { processing: 1 } });
   for (let chunk_hids of _.chunk(hids, run_cs)) {
     await mega.only_w_parents_br(chunk_hids, run_cs);
+    await zed_db.db.collection(coll).deleteMany({ hid: { $in: chunk_hids } });
   }
   console.log("updated", hids.length, "\n--\n\n");
   await zed_db.db.collection(coll).deleteMany({ hid: { $in: hids } });
