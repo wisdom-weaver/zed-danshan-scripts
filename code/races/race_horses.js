@@ -5,7 +5,7 @@ const cron = require("node-cron");
 const cron_parser = require("cron-parser");
 const utils = require("../utils/utils");
 
-const def_cs = 100;
+const def_cs = 300;
 const run_cs = 20;
 
 const coll = "race_horses";
