@@ -1,3 +1,4 @@
+const moment = require("moment");
 const _ = require("lodash");
 const { zed_db } = require("../connection/mongo_connect");
 const mega = require("../v3/mega");
@@ -6,7 +7,7 @@ const cron_parser = require("cron-parser");
 const utils = require("../utils/utils");
 const cyclic_depedency = require("../utils/cyclic_dependency");
 
-const def_cs = 300;
+const def_cs = 400;
 const run_cs = 20;
 
 const coll = "race_horses";
@@ -27,6 +28,7 @@ const push_ar = async (ar) => {
 const pull = async (cs = def_cs) => {
   let st1 = moment().subtract("4", "minutes").toISOString();
   let st2 = moment().subtract("5", "minutes").toISOString();
+  let st3 = moment().subtract("3", "hours").toISOString();
   let ar =
     (await zed_db.db
       .collection(coll)
@@ -34,7 +36,7 @@ const pull = async (cs = def_cs) => {
         {
           $or: [
             { date: { $lte: st1 }, processing: 0 },
-            { date: { $lte: st2 } },
+            { date: { $lte: st2, $gte: st3 } },
           ],
         },
         { projection: { hid: 1, tc: 1, date: 1 } }
@@ -55,6 +57,7 @@ const update_horse_tc = async (doc) => {
 
 const run = async (cs = def_cs) => {
   let ar = await pull(cs);
+  console.table(ar);
   if (_.isEmpty(ar)) {
     console.log("empty");
     return;
@@ -62,8 +65,11 @@ const run = async (cs = def_cs) => {
   await Promise.all(ar.map(update_horse_tc));
   let hids = _.map(ar, "hid");
   let dates = _.chain(ar).map("date").value() ?? [];
-  console.log("dates:", dates[0], dates[dates.length - 1]);
+  console.log("dates:", dates[0], dates[dates.length - 1], hids.length);
   console.log("hids:", hids.join(", "));
+  await zed_db.db
+    .collection(coll)
+    .updateMany({ hid: { $in: hids } }, { $set: { processing: 1 } });
   for (let chunk_hids of _.chunk(hids, run_cs)) {
     await mega.only_w_parents_br(chunk_hids, run_cs);
   }
@@ -72,7 +78,7 @@ const run = async (cs = def_cs) => {
 };
 
 const run_cron = (cs = def_cs) => {
-  let cron_str = "*/5 * * * * *";
+  let cron_str = "0 * * * * *";
   cyclic_depedency.print_cron_details(cron_str);
   cron.schedule(cron_str, () => run(cs), utils.cron_conf);
 };
