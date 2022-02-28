@@ -43,7 +43,10 @@ const calc = async ({ hid }) => {
     .findOne({ hid }, { tc: 1 });
   if (_.isEmpty(hdoc)) {
     console.log("empty horse", hid);
-    hdoc = zedf.horse(hid).then(cyclic_depedency.struct_zed_hdoc);
+    hdoc = await zedf
+      .horse(hid)
+      .then((doc) => cyclic_depedency.struct_zed_hdoc(hid, doc));
+    if (!hdoc) return null;
     await zed_db.db
       .collection("horse_details")
       .updateOne({ hid }, { $set: hdoc }, { upsert: true });
