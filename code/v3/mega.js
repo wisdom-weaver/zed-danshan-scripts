@@ -46,11 +46,12 @@ const calc = async ({ hid }) => {
     hdoc = await zedf
       .horse(hid)
       .then((doc) => cyclic_depedency.struct_zed_hdoc(hid, doc));
-    console.log(hdoc)
+    console.log(hdoc);
     if (!hdoc) return null;
     await zed_db.db
       .collection("horse_details")
       .updateOne({ hid }, { $set: hdoc }, { upsert: true });
+    return;
   }
   let tc = hdoc?.tc || null;
   let races = await get_races_of_hid(hid);
