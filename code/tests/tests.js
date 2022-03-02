@@ -457,7 +457,7 @@ const run_13 = async () => {
       .collection("zed")
       .find(
         { 2: { $gte: now_st, $lte: now_ed } },
-        { projection: { 1: 1, 2: 1, 4: 1, 6: 1, 7: 1 } }
+        { projection: { 1: 1, 7: 1 } }
       )
       .toArray();
     races = cyclic_depedency.struct_race_row_data(races);
