@@ -438,8 +438,8 @@ const run_11 = async () => {
 const run_12 = races_scheduled.test;
 
 const run_13 = async () => {
-  // const days = 1;
-  const days = 90;
+  const days = 20;
+  // const days = 90;
   const ed = moment(new Date()).toISOString();
   const st = moment(new Date(utils.nano(ed)))
     // .subtract(days, "hour")
