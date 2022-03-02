@@ -6,9 +6,11 @@ const etherscan = require("./etherscan");
 const polygonscan = require("./polygonscan");
 const moment = require("moment");
 const cron = require("node-cron");
+const crypto = require("crypto");
+const { iso } = require("../utils/utils");
 
 const allowed_buffer = 15 * utils.mt;
-const mimi = 10;
+const mimi = 100;
 const coll = "payments";
 
 const tokens_ob = {
@@ -32,13 +34,14 @@ const tokens_ob = {
   },
 };
 
-const get_payments_list = async ({ before, after, token }) => {
+const get_payments_list = async ({ before, after, token, status_code }) => {
   let query = {};
   if (token) query.token = token;
+  if (![null, undefined, NaN].includes(status_code))
+    query.status_code = { $in: [status_code] };
   if (after || before) query.date = {};
   if (after) query.date.$gte = utils.iso(after);
   if (before) query.date.$lte = utils.iso(before);
-  query.status_code = { $in: [0] };
   // console.log(query);
   let ar = await zed_db.db.collection(coll).find(query).toArray();
   return ar;
@@ -57,20 +60,23 @@ const get_if_existing_txns = async (txids = []) => {
   return ids;
 };
 
-const dummy_tx = ({ sender, reciever, req_amt }) => {
+const dummy_tx = ({ sender, reciever, req_amt, token, date }) => {
+  const unq = `${sender}-${date}`;
+  let hash = crypto.createHmac("sha256", unq).digest("hex");
+  hash += "dummy";
   return {
     blockNumber: "25473802",
-    timeStamp: "1646176462",
-    hash: "0xc6e25b9f2ac27a9ee297984fb14bcdd431bd9b9f9007564e287ba79dc3_dummy",
+    timeStamp: utils.nano(date) / 1000,
+    hash,
     nonce: "1548258",
     blockHash:
       "0xc7f0ea2ba55a6fd65feec8f952cd3bf47696cbb7228a710677178573e1_dummy",
     from: sender,
     contractAddress: "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
     to: reciever,
-    value: req_amt * 1e18,
-    tokenName: "Wrapped Ether",
-    tokenSymbol: "WETH",
+    value: parseFloat(req_amt * 1e18).toFixed(0),
+    tokenName: "dumm",
+    tokenSymbol: token,
     tokenDecimal: "18",
     transactionIndex: "116",
     gas: "111110",
@@ -82,16 +88,17 @@ const dummy_tx = ({ sender, reciever, req_amt }) => {
   };
 };
 const handle_dummies = async (dummies) => {
-  if (_.isEmpty(dummies)) return;
-  let updates = dummies.map((i) => {
-    return {
-      pay_id: i.pay_id,
-      meta: { tx: dummy_tx(i) },
-      status_code: 1,
-      status: "paid",
-    };
-  });
-  await push_bulk(coll, updates, "update_dummies");
+  if (_.isEmpty(dummies)) return [];
+  // let updates = dummies.map((i) => {
+  //   return {
+  //     pay_id: i.pay_id,
+  //     meta: { tx: dummy_tx(i) },
+  //     status_code: 1,
+  //     status: "paid",
+  //   };
+  // });
+  // await push_bulk(coll, updates, "update_dummies");
+  return dummies.map(dummy_tx);
 };
 
 const verify_user_payments = async ([st, ed]) => {
@@ -100,7 +107,12 @@ const verify_user_payments = async ([st, ed]) => {
     console.log("\n------------\n");
     console.log("started", utils.iso());
     console.log("token:", token);
-    let list = await get_payments_list({ token, before: ed, after: st });
+    let list = await get_payments_list({
+      token,
+      before: ed,
+      after: st,
+      status_code: 0,
+    });
 
     let update_paid = [];
 
@@ -118,20 +130,22 @@ const verify_user_payments = async ([st, ed]) => {
       console.log("txns:", txns.length, "for", reciever);
       all_txns = [...all_txns, ...txns];
     }
-    console.log("all_txns:", all_txns.length);
-
     let dummies = _.filter(
       list,
       (i) => utils.getv(i, "meta_req.is_dummy") == true
     );
+    dummies = await handle_dummies(dummies);
+
     console.log("dummies:", dummies.length);
-    await handle_dummies(dummies);
+    console.log("all_txns:", all_txns.length);
+
+    all_txns = [...all_txns, ...dummies];
+    console.log("all_txns[updated]:", all_txns.length);
 
     let existing_txns = await get_if_existing_txns(_.map(all_txns, "hash"));
     console.log("existing_txns:", existing_txns.length);
 
     for (let tx of all_txns) {
-      // console.log("tx:", tx.hash, tx.from);
       if (existing_txns.includes(tx.hash)) {
         console.log("tx exists already");
         continue;
@@ -146,17 +160,15 @@ const verify_user_payments = async ([st, ed]) => {
           if (!(req?.reciever?.toLowerCase() == tx.to.toLowerCase()))
             return false;
           let tnano = utils.nano(req.date);
-          console.log(req.date, tnano);
-          if (
-            !_.inRange(
-              timeStamp,
-              tnano - allowed_buffer,
-              tnano + allowed_buffer
-            )
-          )
-            return false;
-          let req_amt = req.req_amt * 1e18;
-          if (!_.inRange(amt, req_amt - mimi, req_amt + mimi)) return false;
+          let [mi, mx] = [tnano - allowed_buffer, tnano + allowed_buffer];
+          if (!_.inRange(timeStamp, mi, mx)) return false;
+          let req_amt = parseFloat(req.req_amt) * 1e18;
+
+          let [mia, mxa] = [req_amt - mimi, req_amt + mimi];
+          // if (!_.inRange(amt, req_amt - mimi, req_amt + mimi)) return false;
+          if (!_.isNaN(amt) && _.isNaN(req_amt) && amt !== req_amt)
+            console.log("tx:", req.pay_id, req_amt);
+          return false;
           return true;
         });
 
@@ -184,8 +196,19 @@ const verify_user_payments = async ([st, ed]) => {
       return req.pay_id;
     });
     failed_ids = _.compact(failed_ids);
+    // console.log(failed_ids);
+
+    let to_fail_list =
+      (await get_payments_list({
+        token,
+        before: st,
+        after: null,
+        status_code: 0,
+      })) ?? [];
+    let to_fail_ids = _.map(to_fail_list, "pay_id");
+    // console.log(to_fail_list);
+    failed_ids = [...failed_ids, ...to_fail_ids];
     console.log("found failed:", failed_ids.length, "(buffer time ended)");
-    console.log(failed_ids);
 
     if (!_.isEmpty(failed_ids)) {
       await zed_db.db
