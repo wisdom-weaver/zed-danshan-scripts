@@ -89,6 +89,7 @@ const dummy_tx = ({ sender, reciever, req_amt, token, date }) => {
 };
 const handle_dummies = async (dummies) => {
   if (_.isEmpty(dummies)) return [];
+  console.log(_.map(dummies, "pay_id"));
   // let updates = dummies.map((i) => {
   //   return {
   //     pay_id: i.pay_id,
@@ -157,18 +158,24 @@ const verify_user_payments = async ([st, ed]) => {
         let got_request = _.find(sender_reqs, (req) => {
           if (!(req?.sender?.toLowerCase() == tx.from.toLowerCase()))
             return false;
+          // console.log("1");
+
           if (!(req?.reciever?.toLowerCase() == tx.to.toLowerCase()))
             return false;
+          // console.log("2");
+
           let tnano = utils.nano(req.date);
           let [mi, mx] = [tnano - allowed_buffer, tnano + allowed_buffer];
           if (!_.inRange(timeStamp, mi, mx)) return false;
-          let req_amt = parseFloat(req.req_amt) * 1e18;
+          // console.log("3");
 
+          let req_amt = parseFloat(req.req_amt) * 1e18;
           let [mia, mxa] = [req_amt - mimi, req_amt + mimi];
-          // if (!_.inRange(amt, req_amt - mimi, req_amt + mimi)) return false;
-          if (!_.isNaN(amt) && _.isNaN(req_amt) && amt !== req_amt)
-            console.log("tx:", req.pay_id, req_amt);
-          return false;
+          console.log(amt, req_amt);
+          if (!_.isNaN(amt) && !_.isNaN(req_amt) && amt !== req_amt)
+            return false;
+          // console.log("4");
+          console.log("tx:", req.pay_id, req_amt);
           return true;
         });
 
