@@ -249,6 +249,16 @@ const remove_bullshits = (ar) => {
   return _.map(nar, "val");
 };
 
+const getv = (ob, path) => {
+  try {
+    let a = _.get(ob, path);
+    if (a === undefined) return undefined;
+    return a;
+  } catch (err) {
+    return undefined;
+  }
+};
+
 const mt = 60 * 1000;
 
 const utils = {
@@ -279,6 +289,7 @@ const utils = {
   get_N,
   remove_bullshits,
   mt,
+  getv,
 };
 
 module.exports = utils;

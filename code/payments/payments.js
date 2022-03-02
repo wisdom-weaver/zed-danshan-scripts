@@ -56,6 +56,44 @@ const get_if_existing_txns = async (txids = []) => {
   let ids = _.map(ar, "meta.tx.hash");
   return ids;
 };
+
+const dummy_tx = ({ sender, reciever, req_amt }) => {
+  return {
+    blockNumber: "25473802",
+    timeStamp: "1646176462",
+    hash: "0xc6e25b9f2ac27a9ee297984fb14bcdd431bd9b9f9007564e287ba79dc3_dummy",
+    nonce: "1548258",
+    blockHash:
+      "0xc7f0ea2ba55a6fd65feec8f952cd3bf47696cbb7228a710677178573e1_dummy",
+    from: sender,
+    contractAddress: "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
+    to: reciever,
+    value: req_amt * 1e18,
+    tokenName: "Wrapped Ether",
+    tokenSymbol: "WETH",
+    tokenDecimal: "18",
+    transactionIndex: "116",
+    gas: "111110",
+    gasPrice: "45600000000",
+    gasUsed: "74073",
+    cumulativeGasUsed: "15460844",
+    input: "deprecated",
+    confirmations: "566",
+  };
+};
+const handle_dummies = async (dummies) => {
+  if (_.isEmpty(dummies)) return;
+  let updates = dummies.map((i) => {
+    return {
+      pay_id: i.pay_id,
+      meta: { tx: dummy_tx(i) },
+      status_code: 1,
+      status: "paid",
+    };
+  });
+  await push_bulk(coll, updates, "update_dummies");
+};
+
 const verify_user_payments = async ([st, ed]) => {
   console.log("verify_user_payments\n", st, "->", ed);
   for (let { token, get_balance, get_txs } of _.values(tokens_ob)) {
@@ -81,6 +119,13 @@ const verify_user_payments = async ([st, ed]) => {
       all_txns = [...all_txns, ...txns];
     }
     console.log("all_txns:", all_txns.length);
+
+    let dummies = _.filter(
+      list,
+      (i) => utils.getv(i, "meta_req.is_dummy") == true
+    );
+    console.log("dummies:", dummies.length);
+    await handle_dummies(dummies);
 
     let existing_txns = await get_if_existing_txns(_.map(all_txns, "hash"));
     console.log("existing_txns:", existing_txns.length);
@@ -195,8 +240,8 @@ const test = async () => {
     meta: {},
   };
   pay_id = test_doc.pay_id;
-  test_doc.sender = test_doc.sender.toLowerCase()
-  test_doc.reciever = test_doc.reciever.toLowerCase()
+  test_doc.sender = test_doc.sender.toLowerCase();
+  test_doc.reciever = test_doc.reciever.toLowerCase();
   await zed_db.db.collection(coll).deleteOne({ pay_id });
   console.log("deleted doc", pay_id);
   await zed_db.db.collection(coll).insertOne(test_doc);
