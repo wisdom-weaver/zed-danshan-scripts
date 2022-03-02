@@ -438,9 +438,11 @@ const run_11 = async () => {
 const run_12 = races_scheduled.test;
 
 const run_13 = async () => {
-  const days = 1;
+  // const days = 1;
+  const days = 90;
   const ed = moment(new Date()).toISOString();
   const st = moment(new Date(utils.nano(ed)))
+    // .subtract(days, "hour")
     .subtract(days, "days")
     .toISOString();
   console.log("st:", st);
@@ -451,22 +453,30 @@ const run_13 = async () => {
   while (now < utils.nano(ed)) {
     const now_st = utils.iso(now);
     const now_ed = utils.iso(Math.min(utils.nano(ed), now + offset));
-    const races = await zed_ch.db
+    let races = await zed_ch.db
       .collection("zed")
       .find(
         { 2: { $gte: now_st, $lte: now_ed } },
         { projection: { 1: 1, 2: 1, 4: 1, 6: 1, 7: 1 } }
       )
       .toArray();
+    races = cyclic_depedency.struct_race_row_data(races);
     console.log(races.length, ":", now_st, now_ed);
     now = utils.nano(now_ed) + 1;
     ar.push(races);
   }
   ar = _.flatten(ar);
-  let ob = _.chain(ar).groupBy(1).mapValues(7).value();
+  // console.log(ar[0]);
+  let ob = _.chain(ar)
+    .groupBy("distance")
+    .entries()
+    .map(([d, e]) => [d, _.map(e, "finishtime")])
+    .fromPairs()
+    .value();
   for (let [d, tar = []] of _.entries(ob)) {
-    let dist = parseFloat(d);
+    d = parseFloat(d);
     tar = _.filter(tar, (i) => ![null, undefined, 0, NaN].includes(i));
+    // console.log(tar);
     let time_min = _.min(tar);
     let time_avg = _.mean(tar);
     let time_median = utils.calc_median(tar);
