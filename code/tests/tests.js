@@ -502,5 +502,43 @@ const run_13 = async () => {
   console.table(ob);
 };
 
-const tests = { run: run_13 };
+const run_14 = async () => {
+  const pr = [];
+  let gts = [3, 2.5, 2, 1, 0.5];
+  // let gts = [3];
+  for (let gt of gts) {
+    let hids = await zed_db.db
+      .collection("gap4")
+      .find({ gap: { $gte: gt } }, { projection: { _id: 0, hid: 1 } })
+      .toArray();
+    hids = _.compact(_.map(hids, "hid"));
+    console.log(hids);
+    let wins = await zed_db.db
+      .collection("rating_blood3")
+      .find(
+        { hid: { $in: hids } },
+        { projection: { _id: 1, "overall_rat.win_rate": 1 } }
+      )
+      .toArray();
+    wins = _.filter(
+      _.map(wins, "overall_rat.win_rate"),
+      (i) => ![null, NaN, undefined, 0].includes(i)
+    );
+    let win_min = _.min(wins);
+    let win_avg = _.mean(wins);
+    let win_median = utils.calc_median(wins);
+    let win_max = _.max(wins);
+    pr.push({
+      gap: `gap>=${utils.dec(gt)}`,
+      n: wins.length,
+      win_min,
+      win_avg,
+      win_median,
+      win_max,
+    });
+  }
+  console.table(pr);
+};
+
+const tests = { run: run_14 };
 module.exports = tests;

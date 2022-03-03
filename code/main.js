@@ -13,6 +13,7 @@ const z_stats = require("./v3/z_stats");
 const gap = require("./v3/gaps");
 const { jparse } = require("./utils/cyclic_dependency");
 const payments = require("./payments/payments");
+const finder = require("./tests/finder");
 const mod = v3;
 
 const main = async (args) => {
@@ -403,6 +404,10 @@ const main = async (args) => {
       arg3 = null;
     }
     if (arg2 == "run") await tests.run(arg3);
+  } else if (arg1 == "--finder") {
+    if (arg2 == "open") await finder.get_open();
+    if (arg2 == "scheduled") await finder.get_scheduled();
+    if (arg2 == "test") await finder.test();
   }
   console.log("---ed");
 };
