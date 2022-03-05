@@ -416,6 +416,20 @@ const fix_stable_cron = () => {
   cron.schedule(cron_str, () => runner(), { scheduled: true });
 };
 
+const delete_only = async (hids) => {
+  for (let hid of hids) {
+    hid = parseInt(hid);
+    console.log(hid);
+    await zed_db.db.collection("horse_details").deleteOne({ hid });
+    await zed_db.db.collection("rating_blood3").deleteOne({ hid });
+    await zed_db.db.collection("rating_breed3").deleteOne({ hid });
+    await zed_db.db.collection("rating_fllames3").deleteOne({ hid });
+    await zed_db.db.collection("gap4").deleteOne({ hid });
+    await zed_db.db.collection("dp4").deleteOne({ hid });
+    console.log("deleted");
+  }
+};
+
 const horses = {
   get_new,
   get_only,
@@ -428,6 +442,7 @@ const horses = {
   get_only_hdocs,
   get_range_hdocs,
   get_missings,
+  delete_only,
 };
 
 module.exports = horses;
