@@ -90,6 +90,10 @@ const main = async (args) => {
       arg3 = arg3?.split(",") ?? [];
       await gap.manual(arg3);
     }
+    if (arg2 == "run_hids") {
+      arg3 = jparse(arg3) ?? [];
+      await gap.run_hids(arg3);
+    }
   } else if (arg1 == "--rating_flames") {
     if (arg2 == "all") mod.rating_flames.all();
     if (arg2 == "only") {

@@ -136,6 +136,25 @@ const manual = async (rids) => {
     await run_rid(rid);
   }
 };
+const run_hid = async (hid) => {
+  hid = parseFloat(hid);
+  let rids =
+    (await zed_ch.db
+      .collection("zed")
+      .find({ 6: hid }, { projection: { _id: 0, 4: 1 } })
+      .toArray()) || [];
+  rids = _.uniq(_.map(rids, "4"));
+  for (let rid of rids) {
+    await run_rid(rid);
+  }
+};
+const run_hids = async (hids) => {
+  console.log(hids)
+  for (let hid of hids) {
+    await run_hid(hid);
+    console.log(hid)
+  }
+};
 
 const fix1 = async (hid) => {
   let aft = await zed_db.db.collection("gap6").findOne({ hid });
@@ -206,5 +225,6 @@ const gap = {
   run_dur,
   fix,
   manual,
+  run_hids,
 };
 module.exports = gap;
