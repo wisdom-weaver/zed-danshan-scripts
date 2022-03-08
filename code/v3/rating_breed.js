@@ -361,7 +361,10 @@ const fixer0 = async () => {
     console.log("get", a, b);
     let hids = await zed_db.db
       .collection(coll)
-      .find({ hid: { $in: chunk }, br: null }, { projection: { hid: 1 } })
+      .find(
+        { hid: { $in: chunk }, br: { $in: [0, null, NaN] } },
+        { projection: { hid: 1 } }
+      )
       .toArray();
     hids = _.map(hids, "hid");
     console.log("GOT", hids.length);
