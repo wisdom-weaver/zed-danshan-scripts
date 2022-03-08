@@ -4,7 +4,7 @@ const { get_races_of_hid } = require("../utils/cyclic_dependency");
 const norminv = require("../utils/norminv");
 const zedf = require("../utils/zedf");
 
-const sim_n = 100;
+const sim_n = 1;
 
 let preset_global = {
   "0_1000": { mean: 57.74942398611325, sd: 0.7496875127154612 },
@@ -366,7 +366,7 @@ const get_sims_result_for_rid = async (rid, mode, raw_race) => {
   if (_.isEmpty(doc)) return {};
   // console.log(doc);
   doc = post_process2(doc);
-  // console.log(doc);
+  // console.log("doc");
   let n = sim_n;
   let { stats_ob, ...a } = doc;
   let sims = get_simulated_races({ stats_ob, n });
@@ -395,6 +395,7 @@ const get_sims_zed_odds = async (rid, mode = "fetch", raw_race) => {
     // console.log(ret);
     return ret;
   } catch (err) {
+    console.log(err)
     return {};
   }
 };

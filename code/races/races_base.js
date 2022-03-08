@@ -231,10 +231,13 @@ const add_times_flames_odds_to_1race = async ([rid, race], config) => {
   flames_ob = flames_ob?.rpi;
   // console.log(rid, 3);
   let odds_ob = {};
-  if (!_.isEmpty(config) && config.g_odds_zero == true) {
-    if (thisclass == 0) odds_ob = {};
-    else odds_ob = await get_sims_zed_odds(rid, "raw_race", raw_race);
-  } else odds_ob = await get_sims_zed_odds(rid, "raw_race", raw_race);
+  
+  // odds_ob = await get_sims_zed_odds(rid, "raw_race", raw_race);
+
+  // if (!_.isEmpty(config) && config.g_odds_zero == true) {
+  //   if (thisclass == 0) odds_ob = {};
+  //   else odds_ob = await get_sims_zed_odds(rid, "raw_race", raw_race);
+  // } else odds_ob = await get_sims_zed_odds(rid, "raw_race", raw_race);
   // console.log(rid, 4);
   // console.log(rid, thisclass, odds_ob);
   // console.log(date, date >= "2021-08-24T00:00:00.000Z");
@@ -257,18 +260,25 @@ const add_times_flames_odds_to_1race = async ([rid, race], config) => {
 };
 
 const add_times_flames_odds_to_races = async (raw_data, config) => {
+  console.log("add_times_flames_odds_to_races");
   // let ret = {};
   if (_.isEmpty(raw_data)) return {};
   let ret = [];
   let cs = def_cs;
+  let i = 0;
   for (let data_chunk of _.chunk(_.entries(raw_data), cs)) {
-    let this_chunk = await Promise.all(
-      data_chunk.map(([rid, race]) =>
-        add_times_flames_odds_to_1race([rid, race], config)
-      )
-    );
-    // console.log(this_chunk)
-    ret = [...ret, ...this_chunk];
+    try {
+      console.log("times", i);
+      let this_chunk = await Promise.all(
+        data_chunk.map(([rid, race]) =>
+          add_times_flames_odds_to_1race([rid, race], config)
+        )
+      );
+      i += this_chunk.length;
+      ret = [...ret, ...this_chunk];
+    } catch (err) {
+      console.log(err);
+    }
   }
   ret = _.chain(ret)
     .filter((i) => i[1] !== null)
