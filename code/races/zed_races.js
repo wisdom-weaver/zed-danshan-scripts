@@ -41,6 +41,19 @@ const miss = async (from, to, push_race_horses_on = 0) => {
     push_race_horses_on,
   });
 };
+const run_dur = async (from, to, push_race_horses_on = 0) => {
+  console.log("zed_races", "miss");
+  if (!from.endsWith("Z")) from += "Z";
+  if (!to.endsWith("Z")) to += "Z";
+  from = moment(new Date(from)).toISOString();
+  to = moment(new Date(to)).toISOString();
+  await races_base.zed_races_gql_runner(from, to, {
+    check_exists: true,
+    durr: 1 * 60 * 60 * 1000,
+    push_race_horses_on: 1,
+    cs: 15,
+  });
+};
 const miss_cron = async () => {
   // let cron_str = "*/30 * * * * *"; // testing
   let cron_str1 = "0 */1 * * * *";
@@ -84,6 +97,7 @@ const manual = async (rids) => {
 const test = async () => {};
 
 const zed_races = {
+  run_dur,
   live,
   live_cron,
   miss,

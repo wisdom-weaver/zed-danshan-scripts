@@ -23,6 +23,9 @@ const main = async (args) => {
   let [_node, _cfile, arg1, arg2, arg3, arg4, arg5] = args;
   if (arg1 == "--races") {
     if (arg2 == "test") await zed_races.test();
+
+    if (arg2 == "run_dur") await zed_races.run_dur(arg3, arg4);
+
     if (arg2 == "live") await zed_races.live();
     if (arg2 == "live_cron") await zed_races.live_cron();
 
