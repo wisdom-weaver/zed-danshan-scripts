@@ -49,7 +49,7 @@ const run_dur = async (from, to, push_race_horses_on = 0) => {
   to = moment(new Date(to)).toISOString();
   await races_base.zed_races_gql_runner(from, to, {
     check_exists: true,
-    durr: 1 * 60 * 60 * 1000,
+    durr: 1 * 10 * 60 * 1000,
     push_race_horses_on: 1,
     cs: 15,
   });
