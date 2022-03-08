@@ -353,6 +353,24 @@ const only = async (hids) =>
 const range = async (st, ed) =>
   bulk.run_bulk_range(name, generate, coll, st, ed, cs, test_mode);
 
+const fixer0 = async () => {
+  let fix_hids = [];
+  let all_hids = await cyclic_depedency.get_all_hids();
+  for (let chunk of _.chunk(all_hids, 5000)) {
+    let [a, b] = [chunk[0], chunk[chunk.length - 1]];
+    console.log("get", a, b);
+    let hids = await zed_db.db
+      .collection(coll)
+      .find({ hid: { $in: chunk }, br: null }, { projection: { hid: 1 } })
+      .toArray();
+    hids = _.map(hids, "hid");
+    console.log("GOT", hids.length);
+    fix_hids = [...fix_hids, ...hids];
+    await only(fix_hids);
+  }
+  console.log("ENDED fixer");
+};
+
 const fixer1 = async () => {
   let fix_hids = [];
   let all_hids = await cyclic_depedency.get_all_hids();
@@ -512,7 +530,7 @@ const fixer4 = async () => {
   console.log("done");
 };
 
-const fixer = fixer3;
+const fixer = fixer0;
 
 const rating_breed = {
   generate,
