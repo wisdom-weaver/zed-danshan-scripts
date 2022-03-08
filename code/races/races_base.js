@@ -231,7 +231,7 @@ const add_times_flames_odds_to_1race = async ([rid, race], config) => {
   flames_ob = flames_ob?.rpi;
   // console.log(rid, 3);
   let odds_ob = {};
-  
+
   // odds_ob = await get_sims_zed_odds(rid, "raw_race", raw_race);
 
   // if (!_.isEmpty(config) && config.g_odds_zero == true) {
@@ -564,8 +564,9 @@ const zed_races_zrapi_rid_runner = async (
 
   ar = ar.map((i) => ({ ...i, 15: adj_ob[i[6]] }));
   if (mode == "g" || (mode == "err" && thisclass !== 0)) {
-    let odds_ob = await get_sims_zed_odds(rid, "raw_race", ar);
-    ar = ar.map((i) => ({ ...i, 11: odds_ob[i[6]] }));
+    // let odds_ob = await get_sims_zed_odds(rid, "raw_race", ar);
+    // ar = ar.map((i) => ({ ...i, 11: odds_ob[i[6]] }));
+    ar = ar.map((i) => ({ ...i, 11: null }));
     // console.log(mode, thisclass, odds_ob);
   }
   ar = _.keyBy(ar, "6");
@@ -573,13 +574,13 @@ const zed_races_zrapi_rid_runner = async (
 };
 
 const zed_race_odds_struct_mongodb = async (rid) => {
-  let ob = await get_sims_zed_odds(rid);
-  ob = _.entries(ob).map(([hid, odds]) => [
-    hid,
-    { 4: rid, 6: parseFloat(hid), 11: odds },
-  ]);
-  ob = _.fromPairs(ob);
-  return ob;
+  // let ob = await get_sims_zed_odds(rid);
+  // ob = _.entries(ob).map(([hid, odds]) => [
+  //   hid,
+  //   { 4: rid, 6: parseFloat(hid), 11: odds },
+  // ]);
+  // ob = _.fromPairs(ob);
+  // return ob;
 };
 
 const zed_races_zrapi_runner = async (
