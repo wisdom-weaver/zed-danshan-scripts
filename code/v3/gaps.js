@@ -149,10 +149,10 @@ const run_hid = async (hid) => {
   }
 };
 const run_hids = async (hids) => {
-  console.log(hids)
+  console.log(hids);
   for (let hid of hids) {
     await run_hid(hid);
-    console.log(hid)
+    console.log(hid);
   }
 };
 
@@ -210,13 +210,47 @@ const fix2 = async (hid) => {
 };
 
 const fix = async () => {
-  let hids = await cyclic_depedency.get_all_hids();
-  // let hids = [11084];
-  for (let chu of _.chunk(hids, 100)) {
-    await Promise.all(chu.map(fix2));
-    let [a, b] = [chu[0], chu[chu.length - 1]];
-    console.log(a, "->", b);
+  // let hids = await cyclic_depedency.get_all_hids();
+  // // let hids = [11084];
+  // for (let chu of _.chunk(hids, 100)) {
+  //   await Promise.all(chu.map(fix2));
+  //   let [a, b] = [chu[0], chu[chu.length - 1]];
+  //   console.log(a, "->", b);
+  // }
+  const ob = await zed_db.db
+    .collection("gap4")
+    .find({
+      gap: { $gte: 1.2, $lte: 1.3 },
+      hid: { $gte: 200000 },
+    })
+    .toArray();
+  let ob2 = [];
+  for (let { hid, gap, dist, date } of ob) {
+    // console.log({ hid, gap, dist, date });
+    let rdoc = await zed_ch.db.collection("zed").findOne({
+      6: hid,
+      2: { $regex: date.slice(0, 19) },
+    });
+    if (!rdoc) continue;
+    // console.log(rdoc);
+    let race_id = rdoc[4];
+    let rdocs = await zed_ch.db
+      .collection("zed")
+      .find({ 4: race_id }, { projection: { _id: 0, 7: 1 } })
+      .toArray();
+    let avg_race_time = _.chain(rdocs).map("7").mean().value();
+    ob2.push({
+      hid,
+      rng: gap,
+      gap_sec: (gap * rdoc[1]) / 1000,
+      date,
+      dist: rdoc[1],
+      race_id,
+      avg_race_time,
+      hrace_time: rdoc[7],
+    });
   }
+  console.table(ob2);
 };
 
 const gap = {

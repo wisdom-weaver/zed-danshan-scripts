@@ -47,7 +47,7 @@ const get_dist_pos_ob = async (hid, races = undefined) => {
     let dist_races = [];
     if (races !== undefined)
       dist_races = _.filter(races, (i) => i.distance == d) ?? [];
-    
+
     for (let p of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
       if (races == undefined) {
         ob[d][p] = await zed_ch.db.collection("zed").countDocuments({
@@ -154,14 +154,35 @@ const fix = async () => {
 };
 
 const test = async (hids) => {
-  test_mode = 1;
-  for (let hid of hids) {
-    let races = await get_races_of_hid(hid);
-    // const ob = get_dist_pos_ob(hid, races);
-    // let ob = await only([hid]);
-    let ob = await calc({ hid, races });
-    console.log(ob);
-  }
+  // test_mode = 1;
+  // for (let hid of hids) {
+  //   let races = await get_races_of_hid(hid);
+  //   // const ob = get_dist_pos_ob(hid, races);
+  //   // let ob = await only([hid]);
+  //   let ob = await calc({ hid, races });
+  //   console.log(ob);
+  // }
+  const agg = [
+    {
+      $group: {
+        _id: "$dist",
+        dp_avg: {
+          $avg: "$dp",
+        },
+        dp_min: {
+          $min: "$dp",
+        },
+        dp_max: {
+          $max: "$dp",
+        },
+      },
+    },
+  ];
+
+  const coll = zed_db.db.collection("dp4");
+  let ob = await coll.aggregate(agg).toArray();
+  ob = _.sortBy(ob, i=>_.toNumber(i._id))
+  console.table(ob);
 };
 
 const dp = { calc, generate, all, only, range, test, fix };

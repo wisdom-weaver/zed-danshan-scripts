@@ -362,7 +362,7 @@ const fixer0 = async () => {
     let hids = await zed_db.db
       .collection(coll)
       .find(
-        { hid: { $in: chunk }, br: { $in: [0, null, NaN] } },
+        { hid: { $in: chunk }, br: { $in: [0] } },
         { projection: { hid: 1 } }
       )
       .toArray();
