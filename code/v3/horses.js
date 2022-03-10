@@ -154,7 +154,7 @@ const get_rosters = async () => {
     if (nhids.length == 0) break;
     hids = [...hids, ...nhids];
     o += nhids.length;
-  } while (hids.length <= 50);
+  } while (hids.length <= 100);
   return hids;
 };
 const get_new = async () => {
@@ -166,6 +166,7 @@ const get_new = async () => {
     let hids = _.difference(nhids, xhids);
     console.log("new:", hids);
     await get_only(hids);
+    console.log("=====\nstarting again in 1 minute....");
     await delay(60 * 1000);
   }
 };
