@@ -164,8 +164,9 @@ const get_new = async () => {
     // console.log(nhids);
     let xhids = await get_valid_hids_in_details(nhids);
     let hids = _.difference(nhids, xhids);
-    console.log("new:", hids);
+    console.log("new:", hids.length, "\n");
     await get_only(hids);
+    console.log("\n\nGOT:", hids.length, "\n");
     console.log("=====\nstarting again in 1 minute....");
     await delay(60 * 1000);
   }
