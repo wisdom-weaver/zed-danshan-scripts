@@ -235,7 +235,7 @@ const get_valid_hids_in_details = async (hids) => {
     .find(
       {
         hid: { $in: hids },
-        name: { $ne: "Unnamed Foal" },
+        // name: { $ne: "Unnamed Foal" },
       },
       { projection: { _id: 1, hid: 1, bloodline: 1 } }
     )
