@@ -145,7 +145,7 @@ const fixer = async () => {
 const roster_api = (offset = 0) =>
   `https://api.zed.run/api/v1/horses/roster?offset=${offset}&gen[]=1&gen[]=268&horse_name=&sort_by=created_by_desc`;
 const get_rosters = async () => {
-  let mxnhids = 1000;
+  let mxnhids = 100;
   let o = 0;
   let hids = [];
   do {
