@@ -359,8 +359,8 @@ const fixer0 = async () => {
   // let all_hids = await cyclic_depedency.get_all_hids();
   const st = 70000;
   const ed = await get_ed_horse();
-  console.log({ st, ed }, all_hids.length);
   let all_hids = await get_range_hids(st, ed);
+  console.log({ st, ed }, all_hids.length);
 
   for (let chunk of _.chunk(all_hids, 5000)) {
     let [a, b] = [chunk[0], chunk[chunk.length - 1]];
