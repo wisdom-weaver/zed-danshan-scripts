@@ -114,7 +114,7 @@ const add_hdocs = async (hids, cs = def_cs) => {
   }
 };
 
-const get_new = async () => {
+const fixer = async () => {
   s_start: while (true) {
     console.log("get_new");
     let back = 50000;
@@ -130,20 +130,46 @@ const get_new = async () => {
       let [now_st, now_ed] = [now, now + cs - 1];
       let resp = await get_missings([now_st, now_ed], 0);
       now += cs;
-      if (now <= ed) continue;
       console.log("CROSSED");
-      if (resp == 0) fail--;
-      else fail = max_fail;
-    } while (fail);
+    } while (now <= ed);
     console.log("REACHED END");
     console.log("====\n===\n===\n");
-    await delay(5 * 60 * 1000);
+    await delay(10 * 60 * 1000);
     console.log("====\n===\n===\n");
     continue s_start;
   }
   // await mega.only_w_parents_br(chunk_hids);
   // await parents.fix_horse_type_using_kid_ids(chunk_hids);
 };
+
+const roster_api = (offset = 0) =>
+  `https://api.zed.run/api/v1/horses/roster?offset=${offset}&gen[]=1&gen[]=268&horse_name=&sort_by=created_by_desc`;
+const get_rosters = async () => {
+  let o = 0;
+  let hids = [];
+  do {
+    let nhids = (await zedf.get(roster_api(o))) ?? [];
+    nhids = _.map(nhids, "horse_id");
+    // console.log(o, nhids.length);
+    if (nhids.length == 0) break;
+    hids = [...hids, ...nhids];
+    o += nhids.length;
+  } while (hids.length <= 50);
+  return hids;
+};
+const get_new = async () => {
+  console.log("get_new");
+  while (true) {
+    let nhids = await get_rosters();
+    // console.log(nhids);
+    let xhids = await get_valid_hids_in_details(nhids);
+    let hids = _.difference(nhids, xhids);
+    console.log("new:", hids);
+    await get_only(hids);
+    await delay(60 * 1000);
+  }
+};
+
 const get_only = async (hids, p = 1) => {
   let cs = def_cs;
   let hids_all = hids.map((h) => parseInt(h));
@@ -203,6 +229,21 @@ const get_range = async (range) => {
   await get_only(hids_all);
 };
 
+const get_valid_hids_in_details = async (hids) => {
+  let hids5 = await zed_db.db
+    .collection("horse_details")
+    .find(
+      {
+        hid: { $in: hids },
+        name: { $ne: "Unnamed Foal" },
+      },
+      { projection: { _id: 1, hid: 1, bloodline: 1 } }
+    )
+    .toArray();
+  hids5 = hids5.map((h) => (_.isEmpty(h.ancestry) ? null : h.hid));
+  hids5 = _.compact(hids5);
+  return hids5;
+};
 const get_valid_hids_in_coll = async (hids, coll) => {
   let ar = await zed_db.db
     .collection(coll)
@@ -256,7 +297,7 @@ const get_missings = async (range, p = 1) => {
   for (let chunk_hids of _.chunk(hids_all, cs)) {
     let [a, b] = [chunk_hids[0], chunk_hids[chunk_hids.length - 1]];
     console.log("checking", a, "->", b);
-    let hids1 = await get_valid_hids_in_coll(chunk_hids, "horse_details");
+    let hids1 = await get_valid_hids_in_details(chunk_hids);
     let hids2 = await get_valid_hids_in_blood(chunk_hids);
     let hids3 = await get_valid_hids_in_coll(chunk_hids, "rating_breed3");
     let hids4 = await get_valid_hids_in_coll(chunk_hids, "rating_flames3");
@@ -443,6 +484,7 @@ const horses = {
   get_range_hdocs,
   get_missings,
   delete_only,
+  fixer,
 };
 
 module.exports = horses;

@@ -325,6 +325,12 @@ const main = async (args) => {
     }
   } else if (arg1 == "--horses") {
     if (arg2 == "new") {
+      await mod.horses.get_new();
+    }
+    if (arg2 == "fixer") {
+      await mod.horses.fixer();
+    }
+    if (arg2 == "new") {
       mod.horses.get_new();
     }
     if (arg2 == "delete") {
