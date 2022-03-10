@@ -147,7 +147,7 @@ const get_all_hids = async () => {
   let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
   return hids;
 };
-const get_range_hids = async (st,ed) => {
+const get_range_hids = async (st, ed) => {
   let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
   return hids;
 };
@@ -352,6 +352,7 @@ const cyclic_depedency = {
   print_cron_details,
   add_hdocs,
   struct_zed_hdoc,
+  get_range_hids,
 };
 
 module.exports = cyclic_depedency;

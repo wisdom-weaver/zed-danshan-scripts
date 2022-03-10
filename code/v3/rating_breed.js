@@ -16,6 +16,7 @@ const { options } = require("../utils/options");
 const {
   get_races_of_hid,
   get_ed_horse,
+  get_range_hids,
 } = require("../utils/cyclic_dependency");
 const ymca2_s = require("./ymca2");
 const global_req = require("../global_req/global_req");
