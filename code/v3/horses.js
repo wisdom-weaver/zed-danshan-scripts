@@ -161,12 +161,15 @@ const get_new = async () => {
   console.log("get_new");
   while (true) {
     let nhids = await get_rosters();
-    // console.log(nhids);
     let xhids = await get_valid_hids_in_details(nhids);
     let hids = _.difference(nhids, xhids);
-    console.log("new:", hids.length, "\n");
-    await get_only(hids);
-    console.log("\n\nGOT:", hids.length, "\n");
+    console.log("listing:", nhids.length);
+    console.log("exists :", xhids.length);
+    console.log("new    :", hids.length, "\n");
+    if (!_.isEmpty(hids)) {
+      await get_only(hids, 1);
+      console.log("\n\nGOT:", hids.length, "\n");
+    }
     console.log("=====\nstarting again in 1 minute....");
     await delay(60 * 1000);
   }
@@ -242,7 +245,7 @@ const get_valid_hids_in_details = async (hids) => {
       { projection: { _id: 1, hid: 1, bloodline: 1 } }
     )
     .toArray();
-  hids5 = hids5.map((h) => (_.isEmpty(h.ancestry) ? null : h.hid));
+  hids5 = hids5.map((h) => (!h.bloodline ? null : h.hid));
   hids5 = _.compact(hids5);
   return hids5;
 };
@@ -288,14 +291,9 @@ const get_valid_hids_in_blood = async (hids) => {
   return hids5;
 };
 
-const get_missings = async (range, p = 1) => {
-  let [st, ed] = range;
-  st = utils.get_n(st);
-  ed = utils.get_n(ed);
-  if (ed == "ed" || ed == null) ed = await get_ed_horse();
-  let cs = 10;
-  let hids_all = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
+const get_missing_only = async (hids_all, p = 1) => {
   let fet = [];
+  let cs = def_cs;
   for (let chunk_hids of _.chunk(hids_all, cs)) {
     let [a, b] = [chunk_hids[0], chunk_hids[chunk_hids.length - 1]];
     console.log("checking", a, "->", b);
@@ -325,6 +323,18 @@ const get_missings = async (range, p = 1) => {
     console.log("#GOT", got.length, "\n\n");
     fet = [...fet, ...(got || [])];
   }
+  return fet;
+};
+
+const get_missings = async (range, p = 1) => {
+  let [st, ed] = range;
+  st = utils.get_n(st);
+  ed = utils.get_n(ed);
+  if (ed == "ed" || ed == null) ed = await get_ed_horse();
+  let cs = 10;
+  let hids_all = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
+  let fet = [];
+  await get_missing_only(hids_all);
   return fet;
 };
 
