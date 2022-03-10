@@ -145,16 +145,17 @@ const fixer = async () => {
 const roster_api = (offset = 0) =>
   `https://api.zed.run/api/v1/horses/roster?offset=${offset}&gen[]=1&gen[]=268&horse_name=&sort_by=created_by_desc`;
 const get_rosters = async () => {
+  let mxnhids = 1000;
   let o = 0;
   let hids = [];
   do {
     let nhids = (await zedf.get(roster_api(o))) ?? [];
     nhids = _.map(nhids, "horse_id");
-    // console.log(o, nhids.length);
+    console.log("offset:", o, nhids.length);
     if (nhids.length == 0) break;
     hids = [...hids, ...nhids];
     o += nhids.length;
-  } while (hids.length <= 100);
+  } while (hids.length <= mxnhids);
   return hids;
 };
 const get_new = async () => {
