@@ -147,6 +147,10 @@ const get_all_hids = async () => {
   let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
   return hids;
 };
+const get_range_hids = async (st,ed) => {
+  let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
+  return hids;
+};
 
 const prize_id = (pos) => {
   if (pos == 1) return "first";

@@ -355,22 +355,29 @@ const range = async (st, ed) =>
 
 const fixer0 = async () => {
   let fix_hids = [];
-  let all_hids = await cyclic_depedency.get_all_hids();
+  // let all_hids = await cyclic_depedency.get_all_hids();
+  const st = 70000;
+  const ed = await get_ed_horse();
+  console.log({ st, ed }, all_hids.length);
+  let all_hids = await get_range_hids(st, ed);
+
   for (let chunk of _.chunk(all_hids, 5000)) {
     let [a, b] = [chunk[0], chunk[chunk.length - 1]];
     console.log("get", a, b);
-    let hids = await zed_db.db
-      .collection(coll)
-      .find(
-        { hid: { $in: chunk }, br: { $in: [0] } },
-        { projection: { hid: 1 } }
-      )
-      .toArray();
+    let hids =
+      (await zed_db.db
+        .collection(coll)
+        .find(
+          { hid: { $in: chunk }, br: { $in: [0] } },
+          { projection: { hid: 1 } }
+        )
+        .toArray()) ?? [];
+    if (_.isEmpty(hids)) continue;
     hids = _.map(hids, "hid");
     console.log("GOT", hids.length);
     fix_hids = [...fix_hids, ...hids];
-    await only(fix_hids);
   }
+  await only(fix_hids);
   console.log("ENDED fixer");
 };
 
