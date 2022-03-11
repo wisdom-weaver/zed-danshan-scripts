@@ -104,7 +104,8 @@ const calc = async ({ hid, races = undefined }) => {
       .filter((i) => i != 99)
       .value();
     let avg_class = _.mean(dclasses);
-    console.log("draces:", draces.length, "avg_class:", avg_class);
+    if (test_mode)
+      console.log("draces:", draces.length, "avg_class:", avg_class);
     let add_dp =
       _.sum(
         _.entries(pos_ar).map(([p, c]) => {
