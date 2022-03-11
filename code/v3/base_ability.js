@@ -57,8 +57,10 @@ let pos_pts = {
   12: 0.6,
 };
 const flame_ob = 3;
-const min_ratio = 1.14;
+const min_ratio = 1.1;
 const min_races = 2;
+const classes = [1, 2, 3, 4, 5, 6];
+const lc = classes[classes.length - 1];
 
 const get_class_ratio_ob = ({ c, dist_races }) => {
   let c_races = race_utils.filter_races(dist_races, { c });
@@ -78,10 +80,13 @@ const get_class_ratio_ob = ({ c, dist_races }) => {
   );
   if (_.isNaN(right_pts)) right_pts = 0;
   let ratio = (left_pts || 0) / (right_pts || 1);
+  let act_ratio = ratio;
   if (left + right < min_races) ratio = null;
   if (ratio == 0) ratio = null;
   if (ratio < min_ratio) ratio = null;
-  return { c, left, right, ratio };
+  let ob = { c, left, right, left_pts, right_pts, act_ratio, ratio };
+  // if (test_mode) console.log(ob);
+  return ob;
 };
 
 const pick_c = (ratio_ar) => {
@@ -93,21 +98,21 @@ const pick_c = (ratio_ar) => {
       return i["ratio"];
     })
     .value();
-  for (let c of [1, 2, 3, 4, 5]) {
+  for (let c of classes) {
     let difft = ratio_ob[c] - ratio_ob[c - 1 < 1 ? 1 : c - 1];
-    let diffb = -(ratio_ob[c] - ratio_ob[c + 1 > 5 ? 5 : c + 1]);
+    let diffb = -(ratio_ob[c] - ratio_ob[c + 1 > lc ? lc : c + 1]);
     let tb_diff = Math.abs(difft + diffb);
     let tot_diff = Math.abs(difft) + Math.abs(diffb);
     if (ratio_ob[c] == null) tot_diff = 0;
-    if (c == 1 || c == 5) tot_diff *= 2;
+    if (c == 1 || c == lc) tot_diff *= 2;
     ratio_ar[c] = { ...ratio_ar[c], difft, diffb, tot_diff, tb_diff };
   }
   // console.table(ratio_ar);
   const mean_diff = _.mean(_.compact(_.map(_.values(ratio_ar), "tot_diff")));
   if (test_mode) console.log({ mean_diff });
-  ratio_ar = [1, 2, 3, 4, 5].map((i) => {
+  ratio_ar = classes.map((i) => {
     let { difft, diffb, tot_diff, tb_diff, ratio } = ratio_ar[i];
-    let onlys = _.filter([1, 2, 3, 4, 5], (e) => e !== i);
+    let onlys = _.filter(classes, (e) => e !== i);
     onlys = _.compact(onlys.map((ec) => ratio_ar[ec].tot_diff || null));
     let ex_mean = _.mean(onlys);
     if (_.sum(onlys) == 0) ex_mean = mean_diff;
@@ -119,7 +124,7 @@ const pick_c = (ratio_ar) => {
       !_.inRange(ex_ratio, 1 - range_pm, 1 + range_pm);
       if (!bullshit) {
         let rat2 = ratio_ar[i + 1]?.ratio;
-        if (i < 5 && rat2 && rat2 < ratio_ar[i].ratio) bullshit = true;
+        if (i < lc && rat2 && rat2 < ratio_ar[i].ratio) bullshit = true;
       }
     } else bullshit = false;
     let pick = ratio != null && ratio != 0 && !bullshit;
@@ -135,16 +140,17 @@ const pick_c = (ratio_ar) => {
       pick,
     };
   });
-  for (let c of [1, 2, 3, 4, 5]) {
+  for (let c of classes) {
     let ref1 = ratio_ar[c - 1];
     if (!ref1.pick || ref1.left + ref1.right >= 15) {
       ref1.pick2 = ref1.pick;
       continue;
     }
-    for (let i = c + 1; i <= 5; i++) {
+    if (c == lc) ref1.pick2 = ref1.pick;
+    for (let i = c + 1; i <= lc; i++) {
       let ref2 = ratio_ar[i - 1];
       if (!ref2.pick) {
-        if (i == 5) ref1.pick2 = ref1.pick;
+        if (i == lc) ref1.pick2 = ref1.pick;
         continue;
       }
       if (ref2.ratio < ref1.ratio) ref1.pick2 = false;
@@ -187,7 +193,7 @@ const calc = async ({ hid, races = [], tc, hdoc }) => {
       console.log("#", hid, { n: races.length, dist_n: dist_races.length });
     let ratio_ar = [];
 
-    for (let c of [1, 2, 3, 4, 5]) {
+    for (let c of classes) {
       let ratio_ob = get_class_ratio_ob({ c, dist_races });
       ratio_ar.push(ratio_ob);
     }
@@ -233,7 +239,10 @@ const generate = async (hid) => {
   hid = parseInt(hid);
   let hdoc = await zed_db.db
     .collection("horse_details")
-    .findOne({ hid }, { tc: 1, bloodline: 1, breed_type: 1, genotype: 1 });
+    .findOne(
+      { hid },
+      { projection: { tc: 1, bloodline: 1, breed_type: 1, genotype: 1 } }
+    );
   let races = await get_races_of_hid(hid);
   if (test_mode) console.log("races.len:", races.length);
   let tc = hdoc?.tc;
