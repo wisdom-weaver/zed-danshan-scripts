@@ -166,6 +166,7 @@ const pick_c = (ratio_ar) => {
 const pick_avg_fee = ({ c, races }) => {
   let c_races = race_utils.filter_races(races, { c }, { paid: 1 });
   let avg_fee = _.meanBy(c_races, "entryfee_usd");
+  if (!avg_fee || _.isNaN(avg_fee)) return 0;
   // let avg_fee_tag = get_fee_tag(avg_fee);
   if (test_mode) console.log({ avg_fee });
   return avg_fee;
@@ -179,7 +180,8 @@ const calc = async ({ hid, races = [], tc, hdoc }) => {
     let dist_races = race_utils.filter_races(
       races,
       { d: [1400, 1600, 1800] },
-      { no_tourney: 1, paid: 1 }
+      { no_tourney: 1 }
+      // { no_tourney: 1, paid: 1 }
     );
     if (test_mode)
       console.log("#", hid, { n: races.length, dist_n: dist_races.length });
@@ -233,6 +235,7 @@ const generate = async (hid) => {
     .collection("horse_details")
     .findOne({ hid }, { tc: 1, bloodline: 1, breed_type: 1, genotype: 1 });
   let races = await get_races_of_hid(hid);
+  if (test_mode) console.log("races.len:", races.length);
   let tc = hdoc?.tc;
   let ob = await calc({ races, tc, hid, hdoc });
   if (test_mode) console.log(hid, ob, "\n\n");
