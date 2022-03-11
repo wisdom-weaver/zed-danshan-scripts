@@ -98,6 +98,13 @@ const calc = async ({ hid, races = undefined }) => {
     if (test_mode) console.log(mx);
     let { count, dist, pos_ar, choose_dp } = mx;
     dist = parseInt(dist);
+    let draces = _.filter(races, (i) => i.distance == dist);
+    let dclasses = _.chain(draces)
+      .map("thisclass")
+      .filter((i) => i != 99)
+      .value();
+    let avg_class = _.mean(dclasses);
+    console.log("draces:", draces.length, "avg_class:", avg_class);
     let add_dp =
       _.sum(
         _.entries(pos_ar).map(([p, c]) => {
@@ -107,12 +114,26 @@ const calc = async ({ hid, races = undefined }) => {
     let adder = add_dist[dist];
     let skill = count > 9 ? 10 * add_dp : count * add_dp;
     let dp = _.sum([skill, adder, add_dp]) * 65;
-    if (test_mode)
-      console.log({ dist, choose_dp, count, add_dp, adder, skill, dp });
+    let dp0 = dp;
+    if (dp) {
+      dp -= avg_class;
+    }
     if (dp == 0 || dp == null || _.isNaN(dp)) {
       dp = null;
       dist = null;
     }
+    if (test_mode)
+      console.log({
+        dist,
+        choose_dp,
+        count,
+        add_dp,
+        adder,
+        skill,
+        dp0,
+        avg_class,
+        dp,
+      });
     let ob = { hid, dp, dist };
     return ob;
   } catch (err) {
@@ -154,35 +175,35 @@ const fix = async () => {
 };
 
 const test = async (hids) => {
-  // test_mode = 1;
-  // for (let hid of hids) {
-  //   let races = await get_races_of_hid(hid);
-  //   // const ob = get_dist_pos_ob(hid, races);
-  //   // let ob = await only([hid]);
-  //   let ob = await calc({ hid, races });
-  //   console.log(ob);
-  // }
-  const agg = [
-    {
-      $group: {
-        _id: "$dist",
-        dp_avg: {
-          $avg: "$dp",
-        },
-        dp_min: {
-          $min: "$dp",
-        },
-        dp_max: {
-          $max: "$dp",
-        },
-      },
-    },
-  ];
+  test_mode = 1;
+  for (let hid of hids) {
+    let races = await get_races_of_hid(hid);
+    // const ob = get_dist_pos_ob(hid, races);
+    // let ob = await only([hid]);
+    let ob = await calc({ hid, races });
+    console.log(ob);
+  }
+  // const agg = [
+  //   {
+  //     $group: {
+  //       _id: "$dist",
+  //       dp_avg: {
+  //         $avg: "$dp",
+  //       },
+  //       dp_min: {
+  //         $min: "$dp",
+  //       },
+  //       dp_max: {
+  //         $max: "$dp",
+  //       },
+  //     },
+  //   },
+  // ];
 
-  const coll = zed_db.db.collection("dp4");
-  let ob = await coll.aggregate(agg).toArray();
-  ob = _.sortBy(ob, i=>_.toNumber(i._id))
-  console.table(ob);
+  // const coll = zed_db.db.collection("dp4");
+  // let ob = await coll.aggregate(agg).toArray();
+  // ob = _.sortBy(ob, i=>_.toNumber(i._id))
+  // console.table(ob);
 };
 
 const dp = { calc, generate, all, only, range, test, fix };
