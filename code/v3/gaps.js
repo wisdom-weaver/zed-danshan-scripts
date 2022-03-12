@@ -257,7 +257,7 @@ const gap = {
   run_race,
   run_raw_races,
   run_dur,
-  fix,
+  fix: fix2,
   manual,
   run_hids,
 };
