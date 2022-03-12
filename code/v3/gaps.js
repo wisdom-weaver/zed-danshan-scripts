@@ -191,7 +191,7 @@ const fix2 = async (hid) => {
   let races_n = bb?.races_n ?? null;
   if (races_n == null) {
     let zedd = await zedf.horse(hid);
-    races_n = zedd.number_of_races;
+    races_n = zed.number_of_races;
     await zed_db.db
       .collection("rating_blood3")
       .updateOne({ hid }, { $set: { races_n } });
