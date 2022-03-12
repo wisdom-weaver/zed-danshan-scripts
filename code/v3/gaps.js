@@ -182,31 +182,35 @@ const fix1 = async (hid) => {
 };
 
 const fix2 = async (hid) => {
-  let g4 = (await zed_db.db.collection("gap4").findOne({ hid })) || {};
-  let bb =
-    (await zed_db.db
-      .collection("rating_blood3")
-      .findOne({ hid }, { projection: { hid: 1, races_n: 1 } })) || {};
-  let ngap = null;
-  let races_n = bb?.races_n ?? null;
-  if (races_n == null) {
-    let zedd = await zedf.horse(hid);
-    races_n = zedd.number_of_races;
-    await zed_db.db
-      .collection("rating_blood3")
-      .updateOne({ hid }, { $set: { races_n } });
-  }
+  try {
+    let g4 = (await zed_db.db.collection("gap4").findOne({ hid })) || {};
+    let bb =
+      (await zed_db.db
+        .collection("rating_blood3")
+        .findOne({ hid }, { projection: { hid: 1, races_n: 1 } })) || {};
+    let ngap = null;
+    let races_n = bb?.races_n ?? null;
+    if (races_n == null) {
+      let zedd = await zedf.horse(hid);
+      races_n = zedd.number_of_races;
+      await zed_db.db
+        .collection("rating_blood3")
+        .updateOne({ hid }, { $set: { races_n } });
+    }
 
-  if (races_n == undefined) return console.log("races undefined", hid);
-  if (races_n == 0) ngap = null;
-  else {
-    if (g4.gap) return;
-    else ngap = ((hid % 100) + 1) * 0.001;
+    if (races_n == undefined) return console.log("races undefined", hid);
+    if (races_n == 0) ngap = null;
+    else {
+      if (g4.gap) return;
+      else ngap = ((hid % 100) + 1) * 0.001;
+    }
+    // console.log("fix", { hid, ngap });
+    await zed_db.db
+      .collection("gap4")
+      .updateOne({ hid }, { $set: { gap: ngap } }, { upsert: true });
+  } catch (err) {
+    console.log(err);
   }
-  // console.log("fix", { hid, ngap });
-  await zed_db.db
-    .collection("gap4")
-    .updateOne({ hid }, { $set: { gap: ngap } }, { upsert: true });
 };
 const fix3 = async () => {
   const hids = await cyclic_depedency.get_all_hids();
