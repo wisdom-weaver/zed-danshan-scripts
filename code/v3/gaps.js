@@ -191,7 +191,7 @@ const fix2 = async (hid) => {
   let races_n = bb?.races_n ?? null;
   if (races_n == null) {
     let zedd = await zedf.horse(hid);
-    races_n = zed.number_of_races;
+    races_n = zedd.number_of_races;
     await zed_db.db
       .collection("rating_blood3")
       .updateOne({ hid }, { $set: { races_n } });
@@ -207,6 +207,14 @@ const fix2 = async (hid) => {
   await zed_db.db
     .collection("gap4")
     .updateOne({ hid }, { $set: { gap: ngap } }, { upsert: true });
+};
+const fix3 = async () => {
+  const hids = await cyclic_depedency.get_all_hids();
+  for (let chu of _.chunk(hids, 30)) {
+    let [a, b] = [chu[0], chu[chu.length - 1]];
+    console.log(a, b);
+    await Promise.all(chu.map(fix2));
+  }
 };
 
 const fix = async () => {
@@ -257,7 +265,7 @@ const gap = {
   run_race,
   run_raw_races,
   run_dur,
-  fix: fix2,
+  fix: fix3,
   manual,
   run_hids,
 };
