@@ -119,7 +119,7 @@ const calc = async ({ hid, races = undefined }) => {
     let avg_class = _.mean(dclasses);
     if (_.isNaN(avg_class)) {
       avg_class = 0;
-      console.log("avg_class is NaN");
+      console.log("avg_class is NaN", hid);
     }
 
     if (test_mode)
