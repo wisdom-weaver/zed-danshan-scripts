@@ -97,6 +97,7 @@ const calc = async ({ hid, races = undefined }) => {
 
     if (test_mode) console.log(mx);
     let { count, dist, pos_ar, choose_dp } = mx;
+    if (choose_dp == 0) return { hid, dp: null, dist: null };
     dist = parseInt(dist);
     let draces = _.filter(races, (i) => i.distance == dist);
     let dclasses = _.chain(draces)
