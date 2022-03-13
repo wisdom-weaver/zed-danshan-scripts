@@ -100,10 +100,28 @@ const calc = async ({ hid, races = undefined }) => {
     dist = parseInt(dist);
     let draces = _.filter(races, (i) => i.distance == dist);
     let dclasses = _.chain(draces)
-      .map("thisclass")
+      .map((i) => {
+        i.thisclass2 = i.thisclass == 0 ? 5.25 : i.thisclass;
+        return i.thisclass2;
+      })
       .filter((i) => i != 99)
       .value();
+
+    let place_ob = _.chain(draces).countBy("place").value();
+    let win_rate = (place_ob[1] || 0) / (draces.length || 1);
+    // console.table(
+    //   _.chain(draces)
+    //     .filter((i) => i.thisclass2 != 99)
+    //     .sortBy("thisclass2")
+    //     .map((i) => ({ rid: i.raceid, c: i.thisclass2 }))
+    //     .value()
+    // );
     let avg_class = _.mean(dclasses);
+    if (_.isNaN(avg_class)) {
+      avg_class = 0;
+      console.log("avg_class is NaN");
+    }
+
     if (test_mode)
       console.log("draces:", draces.length, "avg_class:", avg_class);
     let add_dp =
@@ -114,24 +132,19 @@ const calc = async ({ hid, races = undefined }) => {
       ) / count;
     let adder = add_dist[dist];
     let skill = count > 9 ? 10 * add_dp : count * add_dp;
-    let dp = _.sum([skill, adder, add_dp]) * 65;
-    let dp0 = dp;
-    if (dp) {
-      dp -= avg_class;
-    }
-    if (dp == 0 || dp == null || _.isNaN(dp)) {
-      dp = null;
-      dist = null;
-    }
+    let dp0 = _.sum([skill, adder, add_dp]) * 65;
+
+    let dp = (dp0 * 0.6 + (win_rate * 100) / 7 - avg_class / 2) * 0.705;
+
+    let dn = draces?.length || 0;
+    if (_.inRange(dn, 0, 10.01)) dp = dp * 0.25;
+    else if (_.inRange(dn, 11, 20.01)) dp = dp * 0.5;
+    else if (_.inRange(dn, 21, 30.01)) dp = dp * 0.75;
+
     if (test_mode)
       console.log({
-        dist,
-        choose_dp,
-        count,
-        add_dp,
-        adder,
-        skill,
         dp0,
+        win_rate,
         avg_class,
         dp,
       });
