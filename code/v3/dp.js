@@ -149,7 +149,7 @@ const calc = async ({ hid, races = undefined }) => {
         avg_class,
         dp,
       });
-    let ob = { hid, dp, dist };
+    let ob = { hid, dp, dist, avg_class, win_rate };
     return ob;
   } catch (err) {
     console.log(err);
