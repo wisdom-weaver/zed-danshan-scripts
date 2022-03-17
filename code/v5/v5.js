@@ -10,20 +10,20 @@ const main_runner = async (args) => {
   console.log("# v5");
   if (arg1 == "--ymca5") {
     console.log("# ymca5");
-    if (arg2 == "all") mod.ymca5.all();
+    if (arg2 == "all") await mod.ymca5.all();
     if (arg2 == "only") {
       let conf = JSON.parse(arg3) || {};
-      mod.ymca5.only(conf);
+      await mod.ymca5.only(conf);
     }
     if (arg2 == "range") {
-      mod.ymca5.range(jparse(arg3));
+      await mod.ymca5.range(jparse(arg3));
     }
     if (arg2 == "fixer") {
-      mod.ymca5.fixer();
+      await mod.ymca5.fixer();
     }
     if (arg2 == "test") {
       let conf = JSON.parse(arg3) || {};
-      mod.ymca5.test(conf);
+      await mod.ymca5.test(conf);
     }
   }
 };
