@@ -399,10 +399,10 @@ const get_only_hdocs = async (hids) => {
     console.log("GETTING", chunk_hids);
     let resps = await add_hdocs(chunk_hids, cs);
     await delay(100);
-    if (resps?.length == 0) {
-      console.log("break");
-      break;
-    }
+    // if (resps?.length == 0) {
+    //   console.log("break");
+    //   break;
+    // }
   }
   console.log("end");
 };
