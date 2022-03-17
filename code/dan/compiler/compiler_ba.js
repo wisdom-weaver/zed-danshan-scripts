@@ -3,11 +3,12 @@ const cron = require("node-cron");
 const { zed_db } = require("../../connection/mongo_connect");
 const { next_run, get_ed_horse } = require("../../utils/cyclic_dependency");
 const cyclic_depedency = require("../../utils/cyclic_dependency");
+const compiler_common = require("./compiler_common");
+const v_code = compiler_common.v_code;
+let t =  compiler_common.t;
 
 const coll = "compiler_ba";
 const name = "compiler_ba";
-const st = 213000;
-let t = 0;
 
 const ba_rep = {
   "<1.00": [-1e4, 1.0 - +1e-5],
@@ -42,7 +43,12 @@ const conv_num = (n) => {
 const run_h = async (hid) => {
   try {
     hid = parseInt(hid);
-    if (hid < st) return;
+    let hdoc = await zed_db.db
+      .collection("horse_details")
+      .findOne({ hid }, { projection: { parents: 1, tx_date: 1 } });
+    // console.log(hid, hdoc);
+    if (_.isEmpty(hdoc)) return;
+    if (hdoc?.tx_date < compiler_common.st_date) return;
 
     let races_n = await cyclic_depedency.get_races_n(hid);
     if (races_n < 5) return;
@@ -74,6 +80,7 @@ const run_h = async (hid) => {
       comb_ba_rep,
       ba_rep_f,
       ba_rep_m,
+      v_code,
     };
     if (t == 0)
       await zed_db.db
@@ -89,11 +96,9 @@ const run_hs = async (hids) => {
     await Promise.all(chu.map(run_h));
   }
 };
-const run_range = async ([st, ed]) => {
-  console.log("compiler", [st, ed]);
-  if (ed == null) ed = await get_ed_horse();
-
-  let hids = new Array(ed - st + 1).fill(0).map((e, i) => st + i);
+const run_horses = async () => {
+  const hids = await compiler_common.get_compiler_hids();
+  console.log("compiler hids:", hids.length);
   // console.log(hids);
   await run_hs(hids);
 };
@@ -107,6 +112,7 @@ const run = async () => {
           .collection("rating_blood3")
           .find(
             {
+              "compiler.v_code": { $eq: v_code, $exists: true },
               "compiler.ba_rep_m": { $eq: ba_rep_m, $exists: true },
               "compiler.ba_rep_f": { $eq: ba_rep_f, $exists: true },
             },
@@ -160,7 +166,7 @@ const run = async () => {
 };
 
 const runner = async () => {
-  await run_range([st]);
+  await run_horses();
   await run();
 };
 const run_cron = async () => {
@@ -178,6 +184,6 @@ const compiler_ba = {
   test,
   run_h,
   run_hs,
-  run_range,
+  run_horses,
 };
 module.exports = compiler_ba;
