@@ -58,6 +58,7 @@ const struct_zed_hdoc = (hid, doc) => {
     parents: parents_raw,
     owner_stable_slug: slug,
     rating,
+    tx_date,
   } = doc;
   let oid = doc.owner;
   let stable_name = doc.owner_stable;
@@ -91,6 +92,7 @@ const struct_zed_hdoc = (hid, doc) => {
     stable_name,
     parents,
     parents_d,
+    tx_date,
   };
   // console.log(hid, ob);
   return ob;
