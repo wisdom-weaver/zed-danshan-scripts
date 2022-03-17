@@ -191,8 +191,8 @@ const only = async (hids) => {
   console.log(name, "only");
   await bulk.run_bulk_only(name, generate, coll, hids, cs, test_mode);
 };
-const range = async (st, ed) => {
-  console.log(name, "range");
+const range = async ([st, ed]) => {
+  console.log(name, "range", st, ed);
   await bulk.run_bulk_range(name, generate, coll, st, ed, cs, test_mode);
 };
 

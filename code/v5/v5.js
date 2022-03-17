@@ -1,3 +1,4 @@
+const { jparse } = require("../utils/cyclic_dependency");
 const ymca5_s = require("./ymca5");
 
 const mod = {
@@ -15,8 +16,7 @@ const main_runner = async (args) => {
       mod.ymca5.only(conf);
     }
     if (arg2 == "range") {
-      let [a, b] = [parseInt(arg3), parseInt(arg4)];
-      mod.ymca5.range(a, b);
+      mod.ymca5.range(jparse(arg3));
     }
     if (arg2 == "fixer") {
       mod.ymca5.fixer();
