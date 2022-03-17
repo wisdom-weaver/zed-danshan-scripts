@@ -83,7 +83,7 @@ const calc = async ({ hid, races = [], from = null }) => {
     if (from == "mega") {
       if (races.length >= fraces_n) {
         let ddist = null;
-        let i = 2;
+        let i = 1;
         do {
           let dp4 = await zed_db.db
             .collection("dp4")
@@ -138,7 +138,7 @@ const generate = async (hid) => {
     if (races_n >= fraces_n) {
       if (test_mode) console.log("dp mode");
       let ddist = null;
-      let i = 2;
+      let i = 1;
       do {
         let dp4 = await zed_db.db
           .collection("dp4")
