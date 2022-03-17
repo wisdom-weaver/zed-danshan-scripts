@@ -91,11 +91,15 @@ const calc = async ({ hid, races = [], from = null }) => {
           ddist = dp4?.dist;
           if (!ddist) await dp_scr.only([hid]);
         } while (i-- && ddist !== null);
-        let draces = _.filter(races, (i) => i.distance == ddist);
-        draces = draces.slice(0, fraces_n_dp);
-        filt_races = draces;
+        if (!ddist) {
+          filt_races = races.slice(0, fraces_n);
+        } else {
+          let draces = _.filter(races, (i) => i.distance == ddist);
+          draces = draces.slice(0, fraces_n_dp);
+          filt_races = draces;
+        }
       } else {
-        filt_races = races;
+        filt_races = races.slice(0, fraces_n);
       }
     } else if (from == "generate") filt_races = races;
     else return undefined;
@@ -143,12 +147,20 @@ const generate = async (hid) => {
         if (!ddist) await dp_scr.only([hid]);
       } while (i-- && ddist !== null);
       if (test_mode) console.log({ ddist });
-      races = await zed_ch.db
-        .collection("zed")
-        .find({ 6: hid, 1: { $in: [parseInt(ddist), ddist.toString()] } })
-        .sort({ 2: 1 })
-        .limit(fraces_n_dp)
-        .toArray();
+      if (!ddist)
+        races = await zed_ch.db
+          .collection("zed")
+          .find({ 6: hid })
+          .sort({ 2: 1 })
+          .limit(fraces_n)
+          .toArray();
+      else
+        races = await zed_ch.db
+          .collection("zed")
+          .find({ 6: hid, 1: { $in: [parseInt(ddist), ddist?.toString()] } })
+          .sort({ 2: 1 })
+          .limit(fraces_n_dp)
+          .toArray();
     } else {
       if (test_mode) console.log("still new mode");
       races = await zed_ch.db
