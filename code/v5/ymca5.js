@@ -89,7 +89,7 @@ const calc = async ({ hid, races = [], from = null }) => {
             .collection("dp4")
             .findOne({ hid }, { projection: { dist: 1 } });
           ddist = dp4?.dist;
-          if (!ddist) await dp_scr.only([hid]);
+          // if (!ddist) await dp_scr.only([hid]);
         } while (i-- && ddist !== null);
         if (!ddist) {
           filt_races = races.slice(0, fraces_n);
@@ -144,7 +144,7 @@ const generate = async (hid) => {
           .collection("dp4")
           .findOne({ hid }, { projection: { dist: 1 } });
         ddist = dp4?.dist;
-        if (!ddist) await dp_scr.only([hid]);
+        // if (!ddist) await dp_scr.only([hid]);
       } while (i-- && ddist !== null);
       if (test_mode) console.log({ ddist });
       if (!ddist)
