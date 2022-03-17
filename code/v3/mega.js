@@ -72,7 +72,7 @@ const calc = async ({ hid }) => {
     s_.rating_breed.calc({ hid, tc }),
     s_.rating_flames.calc({ hid, races, tc }),
     s_.base_ability.calc({ hid, races, tc, hdoc }),
-    s_.ymca2.calc({ hid, races, details: hdoc }),
+    s_.ymca2.calc({ hid, races, details: hdoc, from: "mega" }),
     s_.est_ymca.calc({ hid, races, hdoc }),
     s_.dp.calc({ hid, races, hdoc }),
     // s_.parents_comb.calc({ hid, races, hdoc }),

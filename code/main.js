@@ -9,6 +9,7 @@ const tourneyr02 = require("./tourney/tourneyr02");
 const utils = require("./utils/utils");
 const tourneyr01 = require("./tourney/tourneyr01");
 const v3 = require("./v3/v3");
+const v5 = require("./v5/v5");
 const z_stats = require("./v3/z_stats");
 const gap = require("./v3/gaps");
 const { jparse } = require("./utils/cyclic_dependency");
@@ -425,6 +426,8 @@ const main = async (args) => {
     if (arg2 == "open") await finder.get_open();
     if (arg2 == "scheduled") await finder.get_scheduled();
     if (arg2 == "test") await finder.test();
+  } else if (arg1 == "v5") {
+    await v5.main_runner(args);
   }
   console.log("---ed");
 };
