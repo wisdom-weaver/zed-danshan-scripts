@@ -4,7 +4,7 @@ const { options } = require("../utils/options");
 const utils = require("../utils/utils");
 const { geno, dec } = require("../utils/utils");
 
-const coll_br = "rating_breed3";
+const coll_br = "rating_breed5";
 const coll_y = "ymca5";
 let doc_id = "ymca5-global-avgs";
 
