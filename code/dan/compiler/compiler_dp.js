@@ -1,7 +1,7 @@
 const _ = require("lodash");
 const cron = require("node-cron");
 const { zed_db } = require("../../connection/mongo_connect");
-const { next_run, get_ed_horse } = require("../../utils/cyclic_dependency");
+const { next_run, get_ed_horse, print_cron_details } = require("../../utils/cyclic_dependency");
 const { dp } = require("../../v3/v3");
 const compiler_common = require("./compiler_common");
 const v_code = compiler_common.v_code;
@@ -125,8 +125,8 @@ const runner = async () => {
   await run();
 };
 const run_cron = async () => {
-  const cron_str = "0 * * * *";
-  console.log("compiler next run ::", next_run(cron_str));
+  const cron_str = "*/30 * * * *";
+  print_cron_details(cron_str)
   cron.schedule(cron_str, runner, { scheduled: true });
 };
 
