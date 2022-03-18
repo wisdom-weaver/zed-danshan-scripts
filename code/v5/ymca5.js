@@ -10,6 +10,7 @@ const {
 const utils = require("../utils/utils");
 const dp_scr = require("../v3/dp");
 const { calc_race_score, calc_race_score_det } = require("../v3/race_score");
+const v5_conf = require("./v5_conf");
 
 let test_mode = 0;
 let cs = 200;
@@ -189,6 +190,14 @@ const all = async () => {
 };
 const only = async (hids) => {
   console.log(name, "only");
+  if (hids[0] == "b5") {
+    hids = await zed_db.db
+      .collection("horse_details")
+      .find({ tx_date: { $gte: v5_conf.st_date } }, { projection: { hid: 1 } })
+      .toArray();
+    hids = _.map(hids, "hid");
+    console.log("b5", hids);
+  }
   await bulk.run_bulk_only(name, generate, coll, hids, cs, test_mode);
 };
 const range = async ([st, ed]) => {
@@ -228,5 +237,12 @@ const fixer = async () => {
   console.log("ENDED fixer");
 };
 
-const ymca5_s = { calc, generate, test, all, only, range, fixer };
+const get = async (hid) => {
+  hid = parseInt(hid);
+  let doc = await zed_db.db.collection(coll).findOne({ hid });
+  // console.log("ymca5 get", doc);
+  return doc || null;
+};
+
+const ymca5_s = { calc, generate, test, all, only, range, fixer, get };
 module.exports = ymca5_s;

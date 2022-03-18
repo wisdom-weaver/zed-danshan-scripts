@@ -10,6 +10,7 @@ const { knex_conn } = require("../connection/knex_connect");
 const cron_parser = require("cron-parser");
 const zedf = require("./zedf");
 const cronstrue = require("cronstrue");
+const v5_conf = require("../v5/v5_conf");
 
 const key_mapping_bs_zed = [
   ["_id", "_id"],
@@ -207,6 +208,7 @@ const jparse = (c) => {
   try {
     return JSON.parse(c);
   } catch (err) {
+    console.log(err);
     return [];
   }
 };
@@ -332,6 +334,16 @@ const add_hdocs = async (hids, cs = def_cs) => {
   }
 };
 
+const valid_b5 = async (hids) => {
+  if (_.isEmpty(hids)) return [];
+  let docs =
+    (await zed_db.db
+      .collection("horse_details")
+      .find({ hid: { $in: hids }, tx_date: { $gte: v5_conf.st_date } })
+      .toArray()) || [];
+  return _.map(docs, "hid");
+};
+
 const cyclic_depedency = {
   get_races_of_hid,
   from_ch_zed_collection,
@@ -353,6 +365,7 @@ const cyclic_depedency = {
   add_hdocs,
   struct_zed_hdoc,
   get_range_hids,
+  valid_b5,
 };
 
 module.exports = cyclic_depedency;

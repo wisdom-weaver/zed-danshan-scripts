@@ -233,7 +233,11 @@ const update_z_id_row = async (id) => {
   // console.log(id, ob);
   await zed_db.db
     .collection("requirements")
-    .updateOne({ id: doc_id }, { $set: { [`avg_ob.${id}`]: ob } });
+    .updateOne(
+      { id: doc_id },
+      { $set: { [`avg_ob.${id}`]: ob } },
+      { upsert: true }
+    );
 };
 
 const generate_v1 = async () => {
@@ -327,7 +331,7 @@ const test = async () => {
       for (let z = z_mi; z <= z_mx; z++) {
         let id = `${bl}-${bt}-Z${z}`;
         await update_z_id_row(id);
-        if (++i == 10) return;
+        if (++i == 15) return;
         // return;
       }
     }

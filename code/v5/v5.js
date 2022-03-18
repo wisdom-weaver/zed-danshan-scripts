@@ -1,9 +1,12 @@
 const { jparse } = require("../utils/cyclic_dependency");
+const rating_breed = require("./rating_breed");
 const ymca5_s = require("./ymca5");
 const ymca5_table = require("./ymca5_table");
+
 const mod = {
   ymca5: ymca5_s,
   ymca5_table,
+  rating_breed,
 };
 
 const main_runner = async (args) => {
@@ -35,6 +38,25 @@ const main_runner = async (args) => {
     if (arg2 == "test") {
       let ob = await mod.ymca5_table.test(1);
       console.table(ob);
+    }
+  } else if (arg1 == "--breed") {
+    if (arg2 == "test") {
+      let conf = JSON.parse(arg3) || {};
+      await mod.rating_breed.test(conf);
+    }
+    if (arg2 == "all") await mod.rating_breed.all();
+    if (arg2 == "only") {
+      let conf = JSON.parse(arg3) || {};
+      await mod.rating_breed.only(conf);
+    }
+    if (arg2 == "range") {
+      await mod.rating_breed.range(jparse(arg3));
+    }
+    if (arg2 == "parents_of") {
+      await mod.rating_breed.parents_of(jparse(arg3));
+    }
+    if (arg2 == "fixer") {
+      await mod.rating_breed.fixer();
     }
   }
 };
