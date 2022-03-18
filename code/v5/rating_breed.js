@@ -337,7 +337,8 @@ const range = async ([st, ed]) => {
 const fixer = async () => {
   let all_hids = await cyclic_depedency.get_all_hids();
   // let all_hids = [46092];
-  for (let chunk of _.chunk(all_hids, 1000)) {
+  all_hids = all_hids.slice(157001)
+  for (let chunk of _.chunk(all_hids, 2000)) {
     let [a, b] = [chunk[0], chunk[chunk.length - 1]];
     console.log(a, "->", b);
     await Promise.all(
