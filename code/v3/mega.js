@@ -8,6 +8,9 @@ const ymca2 = require("./ymca2");
 const ymca2_table = require("./ymca2_table");
 const parents_comb = require("./parents_comb");
 
+const v5_ymca5 = require("../v5/ymca5");
+const v5_rating_breed = require("../v5/rating_breed");
+
 const { zed_ch, zed_db } = require("../connection/mongo_connect");
 const {
   get_races_of_hid,
@@ -21,7 +24,7 @@ const dp = require("./dp");
 const zedf = require("../utils/zedf");
 const cyclic_depedency = require("../utils/cyclic_dependency");
 
-const s_ = {
+const s3 = {
   rating_flames,
   rating_blood,
   rating_breed,
@@ -31,6 +34,11 @@ const s_ = {
   parents_comb,
   est_ymca,
   dp,
+};
+
+const s5 = {
+  ymca5: v5_ymca5,
+  rating_breed: v5_rating_breed,
 };
 
 let test_mode = 0;
@@ -67,15 +75,21 @@ const calc = async ({ hid }) => {
     est_ymca,
     dp4,
     // parents_comb
+
+    ymca5,
+    breed5,
   ] = await Promise.all([
-    s_.rating_blood.calc({ hid, races, tc }),
-    s_.rating_breed.calc({ hid, tc }),
-    s_.rating_flames.calc({ hid, races, tc }),
-    s_.base_ability.calc({ hid, races, tc, hdoc }),
-    s_.ymca2.calc({ hid, races, details: hdoc, from: "mega" }),
-    s_.est_ymca.calc({ hid, races, hdoc }),
-    s_.dp.calc({ hid, races, hdoc }),
+    s3.rating_blood.calc({ hid, races, tc }),
+    s3.rating_breed.calc({ hid, tc }),
+    s3.rating_flames.calc({ hid, races, tc }),
+    s3.base_ability.calc({ hid, races, tc, hdoc }),
+    s3.ymca2.calc({ hid, races, details: hdoc, from: "mega" }),
+    s3.est_ymca.calc({ hid, races, hdoc }),
+    s3.dp.calc({ hid, races, hdoc }),
     // s_.parents_comb.calc({ hid, races, hdoc }),
+
+    s5.ymca5.calc({ hid, races, hdoc, from: "mega" }),
+    s5.rating_breed.calc({ hid, races, hdoc }),
   ]);
   if (test_mode) {
     console.log("rating_blood", rating_blood);
@@ -88,6 +102,9 @@ const calc = async ({ hid }) => {
   }
   let ymca2_doc = { hid, ymca2 };
   let est_ymca_doc = { hid, est_ymca };
+
+  let ymca5_doc = { hid, ymca5 };
+
   return {
     hid,
     rating_blood,
@@ -97,7 +114,9 @@ const calc = async ({ hid }) => {
     ymca2_doc,
     est_ymca_doc,
     dp4,
-    // parents_comb,
+
+    ymca5_doc,
+    breed5,
   };
 };
 
@@ -116,6 +135,9 @@ const push_mega_bulk = async (datas_ar) => {
   let dp4_bulk = [];
   // let parents_comb_bulk = [];
 
+  let ymca5_doc_bulk = [];
+  let breed5_bulk = [];
+
   datas_ar = _.compact(datas_ar);
   datas_ar.map((data) => {
     let {
@@ -128,6 +150,9 @@ const push_mega_bulk = async (datas_ar) => {
       est_ymca_doc,
       dp4,
       // parents_comb,
+
+      ymca5_doc,
+      breed5,
     } = data;
     if (!_.isEmpty(rating_blood)) rating_blood_bulk.push(rating_blood);
     if (!_.isEmpty(rating_breed)) rating_breed_bulk.push(rating_breed);
@@ -137,7 +162,11 @@ const push_mega_bulk = async (datas_ar) => {
     if (!_.isEmpty(est_ymca_doc)) est_ymca_doc_bulk.push(est_ymca_doc);
     if (!_.isEmpty(dp4)) dp4_bulk.push(dp4);
     // if (!_.isEmpty(parents_comb)) parents_comb_bulk.push(parents_comb);
+    if (!_.isEmpty(ymca5_doc)) ymca5_doc_bulk.push(ymca5_doc);
+    if (!_.isEmpty(breed5)) breed5_bulk.push(breed5);
   });
+  console.log(ymca5_doc_bulk);
+
   if (test_mode) {
     console.log("rating_blood_bulk.len", rating_blood_bulk.length);
     console.log("rating_breed_bulk.len", rating_breed_bulk.length);
@@ -157,6 +186,8 @@ const push_mega_bulk = async (datas_ar) => {
     bulk.push_bulk("rating_breed3", est_ymca_doc_bulk, "est_ymca"),
     bulk.push_bulk("dp4", dp4_bulk, "dp4"),
     // bulk.push_bulk("rating_breed3", parents_comb_bulk, "parents_comb"),
+    bulk.push_bulk("ymca5", ymca5_doc_bulk, "ymca5"),
+    bulk.push_bulk("rating_breed5", breed5_bulk, "breed5"),
   ]);
   let [a, b] = [datas_ar[0]?.hid, datas_ar[datas_ar.length - 1]?.hid];
   console.log("pushed_mega_bulk", datas_ar.length, `[${a} -> ${b}]`);
@@ -197,7 +228,8 @@ const only_w_parents_br = async (hids, cs = def_cs) => {
       .flatten()
       .compact()
       .value();
-    await s_.rating_breed.only(phids);
+    await s3.rating_breed.only(phids);
+    await s5.rating_breed.only(phids);
   }
 };
 
