@@ -6,7 +6,7 @@ const rating_breed = require("./rating_breed");
 const base_ability = require("./base_ability");
 const ymca2 = require("./ymca2");
 const ymca2_table = require("./ymca2_table");
-const parents_comb = require("./parents_comb");
+const hraces_stats = require("./hraces_stats");
 
 const v5_ymca5 = require("../v5/ymca5");
 const v5_rating_breed = require("../v5/rating_breed");
@@ -31,7 +31,7 @@ const s3 = {
   base_ability,
   ymca2,
   ymca2_table,
-  parents_comb,
+  hraces_stats,
   est_ymca,
   dp,
 };
@@ -74,7 +74,7 @@ const calc = async ({ hid }) => {
     ymca2,
     est_ymca,
     dp4,
-    // parents_comb
+    hraces_stats,
 
     ymca5,
     breed5,
@@ -86,7 +86,7 @@ const calc = async ({ hid }) => {
     s3.ymca2.calc({ hid, races, details: hdoc, from: "mega" }),
     s3.est_ymca.calc({ hid, races, hdoc }),
     s3.dp.calc({ hid, races, hdoc }),
-    // s_.parents_comb.calc({ hid, races, hdoc }),
+    s3.hraces_stats.calc({ hid, races, hdoc }),
 
     s5.ymca5.calc({ hid, races, hdoc, from: "mega" }),
     s5.rating_breed.calc({ hid, races, hdoc }),
@@ -98,7 +98,7 @@ const calc = async ({ hid }) => {
     console.log("base_ability", base_ability);
     console.log("ymca2", ymca2);
     console.log("dp4", dp4);
-    // console.log("parents_comb", parents_comb);
+    console.log("hraces_stats", hraces_stats);
   }
   let ymca2_doc = { hid, ymca2 };
   let est_ymca_doc = { hid, est_ymca };
@@ -114,7 +114,7 @@ const calc = async ({ hid }) => {
     ymca2_doc,
     est_ymca_doc,
     dp4,
-
+    hraces_stats,
     ymca5_doc,
     breed5,
   };
@@ -133,7 +133,7 @@ const push_mega_bulk = async (datas_ar) => {
   let ymca2_doc_bulk = [];
   let est_ymca_doc_bulk = [];
   let dp4_bulk = [];
-  // let parents_comb_bulk = [];
+  let hraces_stats_bulk = [];
 
   let ymca5_doc_bulk = [];
   let breed5_bulk = [];
@@ -149,7 +149,7 @@ const push_mega_bulk = async (datas_ar) => {
       ymca2_doc,
       est_ymca_doc,
       dp4,
-      // parents_comb,
+      hraces_stats,
 
       ymca5_doc,
       breed5,
@@ -161,11 +161,10 @@ const push_mega_bulk = async (datas_ar) => {
     if (!_.isEmpty(ymca2_doc)) ymca2_doc_bulk.push(ymca2_doc);
     if (!_.isEmpty(est_ymca_doc)) est_ymca_doc_bulk.push(est_ymca_doc);
     if (!_.isEmpty(dp4)) dp4_bulk.push(dp4);
-    // if (!_.isEmpty(parents_comb)) parents_comb_bulk.push(parents_comb);
+    if (!_.isEmpty(hraces_stats)) hraces_stats_bulk.push(hraces_stats);
     if (!_.isEmpty(ymca5_doc)) ymca5_doc_bulk.push(ymca5_doc);
     if (!_.isEmpty(breed5)) breed5_bulk.push(breed5);
   });
-  console.log(ymca5_doc_bulk);
 
   if (test_mode) {
     console.log("rating_blood_bulk.len", rating_blood_bulk.length);
@@ -175,7 +174,7 @@ const push_mega_bulk = async (datas_ar) => {
     console.log("ymca2_doc_bulk.len", ymca2_doc_bulk.length);
     console.log("est_ymca_doc_bulk.len", est_ymca_doc_bulk.length);
     console.log("dp4_bulk.len", dp4_bulk.length);
-    // console.log("parents_comb_bulk.len", parents_comb_bulk.length);
+    console.log("hraces_stats_bulk.len", hraces_stats_bulk.length);
   }
   await Promise.all([
     bulk.push_bulk("rating_blood3", rating_blood_bulk, "rating_blood"),
@@ -185,7 +184,7 @@ const push_mega_bulk = async (datas_ar) => {
     bulk.push_bulk("rating_breed3", ymca2_doc_bulk, "ymca2"),
     bulk.push_bulk("rating_breed3", est_ymca_doc_bulk, "est_ymca"),
     bulk.push_bulk("dp4", dp4_bulk, "dp4"),
-    // bulk.push_bulk("rating_breed3", parents_comb_bulk, "parents_comb"),
+    bulk.push_bulk("hraces_stats", hraces_stats_bulk, "hraces_stats"),
     bulk.push_bulk("ymca5", ymca5_doc_bulk, "ymca5"),
     bulk.push_bulk("rating_breed5", breed5_bulk, "breed5"),
   ]);
