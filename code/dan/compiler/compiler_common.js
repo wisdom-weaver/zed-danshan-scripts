@@ -3,7 +3,7 @@ const { zed_db } = require("../../connection/mongo_connect");
 
 const st_date = "2022-03-17T15:00:00Z";
 const v_code = 5;
-let t = 0;
+let t = 1;
 const get_compiler_hids = async () => {
   let docs = await zed_db.db
     .collection("horse_details")

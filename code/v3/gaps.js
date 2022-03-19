@@ -2,7 +2,6 @@ const cron = require("node-cron");
 const cron_parser = require("cron-parser");
 const moment = require("moment");
 const { iso, get_N, nano } = require("../utils/utils");
-const { get } = require("lodash");
 const cyclic_depedency = require("../utils/cyclic_dependency");
 const { zed_db, zed_ch } = require("../connection/mongo_connect");
 const _ = require("lodash");
@@ -265,6 +264,15 @@ const fix = async () => {
   console.table(ob2);
 };
 
+const get = async (hid) => {
+  hid = parseInt(hid);
+  if (!hid || _.isNaN(hid)) return null;
+  let doc = await zed_db.db
+    .collection(coll)
+    .findOne({ hid }, { projection: { gap: 1 } });
+  return doc?.gap || null;
+};
+
 const gap = {
   run_race,
   run_raw_races,
@@ -272,5 +280,6 @@ const gap = {
   fix: fix3,
   manual,
   run_hids,
+  get,
 };
 module.exports = gap;

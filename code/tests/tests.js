@@ -8,6 +8,8 @@ const { iso, nano } = require("../utils/utils");
 const mega = require("../v3/mega");
 const utils = require("../utils/utils");
 const races_scheduled = require("../races/races_scheduled");
+const v3rng = require("../v3/gaps");
+const v5_conf = require("../v5/v5_conf");
 
 const run_01 = async () => {
   let st = "2022-01-06T00:00:00Z";
@@ -540,5 +542,44 @@ const run_14 = async () => {
   console.table(pr);
 };
 
-const tests = { run: run_14 };
+const get_new_born_rng = async ([h, ps]) => {
+  try {
+    let hid = h;
+    let { mother = null, father = null } = ps || {};
+    let [father_rng, mother_rng, baby_rng] = await Promise.all(
+      [father, mother, hid].map(v3rng.get)
+    );
+    return {
+      hid,
+      father,
+      mother,
+      father_rng,
+      mother_rng,
+      baby_rng,
+    };
+  } catch (err) {
+    return null;
+  }
+};
+
+const run_15 = async () => {
+  let hids = await v5_conf.get_newborn_hids();
+  console.log("babies:", hids.length);
+  // hids = hids.slice(0, 10);
+  let ar = await Promise.all(
+    hids.map((h) => cyclic_depedency.get_parents(h).then((d) => [h, d]))
+  );
+  console.log("got all paarents");
+  let data = [];
+  for (let chu of _.chunk(ar, 20)) {
+    console.log(chu[0][0], chu[chu.length - 1][0]);
+    let mini = await Promise.all(chu.map(get_new_born_rng));
+    mini = _.compact(mini);
+    data.push(mini);
+  }
+  data = _.flatten(data);
+  console.table(data);
+};
+
+const tests = { run: run_15 };
 module.exports = tests;
