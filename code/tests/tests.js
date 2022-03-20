@@ -10,6 +10,8 @@ const utils = require("../utils/utils");
 const races_scheduled = require("../races/races_scheduled");
 const v3rng = require("../v3/gaps");
 const v5_conf = require("../v5/v5_conf");
+const sheet_ops = require("../../sheet_ops/sheets_ops");
+const b5_new_rngs = require("../../temp/b5_new_rngs");
 
 const run_01 = async () => {
   let st = "2022-01-06T00:00:00Z";
@@ -581,5 +583,15 @@ const run_15 = async () => {
   console.table(data);
 };
 
-const tests = { run: run_15 };
+const run_16 = async () => {
+  let values = [[`=3+2`,4,5]];
+  let range = "testing!B2:E2";
+  let spreadsheetId = "1M4pC0dcTeqek6gj0mMSwAHoGt60fMgTh_wcWr72fdI8";
+  let conf = { range, spreadsheetId, values };
+  let ob1 = await sheet_ops.push_to_sheet(conf);
+  console.log(ob1);
+  console.log(ob1?.data?.updatedData);
+};
+
+const tests = { run: b5_new_rngs.runner };
 module.exports = tests;

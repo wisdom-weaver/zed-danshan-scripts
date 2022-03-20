@@ -15,11 +15,15 @@ const gap = require("./v3/gaps");
 const { jparse } = require("./utils/cyclic_dependency");
 const payments = require("./payments/payments");
 const finder = require("./tests/finder");
+const gapi = require("../gapi/gapi");
+const temp = require("../temp/temp");
 const mod = v3;
 
 const main = async (args) => {
   await mdb.init();
   await global_req.download();
+  await gapi.init();
+
   console.log("main");
   let [_node, _cfile, arg1, arg2, arg3, arg4, arg5] = args;
   if (arg1 == "--races") {
@@ -428,7 +432,8 @@ const main = async (args) => {
     if (arg2 == "test") await finder.test();
   } else if (arg1 == "v5") {
     await v5.main_runner(args);
-  }
+  } else if (arg1 == "--temp") await temp.main_runner(args);
+
   console.log("---ed");
 };
 main(process.argv);
