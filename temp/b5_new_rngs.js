@@ -6,7 +6,7 @@ const _ = require("lodash");
 const sheet_ops = require("../sheet_ops/sheets_ops");
 const { zed_db } = require("../code/connection/mongo_connect");
 
-let range = "testing!A1";
+let range = "B5_BABY_RNG!A1";
 let spreadsheetId = "1M4pC0dcTeqek6gj0mMSwAHoGt60fMgTh_wcWr72fdI8";
 
 const get_new_born_rng = async (ob) => {
