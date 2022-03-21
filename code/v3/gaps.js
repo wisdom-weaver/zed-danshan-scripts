@@ -14,7 +14,7 @@ const dur_offset = 1 * 60 * mint;
 const def_cs = 15;
 let t = 0;
 
-const update_horse_gap = async ({ hid, gap, raceid, date }, p = 1) => {
+const update_horse_gap = async ({ hid, gap, raceid, date }, p = 0) => {
   hid = parseInt(hid);
   gap = get_N(gap, undefined);
 
@@ -155,113 +155,53 @@ const run_hids = async (hids) => {
   }
 };
 
-const fix1 = async (hid) => {
-  let aft = await zed_db.db.collection("gap6").findOne({ hid });
-  if (aft?.gap) {
-    await zed_db.db
-      .collection(coll)
-      .updateOne(
-        { hid },
-        { $set: { gap: aft.gap, date: aft.date } },
-        { upsert: true }
-      );
-    return;
-  }
-  let bef = await zed_db.db.collection("gap5").findOne({ hid });
-  if (bef?.gap) {
-    await zed_db.db
-      .collection(coll)
-      .updateOne(
-        { hid },
-        { $set: { gap: bef.gap / 2, date: bef.date } },
-        { upsert: true }
-      );
-    return;
-  }
-};
-
-const fix2 = async (hid) => {
-  try {
-    let g4 = (await zed_db.db.collection("gap4").findOne({ hid })) || {};
-    let bb =
-      (await zed_db.db
-        .collection("rating_blood3")
-        .findOne({ hid }, { projection: { hid: 1, races_n: 1 } })) || {};
-    let ngap = null;
-    let races_n = bb?.races_n ?? null;
-    if (races_n == null) {
-      let zedd = await zedf.horse(hid);
-      races_n = zedd.number_of_races;
-      await zed_db.db
-        .collection("rating_blood3")
-        .updateOne({ hid }, { $set: { races_n } });
-    }
-
-    if (races_n == undefined) return console.log("races undefined", hid);
-    if (races_n == 0) ngap = null;
-    else {
-      if (g4.gap) return;
-      else ngap = ((hid % 100) + 1) * 0.001;
-    }
-    // console.log("fix", { hid, ngap });
-    await zed_db.db
-      .collection("gap4")
-      .updateOne({ hid }, { $set: { gap: ngap } }, { upsert: true });
-  } catch (err) {
-    console.log(err);
-  }
-};
-const fix3 = async () => {
-  const hids = await cyclic_depedency.get_all_hids();
-  for (let chu of _.chunk(hids, 100)) {
-    let [a, b] = [chu[0], chu[chu.length - 1]];
-    console.log(a, b);
-    await Promise.all(chu.map(fix2));
-  }
-};
-
 const fix = async () => {
-  // let hids = await cyclic_depedency.get_all_hids();
-  // // let hids = [11084];
-  // for (let chu of _.chunk(hids, 100)) {
-  //   await Promise.all(chu.map(fix2));
-  //   let [a, b] = [chu[0], chu[chu.length - 1]];
-  //   console.log(a, "->", b);
-  // }
-  const ob = await zed_db.db
-    .collection("gap4")
-    .find({
-      gap: { $gte: 1.2, $lte: 1.3 },
-      hid: { $gte: 200000 },
-    })
-    .toArray();
-  let ob2 = [];
-  for (let { hid, gap, dist, date } of ob) {
-    // console.log({ hid, gap, dist, date });
-    let rdoc = await zed_ch.db.collection("zed").findOne({
-      6: hid,
-      2: { $regex: date.slice(0, 19) },
-    });
-    if (!rdoc) continue;
-    // console.log(rdoc);
-    let race_id = rdoc[4];
-    let rdocs = await zed_ch.db
-      .collection("zed")
-      .find({ 4: race_id }, { projection: { _id: 0, 7: 1 } })
+  let hids = await cyclic_depedency.get_all_hids();
+  // hids = hids.slice(0, 5000);
+  let null_hids = [];
+  for (let chu of _.chunk(hids, 2000)) {
+    console.log("get null_hids:", chu[0], chu[chu.length - 1]);
+    let nhids = await zed_db.db
+      .collection(coll)
+      .find(
+        { gap: { $in: [null, NaN, 0] }, hid: { $in: chu } },
+        { projection: { hid: 1, _id: 0 } }
+      )
       .toArray();
-    let avg_race_time = _.chain(rdocs).map("7").mean().value();
-    ob2.push({
-      hid,
-      rng: gap,
-      gap_sec: (gap * rdoc[1]) / 1000,
-      date,
-      dist: rdoc[1],
-      race_id,
-      avg_race_time,
-      hrace_time: rdoc[7],
-    });
+    nhids = _.map(nhids, "hid") || [];
+    let nhids2 = await zed_db.db
+      .collection("rating_blood3")
+      .find(
+        { races_n: { $gte: 35 }, hid: { $in: nhids } },
+        { projection: { hid: 1, _id: 0 } }
+      )
+      .toArray();
+    nhids2 = _.map(nhids2, "hid");
+    null_hids.push(nhids2);
   }
-  console.table(ob2);
+  null_hids = _.flatten(null_hids);
+  console.log("## null_hids:", null_hids.length);
+
+  let rids = [];
+  for (let chu of _.chunk(null_hids, 200)) {
+    console.log("get rids:", chu[0], chu[chu.length - 1]);
+    let nrids = await zed_ch.db
+      .collection("zed")
+      .find({ 6: { $in: chu } }, { projection: { 4: 1, _id: 0 } })
+      .toArray();
+    nrids = _.map(nrids, "4") || [];
+    rids.push(nrids);
+  }
+  rids = _.chain(rids).flatten().uniq().compact().value();
+  console.log("## null_rids:", rids.length);
+  console.log(rids.join(""));
+
+  let i = 0;
+  for (let chu of _.chunk(rids, 500)) {
+    await Promise.all(chu.map(run_rid));
+    i += chu.length;
+    console.log("races complete:", i);
+  }
 };
 
 const get = async (hid) => {
@@ -277,7 +217,7 @@ const gap = {
   run_race,
   run_raw_races,
   run_dur,
-  fix: fix3,
+  fix,
   manual,
   run_hids,
   get,
