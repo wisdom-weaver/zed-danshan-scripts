@@ -194,7 +194,7 @@ const fix = async () => {
   }
   rids = _.chain(rids).flatten().uniq().compact().value();
   console.log("## null_rids:", rids.length);
-  console.log(rids.join(""));
+  // console.log(rids.join(""));
 
   let i = 0;
   for (let chu of _.chunk(rids, 500)) {
