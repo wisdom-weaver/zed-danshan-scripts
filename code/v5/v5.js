@@ -62,16 +62,16 @@ const main_runner = async (args) => {
     }
   } else if (arg1 == "--rcount") {
     console.log("# rcount");
-    if (arg2 == "all") await mod.ymca5.all();
+    if (arg2 == "all") await mod.rcount.all();
     if (arg2 == "only") {
       let conf = JSON.parse(arg3) || {};
-      await mod.ymca5.only(conf);
+      await mod.rcount.only(conf);
     }
     if (arg2 == "range") {
-      await mod.ymca5.range(jparse(arg3));
+      await mod.rcount.range(jparse(arg3));
     }
     if (arg2 == "fixer") {
-      await mod.ymca5.fixer();
+      await mod.rcount.fixer();
     }
     if (arg2 == "test") {
       let conf = JSON.parse(arg3) || {};
