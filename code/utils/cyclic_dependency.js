@@ -344,6 +344,16 @@ const valid_b5 = async (hids) => {
   return _.map(docs, "hid");
 };
 
+const get_owner_horses_zed_hids = async ({ oid, offset = 0 }) => {
+  let api = `https://api.zed.run/api/v1/horses/get_user_horses?public_address=${oid}&offset=${offset}`;
+  let data = (await zedf.get(api)) || [];
+  if (_.isEmpty(data)) return [];
+  let ar = data.map((e) => e.horse_id);
+  let afters = await get_owner_horses_zed_hids({ oid, offset: offset + 10 });
+  if (!_.isEmpty(afters)) ar = [...ar, ...afters];
+  return ar;
+};
+
 const cyclic_depedency = {
   get_races_of_hid,
   from_ch_zed_collection,
@@ -366,6 +376,7 @@ const cyclic_depedency = {
   struct_zed_hdoc,
   get_range_hids,
   valid_b5,
+  get_owner_horses_zed_hids,
 };
 
 module.exports = cyclic_depedency;
