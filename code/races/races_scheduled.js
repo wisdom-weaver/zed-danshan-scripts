@@ -42,10 +42,14 @@ const push = async (sraces) => {
   if (_.isEmpty(sraces)) return;
   let ar = sraces.map((e) => {
     let rid = e.race_id;
+    let length = e.length;
+    let fee = parseFloat(e.fee);
     let start_time = e.start_time;
     if (!start_time.endsWith("Z")) start_time += "Z";
     let hids = _.map(e.gates);
-    return { rid, hids, start_time };
+    let ob = { rid, hids, start_time, length, fee };
+    // console.log(ob);
+    return ob;
   });
   let bulk = ar.map((e) => {
     return {
