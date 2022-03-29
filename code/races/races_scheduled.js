@@ -45,9 +45,10 @@ const push = async (sraces) => {
     let length = e.length;
     let fee = parseFloat(e.fee);
     let start_time = e.start_time;
+    let race_class = e.class;
     if (!start_time.endsWith("Z")) start_time += "Z";
     let hids = _.map(e.gates);
-    let ob = { rid, hids, start_time, length, fee };
+    let ob = { rid, hids, start_time, length, fee, race_class };
     // console.log(ob);
     return ob;
   });
