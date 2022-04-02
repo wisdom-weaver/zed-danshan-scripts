@@ -18,7 +18,7 @@ let test_mode = 0;
 const get_codes_val = async (hid) => {
   try {
     let { rng, dp, ba } = await r4data.get_r4(hid);
-    console.log(hid, { rng, dp, ba });
+    if (test_mode) console.log(hid, { rng, dp, ba });
     let [r = 0, d = 0, b = 0] = [
       cc.get_rng_val(rng),
       cc.get_dp_val(dp),
