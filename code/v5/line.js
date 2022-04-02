@@ -12,7 +12,7 @@ const utils = require("../utils/utils");
 
 const name = "line";
 const coll = "line";
-let cs = 10;
+let cs = 1;
 let test_mode = 0;
 
 const get_codes_val = async (hid) => {
@@ -48,6 +48,7 @@ const calc = async ({ hid }) => {
     10
   );
   hids_ccs = hids_ccs.filter(([hid, d]) => {
+    if (d.tot == undefined) console.log("undef", hid, d);
     return d?.races_n != 0;
   });
   if (_.isEmpty(hids_ccs)) {
@@ -57,10 +58,13 @@ const calc = async ({ hid }) => {
 
   let ob = tree.map(([hid, k, level]) => {
     let eaob = hids_ccs[hid];
+    if (eaob == undefined) return undefined;
     let wt = level_wt(level);
     let adjusted = wt * eaob.tot;
     return { hid, k, level, wt, ...eaob, adjusted };
   });
+  ob = _.compact(ob);
+  
   if (test_mode) console.table(ob);
   const adj_total = _.sumBy(ob, "adjusted") ?? 0;
   const count_total = _.sumBy(ob, "count") ?? 0;
@@ -71,10 +75,14 @@ const calc = async ({ hid }) => {
 };
 
 const generate = async (hid) => {
-  hid = parseInt(hid);
-  let ob = await calc({ hid });
-  // if (test_mode) console.log(ob);
-  return ob;
+  try {
+    hid = parseInt(hid);
+    let ob = await calc({ hid });
+    // if (test_mode) console.log(ob);
+    return ob;
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 const all = async () => bulk.run_bulk_all(name, generate, coll, cs, test_mode);
