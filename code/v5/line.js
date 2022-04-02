@@ -44,7 +44,7 @@ const calc = async ({ hid }) => {
   }
   let hids_ccs = await promises_n(
     _.map(tree, "0").map((hid) => get_codes_val(hid).then((d) => [hid, d])),
-    5
+    10
   );
   hids_ccs = _.fromPairs(hids_ccs);
   let ob = tree.map(([hid, k, level]) => {
