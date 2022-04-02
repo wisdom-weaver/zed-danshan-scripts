@@ -17,8 +17,9 @@ let test_mode = 0;
 
 const get_codes_val = async (hid) => {
   try {
+    let races_n = (await get_races_n(hid)) || 0;
     let { rng, dp, ba } = await r4data.get_r4(hid);
-    if (test_mode) console.log(hid, { rng, dp, ba });
+    if (test_mode) console.log(hid, { races_n, rng, dp, ba });
     let [r = 0, d = 0, b = 0] = [
       cc.get_rng_val(rng),
       cc.get_dp_val(dp),
@@ -28,7 +29,7 @@ const get_codes_val = async (hid) => {
       [r, d, b],
       (e) => ![null, NaN, undefined, 0].includes(e)
     )?.length;
-    return { r, d, b, tot: r + d + b, count };
+    return { races_n, r, d, b, tot: r + d + b, count };
   } catch (err) {
     console.log(err);
     console.log(err.message);
@@ -46,7 +47,14 @@ const calc = async ({ hid }) => {
     _.map(tree, "0").map((hid) => get_codes_val(hid).then((d) => [hid, d])),
     10
   );
+  hids_ccs = hids_ccs.filter(([hid, d]) => {
+    return d?.races_n != 0;
+  });
+  if (_.isEmpty(hids_ccs)) {
+    return { hid, tree, adj_total: 0, count_total: 0, line_score: null };
+  }
   hids_ccs = _.fromPairs(hids_ccs);
+
   let ob = tree.map(([hid, k, level]) => {
     let eaob = hids_ccs[hid];
     let wt = level_wt(level);
