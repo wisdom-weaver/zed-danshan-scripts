@@ -7,10 +7,12 @@ const r4data = require("./r4");
 const cc = require("./color_codes");
 const ancestors = require("./ancestors");
 const sheet_ops = require("../../sheet_ops/sheets_ops");
+const { promises_n } = require("../utils/utils");
+const utils = require("../utils/utils");
 
 const name = "line";
 const coll = "line";
-let cs = 25;
+let cs = 10;
 let test_mode = 0;
 
 const get_codes_val = async (hid) => {
@@ -40,8 +42,9 @@ const calc = async ({ hid }) => {
   if (_.isEmpty(tree)) {
     return { hid, tree: [], adj_total: 0, count_total: 0, line_score: null };
   }
-  let hids_ccs = await Promise.all(
-    _.map(tree, "0").map((hid) => get_codes_val(hid).then((d) => [hid, d]))
+  let hids_ccs = await promises_n(
+    _.map(tree, "0").map((hid) => get_codes_val(hid).then((d) => [hid, d])),
+    5
   );
   hids_ccs = _.fromPairs(hids_ccs);
   let ob = tree.map(([hid, k, level]) => {
@@ -69,8 +72,12 @@ const generate = async (hid) => {
 const all = async () => bulk.run_bulk_all(name, generate, coll, cs, test_mode);
 const only = async (hids) =>
   bulk.run_bulk_only(name, generate, coll, hids, cs, test_mode);
-const range = async (st, ed) =>
+const range = async (st, ed) => {
+  st = parseInt(st);
+  ed = parseInt(ed);
+  if (!ed || ed == "ed") ed = await cyclic_depedency.get_ed_horse();
   bulk.run_bulk_range(name, generate, coll, st, ed, cs, test_mode);
+};
 
 const fix = async () => {
   let stable = "0xa0d9665E163f498082Cd73048DA17e7d69Fd9224";

@@ -259,6 +259,15 @@ const getv = (ob, path) => {
   }
 };
 
+const promises_n = async (promises, n = 10) => {
+  let ar = [];
+  for (let chu of _.chunk(promises, n)) {
+    let eachu = await Promise.all(chu);
+    ar.push(eachu);
+  }
+  return _.flatten(ar);
+};
+
 const mt = 60 * 1000;
 
 const utils = {
@@ -290,6 +299,7 @@ const utils = {
   remove_bullshits,
   mt,
   getv,
+  promises_n,
 };
 
 module.exports = utils;
