@@ -1,4 +1,5 @@
 const { jparse } = require("../utils/cyclic_dependency");
+const line = require("./line");
 const rating_breed = require("./rating_breed");
 const rcount = require("./rcount");
 const ymca5_s = require("./ymca5");
@@ -9,6 +10,7 @@ const mod = {
   ymca5_table,
   rating_breed,
   rcount,
+  line,
 };
 
 const main_runner = async (args) => {
@@ -79,6 +81,26 @@ const main_runner = async (args) => {
     }
     if (arg2 == "fix") {
       await mod.rcount.fix();
+    }
+  } else if (arg1 == "--line") {
+    console.log("# line");
+    if (arg2 == "all") await mod.line.all();
+    if (arg2 == "only") {
+      let conf = JSON.parse(arg3) || {};
+      await mod.line.only(conf);
+    }
+    if (arg2 == "range") {
+      await mod.line.range(jparse(arg3));
+    }
+    if (arg2 == "fixer") {
+      await mod.line.fixer();
+    }
+    if (arg2 == "test") {
+      let conf = JSON.parse(arg3) || {};
+      await mod.line.test(conf);
+    }
+    if (arg2 == "fix") {
+      await mod.line.fix();
     }
   }
 };

@@ -1,3 +1,4 @@
+const _ = require("lodash");
 const { google } = require("googleapis");
 
 const get_sheet = async ({ spreadsheetId, range }) => {
@@ -46,10 +47,31 @@ const test = async () => {
   }
 };
 
+const struct_ob_to_values = (data) => {
+  let keys = _.keys(data[0]);
+  console.log(keys);
+  let ar = _.map(data, _.values);
+  let values = [keys, ...ar];
+  return values;
+};
+
+const sheet_print_ob = async (ob, { range, spreadsheetId }) => {
+  let values = struct_ob_to_values(ob);
+  let conf = { range, spreadsheetId, values };
+  return push_to_sheet(conf);
+};
+const sheet_print_cell = async (val, { range, spreadsheetId }) => {
+  let values = [[val]];
+  let conf = { range, spreadsheetId, values };
+  return push_to_sheet(conf);
+};
+
 const sheet_ops = {
   get_sheet,
   push_to_sheet,
   test,
+  sheet_print_ob,
+  sheet_print_cell,
 };
 
 module.exports = sheet_ops;

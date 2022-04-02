@@ -40,7 +40,7 @@ const fetch = async () => {
       )
       .toArray()) || [];
   console.log("babies:", docs.length);
-  // docs = docs.slice(0, 10);
+  docs = docs.slice(0, 10);
   console.log("got all parents");
   let data = [];
   for (let chu of _.chunk(docs, 50)) {
