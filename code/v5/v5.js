@@ -99,6 +99,10 @@ const main_runner = async (args) => {
       let conf = JSON.parse(arg3) || {};
       await mod.line.test(conf);
     }
+    if (arg2 == "pair_test") {
+      let conf = JSON.parse(arg3) || {};
+      await mod.line.pair_test(conf);
+    }
     if (arg2 == "fix") {
       await mod.line.fix();
     }

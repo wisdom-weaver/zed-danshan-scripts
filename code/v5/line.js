@@ -9,6 +9,7 @@ const ancestors = require("./ancestors");
 const sheet_ops = require("../../sheet_ops/sheets_ops");
 const { promises_n } = require("../utils/utils");
 const utils = require("../utils/utils");
+const { get_ancesters_stub } = require("./ancestors");
 
 const name = "line";
 const coll = "line";
@@ -64,7 +65,7 @@ const calc = async ({ hid }) => {
     return { hid, k, level, wt, ...eaob, adjusted };
   });
   ob = _.compact(ob);
-  
+
   if (test_mode) console.table(ob);
   const adj_total = _.sumBy(ob, "adjusted") ?? 0;
   const count_total = _.sumBy(ob, "count") ?? 0;
@@ -123,5 +124,17 @@ const test = async (hids) => {
   console.log("done");
 };
 
-const line = { calc, generate, all, only, range, test, fix };
+const pair_test = async (ar) => {
+  let [father_id, mother_id] = ar;
+  const ob = await get_ancesters_stub({
+    mother_id,
+    father_id,
+    level: 2,
+    k: "",
+    scratch: 1,
+  });
+  console.table(ob);
+};
+
+const line = { calc, generate, all, only, range, test, fix, pair_test };
 module.exports = line;

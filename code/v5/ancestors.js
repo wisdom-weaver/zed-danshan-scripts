@@ -17,12 +17,13 @@ async function get_ancesters_stub({
   mother_id,
   k = "",
   level = 1,
+  scratch = 0,
 }) {
   // console.log(k, refhid, { father_id, mother_id });
   if (!father_id && !mother_id) return [];
   let ar = [];
   let ftree = [];
-  let fet_ftree = await find_hid_tree(father_id);
+  let fet_ftree = scratch == 1 ? undefined : await find_hid_tree(father_id);
   if (fet_ftree !== undefined) {
     ftree = fet_ftree;
     ftree = ftree.map(([hid, k, level]) => {
@@ -37,17 +38,18 @@ async function get_ancesters_stub({
     ftree =
       fparents == null
         ? []
-        : await get_ancesters({
+        : await get_ancesters_stub({
             refhid: father_id,
             father_id: fparents.father,
             mother_id: fparents.mother,
             k: k + "f",
             level: level + 1,
+            scratch,
           });
   }
 
   let mtree = [];
-  let fet_mtree = await find_hid_tree(mother_id);
+  let fet_mtree = scratch == 1 ? undefined : await find_hid_tree(mother_id);
   if (fet_mtree !== undefined) {
     mtree = fet_mtree;
     mtree = mtree.map(([hid, k, level]) => {
@@ -62,12 +64,13 @@ async function get_ancesters_stub({
     mtree =
       mparents == null
         ? []
-        : await get_ancesters({
+        : await get_ancesters_stub({
             refhid: mother_id,
             father_id: mparents.father,
             mother_id: mparents.mother,
             k: k + "m",
             level: level + 1,
+            scratch,
           });
   }
   ar = [...ar, ...ftree, ...mtree];
@@ -79,7 +82,7 @@ async function find_hid_tree(hid) {
   let doc = await zed_db.db.collection("line").findOne({ hid });
   let tree = getv(doc, "tree");
   if (tree) {
-    // console.log("found tree for", hid);
+    console.log("found tree for", hid);
     return tree;
   }
   return undefined;
@@ -100,5 +103,5 @@ async function get_ancesters({ hid }) {
   tree = [[parents.father, "f", 1], [parents.mother, "m", 1], ...ans];
   return tree;
 }
-const ancestors = { get_ancesters };
+const ancestors = { get_ancesters, get_ancesters_stub };
 module.exports = ancestors;
