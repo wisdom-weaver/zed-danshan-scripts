@@ -7,9 +7,10 @@ const r4data = require("./r4");
 const cc = require("./color_codes");
 const ancestors = require("./ancestors");
 const sheet_ops = require("../../sheet_ops/sheets_ops");
-const { promises_n } = require("../utils/utils");
+const { promises_n, iso } = require("../utils/utils");
 const utils = require("../utils/utils");
 const { get_ancesters_stub, get_ancesters } = require("./ancestors");
+const cron = require("node-cron");
 
 const name = "line";
 const coll = "line";
@@ -121,7 +122,7 @@ const test = async (hids) => {
   //   console.log(ob);
   // }
   // console.log("done");
-  let [hid,row] = hids;
+  let [hid, row] = hids;
   let baby_rng = await r4data.get_rng(hid);
   let ans = await get_ancesters({ hid });
   let ans_rngs = await Promise.all(
@@ -152,5 +153,25 @@ const pair_test = async (ar) => {
   console.table(ob);
 };
 
-const line = { calc, generate, all, only, range, test, fix, pair_test };
+const run_cron = async () => {
+  const cron_str = `0 0 * * 1,4`;
+  cyclic_depedency.print_cron_details(cron_str);
+  cron.schedule(cron_str, async () => {
+    console.log("started", iso());
+    await all();
+    console.log("ended", iso());
+  });
+};
+
+const line = {
+  calc,
+  generate,
+  all,
+  only,
+  range,
+  test,
+  fix,
+  pair_test,
+  run_cron,
+};
 module.exports = line;

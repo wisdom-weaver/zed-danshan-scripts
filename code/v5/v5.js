@@ -106,6 +106,9 @@ const main_runner = async (args) => {
     if (arg2 == "fix") {
       await mod.line.fix();
     }
+    if (arg2 == "run_cron") {
+      await mod.line.run_cron();
+    }
   }
 };
 
