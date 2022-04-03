@@ -9,7 +9,7 @@ const ancestors = require("./ancestors");
 const sheet_ops = require("../../sheet_ops/sheets_ops");
 const { promises_n } = require("../utils/utils");
 const utils = require("../utils/utils");
-const { get_ancesters_stub } = require("./ancestors");
+const { get_ancesters_stub, get_ancesters } = require("./ancestors");
 
 const name = "line";
 const coll = "line";
@@ -115,13 +115,29 @@ const level_wt = (level) => {
 };
 
 const test = async (hids) => {
-  test_mode = 1;
-  for (let hid of hids) {
-    let ob = await calc({ hid });
-    console.log(ob);
-  }
-
-  console.log("done");
+  // test_mode = 1;
+  // for (let hid of hids) {
+  //   let ob = await calc({ hid });
+  //   console.log(ob);
+  // }
+  // console.log("done");
+  let [hid,row] = hids;
+  let baby_rng = await r4data.get_rng(hid);
+  let ans = await get_ancesters({ hid });
+  let ans_rngs = await Promise.all(
+    _.map(ans, 0).map((h) => r4data.get_rng(h).then((d) => [h, d]))
+  );
+  ans_rngs = _.fromPairs(ans_rngs);
+  let ob = ans.map(([hid, k, level]) => {
+    let rng = ans_rngs[hid];
+    return { hid, k, level, rng };
+  });
+  ob = [{ hid, k: "baby", level: 0, rng: baby_rng }, ...ob];
+  console.table(ob);
+  await sheet_ops.sheet_print_ob(ob, {
+    spreadsheetId: "1MWnILjDr71rW-Gp8HrKP6YnS03mJARygLSuS7xxsHhM",
+    range: `baby_rng_ances!A${row}`,
+  });
 };
 
 const pair_test = async (ar) => {
