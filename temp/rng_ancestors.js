@@ -38,7 +38,7 @@ const get_hid_ans_rng = async ({ hid }) => {
 };
 
 const get_hids_rng = async () => {
-  const cs = 10;
+  const cs = 30;
   let docs =
     (await zed_db.db
       .collection("horse_details")
@@ -47,7 +47,7 @@ const get_hids_rng = async () => {
         { projection: { hid: 1 } }
       )
       .toArray()) || [];
-  docs = docs.slice(0, cs * 2);
+  // docs = docs.slice(0, cs * 2);
   console.log("babies:", docs.length);
   let hids = _.map(docs, "hid");
   hids = [63797, ...hids];
