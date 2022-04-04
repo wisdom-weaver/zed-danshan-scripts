@@ -42,10 +42,7 @@ const get_hids_rng = async () => {
   let docs =
     (await zed_db.db
       .collection("horse_details")
-      .find(
-        { tx_date: { $gte: v5_conf.st_date }, hid: { $gte: 380000 } },
-        { projection: { hid: 1 } }
-      )
+      .find({ tx_date: { $gte: v5_conf.st_date } }, { projection: { hid: 1 } })
       .toArray()) || [];
   // docs = docs.slice(0, cs * 2);
   console.log("babies:", docs.length);
