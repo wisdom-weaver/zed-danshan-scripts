@@ -82,7 +82,7 @@ async function find_hid_tree(hid) {
   let doc = await zed_db.db.collection("line").findOne({ hid });
   let tree = getv(doc, "tree");
   if (tree) {
-    console.log("found tree for", hid);
+    // console.log("found tree for", hid);
     return tree;
   }
   return undefined;
