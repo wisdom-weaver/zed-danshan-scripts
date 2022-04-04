@@ -134,11 +134,13 @@ const test = async (hids) => {
     return { hid, k, level, rng };
   });
   ob = [{ hid, k: "baby", level: 0, rng: baby_rng }, ...ob];
+  ob = _.chain(ob).keyBy("k").mapValues("rng");
+  ob.hid = hid;
   console.table(ob);
-  await sheet_ops.sheet_print_ob(ob, {
-    spreadsheetId: "1MWnILjDr71rW-Gp8HrKP6YnS03mJARygLSuS7xxsHhM",
-    range: `baby_rng_ances!A${row}`,
-  });
+  // await sheet_ops.sheet_print_ob(ob, {
+  //   spreadsheetId: "1MWnILjDr71rW-Gp8HrKP6YnS03mJARygLSuS7xxsHhM",
+  //   range: `baby_rng_ances!A${row}`,
+  // });
 };
 
 const pair_test = async (ar) => {

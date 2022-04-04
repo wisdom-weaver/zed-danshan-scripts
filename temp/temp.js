@@ -3,9 +3,11 @@ const cyclic_depedency = require("../code/utils/cyclic_dependency");
 const { cron_conf } = require("../code/utils/utils");
 const b5_new_rngs = require("./b5_new_rngs");
 const cron = require("node-cron");
+const rng_ancestors = require("./rng_ancestors");
 
 const crons_ar = {
   b5_new_rngs: [b5_new_rngs.cron_str, b5_new_rngs.runner],
+  rng_ancestors: [rng_ancestors.cron_str, rng_ancestors.runner],
 };
 const runner = async (id) => {
   console.log("run cron", id);
