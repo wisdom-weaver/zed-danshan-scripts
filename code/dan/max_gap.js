@@ -15,60 +15,64 @@ const download_races = async (st, ed) => {
 };
 
 const raw_race_runner = async (races) => {
-  races = cyclic_depedency.struct_race_row_data(races);
-  races = _.groupBy(races, "raceid");
-  console.log("found", _.keys(races).length);
-  let data = [];
-  for (let [rid, ar] of _.entries(races)) {
-    // console.log(rid, ar.length);
-    if (_.isEmpty(ar)) continue;
-    let date = ar[0].date;
-    let dist = ar[0].distance;
-    let f_ob = _.chain(ar).keyBy("place").mapValues("flame").value();
-    let hid_ob = _.chain(ar).keyBy("place").mapValues("hid").value();
-    let t_ob = _.chain(ar).keyBy("place").mapValues("finishtime").value();
-    // console.log(f_ob);
-    // console.log(hid_ob);
-    // console.log(t_ob);
-    let g_1_2 = t_ob[2] - t_ob[1];
-    let g_11_12 = t_ob[12] - t_ob[11];
-    let hid_1 = hid_ob[1];
-    let hid_12 = hid_ob[12];
-    let f_1 = f_ob[1];
-    let f_12 = f_ob[12];
+  try {
+    races = cyclic_depedency.struct_race_row_data(races);
+    races = _.groupBy(races, "raceid");
+    console.log("found", _.keys(races).length);
+    let data = [];
+    for (let [rid, ar] of _.entries(races)) {
+      // console.log(rid, ar.length);
+      if (_.isEmpty(ar)) continue;
+      let date = ar[0].date;
+      let dist = ar[0].distance;
+      let f_ob = _.chain(ar).keyBy("place").mapValues("flame").value();
+      let hid_ob = _.chain(ar).keyBy("place").mapValues("hid").value();
+      let t_ob = _.chain(ar).keyBy("place").mapValues("finishtime").value();
+      // console.log(f_ob);
+      // console.log(hid_ob);
+      // console.log(t_ob);
+      let g_1_2 = t_ob[2] - t_ob[1];
+      let g_11_12 = t_ob[12] - t_ob[11];
+      let hid_1 = hid_ob[1];
+      let hid_12 = hid_ob[12];
+      let f_1 = f_ob[1];
+      let f_12 = f_ob[12];
 
-    let eg_1_2 = (g_1_2 * 1000) / dist;
-    let eg_11_12 = (g_11_12 * 1000) / dist;
+      let eg_1_2 = (g_1_2 * 1000) / dist;
+      let eg_11_12 = (g_11_12 * 1000) / dist;
 
-    let ob = {
-      rid,
-      hid_1,
-      hid_12,
-      g_1_2,
-      g_11_12,
-      eg_1_2,
-      eg_11_12,
-      f_1,
-      f_12,
-      date,
-      dist,
-    };
-    data.push(ob);
+      let ob = {
+        rid,
+        hid_1,
+        hid_12,
+        g_1_2,
+        g_11_12,
+        eg_1_2,
+        eg_11_12,
+        f_1,
+        f_12,
+        date,
+        dist,
+      };
+      data.push(ob);
+    }
+    let bulk = [];
+    for (let ob of data) {
+      if (_.isEmpty(ob)) continue;
+      bulk.push({
+        updateOne: {
+          filter: { rid: ob.rid },
+          update: { $set: ob },
+          upsert: true,
+        },
+      });
+    }
+    if (!_.isEmpty(bulk))
+      await zed_db.db.collection("gap_leader").bulkWrite(bulk);
+    console.log("gap_leader wrote", bulk.length);
+  } catch (err) {
+    console.log("raw_race_runner\n", err);
   }
-  let bulk = [];
-  for (let ob of data) {
-    if (_.isEmpty(ob)) continue;
-    bulk.push({
-      updateOne: {
-        filter: { rid: ob.rid },
-        update: { $set: ob },
-        upsert: true,
-      },
-    });
-  }
-  if (!_.isEmpty(bulk))
-    await zed_db.db.collection("gap_leader").bulkWrite(bulk);
-  console.log("gap_leader wrote", bulk.length);
 };
 
 const run_duration = async (st, ed) => {

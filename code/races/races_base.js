@@ -313,14 +313,14 @@ const zed_push_races_to_mongo = async (races) => {
   let hids = _.map(horses_ar, "hid");
   if (push_race_horses_on) {
     console.log("race_horses.len:", horses_ar.length);
-    // console.table(horses_ar)
     await race_horses.push_ar(horses_ar);
   }
   if (!_.isEmpty(mongo_push)) {
     await zed_ch.db.collection("zed").bulkWrite(mongo_push);
   }
+  console.log(hids.length, "pushed docs");
   if (!_.isEmpty(races_ar)) {
-    await max_gap.raw_race_runner(races_ar);
+    // await max_gap.raw_race_runner(races_ar);
     await gap.run_raw_races(races_ar);
   }
   if (!_.isEmpty(hids)) {
@@ -646,30 +646,36 @@ const zed_races_zrapi_runner = async (
   console.log("ENDED");
 };
 const zed_race_run_rids = async (rids, cs = def_cs) => {
-  let all_pushed_n = [];
-  for (let chunk_rids of _.chunk(rids, cs)) {
-    console.log("getting", chunk_rids.toString());
-    let races = await Promise.all(
-      chunk_rids.map((rid) =>
-        zed_races_zrapi_rid_runner(rid).then((d) => [rid, d])
-      )
-    );
-    races = _.compact(races);
-    races = races.filter(([rid, d]) => {
-      let n = _.values(d)?.length || 0;
-      if (n == 0) console.log("EMPTY", "rid:", rid);
-      else if (n == 12) console.log("GOT", _.values(d)[0][2], "rid:", rid, n);
-      else console.log("ERR", _.values(d)[0][2], "rid:", rid, n);
-      return n == 12;
-    });
-    let n = races.length;
-    races = _.fromPairs(races);
-    let pushed_n = await zed_push_races_to_mongo(races);
-    // await zed_db.db.collection("sraces").deleteMany({ rid: { $in: pushed_n } });
-    console.log("pushed", n, "races\n");
-    all_pushed_n = [...all_pushed_n, ...pushed_n];
+  try {
+    let all_pushed_n = [];
+    for (let chunk_rids of _.chunk(rids, cs)) {
+      console.log("getting", chunk_rids.toString());
+      let races = await Promise.all(
+        chunk_rids.map((rid) =>
+          zed_races_zrapi_rid_runner(rid).then((d) => [rid, d])
+        )
+      );
+      races = _.compact(races);
+      races = races.filter(([rid, d]) => {
+        let n = _.values(d)?.length || 0;
+        if (n == 0) console.log("EMPTY", "rid:", rid);
+        else if (n == 12) console.log("GOT", _.values(d)[0][2], "rid:", rid, n);
+        else console.log("ERR", _.values(d)[0][2], "rid:", rid, n);
+        return n == 12;
+      });
+      let n = races.length;
+      console.log("NNN", n);
+      races = _.fromPairs(races);
+      let pushed_n = await zed_push_races_to_mongo(races);
+      // await zed_db.db.collection("sraces").deleteMany({ rid: { $in: pushed_n } });
+      console.log("pushed", n, "races\n");
+      all_pushed_n = [...all_pushed_n, ...pushed_n];
+    }
+    return all_pushed_n;
+  } catch (err) {
+    console.log("err", err);
+    return 0;
   }
-  return all_pushed_n;
 };
 
 const races_base = {

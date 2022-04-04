@@ -76,7 +76,7 @@ const push = async (sraces) => {
 
 const process = async () => {
   try {
-    let st1 = moment().subtract("3", "minutes").toISOString();
+    let st1 = moment().subtract("2", "minutes").toISOString();
     let st2 = moment().subtract("4", "minutes").toISOString();
     console.log("scheduled not_processed:%s  also:%s", st1, st2);
     let rids =
