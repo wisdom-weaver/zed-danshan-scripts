@@ -5,9 +5,7 @@ const global_req = require("./global_req/global_req");
 const race_horses = require("./races/race_horses");
 const zed_races = require("./races/zed_races");
 const tests = require("./tests/tests");
-const tourneyr02 = require("./tourney/tourneyr02");
 const utils = require("./utils/utils");
-const tourneyr01 = require("./tourney/tourneyr01");
 const v3 = require("./v3/v3");
 const v5 = require("./v5/v5");
 const z_stats = require("./v3/z_stats");
@@ -17,6 +15,7 @@ const payments = require("./payments/payments");
 const finder = require("./tests/finder");
 const gapi = require("../gapi/gapi");
 const temp = require("../temp/temp");
+const tourney = require("./tourney");
 const mod = v3;
 
 const main = async (args) => {
@@ -404,13 +403,6 @@ const main = async (args) => {
     if (arg2 == "generate") {
       z_stats.generate();
     }
-  } else if (arg1 == "--tourney") {
-    if (arg2 == "test") {
-      arg3 = JSON.parse(arg3);
-      tourneyr02.test(arg3);
-    }
-    if (arg2 == "now_h") tourneyr02.now_h();
-    if (arg2 == "run_cron_h") tourneyr02.run_cron_h();
   } else if (arg1 == "--payments") {
     if (arg2 == "test") await payments.test();
     if (arg2 == "runner") await payments.runner();
@@ -433,6 +425,9 @@ const main = async (args) => {
   } else if (arg1 == "v5") {
     await v5.main_runner(args);
   } else if (arg1 == "--temp") await temp.main_runner(args);
+  else if (arg1 == "--tourney") {
+    await tourney.main_runner(args);
+  }
 
   console.log("---ed");
 };

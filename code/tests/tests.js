@@ -4,7 +4,7 @@ const _ = require("lodash");
 const { zed_ch, zed_db } = require("../connection/mongo_connect");
 const cyclic_depedency = require("../utils/cyclic_dependency");
 const moment = require("moment");
-const { iso, nano } = require("../utils/utils");
+const { iso, nano, getv } = require("../utils/utils");
 const mega = require("../v3/mega");
 const utils = require("../utils/utils");
 const races_scheduled = require("../races/races_scheduled");
@@ -12,6 +12,7 @@ const v3rng = require("../v3/gaps");
 const v5_conf = require("../v5/v5_conf");
 const sheet_ops = require("../../sheet_ops/sheets_ops");
 const b5_new_rngs = require("../../temp/b5_new_rngs");
+const { get_parents } = require("../utils/cyclic_dependency");
 
 const run_01 = async () => {
   let st = "2022-01-06T00:00:00Z";
@@ -584,7 +585,7 @@ const run_15 = async () => {
 };
 
 const run_16 = async () => {
-  let values = [[`=3+2`,4,5]];
+  let values = [[`=3+2`, 4, 5]];
   let range = "testing!B2:E2";
   let spreadsheetId = "1M4pC0dcTeqek6gj0mMSwAHoGt60fMgTh_wcWr72fdI8";
   let conf = { range, spreadsheetId, values };
@@ -593,5 +594,50 @@ const run_16 = async () => {
   console.log(ob1?.data?.updatedData);
 };
 
-const tests = { run: b5_new_rngs.runner };
+const get_dp = async (hid) => {
+  let dp4 = await zed_db.db
+    .collection("dp4")
+    .findOne({ hid }, { projection: { dp: 1, dist: 1 } });
+  return dp4;
+};
+
+const getpda = async (baby) => {
+  let parents = await get_parents(baby);
+  let { mother, father } = parents;
+  let [bdp, mdp, fdp] = await Promise.all([baby, mother, father].map(get_dp));
+  let ob = {
+    baby,
+    baby_dp_dist: bdp?.dist,
+    baby_dp_score: bdp?.dp,
+    mother_dp_score: mdp?.dp,
+    father_dp_score: fdp?.dp,
+  };
+  return ob;
+};
+
+const run_17 = async () => {
+  const spreadsheetId = "1MWnILjDr71rW-Gp8HrKP6YnS03mJARygLSuS7xxsHhM";
+  const range = "1616";
+  let qu = { dist_f: 1600, dist_m: 1600 };
+  let doc = await zed_db.db.collection("compiler_dp").findOne(qu);
+  let hids = [1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600].map((d) =>
+    getv(doc, `dist_ob.${d}.hids`)
+  );
+  hids = _.flatten(hids);
+  // hids = hids.slice(0, 10);
+  console.log("len: ", hids.length);
+  let ar = [];
+  let i = 0;
+  for (let chu of _.chunk(hids, 10)) {
+    let minar = await Promise.all(chu.map(getpda));
+    ar.push(minar);
+    i += minar.length;
+    console.log(i);
+  }
+  ar = _.flatten(ar);
+  let ob1 = await sheet_ops.sheet_print_ob(ar, { range, spreadsheetId });
+  console.log(ob1.data);
+};
+
+const tests = { run: run_17 };
 module.exports = tests;

@@ -94,6 +94,9 @@ const key_mapping_bs_zed = [
   ["14", "fee_cat"],
   ["15", "adjfinishtime"],
   ["16", "tc"],
+  // ["20", "fee_tag"],
+  // ["21", "entryfee_usd"],
+  // ["23", "pool"],
 ];
 
 const struct_race_row_data = (data) => {
