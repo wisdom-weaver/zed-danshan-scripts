@@ -210,12 +210,16 @@ const run_t_tot_fees = async (tid, tdoc) => {
   let tot_fees =
     _.chain(pays)
       .filter((i) => getv(i, "meta_req.type") == "fee")
-      .sumBy("req_amt")
+      .map("req_amt")
+      .filter((e) => ![null, undefined, NaN].includes(parseFloat(e)))
+      .sum()
       .value() ?? 0;
   let tot_sponsors =
     _.chain(pays)
       .filter((i) => getv(i, "meta_req.type") == "sponsor")
-      .sumBy("req_amt")
+      .map("req_amt")
+      .filter((e) => ![null, undefined, NaN].includes(parseFloat(e)))
+      .sum()
       .value() ?? 0;
   return { tot_fees, tot_sponsors };
 };
