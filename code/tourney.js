@@ -256,6 +256,7 @@ const run_tid = async (tid) => {
       service: tcoll_stables(tid),
       date: { $gte: entry_st, $lte: entry_ed },
       "meta_req.hids": { $elemMatch: { $in: hids_all } },
+      "meta_req.type": "fee",
     },
     { pay_id: 1, status_code: 1, req_amt: 1, "meta_req.hids": 1, date: 1 }
   );
