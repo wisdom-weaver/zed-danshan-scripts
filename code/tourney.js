@@ -6,6 +6,7 @@ const { get_entryfee_usd } = require("./utils/base");
 const bulk = require("./utils/bulk");
 const { getv, get_fee_tag, iso, nano, cron_conf } = require("./utils/utils");
 const { print_cron_details } = require("./utils/cyclic_dependency");
+const utils = require("../code/utils/utils");
 
 const tcoll = "tourney_master";
 const tcoll_horses = (tid) => `tourney::${tid}::horses`;
@@ -33,18 +34,22 @@ const tx2 = (...a) => tfet_many("payments", ...a.slice(1));
 const get_tids = async (body) => {
   let active = getv(body, "active") || false;
   let query = {};
-  if (active)
+  if (active) {
     query = {
-      tourney_st: { $gte: moment().toISOString() },
-      tourney_ed: { $lte: moment().add(-5, "minutes").toISOString() },
+      $or: [
+        {
+          tourney_st: { $lte: moment().toISOString() },
+          tourney_ed: { $gte: moment().add(-15, "minutes").toISOString() },
+        },
+        {
+          entry_st: { $lte: moment().toISOString() },
+          entry_ed: { $gte: moment().add(-15, "minutes").toISOString() },
+        },
+      ],
     };
-  let docs = await tm2(null, {}, { tid: 1 });
-  let tids = _.map(docs, "tid") || [];
-  return tids;
-};
-
-const get_acive_tids = async () => {
-  let docs = await tm2(null, {}, { tid: 1 });
+    // console.log(query);
+  }
+  let docs = await tm2(null, query, { tid: 1 });
   let tids = _.map(docs, "tid") || [];
   return tids;
 };
@@ -187,6 +192,34 @@ const run_t_give_ranks = (hdocs, tdoc) => {
   return hdocs;
 };
 
+const run_t_tot_fees = async (tid, tdoc) => {
+  let { tourney_st, tourney_ed, entry_st, entry_ed } = tdoc;
+  let pays = await zed_db.db
+    .collection("payments")
+    .find(
+      {
+        status_code: 1,
+        service: tcoll_stables(tid),
+        date: { $gte: entry_st, $lte: entry_ed },
+        "meta_req.type": { $in: ["fee", "sponsor"] },
+      },
+      { projection: { req_amt: 1, "meta_req.type": 1 } }
+    )
+    .toArray();
+  // console.log(pays);
+  let tot_fees =
+    _.chain(pays)
+      .filter((i) => getv(i, "meta_req.type") == "fee")
+      .sumBy("req_amt")
+      .value() ?? 0;
+  let tot_sponsors =
+    _.chain(pays)
+      .filter((i) => getv(i, "meta_req.type") == "sponsor")
+      .sumBy("req_amt")
+      .value() ?? 0;
+  return { tot_fees, tot_sponsors };
+};
+
 const run_tid = async (tid) => {
   let tdoc = await get_tdoc(tid, {});
   // console.log(tdoc);
@@ -220,10 +253,31 @@ const run_tid = async (tid) => {
       date: { $gte: entry_st, $lte: entry_ed },
       "meta_req.hids": { $elemMatch: { $in: hids_all } },
     },
-    { status_code: 1, "meta_req.hids": 1, date: 1 }
+    { pay_id: 1, status_code: 1, req_amt: 1, "meta_req.hids": 1, date: 1 }
   );
 
+  // const pay_ids2 = _.map(txns, "pay_id");
+  // console.log(pay_ids);
+  // await zed_db.db
+  //   .collection("payments")
+  //   .updateMany(
+  //     { pay_id: { $in: pay_ids2 } },
+  //     { $set: { "meta_req.type": "fee" } }
+  //   );
+  // return;
+
   let txns_paid = _.filter(txns, (i) => i.status_code == 1);
+  let pays_doc = await run_t_tot_fees(tid, tdoc);
+  let total_capital = pays_doc.tot_fees + pays_doc.tot_sponsors;
+  let prize_pool = parseFloat(utils.dec(total_capital * 0.95, 4));
+  let fins = {
+    ...pays_doc,
+    total_capital,
+    prize_pool,
+  };
+  console.log(fins);
+  await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: fins });
+
   let hids_paid = _.chain(txns_paid)
     .map("meta_req.hids")
     .flatten()
@@ -294,7 +348,7 @@ const run_tid = async (tid) => {
   }
   update_ar = _.flatten(update_ar);
   update_ar = run_t_give_ranks(update_ar, tdoc);
-  console.table(update_ar);
+  // console.table(update_ar);
   await bulk.push_bulk(
     tcoll_horses(tid),
     update_ar,
@@ -303,7 +357,7 @@ const run_tid = async (tid) => {
 };
 
 const runner = async () => {
-  const tids = await get_tids({ active: 1 });
+  const tids = await get_tids({ active: true });
   console.log("tids.len", tids.length);
   console.log("=>>", tids);
   for (let tid of tids) {
