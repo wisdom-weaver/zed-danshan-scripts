@@ -8,6 +8,9 @@ const moment = require("moment");
 const cron = require("node-cron");
 const crypto = require("crypto");
 const { iso, getv } = require("../utils/utils");
+const sheet_ops = require("../../sheet_ops/sheets_ops");
+
+const danshan_eth_address = process.env.danshan_eth_address;
 
 const allowed_buffer = 15 * utils.mt;
 const mimi = 100;
@@ -34,11 +37,19 @@ const tokens_ob = {
   },
 };
 
-const get_payments_list = async ({ before, after, token, status_code }) => {
+const get_payments_list = async ({
+  before,
+  after,
+  token,
+  status_code,
+  status_codes,
+}) => {
   let query = {};
   if (token) query.token = token;
   if (![null, undefined, NaN].includes(status_code))
     query.status_code = { $in: [status_code] };
+  if (![null, undefined, NaN].includes(status_codes))
+    query.status_code = { $in: status_codes };
   if (after || before) query.date = {};
   if (after) query.date.$gte = utils.iso(after);
   if (before) query.date.$lte = utils.iso(before);
@@ -256,31 +267,49 @@ const push_bulk = async (coll, obar, name = "-") => {
 };
 
 const test = async () => {
-  let test_doc = {
-    pay_id: "b0c8f5",
-    sender: "0x4e8c5dcd73df0448058e28b5205d1c63df7b30d9",
-    reciever: "0xa0d9665e163f498082cd73048da17e7d69fd9224",
-    req_amt: 0.01,
-    token: "MATIC",
-    service: "get-payment-test",
-    status: "pending",
-    status_code: 0,
-    date: "2021-04-01T17:48:51.000Z",
-    meta_req: {},
-    meta: {},
-  };
-  pay_id = test_doc.pay_id;
-  test_doc.sender = test_doc.sender.toLowerCase();
-  test_doc.reciever = test_doc.reciever.toLowerCase();
-  await zed_db.db.collection(coll).deleteOne({ pay_id });
-  console.log("deleted doc", pay_id);
-  await zed_db.db.collection(coll).insertOne(test_doc);
-  console.log("inserted doc", pay_id);
-  console.log("waiting 1 minute");
-  await utils.delay(60 * 1000);
-  let st = "2021-04-01T17:48:50.000Z";
-  let ed = "2021-04-01T17:48:53.000Z";
-  await verify_user_payments([st, ed]);
+  let sender = "0x4915ec5b5170aa2099c63afd5400790b70b44070";
+  console.log("danshan:", danshan_eth_address);
+  let txns = await tokens_ob.WETH.get_txs({
+    address: danshan_eth_address,
+  });
+  txns = txns.result;
+  let hashs = _.map(txns, (e) => e.hash);
+  let dbtxs = await zed_db.db
+    .collection("payments")
+    .find({ "meta.tx.hash": { $in: hashs } })
+    .toArray();
+  dbtxs = _.keyBy(dbtxs, (e) => getv(e, "meta.tx.hash"));
+  let fin = txns.map((tx) => {
+    let hash = tx.hash;
+    let sender = tx.from;
+    let reciever = tx.to;
+    let date_tx = iso(parseFloat(tx.timeStamp) * 1000);
+    let doc = dbtxs[hash];
+    let amt = parseFloat(tx.value) / 1e18;
+    let in_db = !_.isEmpty(doc);
+    let db_doc = {
+      req_amt: "-",
+      pay_id: "-",
+      service: "-",
+      date: "-",
+      status: "-",
+      stable_name: "-",
+    };
+    if (in_db) {
+      db_doc.req_amt = doc.req_amt;
+      db_doc.pay_id = doc.pay_id;
+      db_doc.service = doc.service;
+      db_doc.date = doc.date;
+      db_doc.status = doc.status;
+      db_doc.stable_name = getv(doc, "meta_req.stable_name");
+    }
+    return { hash, sender, reciever, date_tx, amt, in_db, ...db_doc };
+  });
+  console.table(fin);
+  await sheet_ops.sheet_print_ob(fin, {
+    range: "payments",
+    spreadsheetId: "1MWnILjDr71rW-Gp8HrKP6YnS03mJARygLSuS7xxsHhM",
+  });
 };
 
 const runner = async () => {

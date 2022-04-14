@@ -8,6 +8,8 @@ const { getv, get_fee_tag, iso, nano, cron_conf } = require("./utils/utils");
 const { print_cron_details } = require("./utils/cyclic_dependency");
 const utils = require("../code/utils/utils");
 
+let test_mode = 0;
+
 const tcoll = "tourney_master";
 const tcoll_horses = (tid) => `tourney::${tid}::horses`;
 const tcoll_stables = (tid) => `tourney::${tid}::stables`;
@@ -86,19 +88,19 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
   let { tourney_st, tourney_ed } = tdoc;
   let st_mx = tourney_st > entry_date ? tourney_st : entry_date;
   const rcr = tdoc.race_cr;
-  // console.log("tdoc.race_cr", rcr);
+  if (hid == 384577 && test_mode) console.log("tdoc.race_cr", rcr);
   let rquery = {
     6: hid,
     2: { $gte: st_mx, $lte: tourney_ed },
   };
   if (_.isEmpty(rcr.thisclass));
-  else rquery[5] = { $in: [rcr.thisclass] };
+  else rquery[5] = { $in: rcr.thisclass };
   if (_.isEmpty(rcr.distance));
-  else rquery[1] = { $in: [rcr.distance] };
+  else rquery[1] = { $in: rcr.distance };
   // if (_.isEmpty(rcr.fee_tag));
   // else rquery[20] = { $in: [rcr.thisclass] };
 
-  // console.log(rquery);
+  if (hid == 384577 && test_mode) console.log(JSON.stringify(rquery, 4, ""));
 
   let races = await zed_ch.db
     .collection("zed")
@@ -171,6 +173,7 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
     races,
     entry_date,
   };
+  if (hid == 384577 && test_mode) console.log(update_doc);
   return update_doc;
 };
 
@@ -189,6 +192,7 @@ const run_t_give_ranks = (hdocs, tdoc) => {
     if (e[k] != 0) rank = ++i;
     return { ...e, rank };
   });
+  if (test_mode) console.log(hdocs);
   return hdocs;
 };
 
@@ -353,7 +357,7 @@ const run_tid = async (tid) => {
   }
   update_ar = _.flatten(update_ar);
   update_ar = run_t_give_ranks(update_ar, tdoc);
-  // console.table(update_ar);
+  if (test_mode) console.table(update_ar);
   await bulk.push_bulk(
     tcoll_horses(tid),
     update_ar,
@@ -385,7 +389,9 @@ const run_cron = async () => {
 };
 
 const test = async () => {
-  console.log("test");
+  test_mode = 1;
+  let tid = "Butes Only";
+  await run_tid(tid);
 };
 
 const main_runner = async (args) => {
