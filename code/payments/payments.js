@@ -7,7 +7,7 @@ const polygonscan = require("./polygonscan");
 const moment = require("moment");
 const cron = require("node-cron");
 const crypto = require("crypto");
-const { iso } = require("../utils/utils");
+const { iso, getv } = require("../utils/utils");
 
 const allowed_buffer = 15 * utils.mt;
 const mimi = 100;
@@ -301,10 +301,38 @@ const run_cron = async () => {
   cron.schedule(cron_str, runner, { scheduled: true });
 };
 
+const fix = async () => {
+  let st = moment()
+    .subtract(3 * 60 * utils.mt, "millisecond")
+    .toISOString();
+  let ed = moment().toISOString();
+  let list = await get_payments_list({
+    token: "WETH",
+    before: ed,
+    after: st,
+    status_code: -1,
+  });
+  let paid_list = _.map(list, (e) => {
+    if (getv(e, "meta.tx.hash") != undefined) return e.pay_id;
+    return false;
+  });
+  paid_list = _.compact(paid_list);
+  console.log("list.len", list.length);
+  console.log("paid_list.len", paid_list.length);
+  if (!_.isEmpty(paid_list))
+    await zed_db.db
+      .collection("payments")
+      .updateMany(
+        { pay_id: { $in: paid_list } },
+        { $set: { status: "paid", status_code: 1 } }
+      );
+};
+
 const payments = {
   run_dur,
   runner,
   run_cron,
   test,
+  fix,
 };
 module.exports = payments;
