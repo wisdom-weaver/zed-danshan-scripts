@@ -41,11 +41,11 @@ const get_tids = async (body) => {
       $or: [
         {
           tourney_st: { $lte: moment().toISOString() },
-          tourney_ed: { $gte: moment().add(-15, "minutes").toISOString() },
+          tourney_ed: { $gte: moment().add(-30, "minutes").toISOString() },
         },
         {
           entry_st: { $lte: moment().toISOString() },
-          entry_ed: { $gte: moment().add(-15, "minutes").toISOString() },
+          entry_ed: { $gte: moment().add(-30, "minutes").toISOString() },
         },
       ],
     };
@@ -258,7 +258,7 @@ const t_status = async () => {
   let ar = docs.map((e) => {
     let { tid, tourney_st, tourney_ed, entry_st, entry_ed } = e;
     let status = "";
-    if (tourney_ed > now) status = "ended";
+    if (tourney_ed < now) status = "ended";
     if (_.inRange(nano(now), nano(tourney_st), nano(tourney_ed)))
       status = "live";
     if (_.inRange(nano(now), nano(entry_st), nano(entry_ed))) status = "open";
