@@ -88,7 +88,7 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
   let { tourney_st, tourney_ed } = tdoc;
   let st_mx = tourney_st > entry_date ? tourney_st : entry_date;
   const rcr = tdoc.race_cr;
-  if (hid == 384577 && test_mode) console.log("tdoc.race_cr", rcr);
+  if (test_mode) console.log("tdoc.race_cr", rcr);
   let rquery = {
     6: hid,
     2: { $gte: st_mx, $lte: tourney_ed },
@@ -100,7 +100,7 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
   // if (_.isEmpty(rcr.fee_tag));
   // else rquery[20] = { $in: [rcr.thisclass] };
 
-  if (hid == 384577 && test_mode) console.log(JSON.stringify(rquery, 4, ""));
+  if (test_mode) console.log(JSON.stringify(rquery, 4, ""));
 
   let races = await zed_ch.db
     .collection("zed")
@@ -152,6 +152,9 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
         return rrow;
       });
 
+  races = _.uniqBy(races, (i) => i.rid);
+  if (test_mode) console.log(_.map(races, "rid"));
+
   if (!_.isEmpty(rcr.fee_tag))
     races = races.filter((r) => rcr.fee_tag.includes(r.fee_tag));
 
@@ -173,7 +176,7 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
     races,
     entry_date,
   };
-  if (hid == 384577 && test_mode) console.log(update_doc);
+  if (test_mode) console.log(update_doc);
   return update_doc;
 };
 
@@ -390,7 +393,7 @@ const run_cron = async () => {
 
 const test = async () => {
   test_mode = 1;
-  let tid = "Butes Only";
+  let tid = "Bred Szabo Only";
   await run_tid(tid);
 };
 
