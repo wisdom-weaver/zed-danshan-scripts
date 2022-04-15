@@ -187,12 +187,13 @@ const run_t_give_ranks = (hdocs, tdoc) => {
   if (!k) return hdocs;
   hdocs = _.sortBy(hdocs, (i) => {
     let val = Number(i[k]);
-    return [NaN, undefined, 0, null].includes(val) ? 1e14 : -val;
+    let n = Number(i["traces_n"]);
+    return [NaN, undefined, 0, null].includes(val) ? 1e14 : -(val * 1000 + n);
   });
   let i = 0;
   hdocs = _.map(hdocs, (e) => {
     let rank = null;
-    if (e[k] != 0) rank = ++i;
+    if (e[k] != 0 && e.traces_n >= 5) rank = ++i;
     return { ...e, rank };
   });
   if (test_mode) console.log(hdocs);
