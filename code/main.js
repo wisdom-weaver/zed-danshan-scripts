@@ -20,7 +20,7 @@ const mod = v3;
 
 const main = async (args) => {
   await mdb.init();
-  await global_req.download();
+  // await global_req.download();
   await gapi.init();
 
   console.log("main");

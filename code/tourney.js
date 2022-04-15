@@ -233,6 +233,42 @@ const run_t_tot_fees = async (tid, tdoc) => {
   return { tot_fees, tot_sponsors };
 };
 
+// upcoming => entry not started
+// open => entry started
+// live => tourney started running
+// ended => tourney ended
+const t_status = async () => {
+  let docs = await zed_db.db
+    .collection(tcoll)
+    .find(
+      {},
+      {
+        projection: {
+          _id: 0,
+          tid: 1,
+          tourney_st: 1,
+          tourney_ed: 1,
+          entry_st: 1,
+          entry_ed: 1,
+        },
+      }
+    )
+    .toArray();
+  let now = iso();
+  let ar = docs.map((e) => {
+    let { tid, tourney_st, tourney_ed, entry_st, entry_ed } = e;
+    let status = "";
+    if (tourney_ed > now) status = "ended";
+    if (_.inRange(nano(now), nano(tourney_st), nano(tourney_ed)))
+      status = "live";
+    if (_.inRange(nano(now), nano(entry_st), nano(entry_ed))) status = "open";
+    if (now < entry_st) status = "upcoming";
+    return { tid, status };
+  });
+  console.table(ar);
+  await bulk.push_bulkc(tcoll, ar, "tourney:t_status", "tid");
+};
+
 const run_tid = async (tid) => {
   let tdoc = await get_tdoc(tid, {});
   // console.log(tdoc);
@@ -371,6 +407,7 @@ const run_tid = async (tid) => {
 };
 
 const runner = async () => {
+  await t_status();
   const tids = await get_tids({ active: true });
   console.log("tids.len", tids.length);
   console.log("=>>", tids);
@@ -406,6 +443,7 @@ const main_runner = async (args) => {
     if (arg2 == "test") await test();
     if (arg2 == "runner") await runner();
     if (arg2 == "run_cron") await run_cron();
+    if (arg2 == "t_status") await t_status();
   } catch (err) {
     console.log(err);
   }
@@ -416,6 +454,7 @@ const tourney = {
   runner,
   run_cron,
   main_runner,
+  t_status,
 };
 
 module.exports = tourney;

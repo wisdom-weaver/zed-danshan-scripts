@@ -92,10 +92,40 @@ const push_bulk = async (coll, obar, name = "-") => {
   }
 };
 
+const push_bulkc = async (coll, obar, name = "-", key) => {
+  try {
+    if (_.isEmpty(obar))
+      return console.log(`bulk@${coll} --`, `[${name}]`, "EMPTY");
+    let bulk = [];
+    obar = _.compact(obar);
+    for (let ob of obar) {
+      if (_.isEmpty(ob)) continue;
+      if (!ob[key]) continue;
+      bulk.push({
+        updateOne: {
+          filter: { [key]: ob[key] },
+          update: { $set: ob },
+          upsert: true,
+        },
+      });
+    }
+    // JSON.stringify(bulk);
+    await zed_db.db.collection(coll).bulkWrite(bulk);
+    let len = obar.length;
+    let sth = obar[0][key];
+    let edh = obar[obar.length - 1][key];
+    console.log(`bulk@${coll} --`, `[${name}]`, len, "..", sth, "->", edh);
+  } catch (err) {
+    console.log("err mongo bulk", coll, coll, obar && obar[0][key]);
+    console.log(err);
+  }
+};
+
 const bulk = {
   run_bulk_all,
   run_bulk_range,
   run_bulk_only,
   push_bulk,
+  push_bulkc,
 };
 module.exports = bulk;
