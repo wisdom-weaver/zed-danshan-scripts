@@ -153,6 +153,7 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
       });
 
   races = _.uniqBy(races, (i) => i.rid);
+  if (!_.isEmpty(races)) races = _.sortBy(races, (r) => -nano(r.date));
   if (test_mode) console.log(_.map(races, "rid"));
 
   if (!_.isEmpty(rcr.fee_tag))
