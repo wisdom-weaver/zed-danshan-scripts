@@ -188,7 +188,8 @@ const run_t_give_ranks = (hdocs, tdoc) => {
   hdocs = _.sortBy(hdocs, (i) => {
     let val = Number(i[k]);
     let n = Number(i["traces_n"]);
-    return [NaN, undefined, 0, null].includes(val) ? 1e14 : -(val * 1000 + n);
+    if (!n) return 1e14;
+    return [NaN, undefined, 0, null].includes(val) ? -n : -(val * 1000 + n);
   });
   let i = 0;
   hdocs = _.map(hdocs, (e) => {
