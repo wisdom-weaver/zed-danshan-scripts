@@ -183,8 +183,10 @@ const verify_user_payments = async ([st, ed]) => {
           let req_amt = parseFloat(req.req_amt) * 1e18;
           let [mia, mxa] = [req_amt - mimi, req_amt + mimi];
           console.log(amt, req_amt);
-          if (!_.isNaN(amt) && !_.isNaN(req_amt) && amt !== req_amt)
-            return false;
+          if (!_.isNaN(amt) && !_.isNaN(req_amt)) return false;
+          if (amt == req_amt) return true;
+          else if (_.inRange(amt, mia, mxa)) return true;
+          else return false;
           // console.log("4");
           console.log("tx:", req.pay_id, req_amt);
           return true;
