@@ -177,18 +177,27 @@ const verify_user_payments = async ([st, ed]) => {
 
           let tnano = utils.nano(req.date);
           let [mi, mx] = [tnano - allowed_buffer, tnano + allowed_buffer];
-          if (!_.inRange(timeStamp, mi, mx)) return false;
-          // console.log("3");
+          if (!_.inRange(timeStamp, mi, mx)) {
+            console.log("time failed");
+            return false;
+          }
 
           let req_amt = parseFloat(req.req_amt) * 1e18;
           let [mia, mxa] = [req_amt - mimi, req_amt + mimi];
-          console.log(amt, req_amt);
-          if (!_.isNaN(amt) && !_.isNaN(req_amt)) return false;
-          if (amt == req_amt) return true;
-          else if (_.inRange(amt, mia, mxa)) return true;
-          else return false;
-          // console.log("4");
-          console.log("tx:", req.pay_id, req_amt);
+          console.log(amt, req_amt, _.inRange(amt, mia, mxa));
+          if (_.isNaN(amt) || _.isNaN(req_amt)) {
+            console.log("null amt failed");
+            return false;
+          }
+          if (amt == req_amt) {
+            return true;
+          } else if (_.inRange(amt, mia, mxa)) {
+            return true;
+          } else {
+            console.log("4");
+            console.log("tx:", req.pay_id, req_amt);
+            return false;
+          }
           return true;
         });
 
