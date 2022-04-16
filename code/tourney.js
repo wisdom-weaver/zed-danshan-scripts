@@ -100,7 +100,7 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
   // if (_.isEmpty(rcr.fee_tag));
   // else rquery[20] = { $in: [rcr.thisclass] };
 
-  if (test_mode) console.log(JSON.stringify(rquery, 4, ""));
+  if (test_mode) console.log(JSON.stringify(rquery, "", 4));
 
   let races = await zed_ch.db
     .collection("zed")
@@ -164,6 +164,7 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
     rrow.score = score;
     return rrow;
   });
+  if (test_mode) console.table(races);
 
   let traces_n = races.length;
   let tot_score = _.sumBy(races, "score");
@@ -433,8 +434,12 @@ const run_cron = async () => {
 
 const test = async () => {
   test_mode = 1;
-  let tid = "Bred Szabo Only";
-  await run_tid(tid);
+  let tid = "Finneys Only";
+  let hid = 33756;
+  let tdoc = await tm1({ tid });
+  await run_t_horse(hid, tdoc, tdoc.tourney_st);
+
+  // await run_tid(tid);
 };
 
 const main_runner = async (args) => {

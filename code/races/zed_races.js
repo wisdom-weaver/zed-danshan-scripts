@@ -61,14 +61,14 @@ const miss_cron = async () => {
     let push_race_horses_on = 1;
     try {
       let now = Date.now();
-      let from = moment(new Date(now)).subtract(10, "minutes").toISOString();
+      let from = moment(new Date(now)).subtract(30, "minutes").toISOString();
       let to = moment(new Date(now)).toISOString();
       await miss(from, to, push_race_horses_on);
     } catch (err) {
       console.log(err);
     }
   };
-  let cron_str2 = "*/5 * * * *";
+  let cron_str2 = "*/3 * * * *";
   const runner2 = async () => {
     let push_race_horses_on = 1;
     try {
