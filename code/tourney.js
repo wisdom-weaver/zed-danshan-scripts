@@ -414,14 +414,18 @@ const runner = async () => {
   console.log("tids.len", tids.length);
   console.log("=>>", tids);
   for (let tid of tids) {
-    console.log("\n\n==========");
-    let st = iso();
-    console.log(`tid:: ${tid} running`, st);
-    await run_tid(tid);
-    let ed = iso();
-    console.log(`tid:: ${tid} ended`, ed);
-    let took = (nano(ed) - nano(st)) / 1000;
-    console.log(`tid:: ${tid} took:${took} seconds`);
+    try {
+      console.log("\n\n==========");
+      let st = iso();
+      console.log(`tid:: ${tid} running`, st);
+      await run_tid(tid);
+      let ed = iso();
+      console.log(`tid:: ${tid} ended`, ed);
+      let took = (nano(ed) - nano(st)) / 1000;
+      console.log(`tid:: ${tid} took:${took} seconds`);
+    } catch (err) {
+      console.log(err);
+    }
   }
 };
 
@@ -433,13 +437,8 @@ const run_cron = async () => {
 };
 
 const test = async () => {
-  test_mode = 1;
-  let tid = "Finneys Only";
-  let hid = 33756;
-  let tdoc = await tm1({ tid });
-  await run_t_horse(hid, tdoc, tdoc.tourney_st);
-
-  // await run_tid(tid);
+  const ar = await get_tids({ active: true });
+  console.log(ar);
 };
 
 const main_runner = async (args) => {
