@@ -217,12 +217,12 @@ const calc = async ({ hid, races = [], tc, hdoc }) => {
     } else {
       let avg_ob = await cyclic_depedency.get_ymca_avgs(hdoc);
       let avg_base = avg_ob?.avg_base;
-      let high = avg_base * 1.25;
-      let low = avg_base * 0.75;
+      let high = null; // let high = avg_base * 1.25;
+      let low = null; // let low = avg_base * 0.75;
       let adjuster = Math.random() * 54 * 0.001;
-      let final_base;
-      if (base > low && base < high) final_base = base;
-      else final_base = base > high ? high * 1.098 : low * 0.904;
+      let final_base = base;
+      // if (base > low && base < high) final_base = base;
+      // else final_base = base > high ? high * 1.098 : low * 0.904;
       final_base += adjuster;
       n = final_base;
       if (test_mode)
