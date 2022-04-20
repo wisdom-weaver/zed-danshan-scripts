@@ -10,9 +10,12 @@ const utils = require("../code/utils/utils");
 
 let test_mode = 0;
 
-const tcoll = "tourney_master";
-const tcoll_horses = (tid) => `tourney::${tid}::horses`;
-const tcoll_stables = (tid) => `tourney::${tid}::stables`;
+const tcoll = "tourney_v2_master";
+const tcollp = "tourney_v2_preset";
+const tcolls = "tourney_v2_stables";
+const tcoll_horses = () => "null"; //(tid) => `tourney::${tid}::horses`;
+const tcoll_stables = () => "null"; //(tid) => `tourney::${tid}::stables`;
+const tgen_service = (tid) => `tourney_v2_${tid}`;
 
 const tfet_many = (coll, query, projection) => {
   if (projection) projection = { _id: 0, ...(projection || {}) };
@@ -210,7 +213,7 @@ const run_t_tot_fees = async (tid, tdoc) => {
     .find(
       {
         status_code: 1,
-        service: tcoll_stables(tid),
+        service: tgen_service(tid),
         date: { $gte: entry_st, $lte: entry_ed },
         "meta_req.type": { $in: ["fee", "sponsor"] },
       },
@@ -276,11 +279,21 @@ const run_tid = async (tid) => {
   // console.log(tdoc);
   let { tourney_st, tourney_ed, entry_st, entry_ed } = tdoc;
 
-  let stables = await ts2(
-    tid,
-    {},
-    { stable_name: 1, horses: 1, transactions: 1 }
-  );
+  let stables = _.chain(getv(tdoc, "stables"))
+    .entries()
+    .map(([wallet, ea]) => {
+      wallet;
+      let horses = ea.horses || [];
+      let transactions = ea.transactions || [];
+      return {
+        wallet,
+        horses,
+        transactions,
+      };
+    })
+    .value();
+  // console.log(stables);
+
   let hids_all =
     _.chain(stables).map("horses").flatten().compact().value() || [];
   console.log("hids_all.len", hids_all.length);
@@ -300,7 +313,7 @@ const run_tid = async (tid) => {
     null,
     {
       // status_code: 1,
-      service: tcoll_stables(tid),
+      service: tgen_service(tid),
       date: { $gte: entry_st, $lte: entry_ed },
       "meta_req.hids": { $elemMatch: { $in: hids_all } },
       "meta_req.type": "fee",
@@ -329,6 +342,8 @@ const run_tid = async (tid) => {
   };
   console.log(fins);
   await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: fins });
+
+  return;
 
   let hids_paid = _.chain(txns_paid)
     .map("meta_req.hids")
