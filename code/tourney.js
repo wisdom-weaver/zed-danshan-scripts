@@ -9,6 +9,7 @@ const { print_cron_details } = require("./utils/cyclic_dependency");
 const utils = require("../code/utils/utils");
 
 let test_mode = 0;
+let running = 0;
 
 const tcoll = "tourney_master";
 const tcoll_horses = (tid) => `tourney::${tid}::horses`;
@@ -409,23 +410,34 @@ const run_tid = async (tid) => {
 };
 
 const runner = async () => {
-  await t_status();
-  const tids = await get_tids({ active: true });
-  console.log("tids.len", tids.length);
-  console.log("=>>", tids);
-  for (let tid of tids) {
-    try {
-      console.log("\n\n==========");
-      let st = iso();
-      console.log(`tid:: ${tid} running`, st);
-      await run_tid(tid);
-      let ed = iso();
-      console.log(`tid:: ${tid} ended`, ed);
-      let took = (nano(ed) - nano(st)) / 1000;
-      console.log(`tid:: ${tid} took:${took} seconds`);
-    } catch (err) {
-      console.log(err);
+  if (running) {
+    console.log("############# tourney already running.........");
+    return;
+  }
+  try {
+    running = 1;
+    await t_status();
+    const tids = await get_tids({ active: true });
+    console.log("tids.len", tids.length);
+    console.log("=>>", tids);
+    for (let tid of tids) {
+      try {
+        console.log("\n\n==========");
+        let st = iso();
+        console.log(`tid:: ${tid} running`, st);
+        await run_tid(tid);
+        let ed = iso();
+        console.log(`tid:: ${tid} ended`, ed);
+        let took = (nano(ed) - nano(st)) / 1000;
+        console.log(`tid:: ${tid} took:${took} seconds`);
+      } catch (err) {
+        console.log(err);
+      }
     }
+    running = 0;
+  } catch (err) {
+    console.log("TOURNEY ERR\n", err);
+    running = 0;
   }
 };
 
