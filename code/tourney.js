@@ -251,24 +251,32 @@ const t_status = async () => {
         projection: {
           _id: 0,
           tid: 1,
+          type: 1,
           tourney_st: 1,
           tourney_ed: 1,
           entry_st: 1,
           entry_ed: 1,
+          status: 1,
         },
       }
     )
     .toArray();
   let now = iso();
   let ar = docs.map((e) => {
-    let { tid, tourney_st, tourney_ed, entry_st, entry_ed } = e;
-    let status = "";
-    if (tourney_ed < now) status = "ended";
-    if (_.inRange(nano(now), nano(tourney_st), nano(tourney_ed)))
-      status = "live";
-    if (_.inRange(nano(now), nano(entry_st), nano(entry_ed))) status = "open";
-    if (now < entry_st) status = "upcoming";
-    return { tid, status };
+    let { tid, tourney_st, type, tourney_ed, entry_st, entry_ed, status } = e;
+    let upd = { tid };
+    if (type == "flash" && !tourney_ed && !tourney_st) {
+      if (entry_st < now) status = "open";
+      if (entry_st > now) status = "upcoming";
+    } else if (type == "regular") {
+      if (tourney_ed < now) status = "ended";
+      if (_.inRange(nano(now), nano(tourney_st), nano(tourney_ed)))
+        status = "live";
+      if (_.inRange(nano(now), nano(entry_st), nano(entry_ed))) status = "open";
+      if (now < entry_st) status = "upcoming";
+    }
+    upd.status = status;
+    return upd;
   });
   console.table(ar);
   await bulk.push_bulkc(tcoll, ar, "tourney:t_status", "tid");
@@ -389,6 +397,30 @@ const run_tid = async (tid) => {
     horses_new_docs,
     `${tcoll_horses(tid)} new horses`
   );
+
+  let n = hids_paid.length;
+  if (tdoc.type == "flash") {
+    if (n >= tdoc.flash_params.minh) {
+      let { tourney_st, tourney_ed, entry_st, entry_ed, flash_params } = tdoc;
+      if (!tourney_st && !tourney_ed) {
+        let upd = {
+          tourney_st: iso(),
+          tourney_ed: moment()
+            .add(flash_params.duration, "hours")
+            .toISOString(),
+          entry_ed: iso(),
+        };
+        await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: upd });
+      }
+    } else {
+      let upd = {
+        tourney_st: null,
+        tourney_ed: null,
+        entry_ed: null,
+      };
+      await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: upd });
+    }
+  }
 
   let i = 0;
   let update_ar = [];
