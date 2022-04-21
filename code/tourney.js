@@ -87,7 +87,7 @@ const calc_t_score = (rrow, tdoc) => {
   return tot;
 };
 
-const run_t_horse = async (hid, tdoc, entry_date) => {
+const run_t_horse = async (hid, tdoc, entry_date, wallet) => {
   let { tourney_st, tourney_ed } = tdoc;
   let st_mx = tourney_st > entry_date ? tourney_st : entry_date;
   const rcr = tdoc.race_cr;
@@ -168,21 +168,22 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
     return rrow;
   });
   if (test_mode) console.table(races);
+  if (_.isEmpty(races)) races = [];
 
   let traces_n = races.length;
   let tot_score = _.sumBy(races, "score");
   if ([NaN, undefined, null].includes(tot_score)) tot_score = 0;
   let avg_score = (tot_score || 0) / (traces_n || 1);
-  let update_doc = {
+  let base = {
     hid,
+    wallet,
     traces_n,
     tot_score,
     avg_score,
-    races,
     entry_date,
   };
-  if (test_mode) console.log(update_doc);
-  return update_doc;
+  let leddoc = [hid, base, races];
+  return leddoc;
 };
 
 const run_t_give_ranks = (hdocs, tdoc) => {
@@ -190,17 +191,17 @@ const run_t_give_ranks = (hdocs, tdoc) => {
   let k =
     (mode == "total" && "tot_score") || (mode == "avg" && "avg_score") || null;
   if (!k) return hdocs;
-  hdocs = _.sortBy(hdocs, (i) => {
-    let val = Number(i[k]);
-    let n = Number(i["traces_n"]);
+  hdocs = _.sortBy(hdocs, ([hid, base, races]) => {
+    let val = Number(base[k]);
+    let n = Number(base["traces_n"]);
     if (!n) return 1e14;
     return [NaN, undefined, 0, null].includes(val) ? -n : -(val * 1000 + n);
   });
   let i = 0;
-  hdocs = _.map(hdocs, (e) => {
+  _.forEach(hdocs, ([hid, base, races]) => {
     let rank = null;
-    if (e[k] != 0 && e.traces_n >= 5) rank = ++i;
-    return { ...e, rank };
+    if (base[k] != 0 && base.traces_n >= 5) rank = ++i;
+    base.rank = rank;
   });
   if (test_mode) console.log(hdocs);
   return hdocs;
@@ -320,6 +321,7 @@ const run_tid = async (tid) => {
     },
     { pay_id: 1, status_code: 1, req_amt: 1, "meta_req.hids": 1, date: 1 }
   );
+  // console.table(txns);
 
   // const pay_ids2 = _.map(txns, "pay_id");
   // console.log(pay_ids);
@@ -343,7 +345,7 @@ const run_tid = async (tid) => {
   console.log(fins);
   await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: fins });
 
-  return;
+  // return;
 
   let hids_paid = _.chain(txns_paid)
     .map("meta_req.hids")
@@ -361,53 +363,29 @@ const run_tid = async (tid) => {
     let hids = getv(e, "meta_req.hids");
     if (!_.isEmpty(hids)) for (let h of hids) hdate[h] = date;
   });
+  // console.table(hdate);
 
-  let stable_hids_ob = _.chain(stables)
-    .keyBy("stable_name")
-    .mapValues("horses")
+  let walhids_ob = _.chain(getv(tdoc, "stables"))
     .entries()
-    .map(([stable_name, hids]) => {
+    .map(([wallet, ea]) => {
+      let hids = ea.horses;
       if (_.isEmpty(hids)) return null;
-      return (hids || []).map((hid) => [hid, stable_name]);
+      return (hids || []).map((hid) => [hid, wallet]);
     })
     .compact()
     .flatten()
     .fromPairs()
     .value();
   0;
-  let hids_new = _.intersection(hids_paid, hids_miss);
-  console.log("hids_new.len", hids_new.length);
-  let horses_new_docs = _.chain(hids_new)
-    .map((hid) => {
-      hid = parseInt(hid);
-      return {
-        hid,
-        enter_date: hdate[hid],
-        stable_name: stable_hids_ob[hid],
-        races: [],
-        tot_score: 0,
-        avg_score: 0,
-        traces_n: 0,
-      };
-    })
-    .value();
 
-  await zed_db.db
-    .collection(tcoll_horses(tid))
-    .deleteMany({ hid: { $in: hids_not_paid } });
-
-  await bulk.push_bulk(
-    tcoll_horses(tid),
-    horses_new_docs,
-    `${tcoll_horses(tid)} new horses`
-  );
+  // console.table(walhids_ob);
 
   let i = 0;
   let update_ar = [];
   for (let chu of _.chunk(hids_paid, 25)) {
     let [a, b] = [chu[0], chu[chu.length - 1]];
     let chu_ar = await Promise.all(
-      chu.map((hid) => run_t_horse(hid, tdoc, hdate[hid]))
+      chu.map((hid) => run_t_horse(hid, tdoc, hdate[hid], walhids_ob[hid]))
     );
     update_ar.push(chu_ar);
     i += chu.length;
@@ -415,12 +393,23 @@ const run_tid = async (tid) => {
   }
   update_ar = _.flatten(update_ar);
   update_ar = run_t_give_ranks(update_ar, tdoc);
-  if (test_mode) console.table(update_ar);
-  await bulk.push_bulk(
-    tcoll_horses(tid),
-    update_ar,
-    `${tcoll_horses(tid)} new horses`
-  );
+
+  // console.log(update_ar);
+
+  let leader = _.chain(update_ar)
+    .map((e) => [e[0], e[1]])
+    .fromPairs()
+    .value();
+  let horse_races = _.chain(update_ar)
+    .map((e) => [e[0], e[2] ?? []])
+    .fromPairs()
+    .value();
+  // console.table(leader);
+  // console.table(horse_races);
+
+  await zed_db.db
+    .collection(tcoll)
+    .updateOne({ tid }, { $set: { leader, horse_races } });
 };
 
 const runner = async () => {
