@@ -76,6 +76,8 @@ const calc_t_score = (rrow, tdoc) => {
     else if (!e.thisclass.includes(rrow.rc)) continue;
     if (_.isEmpty(e.distance));
     else if (!e.distance.includes(rrow.distance)) continue;
+    if (_.isEmpty(e.fee_tag));
+    else if (!e.fee_tag.includes(rrow.fee_tag)) continue;
     if (_.isEmpty(e.flame));
     else if (!e.flame.includes(rrow.flame)) continue;
     if (_.isEmpty(e.pos));
