@@ -312,7 +312,10 @@ const run_tid = async (tid) => {
     {
       // status_code: 1,
       service: tcoll_stables(tid),
-      date: { $gte: entry_st, $lte: entry_ed },
+      date: {
+        $gte: entry_st,
+        ...(entry_ed ? { $lte: entry_ed } : {}),
+      },
       "meta_req.hids": { $elemMatch: { $in: hids_all } },
       "meta_req.type": "fee",
     },
@@ -489,11 +492,17 @@ const test = async () => {
   console.log(ar);
 };
 
+const run = async (tid) => {
+  await t_status();
+  await run_tid(tid);
+};
+
 const main_runner = async (args) => {
   try {
     let [_node, _cfile, args1, arg2, arg3, arg4, arg5, arg6] = args;
     console.log("# --tourney ", iso());
     if (arg2 == "test") await test();
+    if (arg2 == "run") await run(arg3);
     if (arg2 == "runner") await runner();
     if (arg2 == "run_cron") await run_cron();
     if (arg2 == "t_status") await t_status();
@@ -505,6 +514,7 @@ const main_runner = async (args) => {
 const tourney = {
   test,
   runner,
+  run,
   run_cron,
   main_runner,
   t_status,
