@@ -410,6 +410,7 @@ const run_tid = async (tid) => {
             .toISOString(),
           entry_ed: iso(),
         };
+        tdoc = { ...tdoc, ...upd };
         await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: upd });
       }
     } else {
@@ -418,6 +419,7 @@ const run_tid = async (tid) => {
         tourney_ed: null,
         entry_ed: null,
       };
+      tdoc = { ...tdoc, ...upd };
       await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: upd });
     }
   }
