@@ -31,6 +31,11 @@ const key_mapping_bs_zed = [
   ["15", "adjfinishtime"],
   ["16", "htc"],
   ["17", "race_name"],
+  ["18", "entryfee_usd"],
+  ["19", "fee_tag"],
+  ["20", "prize"],
+  ["21", "prize_usd"],
+  ["22", "hrating"],
 ];
 
 const from_ch_zed_collection = async (query) => {

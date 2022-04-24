@@ -51,6 +51,12 @@ const post = (api, body, auth = 1) => {
 const horse = async (hid) => {
   return get(`https://api.zed.run/api/v1/horses/get/${hid}`);
 };
+const horses = async (hids = []) => {
+  let query = hids.map((h) => `horse_ids[]=${h}`).join("&");
+  let url = `https://api.zed.run/api/v1/horses/get_horses?${query}`;
+  // console.log(url)
+  return get(url);
+};
 const fatigue = async (hid) => {
   let api = `https://api.zed.run/api/v1/horses/fatigue/${hid}`;
   return get(api, 1);
@@ -71,6 +77,7 @@ const zedf = {
   get,
   post,
   horse,
+  horses,
   fatigue,
   race,
   race_results,

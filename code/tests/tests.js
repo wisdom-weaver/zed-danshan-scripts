@@ -13,6 +13,7 @@ const v5_conf = require("../v5/v5_conf");
 const sheet_ops = require("../../sheet_ops/sheets_ops");
 const b5_new_rngs = require("../../temp/b5_new_rngs");
 const { get_parents } = require("../utils/cyclic_dependency");
+const { get_zed_raw_data, zed_races_zrapi_runner, zed_races_zrapi_rid_runner } = require("../races/races_base");
 
 const run_01 = async () => {
   let st = "2022-01-06T00:00:00Z";
@@ -639,5 +640,13 @@ const run_17 = async () => {
   console.log(ob1.data);
 };
 
-const tests = { run: run_17 };
+const run_18 = async () => {
+  let from = moment().subtract(6, "minutes").toISOString();
+  let to = moment().subtract(5, "minutes").toISOString();
+  // let ar = await get_zed_raw_data(from, to);
+  let ar = await zed_races_zrapi_rid_runner("BfRJrovZ");
+  console.log(ar);
+};
+
+const tests = { run: run_18 };
 module.exports = tests;

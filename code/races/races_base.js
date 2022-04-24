@@ -1,11 +1,11 @@
 const axios = require("axios");
 const _ = require("lodash");
 const { init, zed_ch, zed_db } = require("../connection/mongo_connect");
-const { delay, iso, nano } = require("../utils/utils");
+const { delay, iso, nano, get_fee_tag, getv } = require("../utils/utils");
 const {
   get_adjusted_finish_times,
 } = require("./zed_races_adjusted_finish_time");
-const { get_fee_cat_on } = require("../utils/base");
+const { get_fee_cat_on, get_entryfee_usd } = require("../utils/base");
 const { get_sims_zed_odds } = require("./sims");
 const zedf = require("../utils/zedf");
 const race_horses = require("./race_horses");
@@ -13,6 +13,7 @@ const max_gap = require("../dan/max_gap");
 const gap = require("../v3/gaps");
 const compiler = require("../dan/compiler/compiler_dp");
 const utils = require("../utils/utils");
+const moment = require("moment");
 
 const zed_gql = "https://zed-ql.zed.run/graphql/getRaceResults";
 const zed_secret_key = process.env.zed_secret_key;
@@ -43,6 +44,41 @@ const nano_diff = (d1, d2) => {
   return d1 - d2;
 };
 
+const get_hratings = async (hids) => {
+  let hsdoc = await zedf.horses(hids);
+  return _.chain(hsdoc)
+    .map((e) => [e.horse_id, e.rating])
+    .fromPairs()
+    .value();
+};
+
+const wrap_rating = async ([race_id, raceData]) => {
+  let hids = _.keys(
+    raceData,
+    _.map((e) => parseInt(e))
+  );
+  let now = moment();
+  let start = moment(raceData[hids[0]][2]);
+  let diff = now.diff(start, "seconds");
+  // console.log("date_diff", diff);
+  if (diff > 500) return;
+
+  hsdoc = await get_hratings(hids);
+
+  _.entries(hsdoc).map(([horse_id, rating]) => {
+    raceData[horse_id][22] = rating;
+  });
+  // console.table(_.values(raceData));
+};
+
+const wrap_rating_for_races = async (racesData) => {
+  let proms = [];
+  for (let [rid, data] of _.entries(racesData)) {
+    proms.push(wrap_rating([rid, data]));
+  }
+  await Promise.all(proms);
+};
+
 const get_zed_raw_data = async (from, to) => {
   try {
     let arr = [];
@@ -67,12 +103,19 @@ const get_zed_raw_data = async (from, to) => {
         status
         class
 
+        prizePool {
+          first
+          second
+          third
+        }
+
         horses {
           horseId
           finishTime
           finalPosition
           name
           gate
+          rating
           ownerAddress
           class
 
@@ -111,6 +154,11 @@ const get_zed_raw_data = async (from, to) => {
       let node_class = node.class;
       let horses = node.horses;
       let race_name = node.name;
+      let pool = {
+        1: parseFloat(node.prizePool.first) / 1e18,
+        2: parseFloat(node.prizePool.second) / 1e18,
+        3: parseFloat(node.prizePool.third) / 1e18,
+      };
 
       racesData[node_raceId] = {};
       for (let horseIndex in horses) {
@@ -121,6 +169,10 @@ const get_zed_raw_data = async (from, to) => {
         let horses_name = horse.name;
         let horses_gate = horse.gate;
         let horses_class = horse.class;
+        let fee_usd = get_entryfee_usd({ fee: node_fee, date: node_startTime });
+        let fee_tag = get_fee_tag(fee_usd);
+        let prize = pool[horses_finalPosition] || 0;
+        let prize_usd = get_entryfee_usd({ fee: prize, date: node_startTime });
 
         racesData[node_raceId][horses_horseId] = {
           1: node_length,
@@ -137,9 +189,17 @@ const get_zed_raw_data = async (from, to) => {
           12: 0,
           16: horses_class,
           17: race_name,
+          18: fee_usd,
+          19: fee_tag,
+          20: prize,
+          21: prize_usd,
         };
       }
     }
+
+    await wrap_rating_for_races(racesData);
+    // for (let [rid, raceData] of _.entries(racesData))
+    //   console.table(_.values(raceData));
 
     return racesData;
   } catch (err) {
@@ -486,11 +546,12 @@ const zed_race_base_data = async (rid) => {
     start_time: date,
     status,
     name: race_name,
+    prize,
   } = doc;
   if (status !== "finished") return null;
   let hids = _.values(gates);
   if (!date.endsWith("Z")) date += "Z";
-  let ob = { rid, thisclass, hids, entryfee, distance, date, race_name };
+  let ob = { rid, thisclass, hids, entryfee, distance, date, race_name, prize };
   // console.log("base struct", ob);
   return ob;
 };
@@ -541,24 +602,58 @@ const zed_races_zrapi_rid_runner = async (
       flame: flames[hid],
     };
   });
-  ar = ar.map((i) => ({
-    1: distance,
-    2: date,
-    3: entryfee,
-    4: rid,
-    5: thisclass,
-    6: i.hid,
-    7: i.finishtime,
-    8: i.place,
-    9: i.name,
-    10: i.gate,
-    11: 0,
-    12: 0,
-    13: i.flame,
-    14: fee_cat,
-    15: 0,
-    17: race_name,
-  }));
+  console.log("base", base);
+  let pool = {
+    1: parseFloat(getv(base, "prize.first") ?? 0) / 1e18,
+    2: parseFloat(getv(base, "prize.second") ?? 0) / 1e18,
+    3: parseFloat(getv(base, "prize.third") ?? 0) / 1e18,
+  };
+
+  let now = moment();
+  let start = moment(date);
+  let diff = now.diff(start, "seconds");
+
+  let hsdoc = {};
+  let doh = diff < 500;
+  if (doh) {
+    hsdoc = await zedf.horses(hids);
+    hsdoc = _.chain(hsdoc)
+      .map((e) => [e.horse_id, { hclass: e.class, rating: e.rating }])
+      .fromPairs()
+      .value();
+    // console.log(hsdoc)
+  }
+
+  let fee_usd = get_entryfee_usd({ fee: entryfee, date: date });
+  let fee_tag = get_fee_tag(fee_usd);
+  ar = ar.map((i) => {
+    let prize = pool[i.place] || 0;
+    let prize_usd = get_entryfee_usd({ fee: prize, date });
+    return {
+      1: distance,
+      2: date,
+      3: entryfee,
+      4: rid,
+      5: thisclass,
+      6: i.hid,
+      7: i.finishtime,
+      8: i.place,
+      9: i.name,
+      10: i.gate,
+      11: 0,
+      12: 0,
+      13: i.flame,
+      14: fee_cat,
+      15: 0,
+      ...(doh ? { 16: hsdoc[i.hid].hclass } : {}),
+      17: race_name,
+      18: fee_usd,
+      19: fee_tag,
+      20: prize,
+      21: prize_usd,
+      ...(doh ? { 22: hsdoc[i.hid].rating } : {}),
+    };
+  });
   let adj_ob = await get_adjusted_finish_times(rid, "raw_data", ar);
   // console.log(rid, adj_ob);
 
@@ -570,6 +665,8 @@ const zed_races_zrapi_rid_runner = async (
     // console.log(mode, thisclass, odds_ob);
   }
   ar = _.keyBy(ar, "6");
+  // console.log(rid);
+  // console.table(ar);
   return ar;
 };
 
@@ -686,5 +783,7 @@ const races_base = {
   check_exists_rids,
   check_missing_rids,
   get_zed_rids_only,
+  zed_races_zrapi_rid_runner,
+  get_zed_raw_data,
 };
 module.exports = races_base;
