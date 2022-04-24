@@ -62,7 +62,7 @@ const miss_cron = async () => {
     try {
       let now = Date.now();
       let from = moment(new Date(now)).subtract(30, "minutes").toISOString();
-      let to = moment(new Date(now)).toISOString();
+      let to = moment(new Date(now)).subtract(5, "minutes").toISOString();
       await miss(from, to, push_race_horses_on);
     } catch (err) {
       console.log(err);
@@ -74,7 +74,7 @@ const miss_cron = async () => {
     try {
       let now = Date.now();
       let from = moment(new Date(now)).subtract(1, "hour").toISOString();
-      let to = moment(new Date(now)).toISOString();
+      let to = moment(new Date(now)).subtract(10, "minutes").toISOString();
       await miss(from, to, push_race_horses_on);
     } catch (err) {
       console.log(err);
