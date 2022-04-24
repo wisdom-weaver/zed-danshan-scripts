@@ -4,6 +4,7 @@ const moment = require("moment");
 const races_base = require("./races_base");
 const races_scheduled = require("./races_scheduled");
 const races_duplicate = require("./races_duplicate");
+const { print_cron_details } = require("../utils/cyclic_dependency");
 
 const cron_conf = { scheduled: true };
 const race_conf_gql = { check_exists: true, durr: 1 * 60 * 60 * 1000 };
@@ -12,8 +13,8 @@ const race_conf_zrapi = { check_exists: false, durr: 2 * 60 * 1000 };
 const live = async () => {
   console.log("zed_races", "live");
   let d = Date.now();
-  let to = moment(d).subtract(5, "minutes").toISOString();
-  let from = moment(new Date(to)).subtract(5, "minutes").toISOString();
+  let to = moment(d).subtract(3, "minutes").toISOString();
+  let from = moment(new Date(to)).subtract(4, "minutes").toISOString();
   await races_base.zed_races_gql_runner(from, to, {
     check_exists: true,
     durr: 1 * 60 * 60 * 1000,
@@ -22,9 +23,8 @@ const live = async () => {
 };
 const live_cron = async () => {
   // let cron_str = "*/30 * * * * *"; // testing
-  let cron_str = "0 */5 * * * *";
-  const c_itvl = cron_parser.parseExpression(cron_str);
-  console.log("Next run:", c_itvl.next().toISOString(), "\n");
+  let cron_str = "*/10 * * * * *";
+  print_cron_details(cron_str)
   cron.schedule(cron_str, live, cron_conf);
 };
 
