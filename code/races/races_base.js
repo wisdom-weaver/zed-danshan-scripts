@@ -58,7 +58,9 @@ const wrap_rating = async ([race_id, raceData]) => {
     _.map((e) => parseInt(e))
   );
   let now = moment();
-  let start = moment(raceData[hids[0]][2]);
+  let date = getv(raceData, "${hids[0]}.2") ?? null;
+  if (date == null) return;
+  let start = moment(date);
   let diff = now.diff(start, "seconds");
   // console.log("date_diff", diff);
   if (diff > 500) return;
