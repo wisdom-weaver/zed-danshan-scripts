@@ -41,23 +41,23 @@ const get_tids = async (body) => {
     query = {
       $or: [
         {
-          type:"regular",
+          type: "regular",
           tourney_st: { $lte: moment().toISOString() },
           tourney_ed: { $gte: moment().add(-30, "minutes").toISOString() },
         },
         {
-          type:"regular",
+          type: "regular",
           entry_st: { $lte: moment().toISOString() },
           entry_ed: { $gte: moment().add(-30, "minutes").toISOString() },
         },
         {
-          type:"flash",
-          status:"open",
+          type: "flash",
+          status: "open",
           entry_st: { $lte: moment().toISOString() },
         },
         {
-          type:"flash",
-          status:"live",
+          type: "flash",
+          status: "live",
           tourney_ed: { $gte: moment().add(-30, "minutes").toISOString() },
         },
       ],
@@ -304,7 +304,12 @@ const t_status = async () => {
   let docs = await zed_db.db
     .collection(tcoll)
     .find(
-      {},
+      {
+        $or: [
+          { tourney_ed: { $gte: moment().add(-1, "days").toISOString() } },
+          { tourney_ed: { $eq: null } },
+        ],
+      },
       {
         projection: {
           _id: 0,
@@ -326,7 +331,7 @@ const t_status = async () => {
     if (type == "flash" && !tourney_ed && !tourney_st) {
       if (entry_st < now) status = "open";
       if (entry_st > now) status = "upcoming";
-    } else if (type == "regular") {
+    } else {
       if (tourney_ed < now) status = "ended";
       if (_.inRange(nano(now), nano(tourney_st), nano(tourney_ed)))
         status = "live";
