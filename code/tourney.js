@@ -5,7 +5,7 @@ const { zed_db, zed_ch } = require("./connection/mongo_connect");
 const { get_entryfee_usd } = require("./utils/base");
 const bulk = require("./utils/bulk");
 const { getv, get_fee_tag, iso, nano, cron_conf } = require("./utils/utils");
-const { print_cron_details } = require("./utils/cyclic_dependency");
+const { print_cron_details, jparse } = require("./utils/cyclic_dependency");
 const utils = require("../code/utils/utils");
 
 let test_mode = 0;
@@ -62,8 +62,9 @@ const get_tdoc = async (tid) => {
 };
 
 const calc_t_score = (rrow, tdoc) => {
+  // if (test_mode) console.log(rrow);
   let tot = 0;
-  for (let e of tdoc.score_cr) {
+  for (let [sidx, e] of _.entries(tdoc.score_cr)) {
     // e of score_cr[] {
     //   thisclass: [],
     //   distance: [],
@@ -73,21 +74,66 @@ const calc_t_score = (rrow, tdoc) => {
     //   score: 2
     // }
     if (_.isEmpty(e.thisclass));
-    else if (!e.thisclass.includes(rrow.rc)) continue;
+    else if (!e.thisclass.includes(rrow.rc)) {
+      if (test_mode)
+        console.log(rrow.rid, "exit rc", rrow.rc, "n", e.thisclass);
+      continue;
+    }
     if (_.isEmpty(e.distance));
-    else if (!e.distance.includes(rrow.distance)) continue;
+    else if (!e.distance.includes(rrow.distance)) {
+      if (test_mode)
+        console.log(rrow.rid, "exit distance", rrow.distance, "n", e.distance);
+      continue;
+    }
     if (_.isEmpty(e.fee_tag));
-    else if (!e.fee_tag.includes(rrow.fee_tag)) continue;
+    else if (!e.fee_tag.includes(rrow.fee_tag)) {
+      if (test_mode)
+        console.log(rrow.rid, "exit fee_tag", rrow.fee_tag, "n", e.fee_tag);
+      continue;
+    }
     if (_.isEmpty(e.flame));
-    else if (!e.flame.includes(rrow.flame)) continue;
+    else if (!e.flame.includes(rrow.flame)) {
+      if (test_mode)
+        console.log(rrow.rid, "exit flame", rrow.flame, "n", e.flame);
+      continue;
+    }
     if (_.isEmpty(e.pos));
-    else if (!e.pos.includes(rrow.place)) continue;
+    else if (!e.pos.includes(rrow.place)) {
+      if (test_mode)
+        console.log(rrow.rid, "exit place", rrow.place, "n", e.pos);
+      continue;
+    }
+    if (test_mode) console.log(rrow.rid, `(${sidx}) conforms`, e.score);
     tot += e.score || 0;
   }
   return tot;
 };
 
+const get_horse_entry_date = async (hid, tdoc) => {
+  let { entry_st, entry_ed, tid } = tdoc;
+  let txns = await tx2(
+    null,
+    {
+      status_code: 1,
+      service: tcoll_stables(tid),
+      date: {
+        $gte: entry_st,
+        ...(entry_ed ? { $lte: entry_ed } : {}),
+      },
+      "meta_req.hids": { $elemMatch: { $in: [hid] } },
+      "meta_req.type": "fee",
+    },
+    { pay_id: 1, status_code: 1, req_amt: 1, "meta_req.hids": 1, date: 1 }
+  );
+  if (getv(txns, "0.status_code") == 1) return getv(txns, "0.date");
+  return false;
+};
+
 const run_t_horse = async (hid, tdoc, entry_date) => {
+  if (!entry_date) {
+    console.log("cant find entrydate of horse", hid, tdoc.tid);
+    return;
+  }
   let { tourney_st, tourney_ed } = tdoc;
   let st_mx = tourney_st > entry_date ? tourney_st : entry_date;
   const rcr = tdoc.race_cr;
@@ -149,7 +195,7 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
           entryfee,
           entryfee_usd,
           gate: r[10],
-          place: r[8],
+          place: parseFloat(r[8]),
           flame: r[13],
         };
         return rrow;
@@ -487,10 +533,21 @@ const run_cron = async () => {
   cron.schedule(cron_str, runner, cron_conf);
 };
 
-const test = async () => {
-  const ar = await get_tids({ active: true });
-  console.log(ar);
+const thorse = async ([tid, hid]) => {
+  test_mode = 1;
+  // let tid = "f3effc3a";
+  // let hid = 200985;
+  hid = parseInt(hid);
+  if (_.isNaN(hid)) {
+    console.log("NAN hid");
+    return;
+  }
+  let tdoc = await get_tdoc(tid);
+  let entry_date = await get_horse_entry_date(hid, tdoc);
+  let doc = await run_t_horse(hid, tdoc, entry_date);
+  console.log(doc);
 };
+const test = async () => {};
 
 const run = async (tid) => {
   await t_status();
@@ -502,6 +559,7 @@ const main_runner = async (args) => {
     let [_node, _cfile, args1, arg2, arg3, arg4, arg5, arg6] = args;
     console.log("# --tourney ", iso());
     if (arg2 == "test") await test();
+    if (arg2 == "thorse") await thorse([arg3, arg4]);
     if (arg2 == "run") await run(arg3);
     if (arg2 == "runner") await runner();
     if (arg2 == "run_cron") await run_cron();
@@ -513,6 +571,7 @@ const main_runner = async (args) => {
 
 const tourney = {
   test,
+  thorse,
   runner,
   run,
   run_cron,
