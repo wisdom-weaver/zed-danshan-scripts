@@ -41,12 +41,24 @@ const get_tids = async (body) => {
     query = {
       $or: [
         {
+          type:"regular",
           tourney_st: { $lte: moment().toISOString() },
           tourney_ed: { $gte: moment().add(-30, "minutes").toISOString() },
         },
         {
+          type:"regular",
           entry_st: { $lte: moment().toISOString() },
           entry_ed: { $gte: moment().add(-30, "minutes").toISOString() },
+        },
+        {
+          type:"flash",
+          status:"open",
+          entry_st: { $lte: moment().toISOString() },
+        },
+        {
+          type:"flash",
+          status:"live",
+          tourney_ed: { $gte: moment().add(-30, "minutes").toISOString() },
         },
       ],
     };
