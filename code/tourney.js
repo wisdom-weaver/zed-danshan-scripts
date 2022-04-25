@@ -405,13 +405,16 @@ const run_tid = async (tid) => {
     prize_pool,
   };
   console.log(fins);
-  await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: fins });
 
   let hids_paid = _.chain(txns_paid)
     .map("meta_req.hids")
     .flatten()
     .uniq()
     .value();
+  let horses_n = hids_paid?.length || 0;
+  fins.horses_n = horses_n
+  await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: fins });
+
   let hids_not_paid = _.difference(hids_all, hids_paid);
 
   console.log("hids_paid.len", hids_paid.length);
