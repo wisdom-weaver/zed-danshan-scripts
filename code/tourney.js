@@ -220,6 +220,8 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
   if (!_.isEmpty(rcr.fee_tag))
     races = races.filter((r) => rcr.fee_tag.includes(r.fee_tag));
 
+  if (tdoc.type == "flash") races = races.slice(0, 5);
+
   races = races.map((rrow) => {
     let score = calc_t_score(rrow, tdoc);
     rrow.score = score;
@@ -412,7 +414,8 @@ const run_tid = async (tid) => {
     .uniq()
     .value();
   let horses_n = hids_paid?.length || 0;
-  fins.horses_n = horses_n
+  console.log({ horses_n });
+  fins.horses_n = horses_n;
   await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: fins });
 
   let hids_not_paid = _.difference(hids_all, hids_paid);
