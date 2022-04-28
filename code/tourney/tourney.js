@@ -658,12 +658,12 @@ const flash_payout = async (tid) => {
   if (_.isEmpty(pays)) {
     console.log("nothing to payout");
   } else {
-    let adwallet = process.env.payout_wallet;
+    let adwallet = process.env.flash_payout_wallet;
     await Promise.all(
       pays.map((l) =>
         payout_single({
           tid,
-          payout_wallet: adwallet,
+          flash_payout_wallet: adwallet,
           stable_name: l.stable_name,
           wallet: l.wallet,
           amt,
@@ -671,7 +671,7 @@ const flash_payout = async (tid) => {
       )
     );
     let payments = pays.map((l) => ({ WALLET: l.wallet, AMOUNT: l.amt }));
-    let key = process.env.payout_private_key;
+    let key = process.env.flash_payout_private_key;
     let count = await send_weth.sendAllTransactions(payments, key);
     console.log("done transactions:", count);
   }

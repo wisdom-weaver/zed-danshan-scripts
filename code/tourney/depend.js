@@ -209,10 +209,10 @@ const payout_single = async ({
   wallet,
   amt,
   stable_name,
-  payout_wallet,
+  flash_payout_wallet,
 }) => {
   const pay_body = {
-    sender: payout_wallet.toLowerCase(),
+    sender: flash_payout_wallet.toLowerCase(),
     reciever: wallet,
     req_amt: amt,
     token: "WETH",
