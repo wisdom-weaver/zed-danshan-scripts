@@ -1,19 +1,31 @@
 const cron = require("node-cron");
 const _ = require("lodash");
 const moment = require("moment");
-const { zed_db, zed_ch } = require("./connection/mongo_connect");
-const { get_entryfee_usd } = require("./utils/base");
-const bulk = require("./utils/bulk");
-const { getv, get_fee_tag, iso, nano, cron_conf } = require("./utils/utils");
-const { print_cron_details, jparse } = require("./utils/cyclic_dependency");
-const utils = require("../code/utils/utils");
+const { zed_db, zed_ch } = require("../connection/mongo_connect");
+const { get_entryfee_usd } = require("../utils/base");
+const bulk = require("../utils/bulk");
+const { getv, get_fee_tag, iso, nano, cron_conf } = require("../utils/utils");
+const { print_cron_details, jparse } = require("../utils/cyclic_dependency");
+const utils = require("../utils/utils");
+const {
+  tcoll,
+  tcollp,
+  tcoll_horses,
+  tcoll_stables,
+  payout_list,
+  get_p,
+  create_t,
+  get_leaderboard_t,
+  payout_single,
+} = require("./depend");
+const send_weth = require("../payments/send_weth");
 
 let test_mode = 0;
 let running = 0;
 
-const tcoll = "tourney_master";
-const tcoll_horses = (tid) => `tourney::${tid}::horses`;
-const tcoll_stables = (tid) => `tourney::${tid}::stables`;
+// const tcoll = "tourney_master";
+// const tcoll_horses = (tid) => `tourney::${tid}::horses`;
+// const tcoll_stables = (tid) => `tourney::${tid}::stables`;
 
 const tfet_many = (coll, query, projection) => {
   if (projection) projection = { _id: 0, ...(projection || {}) };
@@ -34,6 +46,25 @@ const ts1 = (...a) => tfet_one_(tcoll_stables(a[0]), ...a.slice(1));
 const ts2 = (...a) => tfet_many(tcoll_stables(a[0]), ...a.slice(1));
 const tx2 = (...a) => tfet_many("payments", ...a.slice(1));
 
+const get_flash_run_tids = async () => {
+  let query = {
+    $or: [
+      { type: "flash", status: { $in: ["open", "live"] } },
+      {
+        type: "flash",
+        status: "ended",
+        tourney_ed: { $gte: moment().add(-5, "minutes").toISOString() },
+        payout_done: { $ne: true },
+      },
+    ],
+  };
+  let docs = await zed_db.db
+    .collection(tcoll)
+    .find(query, { _id: 0, tid: 1 })
+    .toArray();
+  return _.map(docs, "tid") || [];
+};
+
 const get_tids = async (body) => {
   let active = getv(body, "active") || false;
   let query = {};
@@ -50,16 +81,16 @@ const get_tids = async (body) => {
           entry_st: { $lte: moment().toISOString() },
           entry_ed: { $gte: moment().add(-30, "minutes").toISOString() },
         },
-        {
-          type: "flash",
-          status: "open",
-          entry_st: { $lte: moment().toISOString() },
-        },
-        {
-          type: "flash",
-          status: "live",
-          tourney_ed: { $gte: moment().add(-30, "minutes").toISOString() },
-        },
+        // {
+        //   type: "flash",
+        //   status: "open",
+        //   entry_st: { $lte: moment().toISOString() },
+        // },
+        // {
+        //   type: "flash",
+        //   status: "live",
+        //   tourney_ed: { $gte: moment().add(-30, "minutes").toISOString() },
+        // },
       ],
     };
     // console.log(query);
@@ -517,38 +548,6 @@ const run_tid = async (tid) => {
   );
 };
 
-const runner = async () => {
-  if (running) {
-    console.log("############# tourney already running.........");
-    return;
-  }
-  try {
-    running = 1;
-    await t_status();
-    const tids = await get_tids({ active: true });
-    console.log("tids.len", tids.length);
-    console.log("=>>", tids);
-    for (let tid of tids) {
-      try {
-        console.log("\n\n==========");
-        let st = iso();
-        console.log(`tid:: ${tid} running`, st);
-        await run_tid(tid);
-        let ed = iso();
-        console.log(`tid:: ${tid} ended`, ed);
-        let took = (nano(ed) - nano(st)) / 1000;
-        console.log(`tid:: ${tid} took:${took} seconds`);
-      } catch (err) {
-        console.log(err);
-      }
-    }
-    running = 0;
-  } catch (err) {
-    console.log("TOURNEY ERR\n", err);
-    running = 0;
-  }
-};
-
 const cron_str = "* * * * *";
 const run_cron = async () => {
   console.log("##run cron", "tourney");
@@ -577,6 +576,204 @@ const run = async (tid) => {
   await run_tid(tid);
 };
 
+const regular_runner = async () => {
+  try {
+    const tids = await get_tids({ active: true });
+    console.log("tids.len", tids.length);
+    console.log("=>>", tids);
+    for (let tid of tids) {
+      try {
+        console.log("\n\n==========");
+        let st = iso();
+        console.log(`tid:: ${tid} running`, st);
+        await run_tid(tid);
+        let ed = iso();
+        console.log(`tid:: ${tid} ended`, ed);
+        let took = (nano(ed) - nano(st)) / 1000;
+        console.log(`tid:: ${tid} took:${took} seconds`);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const flash_run_current = async () => {
+  const tids = await get_flash_run_tids();
+  console.log("# flash_run_current", tids.length, tids);
+  for (let tid of tids) {
+    try {
+      console.log("\n\n==========");
+      let st = iso();
+      console.log(`tid:: ${tid} running`, st);
+      await run_tid(tid);
+      let ed = iso();
+      console.log(`tid:: ${tid} ended`, ed);
+      let took = (nano(ed) - nano(st)) / 1000;
+      console.log(`tid:: ${tid} took:${took} seconds`);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+};
+
+const calc_payouts_list = async (tid) => {
+  let tdoc = get_tdoc(tid);
+  let { prize_pool, payout_mode, score_mode } = tdoc;
+  let k =
+    (score_mode == "total" && "tot_score") ||
+    (mode == "avg" && "avg_score") ||
+    null;
+  let leader = await get_leaderboard_t({ tid });
+  if (leader.length == 0) return [];
+
+  let pays = [];
+
+  if (score_mode == "winner_all") {
+    return [{ ...leader[0], amt: prize_pool }];
+  } else if (score_mode == "double_up") {
+    let n = leader.length;
+    let mid = parseInt(leader.length / 2);
+    let last = leader[mid - 1];
+    let last_ties = _.filter(leader, (i) => i[k] == last[k]);
+    let last_ties_hids = _.map(last_ties, "hid");
+    let amt = prize_pool / n;
+    let tie_amt = amt / last_ties.length;
+    let top_half = leader.slice(0, mid);
+    top_half = _.filter(top_half, (i) => !last_ties_hids.includes(i.hid));
+    pays = [
+      ...top_half.map((e) => ({ ...e, amt })),
+      ...last_ties.map((e) => ({ ...e, amt: tie_amt })),
+    ];
+  }
+  return pays;
+};
+
+const flash_payout = async (tid) => {
+  console.log("flash_payout");
+  console.log(`## [ ${tid} ] started payout`, iso());
+  let pays = await calc_payouts_list({ tid });
+  if (_.isEmpty(pays)) {
+    console.log("nothing to payout");
+  } else {
+    let adwallet = process.env.payout_wallet;
+    await Promise.all(
+      pays.map((l) =>
+        payout_single({
+          tid,
+          payout_wallet: adwallet,
+          stable_name: l.stable_name,
+          wallet: l.wallet,
+          amt,
+        })
+      )
+    );
+    let payments = pays.map((l) => ({ WALLET: l.wallet, AMOUNT: l.amt }));
+    let key = process.env.payout_private_key;
+    let count = await send_weth.sendAllTransactions(payments, key);
+    console.log("done transactions:", count);
+  }
+  await zed_db.db
+    .collection(tcoll)
+    .updateOne({ tid }, { $set: { payout_done: true, payout_date: iso() } });
+  console.log(`## [ ${tid} ] ended payout`, iso());
+};
+
+const flash_auto_start = async () => {
+  let pids_active = await zed_db.db
+    .collection(tcollp)
+    .find(
+      { pid: { $regex: /^flash/i }, flash_preset_active: true },
+      { projection: { pid: 1, _id: 0 } }
+    )
+    .toArray();
+  pids_active = _.map(pids_active, "pid");
+  console.log("# flash_auto_start");
+  console.log("pids active", pids_active.length, pids_active);
+  let tids_doc = await zed_db.db
+    .collection(tcoll)
+    .find(
+      {
+        type: "flash",
+        status: { $in: ["open", "live"] },
+      },
+      { projection: { tid: 1, _id: 0, created_using: 1 } }
+    )
+    .toArray();
+  let pids_running =
+    _.chain(tids_doc).map("created_using").uniq().value() || [];
+  console.log("pids running", pids_running.length, pids_running);
+
+  let pids_consider = _.difference(pids_active, pids_running);
+  console.log("pids considering", pids_consider.length, pids_consider);
+  for (let pid of pids_consider) {
+    try {
+      console.log(`creating flash tourney using ${pid}`);
+      let doc = await get_p({ pid });
+      doc.created_using = pid;
+      doc.entry_st = iso();
+      let resp = await create_t(doc);
+      console.log(resp?.msg);
+    } catch (err) {}
+  }
+};
+
+const flash_payout_ended = async () => {
+  let tids = await zed_db.db
+    .collection(tcoll)
+    .find(
+      {
+        status: "ended",
+        type: "flash",
+        payout_done: { $ne: true },
+        tourney_ed: {
+          $lte: moment().add(-5, "minutes").toISOString(),
+          $gte: moment().add(-15, "minutes").toISOString(),
+        },
+      },
+      { projection: { tid: 1, _id: 0 } }
+    )
+    .toArray();
+  tids = _.map(tids, "tid");
+  console.log("# flash_payout_ended", tids.length, tids);
+  try {
+    for (let tid of tids) {
+      try {
+        await flash_payout(tid);
+      } catch (err) {
+        console.log("Flash_payout err", tid, err.message);
+      }
+    }
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const flash_runner = async () => {
+  await flash_run_current();
+  await flash_payout_ended();
+  await flash_auto_start();
+};
+
+const runner = async () => {
+  if (running) {
+    console.log("############# tourney already running.........");
+    return;
+  }
+  try {
+    running = 1;
+    await t_status();
+    await regular_runner();
+    await flash_runner();
+    running = 0;
+  } catch (err) {
+    console.log("TOURNEY ERR\n", err);
+    running = 0;
+  }
+};
+
 const main_runner = async (args) => {
   try {
     let [_node, _cfile, args1, arg2, arg3, arg4, arg5, arg6] = args;
@@ -585,6 +782,7 @@ const main_runner = async (args) => {
     if (arg2 == "thorse") await thorse([arg3, arg4]);
     if (arg2 == "run") await run(arg3);
     if (arg2 == "runner") await runner();
+    if (arg2 == "flash_runner") await flash_runner();
     if (arg2 == "run_cron") await run_cron();
     if (arg2 == "t_status") await t_status();
   } catch (err) {
@@ -596,6 +794,7 @@ const tourney = {
   test,
   thorse,
   runner,
+  flash_runner,
   run,
   run_cron,
   main_runner,

@@ -15,7 +15,7 @@ const payments = require("./payments/payments");
 const finder = require("./tests/finder");
 const gapi = require("../gapi/gapi");
 const temp = require("../temp/temp");
-const tourney = require("./tourney");
+const tourney = require("./tourney/tourney");
 const mod = v3;
 
 const main = async (args) => {
