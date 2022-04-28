@@ -659,6 +659,7 @@ const flash_payout = async (tid) => {
   console.log("flash_payout");
   console.log(`## [ ${tid} ] started payout`, iso());
   let pays = await calc_payouts_list({ tid });
+  console.table(pays)
   if (_.isEmpty(pays)) {
     console.log("nothing to payout");
   } else {
