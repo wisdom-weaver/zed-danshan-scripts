@@ -81,7 +81,9 @@
     "cron-parser": "^4.0.0",
     "cronstrue": "^1.125.0",
     "crypto": "^1.0.1",
+    "csv-parser": "^3.0.0",
     "dotenv": "^10.0.0",
+    "fs": "^0.0.1-security",
     "googleapis": "^97.0.0",
     "knex": "^1.0.3",
     "lodash": "^4.17.21",
@@ -96,6 +98,7 @@
     "query-string": "^7.1.1",
     "run-func": "^1.0.5",
     "selenium-webdriver": "^4.0.0-rc-2",
-    "superagent": "^6.1.0"
+    "superagent": "^6.1.0",
+    "web3": "^1.7.3"
   }
 }
