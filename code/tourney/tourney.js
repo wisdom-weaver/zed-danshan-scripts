@@ -627,6 +627,10 @@ const calc_payouts_list = async (tid) => {
     (mode == "avg" && "avg_score") ||
     null;
   let leader = await get_leaderboard_t({ tid });
+  leader = _.filter(
+    leader,
+    (i) => ![0, "na", null, undefined, NaN].includes(i.rank)
+  );
   if (leader.length == 0) return [];
 
   let pays = [];
@@ -767,6 +771,7 @@ const runner = async () => {
     await t_status();
     await regular_runner();
     await flash_runner();
+    await t_status();
     running = 0;
   } catch (err) {
     console.log("TOURNEY ERR\n", err);
