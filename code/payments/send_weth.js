@@ -109,11 +109,6 @@ async function sendAllTransactions(payments, privateKey) {
   return transCount;
 }
 
-(async function main() {
-  // handlePaymentCSV();
-  console.log("your private key is", process.env.PRIVATE_KEY);
-})();
-
 const send_weth = {
   sendAllTransactions,
 };

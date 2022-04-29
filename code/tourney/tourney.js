@@ -569,7 +569,6 @@ const thorse = async ([tid, hid]) => {
   let doc = await run_t_horse(hid, tdoc, entry_date);
   console.log(doc);
 };
-const test = async () => {};
 
 const run = async (tid) => {
   await t_status();
@@ -619,38 +618,46 @@ const flash_run_current = async () => {
   }
 };
 
-const calc_payouts_list = async (tid) => {
-  let tdoc = get_tdoc(tid);
+const calc_payouts_list = async ({ tid }) => {
+  let tdoc = await get_tdoc(tid);
   let { prize_pool, payout_mode, score_mode } = tdoc;
+  console.log({ prize_pool, payout_mode, score_mode });
   let k =
     (score_mode == "total" && "tot_score") ||
-    (mode == "avg" && "avg_score") ||
+    (score_mode == "avg" && "avg_score") ||
     null;
   let leader = await get_leaderboard_t({ tid });
-  leader = _.filter(
-    leader,
-    (i) => ![0, "na", null, undefined, NaN].includes(i.rank)
-  );
   if (leader.length == 0) return [];
 
   let pays = [];
 
-  if (score_mode == "winner_all") {
+  if (payout_mode == "winner_all") {
+    console.table(leader)
+    if (!leader[0].rank) return [];
     return [{ ...leader[0], amt: prize_pool }];
-  } else if (score_mode == "double_up") {
-    let n = leader.length;
+  } else if (payout_mode == "double_up") {
     let mid = parseInt(leader.length / 2);
-    let last = leader[mid - 1];
-    let last_ties = _.filter(leader, (i) => i[k] == last[k]);
-    let last_ties_hids = _.map(last_ties, "hid");
-    let amt = prize_pool / n;
-    let tie_amt = amt / last_ties.length;
-    let top_half = leader.slice(0, mid);
-    top_half = _.filter(top_half, (i) => !last_ties_hids.includes(i.hid));
-    pays = [
-      ...top_half.map((e) => ({ ...e, amt })),
-      ...last_ties.map((e) => ({ ...e, amt: tie_amt })),
-    ];
+    leader = _.filter(
+      leader,
+      (i) => ![0, "na", null, undefined, NaN].includes(i.rank)
+    );
+    let n = leader.length;
+    if (leader.length > mid) {
+      let last = leader[mid - 1];
+      let last_ties = _.filter(leader, (i) => i[k] == last[k]);
+      let last_ties_hids = _.map(last_ties, "hid");
+      let amt = prize_pool / n;
+      let tie_amt = amt / last_ties.length;
+      let top_half = leader.slice(0, mid);
+      top_half = _.filter(top_half, (i) => !last_ties_hids.includes(i.hid));
+      pays = [
+        ...top_half.map((e) => ({ ...e, amt })),
+        ...last_ties.map((e) => ({ ...e, amt: tie_amt })),
+      ];
+    } else {
+      let amt = prize_pool / n;
+      pays = [...leader.map((e) => ({ ...e, amt }))];
+    }
   }
   return pays;
 };
@@ -659,25 +666,27 @@ const flash_payout = async (tid) => {
   console.log("flash_payout");
   console.log(`## [ ${tid} ] started payout`, iso());
   let pays = await calc_payouts_list({ tid });
-  console.table(pays)
+  console.table(pays);
   if (_.isEmpty(pays)) {
     console.log("nothing to payout");
   } else {
     let adwallet = process.env.flash_payout_wallet;
-    await Promise.all(
-      pays.map((l) =>
-        payout_single({
-          tid,
-          flash_payout_wallet: adwallet,
-          stable_name: l.stable_name,
-          wallet: l.wallet,
-          amt,
-        })
-      )
-    );
+    // await Promise.all(
+    //   pays.map((l) =>
+    //     payout_single({
+    //       tid,
+    //       payout_wallet: adwallet,
+    //       stable_name: l.stable_name,
+    //       wallet: l.wallet,
+    //       amt,
+    //     })
+    //   )
+    // );
     let payments = pays.map((l) => ({ WALLET: l.wallet, AMOUNT: l.amt }));
+    console.table(payments);
     let key = process.env.flash_payout_private_key;
-    let count = await send_weth.sendAllTransactions(payments, key);
+    // let count = await send_weth.sendAllTransactions(payments, key);
+    let count = 0;
     console.log("done transactions:", count);
   }
   await zed_db.db
@@ -794,6 +803,11 @@ const main_runner = async (args) => {
   } catch (err) {
     console.log(err);
   }
+};
+
+const test = async () => {
+  let tid = "aa1e9160";
+  await flash_payout(tid);
 };
 
 const tourney = {

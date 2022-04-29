@@ -50,6 +50,11 @@ const get_hdata = async (hid) => {
 
 const get_leaderboard_t = async ({ tid }) => {
   if (!tid) throw new Error("tid not found");
+  let stables = await zed_db.db
+    .collection(tcoll_stables(tid))
+    .find({}, { projection: { discord: 1, _id: 0, wallet: 1, stable_name: 1 } })
+    .toArray();
+  stables = _.chain(stables).keyBy("stable_name").value();
   let docs = await zed_db.db
     .collection(tcoll_horses(tid))
     .find(
@@ -75,8 +80,9 @@ const get_leaderboard_t = async ({ tid }) => {
   let hdocs = await Promise.all(hids.map((hid) => get_hdata(hid)));
   hdocs = _.keyBy(hdocs, "hid");
   let ar = docs.map((h) => {
+    let sdoc = stables[h.stable_name] || {};
     let hdata = hdocs[h.hid];
-    return { ...h, ...hdata };
+    return { ...h, ...hdata, ...sdoc };
   });
   ar = _.sortBy(ar, (i) => i.rank || 1e14);
   return ar;
@@ -209,10 +215,10 @@ const payout_single = async ({
   wallet,
   amt,
   stable_name,
-  flash_payout_wallet,
+  payout_wallet,
 }) => {
   const pay_body = {
-    sender: flash_payout_wallet.toLowerCase(),
+    sender: payout_wallet.toLowerCase(),
     reciever: wallet,
     req_amt: amt,
     token: "WETH",
