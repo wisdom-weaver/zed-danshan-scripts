@@ -621,6 +621,7 @@ const flash_run_current = async () => {
 const calc_payouts_list = async ({ tid }) => {
   let tdoc = await get_tdoc(tid);
   let { prize_pool, payout_mode, score_mode } = tdoc;
+  // prize_pool = 1;
   console.log({ prize_pool, payout_mode, score_mode });
   let k =
     (score_mode == "total" && "tot_score") ||
@@ -641,21 +642,47 @@ const calc_payouts_list = async ({ tid }) => {
       leader,
       (i) => ![0, "na", null, undefined, NaN].includes(i.rank)
     );
-    let n = leader.length;
-    if (leader.length > mid) {
-      let last = leader[mid - 1];
-      let last_ties = _.filter(leader, (i) => i[k] == last[k]);
+    if (mid > leader.length) {
+      console.log("less than mid");
+      pays = [...leader.map((e) => ({ ...e, amt }))];
+      return pays;
+    }
+    let last = leader[mid - 1];
+    let last_ties = _.filter(leader, (i) => i[k] == last[k]);
+    leader = leader.slice(0, mid);
+
+    if (last_ties.length > 1) {
+      console.log("last_ties_hids mid:", mid);
       let last_ties_hids = _.map(last_ties, "hid");
-      let amt = prize_pool / n;
-      let tie_amt = amt / last_ties.length;
-      let top_half = leader.slice(0, mid);
-      top_half = _.filter(top_half, (i) => !last_ties_hids.includes(i.hid));
+      let top_half = _.filter(
+        leader.slice(0, mid),
+        (i) => !last_ties_hids.includes(i.hid)
+      );
+      console.table(last_ties);
+      console.table(top_half);
+      let totn = mid;
+
+      let top_half_n = top_half.length;
+      let amt = prize_pool / (top_half_n + 1);
+
+      let ties_n = last_ties.length;
+      let tie_sec = amt;
+      let tie_amt = tie_sec / ties_n;
+
+      console.log({
+        amt,
+        mid,
+        top_half_n,
+        ties_n,
+        tie_amt,
+      });
       pays = [
         ...top_half.map((e) => ({ ...e, amt })),
         ...last_ties.map((e) => ({ ...e, amt: tie_amt })),
       ];
     } else {
-      let amt = prize_pool / n;
+      console.log("no tie", mid);
+      let amt = prize_pool / leader.length;
       pays = [...leader.map((e) => ({ ...e, amt }))];
     }
   }
@@ -809,7 +836,8 @@ const main_runner = async (args) => {
 };
 
 const test = async () => {
-  let tid = "aaa4c417";
+  // let tid = "aaa4c417";
+  let tid = "683af5c9";
   await flash_payout(tid);
 };
 
