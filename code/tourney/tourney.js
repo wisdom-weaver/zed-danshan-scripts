@@ -671,22 +671,22 @@ const flash_payout = async (tid) => {
     console.log("nothing to payout");
   } else {
     let adwallet = process.env.flash_payout_wallet;
-    // await Promise.all(
-    //   pays.map((l) =>
-    //     payout_single({
-    //       tid,
-    //       payout_wallet: adwallet,
-    //       stable_name: l.stable_name,
-    //       wallet: l.wallet,
-    //       amt,
-    //     })
-    //   )
-    // );
+    await Promise.all(
+      pays.map((l) =>
+        payout_single({
+          tid,
+          payout_wallet: adwallet,
+          stable_name: l.stable_name,
+          wallet: l.wallet,
+          amt,
+        })
+      )
+    );
     let payments = pays.map((l) => ({ WALLET: l.wallet, AMOUNT: l.amt }));
     console.table(payments);
     let key = process.env.flash_payout_private_key;
-    // let count = await send_weth.sendAllTransactions(payments, key);
-    let count = 0;
+    let count = await send_weth.sendAllTransactions(payments, key);
+    // let count = 0;
     console.log("done transactions:", count);
   }
   await zed_db.db
