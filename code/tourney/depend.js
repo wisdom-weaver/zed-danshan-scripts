@@ -210,6 +210,40 @@ const create_t = async (body) => {
   return resp;
 };
 
+const add_transaction = async (req) => {
+  let { reciever, sender, req_amt = null, token, service, meta_req = {} } = req;
+  let date = utils.iso();
+  if (!sender) throw new Error("sender address not found");
+  if (!reciever) throw new Error("sender address not found");
+  sender = sender.toLowerCase();
+  if (!service) throw new Error("service not found");
+  if (!token) throw new Error("token not found");
+  const unq = `${sender}-${date}`;
+  const hash = crypto.createHmac("sha256", unq).digest("hex");
+  // console.log(date);
+  // console.log(unq);
+  // console.log(hash);
+
+  const pay_id = hash.slice(hash.length - 6);
+  let doc = {
+    pay_id,
+    sender,
+    reciever,
+    req_amt,
+    token,
+    service,
+    status: "pending",
+    status_code: 0,
+    date,
+    meta_req,
+    meta: {},
+  };
+  let resp = await zed_db.db.collection("payments").insertOne(doc);
+  if (resp.insertedCount) return { status: "success", pay_id };
+  else throw new Error("couldnt add your payment");
+};
+
+
 const payout_single = async ({
   tid,
   wallet,

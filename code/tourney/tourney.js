@@ -632,7 +632,7 @@ const calc_payouts_list = async ({ tid }) => {
   let pays = [];
 
   if (payout_mode == "winner_all") {
-    console.table(leader)
+    console.table(leader);
     if (!leader[0].rank) return [];
     return [{ ...leader[0], amt: prize_pool }];
   } else if (payout_mode == "double_up") {
@@ -678,11 +678,14 @@ const flash_payout = async (tid) => {
           payout_wallet: adwallet,
           stable_name: l.stable_name,
           wallet: l.wallet,
-          amt,
+          amt: l.amt,
         })
       )
     );
-    let payments = pays.map((l) => ({ WALLET: l.wallet, AMOUNT: l.amt }));
+    let payments = pays.map((l) => ({
+      WALLET: l.wallet,
+      AMOUNT: l.amt.toString(),
+    }));
     console.table(payments);
     let key = process.env.flash_payout_private_key;
     let count = await send_weth.sendAllTransactions(payments, key);
@@ -806,7 +809,7 @@ const main_runner = async (args) => {
 };
 
 const test = async () => {
-  let tid = "aa1e9160";
+  let tid = "aaa4c417";
   await flash_payout(tid);
 };
 
