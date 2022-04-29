@@ -837,7 +837,7 @@ const main_runner = async (args) => {
 
 const test = async () => {
   // let tid = "aaa4c417";
-  let tid = "683af5c9";
+  let tid = "ea295633";
   await flash_payout(tid);
 };
 

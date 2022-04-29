@@ -218,13 +218,13 @@ const add_transaction = async (req) => {
   sender = sender.toLowerCase();
   if (!service) throw new Error("service not found");
   if (!token) throw new Error("token not found");
-  const unq = `${sender}-${date}`;
+  const unq = `${sender}-${date}-${reciever}-${req_amt}-${service}`;
   const hash = crypto.createHmac("sha256", unq).digest("hex");
   // console.log(date);
   // console.log(unq);
   // console.log(hash);
 
-  const pay_id = hash.slice(hash.length - 6);
+  const pay_id = hash.slice(hash.length - 8);
   let doc = {
     pay_id,
     sender,
@@ -242,7 +242,6 @@ const add_transaction = async (req) => {
   if (resp.insertedCount) return { status: "success", pay_id };
   else throw new Error("couldnt add your payment");
 };
-
 
 const payout_single = async ({
   tid,
