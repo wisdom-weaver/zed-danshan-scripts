@@ -246,13 +246,14 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
       });
 
   races = _.uniqBy(races, (i) => i.rid);
-  if (!_.isEmpty(races)) races = _.sortBy(races, (r) => -nano(r.date));
+  if (tdoc.type == "flash") {
+    races = _.sortBy(races, "date");
+    races = races.slice(0, 5) || [];
+  }
   if (test_mode) console.log(_.map(races, "rid"));
 
   if (!_.isEmpty(rcr.fee_tag))
     races = races.filter((r) => rcr.fee_tag.includes(r.fee_tag));
-
-  if (tdoc.type == "flash") races = races.slice(0, 5);
 
   races = races.map((rrow) => {
     let score = calc_t_score(rrow, tdoc);
@@ -265,6 +266,9 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
   let tot_score = _.sumBy(races, "score");
   if ([NaN, undefined, null].includes(tot_score)) tot_score = 0;
   let avg_score = (tot_score || 0) / (traces_n || 1);
+
+  races = _.sortBy(races, (r) => -nano(r.date));
+
   let update_doc = {
     hid,
     traces_n,
