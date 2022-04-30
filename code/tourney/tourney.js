@@ -17,6 +17,7 @@ const {
   create_t,
   get_leaderboard_t,
   payout_single,
+  get_double_up_list,
 } = require("./depend");
 const send_weth = require("../payments/send_weth");
 
@@ -637,54 +638,7 @@ const calc_payouts_list = async ({ tid }) => {
     if (!leader[0].rank) return [];
     return [{ ...leader[0], amt: prize_pool }];
   } else if (payout_mode == "double_up") {
-    let mid = parseInt(leader.length / 2);
-    leader = _.filter(
-      leader,
-      (i) => ![0, "na", null, undefined, NaN].includes(i.rank)
-    );
-    if (mid > leader.length) {
-      console.log("less than mid");
-      pays = [...leader.map((e) => ({ ...e, amt }))];
-      return pays;
-    }
-    let last = leader[mid - 1];
-    let last_ties = _.filter(leader, (i) => i[k] == last[k]);
-    leader = leader.slice(0, mid);
-
-    if (last_ties.length > 1) {
-      console.log("last_ties_hids mid:", mid);
-      let last_ties_hids = _.map(last_ties, "hid");
-      let top_half = _.filter(
-        leader.slice(0, mid),
-        (i) => !last_ties_hids.includes(i.hid)
-      );
-      console.table(last_ties);
-      console.table(top_half);
-      let totn = mid;
-
-      let top_half_n = top_half.length;
-      let amt = prize_pool / (top_half_n + 1);
-
-      let ties_n = last_ties.length;
-      let tie_sec = amt;
-      let tie_amt = tie_sec / ties_n;
-
-      console.log({
-        amt,
-        mid,
-        top_half_n,
-        ties_n,
-        tie_amt,
-      });
-      pays = [
-        ...top_half.map((e) => ({ ...e, amt })),
-        ...last_ties.map((e) => ({ ...e, amt: tie_amt })),
-      ];
-    } else {
-      console.log("no tie", mid);
-      let amt = prize_pool / leader.length;
-      pays = [...leader.map((e) => ({ ...e, amt }))];
-    }
+    pays = get_double_up_list(tdoc, leader);
   }
   return pays;
 };
@@ -823,7 +777,7 @@ const main_runner = async (args) => {
   try {
     let [_node, _cfile, args1, arg2, arg3, arg4, arg5, arg6] = args;
     console.log("# --tourney ", iso());
-    if (arg2 == "test") await test();
+    if (arg2 == "test") await test(arg3);
     if (arg2 == "thorse") await thorse([arg3, arg4]);
     if (arg2 == "run") await run(arg3);
     if (arg2 == "runner") await runner();
@@ -835,10 +789,13 @@ const main_runner = async (args) => {
   }
 };
 
-const test = async () => {
+const test = async (tid) => {
   // let tid = "aaa4c417";
-  let tid = "ea295633";
-  await flash_payout(tid);
+  // let tid = "ea295633";
+  let tdoc = await get_tdoc(tid);
+  let leader = await get_leaderboard_t({ tid });
+  let ob = await get_double_up_list(tdoc, leader);
+  console.table(ob);
 };
 
 const tourney = {

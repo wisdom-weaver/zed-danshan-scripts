@@ -3,6 +3,7 @@ const moment = require("moment");
 const { zed_db, zed_ch } = require("../connection/mongo_connect");
 const crypto = require("crypto");
 const utils = require("../utils/utils");
+const { getv } = require("../utils/utils");
 
 const tcoll = "tourney_master";
 const tcollp = "tourney_preset";
@@ -143,6 +144,7 @@ const process_tdoc = (body) => {
     rules,
     logo,
     score_mode,
+    payout_mode,
     created_using = undefined,
   } = body;
   if (!tid) throw new Error("tid not found");
@@ -185,6 +187,7 @@ const process_tdoc = (body) => {
     race_cr,
     score_cr,
     score_mode,
+    payout_mode,
     rules,
     flash_params,
     created_using,
@@ -300,6 +303,118 @@ const payout_all = async (body) => {
   };
 };
 
+const get_double_up_list = (tdoc, leader) => {
+  let { prize_pool, payout_mode, score_mode, horse_cr } = tdoc;
+  let entry_fee = getv(horse_cr, "0.cost");
+  let k =
+    (score_mode == "total" && "tot_score") ||
+    (score_mode == "avg" && "avg_score") ||
+    null;
+
+  let tot = leader.length;
+  let is_even = tot % 2 == 0;
+  let mid = parseInt(leader.length / 2);
+  let win_n = mid;
+  let entry_n = is_even ? 0 : 1;
+  let entry_pot = entry_n * entry_fee;
+  let win_pot = prize_pool - entry_pot;
+  let entry_spot = entry_pot * 1;
+  let win_spot = win_pot / mid;
+  console.log({
+    tid: tdoc.tid,
+    prize_pool,
+    payout_mode,
+    score_mode,
+    entry_fee,
+    tot,
+    is_even,
+    mid,
+    win_n,
+    entry_n,
+    entry_pot,
+    win_pot,
+    entry_spot,
+    win_spot,
+  });
+
+  let above_line = leader[mid - 1];
+  let below_line = leader[mid];
+
+  if (is_even) {
+    let win_ties = _.filter(leader, (i) => i[k] == above_line[k]);
+    let win_ties_hids = _.map(win_ties, "hid");
+    let wins = _.filter(
+      leader.slice(0, mid),
+      (i) => !win_ties_hids.includes(i.hid)
+    );
+    wins.map((e) => {
+      if (!e.amt) e.amt = 0;
+      e.amt += win_spot;
+    });
+
+    let win_tie_amt = (win_pot - _.sumBy(wins, "amt")) / win_ties.length;
+    console.log({ win_tie_amt });
+
+    win_ties.map((e) => {
+      if (!e.amt) e.amt = 0;
+      e.amt += win_tie_amt;
+    });
+
+    let pays = [...(wins || []), ...(win_ties || [])];
+
+    pays = _.uniqBy(pays, "hid");
+    pays = pays.map((e) => {
+      let { rank, hid, wallet, amt, stable_name } = e;
+      return { rank, hid, val: e[k], wallet, amt, stable_name };
+    });
+    // console.table(pays);
+    let total = _.sumBy(pays, "amt");
+    console.log({ total });
+    return pays;
+  } else {
+    let win_ties = _.filter(leader, (i) => i[k] == above_line[k]);
+    let win_ties_hids = _.map(win_ties, "hid");
+    let entry_ties = _.filter(leader, (i) => i[k] == below_line[k]);
+    let wins = _.filter(
+      leader.slice(0, mid),
+      (i) => !win_ties_hids.includes(i.hid)
+    );
+    wins.map((e) => {
+      if (!e.amt) e.amt = 0;
+      e.amt += win_spot;
+      e.win = win_spot;
+    });
+
+    let win_tie_amt = (win_pot - _.sumBy(wins, "amt")) / win_ties.length;
+    let entry_tie_amt = entry_spot / entry_ties.length;
+    console.log({ win_tie_amt, entry_tie_amt });
+
+    win_ties.map((e) => {
+      if (!e.amt) e.amt = 0;
+      e.amt += win_tie_amt;
+      e.win_tie = win_tie_amt;
+    });
+    entry_ties.map((e) => {
+      if (!e.amt) e.amt = 0;
+      e.amt += entry_tie_amt;
+      e.entry_tie = entry_tie_amt;
+    });
+
+    let pays = [...(wins || []), ...(win_ties || []), ...(entry_ties || [])];
+    pays = _.uniqBy(pays, "hid");
+    pays = pays.map((e) => {
+      let { rank, hid, wallet, amt, win, win_tie, entry_tie } = e;
+      return { rank, hid, val: e[k], wallet, amt, win, win_tie, entry_tie };
+    });
+    // console.table(pays);
+    let total = _.sumBy(pays, "amt");
+    console.log({ total });
+    return pays;
+  }
+
+  return [];
+};
+
 module.exports = {
   tcoll,
   tcollp,
@@ -310,4 +425,5 @@ module.exports = {
   get_p,
   create_t,
   payout_single,
+  get_double_up_list,
 };
