@@ -221,6 +221,7 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
         // 23: 1, // pool
       },
     })
+    .sort({ 2: 1 })
     .toArray();
 
   races = _.isEmpty(races)
@@ -246,28 +247,30 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
       });
 
   races = _.uniqBy(races, (i) => i.rid);
+  if (test_mode) console.log("type:", tdoc.type);
+  if (test_mode) console.log("a0:", _.map(races, "rid"));
+
+  if (!_.isEmpty(rcr.fee_tag))
+    races = races.filter((r) => rcr.fee_tag.includes(r.fee_tag));
+  if (test_mode) console.log("a1:", _.map(races, "rid"));
   if (tdoc.type == "flash") {
     races = _.sortBy(races, "date");
     races = races.slice(0, 5) || [];
   }
-  if (test_mode) console.log(_.map(races, "rid"));
-
-  if (!_.isEmpty(rcr.fee_tag))
-    races = races.filter((r) => rcr.fee_tag.includes(r.fee_tag));
 
   races = races.map((rrow) => {
     let score = calc_t_score(rrow, tdoc);
     rrow.score = score;
     return rrow;
   });
+  races = _.sortBy(races, (r) => -nano(r.date));
+  if (test_mode) console.log("a2:", _.map(races, "rid"));
   if (test_mode) console.table(races);
 
   let traces_n = races.length;
   let tot_score = _.sumBy(races, "score");
   if ([NaN, undefined, null].includes(tot_score)) tot_score = 0;
   let avg_score = (tot_score || 0) / (traces_n || 1);
-
-  races = _.sortBy(races, (r) => -nano(r.date));
 
   let update_doc = {
     hid,
@@ -277,7 +280,7 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
     races,
     entry_date,
   };
-  if (test_mode) console.log(update_doc);
+  if (test_mode) console.log({ ...update_doc, races: "del" });
   return update_doc;
 };
 
@@ -334,18 +337,140 @@ const run_t_tot_fees = async (tid, tdoc) => {
   return { tot_fees, tot_sponsors };
 };
 
-// upcoming => entry not started
-// open => entry started
-// live => tourney started running
-// ended => tourney ended
-const t_status = async () => {
+const fuser1_timer = 2 * 60 * 60;
+const fuser2_timer = 1.5 * 60 * 60;
+
+const refund_user = async ({ tid, stable_name }) => {
+  return null;
+};
+
+const process_t_status_flash = async (tid) => {
+  console.log("flash status tid");
+  let upd = {};
+  // let tdoc = await get_tdoc(tid);
+  let tdoc = await dummy_tdoc(tid);
+  let {
+    type,
+    status,
+    flash_params,
+    tourney_st,
+    tourney_ed,
+    entry_st,
+    entry_ed,
+  } = tdoc;
+  console.log({ type, status, tourney_ed });
+  let now = moment().toISOString();
+  if (status == "ended") return {};
+
+  if (entry_st > now) return { status: "upcoming" };
+
+  if (now > entry_st && !tourney_st && !tourney_ed) status = "open";
+
+  if (status == "open") {
+    let hdocs = await zed_db.db
+      .collection(tcoll_horses(tid))
+      .find({}, { projection: { hid: 1, stable_name: 1 } })
+      .toArray();
+    hdocs = _.chain(hdocs)
+      .groupBy("stable_name")
+      .entries()
+      .map(([k, e]) => [k, _.map(e, "hid")])
+      .fromPairs()
+      .value();
+    let stables = _.keys(hdocs);
+    let horses_n = _.flatten(_.values(hdocs));
+    console.log("stables", stables.length, "->", stables);
+    if (stables.length == 0) return {};
+    else if (stables.length == 1) {
+      let txdoc = await zed_db.db.collection("payments").findOne({
+        date: { $gte: entry_st },
+        service: tcoll_stables(tid),
+        status_code: 1,
+      });
+      let st = txdoc.date;
+      if (moment(st).diff(moment(now), "seconds") > fuser1_timer)
+        await refund_user({ tid, stable_name: stables[0] });
+    } else if (stables.length == 2) {
+      let txdoc = await zed_db.db.collection("payments").findOne({
+        date: { $gte: entry_st },
+        service: tcoll_stables(tid),
+        "meta_req.stable_name": stables[1],
+        status_code: 1,
+      });
+      let st = txdoc.date;
+      if (moment(st).diff(moment(now), "seconds") > fuser2_timer)
+        return {
+          status: "live",
+          tourney_st: iso(),
+          tourney_ed: moment()
+            .add(tdoc.flash_params.duration, "hours")
+            .toISOString(),
+          entry_ed: iso(),
+        };
+    } else {
+      if (horses_n >= tdoc.flash_params.minh) {
+        return {
+          status: "live",
+          tourney_st: iso(),
+          tourney_ed: moment()
+            .add(tdoc.flash_params.duration, "hours")
+            .toISOString(),
+          entry_ed: iso(),
+        };
+      }
+    }
+
+    if (tourney_st && tourney_ed) {
+      if (!_.inRange(nano(now), nano(tourney_st), nano(tourney_ed)))
+        return { status: "ended" };
+      else return { status: "live" };
+    }
+
+    return upd;
+  }
+};
+
+const t_status_flash = async () => {
   let docs = await zed_db.db
     .collection(tcoll)
     .find(
       {
         $or: [
-          { tourney_ed: { $gte: moment().add(-1, "days").toISOString() } },
-          { tourney_ed: { $eq: null } },
+          {
+            type: { $eq: "flash" },
+            tourney_ed: { $gte: moment().add(20, "minutes").toISOString() },
+          },
+          {
+            type: { $eq: "flash" },
+            tourney_ed: { $eq: null },
+          },
+        ],
+      },
+      { projection: { _id: 0, tid: 1 } }
+    )
+    .toArray();
+  let tids = _.map(docs, "tid");
+  for (let tid of tids) {
+    let resp = await process_t_status_flash(tid);
+    console.log("resp:", resp, "\n=======");
+  }
+};
+
+// upcoming => entry not started
+// open => entry started
+// live => tourney started running
+// ended => tourney ended
+const t_status_regular = async () => {
+  let docs = await zed_db.db
+    .collection(tcoll)
+    .find(
+      {
+        $or: [
+          {
+            type: { $eq: "regular" },
+            tourney_ed: { $gte: moment().add(-1, "days").toISOString() },
+          },
+          { type: { $eq: "regular" }, tourney_ed: { $eq: null } },
         ],
       },
       {
@@ -508,28 +633,31 @@ const run_tid = async (tid) => {
 
   let n = hids_paid.length;
   if (tdoc.type == "flash") {
-    if (n >= tdoc.flash_params.minh) {
-      let { tourney_st, tourney_ed, entry_st, entry_ed, flash_params } = tdoc;
-      if (!tourney_st && !tourney_ed) {
-        let upd = {
-          tourney_st: iso(),
-          tourney_ed: moment()
-            .add(flash_params.duration, "hours")
-            .toISOString(),
-          entry_ed: iso(),
-        };
-        tdoc = { ...tdoc, ...upd };
-        await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: upd });
-      }
-    } else {
-      let upd = {
-        tourney_st: null,
-        tourney_ed: null,
-        entry_ed: null,
-      };
-      tdoc = { ...tdoc, ...upd };
-      await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: upd });
-    }
+    let upd = await process_t_status_flash({ tid });
+    await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: upd });
+
+    // if (n >= tdoc.flash_params.minh) {
+    //   let { tourney_st, tourney_ed, entry_st, entry_ed, flash_params } = tdoc;
+    //   if (!tourney_st && !tourney_ed) {
+    //     let upd = {
+    //       tourney_st: iso(),
+    //       tourney_ed: moment()
+    //         .add(flash_params.duration, "hours")
+    //         .toISOString(),
+    //       entry_ed: iso(),
+    //     };
+    //     tdoc = { ...tdoc, ...upd };
+    //     await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: upd });
+    //   }
+    // } else {
+    //   let upd = {
+    //     tourney_st: null,
+    //     tourney_ed: null,
+    //     entry_ed: null,
+    //   };
+    //   tdoc = { ...tdoc, ...upd };
+    //   await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: upd });
+    // }
   }
 
   let i = 0;
@@ -576,7 +704,7 @@ const thorse = async ([tid, hid]) => {
 };
 
 const run = async (tid) => {
-  await t_status();
+  await t_status_regular();
   await run_tid(tid);
 };
 
@@ -766,10 +894,10 @@ const runner = async () => {
   }
   try {
     running = 1;
-    await t_status();
+    await t_status_regular();
     await regular_runner();
     await flash_runner();
-    await t_status();
+    await t_status_regular();
     running = 0;
   } catch (err) {
     console.log("TOURNEY ERR\n", err);
@@ -787,14 +915,15 @@ const main_runner = async (args) => {
     if (arg2 == "runner") await runner();
     if (arg2 == "flash_runner") await flash_runner();
     if (arg2 == "run_cron") await run_cron();
-    if (arg2 == "t_status") await t_status();
+    if (arg2 == "t_status_regular") await t_status_regular();
+    if (arg2 == "t_status_flash") await t_status_flash();
   } catch (err) {
     console.log(err);
   }
 };
 
 const test = async (tid) => {
-  await t_status();
+  await t_status_regular();
   await flash_auto_start();
 };
 
@@ -806,7 +935,8 @@ const tourney = {
   run,
   run_cron,
   main_runner,
-  t_status,
+  t_status_regular,
+  t_status_flash,
 };
 
 module.exports = tourney;
