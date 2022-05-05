@@ -893,16 +893,16 @@ const flash_auto_start = async () => {
     .find(
       {
         type: "flash",
-        status: { $in: ["open"] },
+        status: { $in: ["open", "live"] },
       },
       { projection: { tid: 1, _id: 0, created_using: 1 } }
     )
     .toArray();
-  let pids_present =
+  let pids_running =
     _.chain(tids_doc).map("created_using").uniq().value() || [];
-  console.log("pids present", pids_present.length, pids_present);
+  console.log("pids running", pids_running.length, pids_running);
 
-  let pids_consider = _.difference(pids_active, pids_present);
+  let pids_consider = _.difference(pids_active, pids_running);
   console.log("pids considering", pids_consider.length, pids_consider);
   for (let pid of pids_consider) {
     try {
@@ -1012,8 +1012,12 @@ const main_runner = async (args) => {
 };
 
 const test = async (tid) => {
-  await t_status_regular();
-  await flash_auto_start();
+  // let tid = "aaa4c417";
+  // let tid = "ea295633";
+  let tdoc = await get_tdoc(tid);
+  let leader = await get_leaderboard_t({ tid });
+  let ob = await get_double_up_list(tdoc, leader);
+  console.table(ob);
 };
 
 const tourney = {
