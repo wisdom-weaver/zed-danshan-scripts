@@ -221,6 +221,7 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
         // 23: 1, // pool
       },
     })
+    .sort({ 2: 1 })
     .toArray();
 
   races = _.isEmpty(races)
@@ -246,28 +247,29 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
       });
 
   races = _.uniqBy(races, (i) => i.rid);
-  if (tdoc.type == "flash") {
-    races = _.sortBy(races, "date");
-    races = races.slice(0, 5) || [];
-  }
-  if (test_mode) console.log(_.map(races, "rid"));
+  if (test_mode) console.log("type:", tdoc.type);
+  if (test_mode) console.log("a0:", _.map(races, "rid"));
 
   if (!_.isEmpty(rcr.fee_tag))
     races = races.filter((r) => rcr.fee_tag.includes(r.fee_tag));
+  if (test_mode) console.log("a1:", _.map(races, "rid"));
+  if (tdoc.type == "flash") {
+    races = races.slice(0, 5) || [];
+  }
 
   races = races.map((rrow) => {
     let score = calc_t_score(rrow, tdoc);
     rrow.score = score;
     return rrow;
   });
+  races = _.sortBy(races, (r) => -nano(r.date));
+  if (test_mode) console.log("a2:", _.map(races, "rid"));
   if (test_mode) console.table(races);
 
   let traces_n = races.length;
   let tot_score = _.sumBy(races, "score");
   if ([NaN, undefined, null].includes(tot_score)) tot_score = 0;
   let avg_score = (tot_score || 0) / (traces_n || 1);
-
-  races = _.sortBy(races, (r) => -nano(r.date));
 
   let update_doc = {
     hid,
@@ -277,7 +279,7 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
     races,
     entry_date,
   };
-  if (test_mode) console.log(update_doc);
+  if (test_mode) console.log({ ...update_doc, races: "del" });
   return update_doc;
 };
 
