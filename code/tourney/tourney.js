@@ -407,10 +407,19 @@ const process_t_status_flash = async ({ tid }) => {
       .fromPairs()
       .value();
     let stables = _.keys(hdocs);
-    let horses_n = _.flatten(_.values(hdocs));
+    let horses_n = _.flatten(_.values(hdocs))?.length || 0;
     console.log("stables", stables.length, "->", stables);
 
-    if (stables.length == 0) {
+    if (horses_n >= tdoc.flash_params.minh) {
+      return {
+        status: "live",
+        tourney_st: iso(),
+        tourney_ed: moment()
+          .add(tdoc.flash_params.duration, "hours")
+          .toISOString(),
+        entry_ed: iso(),
+      };
+    } else if (stables.length == 0) {
       let st = entry_st;
       let diff = moment(now).diff(moment(st), "minutes");
       console.log("stable0", diff, "minutes");
@@ -484,17 +493,6 @@ const process_t_status_flash = async ({ tid }) => {
           tourney_st: null,
           tourney_ed: null,
           entry_ed: moment(st).add(fuser2_timer, "minutes").toISOString(),
-        };
-      }
-    } else {
-      if (horses_n >= tdoc.flash_params.minh) {
-        return {
-          status: "live",
-          tourney_st: iso(),
-          tourney_ed: moment()
-            .add(tdoc.flash_params.duration, "hours")
-            .toISOString(),
-          entry_ed: iso(),
         };
       }
     }
