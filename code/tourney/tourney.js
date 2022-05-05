@@ -713,8 +713,8 @@ const run_tid = async (tid) => {
   if (tdoc.type == "flash") {
     let upd = await process_t_status_flash({ tid });
     console.log("UPDATE STATUS", upd);
-    // await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: upd });
-    // tdoc = await get_tdoc(tid);
+    await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: upd });
+    tdoc = await get_tdoc(tid);
   }
 
   let i = 0;
