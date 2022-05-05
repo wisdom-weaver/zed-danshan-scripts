@@ -363,7 +363,7 @@ const refund_pay_user = async ({ tid, stable_name, pay_id }) => {
       payout_wallet: flash_payout_wallet,
     });
     let pays = [{ wallet: sender, amt: req_amt }];
-    await flash_pay_to_user(pays);
+    if (payout_test == 0) await flash_pay_to_user(pays);
   } else if (type == "regular") {
   }
 };
@@ -861,9 +861,11 @@ const flash_payout = async (tid) => {
     }));
     console.table(payments);
     let key = process.env.flash_payout_private_key;
-    let count = await send_weth.sendAllTransactions(payments, key);
-    // let count = 0;
-    console.log("done transactions:", count);
+    if (payout_test == 0) {
+      let count = await send_weth.sendAllTransactions(payments, key);
+      // let count = 0;
+      console.log("done transactions:", count);
+    }
   }
   await zed_db.db
     .collection(tcoll)
