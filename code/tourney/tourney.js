@@ -386,7 +386,7 @@ const process_t_status_flash = async ({ tid }) => {
   console.log({ tourney_st, tourney_ed });
   let now = moment().toISOString();
   // if (status == "ended") return {};
-  if (tourney_ed > now) return { status: "ended" };
+  if (tourney_ed < now) return { status: "ended" };
 
   if (entry_st > now) return { status: "upcoming" };
 
@@ -496,12 +496,11 @@ const process_t_status_flash = async ({ tid }) => {
         };
       }
     }
-
-    if (tourney_st && tourney_ed) {
-      if (!_.inRange(nano(now), nano(tourney_st), nano(tourney_ed)))
-        return { status: "ended" };
-      else return { status: "live" };
-    }
+  }
+  if (status == "live" && tourney_st && tourney_ed) {
+    if (!_.inRange(nano(now), nano(tourney_st), nano(tourney_ed)))
+      return { status: "ended" };
+    else return { status: "live" };
 
     return upd;
   }
@@ -714,8 +713,8 @@ const run_tid = async (tid) => {
   if (tdoc.type == "flash") {
     let upd = await process_t_status_flash({ tid });
     console.log("UPDATE STATUS", upd);
-    await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: upd });
-    tdoc = await get_tdoc(tid);
+    // await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: upd });
+    // tdoc = await get_tdoc(tid);
   }
 
   let i = 0;
