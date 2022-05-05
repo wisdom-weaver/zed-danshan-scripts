@@ -4,6 +4,9 @@ const { zed_db, zed_ch } = require("../connection/mongo_connect");
 const crypto = require("crypto");
 const utils = require("../utils/utils");
 const { getv } = require("../utils/utils");
+const send_weth = require("../payments/send_weth");
+
+require("dotenv").config();
 
 const tcoll = "tourney_master";
 const tcollp = "tourney_preset";
@@ -13,10 +16,12 @@ const tcoll_stables = (tid) => `tourney::${tid}::stables`;
 
 const tid_len = 8;
 
-const danshan_eth_address = process.env.danshan_eth_address;
-
 const ADMIN_KEY = process.env.ADMIN_KEY;
 const is_admin = (k) => k == ADMIN_KEY;
+
+const flash_payout_wallet = process.env.flash_payout_wallet;
+const flash_payout_private_key = process.env.flash_payout_private_key;
+const danshan_eth_address = process.env.danshan_eth_address;
 
 const horse_pro = {
   _id: 0,
@@ -273,6 +278,33 @@ const payout_single = async ({
 
   return resp.pay_id;
 };
+const refund_user = async ({
+  tid,
+  wallet,
+  amt,
+  stable_name,
+  payout_wallet,
+}) => {
+  const pay_body = {
+    sender: payout_wallet.toLowerCase(),
+    reciever: wallet,
+    req_amt: amt,
+    token: "WETH",
+    service: tcoll_stables(tid),
+    meta_req: {
+      service_cat: "tourney",
+      type: "refund",
+      tid,
+      stable_name,
+    },
+  };
+  let resp = await add_transaction(pay_body);
+  await zed_db.db
+    .collection(tcoll_stables(tid))
+    .updateOne({ stable_name }, { $addToSet: { transactions: resp.pay_id } });
+
+  return resp.pay_id;
+};
 
 const payout_all = async (body) => {
   let { tid, amt } = body;
@@ -415,6 +447,19 @@ const get_double_up_list = (tdoc, leader) => {
   return [];
 };
 
+const flash_pay_to_user = async (pays) => {
+  let payments = pays.map((l) => ({
+    WALLET: l.wallet,
+    AMOUNT: l.amt.toString(),
+  }));
+  console.table(payments);
+  let count = await send_weth.sendAllTransactions(
+    payments,
+    flash_payout_private_key
+  );
+  console.log("done txns:", count);
+};
+
 module.exports = {
   tcoll,
   tcollp,
@@ -426,4 +471,9 @@ module.exports = {
   create_t,
   payout_single,
   get_double_up_list,
+  refund_user,
+  flash_payout_wallet,
+  flash_payout_private_key,
+  danshan_eth_address,
+  flash_pay_to_user,
 };
