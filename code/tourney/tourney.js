@@ -18,17 +18,11 @@ const {
   get_leaderboard_t,
   payout_single,
   get_double_up_list,
-  refund_user,
-  flash_pay_to_user,
-  flash_payout_wallet,
 } = require("./depend");
 const send_weth = require("../payments/send_weth");
 
 let test_mode = 0;
 let running = 0;
-let frunning = 0;
-
-let payout_test = 0;
 
 // const tcoll = "tourney_master";
 // const tcoll_horses = (tid) => `tourney::${tid}::horses`;
@@ -227,7 +221,6 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
         // 23: 1, // pool
       },
     })
-    .sort({ 2: 1 })
     .toArray();
 
   races = _.isEmpty(races)
@@ -253,29 +246,28 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
       });
 
   races = _.uniqBy(races, (i) => i.rid);
-  if (test_mode) console.log("type:", tdoc.type);
-  if (test_mode) console.log("a0:", _.map(races, "rid"));
+  if (tdoc.type == "flash") {
+    races = _.sortBy(races, "date");
+    races = races.slice(0, 5) || [];
+  }
+  if (test_mode) console.log(_.map(races, "rid"));
 
   if (!_.isEmpty(rcr.fee_tag))
     races = races.filter((r) => rcr.fee_tag.includes(r.fee_tag));
-  if (test_mode) console.log("a1:", _.map(races, "rid"));
-  if (tdoc.type == "flash") {
-    races = races.slice(0, 5) || [];
-  }
 
   races = races.map((rrow) => {
     let score = calc_t_score(rrow, tdoc);
     rrow.score = score;
     return rrow;
   });
-  races = _.sortBy(races, (r) => -nano(r.date));
-  if (test_mode) console.log("a2:", _.map(races, "rid"));
   if (test_mode) console.table(races);
 
   let traces_n = races.length;
   let tot_score = _.sumBy(races, "score");
   if ([NaN, undefined, null].includes(tot_score)) tot_score = 0;
   let avg_score = (tot_score || 0) / (traces_n || 1);
+
+  races = _.sortBy(races, (r) => -nano(r.date));
 
   let update_doc = {
     hid,
@@ -285,7 +277,7 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
     races,
     entry_date,
   };
-  if (test_mode) console.log({ ...update_doc, races: "del" });
+  if (test_mode) console.log(update_doc);
   return update_doc;
 };
 
@@ -342,213 +334,18 @@ const run_t_tot_fees = async (tid, tdoc) => {
   return { tot_fees, tot_sponsors };
 };
 
-const fuser0_timer = 2 * 60;
-const fuser1_timer = 2 * 60;
-const fuser2_timer = 1.5 * 60;
-
-const refund_pay_user = async ({ tid, stable_name, pay_id }) => {
-  console.log("refunding user", stable_name, "at", tid);
-  let tdoc = await zed_db.db
-    .collection(tcoll)
-    .findOne({ tid }, { projection: { _id: 0, tid: 1, type: 1 } });
-  let txdoc = await zed_db.db.collection("payments").findOne({ pay_id });
-  let { type } = tdoc;
-  let { req_amt, sender, reciever } = txdoc;
-  if (type == "flash") {
-    payout_wallet = await refund_user({
-      tid,
-      wallet: sender,
-      amt: req_amt,
-      stable_name,
-      payout_wallet: flash_payout_wallet,
-    });
-    let pays = [{ wallet: sender, amt: req_amt }];
-    if (payout_test == 0) await flash_pay_to_user(pays);
-  } else if (type == "regular") {
-  }
-};
-
-const process_t_status_flash = async ({ tid }) => {
-  console.log("flash status tid");
-  let upd = {};
-  let tdoc = await get_tdoc(tid);
-  let {
-    type,
-    status,
-    flash_params,
-    tourney_st,
-    tourney_ed,
-    entry_st,
-    entry_ed,
-  } = tdoc;
-  console.log({ type, status });
-  console.log({ entry_st, entry_ed });
-  console.log({ tourney_st, tourney_ed });
-  let now = moment().toISOString();
-  // if (status == "ended") return {};
-  if (tourney_ed < now) return { status: "ended" };
-
-  if (entry_st > now) return { status: "upcoming" };
-
-  if (status !== "open" && now > entry_st && !tourney_st && !tourney_ed) {
-    upd.status = status = "open";
-    return { status: "open" };
-  }
-
-  if (status == "open") {
-    let hdocs = await zed_db.db
-      .collection(tcoll_horses(tid))
-      .find({}, { projection: { hid: 1, stable_name: 1 } })
-      .toArray();
-    hdocs = _.chain(hdocs)
-      .groupBy("stable_name")
-      .entries()
-      .map(([k, e]) => [k, _.map(e, "hid")])
-      .fromPairs()
-      .value();
-    let stables = _.keys(hdocs);
-    let horses_n = _.flatten(_.values(hdocs))?.length || 0;
-    console.log("stables", stables.length, "->", stables);
-
-    if (horses_n >= tdoc.flash_params.minh) {
-      return {
-        status: "live",
-        tourney_st: iso(),
-        tourney_ed: moment()
-          .add(tdoc.flash_params.duration, "hours")
-          .toISOString(),
-        entry_ed: iso(),
-      };
-    } else if (stables.length == 0) {
-      let st = entry_st;
-      let diff = moment(now).diff(moment(st), "minutes");
-      console.log("stable0", diff, "minutes");
-      return {};
-    } else if (stables.length == 1) {
-      let txdoc = await zed_db.db.collection("payments").findOne({
-        date: { $gte: entry_st },
-        service: tcoll_stables(tid),
-        status_code: 1,
-        "meta_req.stable_name": stables[0],
-      });
-      let st = txdoc.date;
-      console.log("stable_1", stables[0], txdoc.pay_id, st);
-      let diff = moment(now).diff(moment(st), "minutes");
-      console.log("stable_1", diff, "minutes");
-      if (diff > fuser1_timer) {
-        if (getv(tdoc, "terminated") !== true) {
-          await zed_db.db
-            .collection(tcoll)
-            .updateOne({ tid }, { $set: { terminated: true } });
-          await refund_pay_user({
-            tid,
-            stable_name: stables[0],
-            pay_id: txdoc.pay_id,
-          });
-          let ed = moment(st).add(fuser1_timer, "minutes").toISOString();
-          return {
-            status: "ended",
-            tourney_st: ed,
-            tourney_ed: ed,
-            entry_ed: ed,
-          };
-        }
-      } else {
-        return {
-          status: "open",
-          tourney_st: null,
-          tourney_ed: null,
-          entry_ed: moment(st).add(fuser1_timer, "minutes").toISOString(),
-        };
-      }
-    } else if (stables.length == 2) {
-      let txdoc1 = await zed_db.db.collection("payments").findOne({
-        date: { $gte: entry_st },
-        service: tcoll_stables(tid),
-        "meta_req.stable_name": stables[1],
-        status_code: 1,
-      });
-      let txdoc2 = await zed_db.db.collection("payments").findOne({
-        date: { $gte: entry_st },
-        service: tcoll_stables(tid),
-        "meta_req.stable_name": stables[0],
-        status_code: 1,
-      });
-      let txdoc = nano(txdoc2.date) > nano(txdoc1.date) ? txdoc2 : txdoc1;
-      let st = txdoc.date;
-      let diff = moment(now).diff(moment(st), "minutes");
-      console.log("stable_2", diff, "minutes");
-      if (diff > fuser2_timer)
-        return {
-          status: "live",
-          tourney_st: iso(),
-          tourney_ed: moment()
-            .add(tdoc.flash_params.duration, "hours")
-            .toISOString(),
-          entry_ed: iso(),
-        };
-      else {
-        return {
-          status: "open",
-          tourney_st: null,
-          tourney_ed: null,
-          entry_ed: moment(st).add(fuser2_timer, "minutes").toISOString(),
-        };
-      }
-    }
-  }
-  if (status == "live" && tourney_st && tourney_ed) {
-    if (!_.inRange(nano(now), nano(tourney_st), nano(tourney_ed)))
-      return { status: "ended" };
-    else return { status: "live" };
-
-    return upd;
-  }
-};
-
-const t_status_flash = async () => {
-  let docs = await zed_db.db
-    .collection(tcoll)
-    .find(
-      {
-        $or: [
-          {
-            type: { $eq: "flash" },
-            tourney_ed: { $gte: moment().add(20, "minutes").toISOString() },
-          },
-          {
-            type: { $eq: "flash" },
-            tourney_ed: { $eq: null },
-          },
-        ],
-      },
-      { projection: { _id: 0, tid: 1 } }
-    )
-    .toArray();
-  let tids = _.map(docs, "tid");
-  for (let tid of tids) {
-    let upd = await process_t_status_flash({ tid });
-    console.log("UPDATE STATUS", upd);
-    await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: upd });
-    console.log("===");
-  }
-};
-
 // upcoming => entry not started
 // open => entry started
 // live => tourney started running
 // ended => tourney ended
-const t_status_regular = async () => {
+const t_status = async () => {
   let docs = await zed_db.db
     .collection(tcoll)
     .find(
       {
         $or: [
-          {
-            type: { $eq: "regular" },
-            tourney_ed: { $gte: moment().add(-1, "days").toISOString() },
-          },
-          { type: { $eq: "regular" }, tourney_ed: { $eq: null } },
+          { tourney_ed: { $gte: moment().add(-1, "days").toISOString() } },
+          { tourney_ed: { $eq: null } },
         ],
       },
       {
@@ -711,10 +508,28 @@ const run_tid = async (tid) => {
 
   let n = hids_paid.length;
   if (tdoc.type == "flash") {
-    let upd = await process_t_status_flash({ tid });
-    console.log("UPDATE STATUS", upd);
-    await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: upd });
-    tdoc = await get_tdoc(tid);
+    if (n >= tdoc.flash_params.minh) {
+      let { tourney_st, tourney_ed, entry_st, entry_ed, flash_params } = tdoc;
+      if (!tourney_st && !tourney_ed) {
+        let upd = {
+          tourney_st: iso(),
+          tourney_ed: moment()
+            .add(flash_params.duration, "hours")
+            .toISOString(),
+          entry_ed: iso(),
+        };
+        tdoc = { ...tdoc, ...upd };
+        await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: upd });
+      }
+    } else {
+      let upd = {
+        tourney_st: null,
+        tourney_ed: null,
+        entry_ed: null,
+      };
+      tdoc = { ...tdoc, ...upd };
+      await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: upd });
+    }
   }
 
   let i = 0;
@@ -761,7 +576,7 @@ const thorse = async ([tid, hid]) => {
 };
 
 const run = async (tid) => {
-  // await t_status_regular();
+  await t_status();
   await run_tid(tid);
 };
 
@@ -836,28 +651,21 @@ const flash_payout = async (tid) => {
   console.log("flash_payout");
   console.log(`## [ ${tid} ] started payout`, iso());
   let pays = await calc_payouts_list({ tid });
-  let doc = await zed_db.db
-    .collection(tcoll)
-    .findOne({ tid }, { projection: { terminated: 1, tid: 1 } });
-  if (getv(doc, "terminated") === true) {
-    return console.log("this tourney was terminated and refunded");
-  }
   console.table(pays);
   if (_.isEmpty(pays)) {
     console.log("nothing to payout");
   } else {
     let adwallet = process.env.flash_payout_wallet;
     await Promise.all(
-      pays.map((l) => {
-        l.amt = parseFloat(parseFloat(l.amt).toFixed(8));
-        return payout_single({
+      pays.map((l) =>
+        payout_single({
           tid,
           payout_wallet: adwallet,
           stable_name: l.stable_name,
           wallet: l.wallet,
           amt: l.amt,
-        });
-      })
+        })
+      )
     );
     let payments = pays.map((l) => ({
       WALLET: l.wallet,
@@ -865,11 +673,9 @@ const flash_payout = async (tid) => {
     }));
     console.table(payments);
     let key = process.env.flash_payout_private_key;
-    if (payout_test == 0) {
-      let count = await send_weth.sendAllTransactions(payments, key);
-      // let count = 0;
-      console.log("done transactions:", count);
-    }
+    let count = await send_weth.sendAllTransactions(payments, key);
+    // let count = 0;
+    console.log("done transactions:", count);
   }
   await zed_db.db
     .collection(tcoll)
@@ -893,16 +699,16 @@ const flash_auto_start = async () => {
     .find(
       {
         type: "flash",
-        status: { $in: ["open", "live"] },
+        status: { $in: ["open"] },
       },
       { projection: { tid: 1, _id: 0, created_using: 1 } }
     )
     .toArray();
-  let pids_running =
+  let pids_present =
     _.chain(tids_doc).map("created_using").uniq().value() || [];
-  console.log("pids running", pids_running.length, pids_running);
+  console.log("pids present", pids_present.length, pids_present);
 
-  let pids_consider = _.difference(pids_active, pids_running);
+  let pids_consider = _.difference(pids_active, pids_present);
   console.log("pids considering", pids_consider.length, pids_consider);
   for (let pid of pids_consider) {
     try {
@@ -911,10 +717,8 @@ const flash_auto_start = async () => {
       doc.created_using = pid;
       doc.entry_st = iso();
       let resp = await create_t(doc);
-      console.log(resp);
-    } catch (err) {
-      console.log(err);
-    }
+      console.log(resp?.msg);
+    } catch (err) {}
   }
 };
 
@@ -950,28 +754,9 @@ const flash_payout_ended = async () => {
 };
 
 const flash_runner = async () => {
-  if (frunning) {
-    console.log("############# tourney already frunning.........");
-    return;
-  }
-  try {
-    frunning = 1;
-    await t_status_flash();
-    await flash_run_current();
-    await flash_payout_ended();
-    await flash_auto_start();
-    await t_status_flash();
-    frunning = 0;
-  } catch (err) {
-    console.log("TOURNEY ERR\n", err);
-    frunning = 0;
-  }
-};
-
-const flash_runner_cron = async () => {
-  console.log("##run cron", "tourney FLASH");
-  print_cron_details(cron_str);
-  cron.schedule(cron_str, flash_runner, cron_conf);
+  await flash_run_current();
+  await flash_payout_ended();
+  await flash_auto_start();
 };
 
 const runner = async () => {
@@ -981,10 +766,10 @@ const runner = async () => {
   }
   try {
     running = 1;
-    await t_status_regular();
+    await t_status();
     await regular_runner();
-    // await flash_runner();
-    await t_status_regular();
+    await flash_runner();
+    await t_status();
     running = 0;
   } catch (err) {
     console.log("TOURNEY ERR\n", err);
@@ -1000,24 +785,17 @@ const main_runner = async (args) => {
     if (arg2 == "thorse") await thorse([arg3, arg4]);
     if (arg2 == "run") await run(arg3);
     if (arg2 == "runner") await runner();
-    if (arg2 == "flash_runner_cron") await flash_runner_cron();
     if (arg2 == "flash_runner") await flash_runner();
     if (arg2 == "run_cron") await run_cron();
-    if (arg2 == "t_status_regular") await t_status_regular();
-    if (arg2 == "t_status_flash") await t_status_flash();
-    if (arg2 == "flash_payout") await flash_payout(arg3);
+    if (arg2 == "t_status") await t_status();
   } catch (err) {
     console.log(err);
   }
 };
 
 const test = async (tid) => {
-  // let tid = "aaa4c417";
-  // let tid = "ea295633";
-  let tdoc = await get_tdoc(tid);
-  let leader = await get_leaderboard_t({ tid });
-  let ob = await get_double_up_list(tdoc, leader);
-  console.table(ob);
+  await t_status();
+  await flash_auto_start();
 };
 
 const tourney = {
@@ -1028,9 +806,7 @@ const tourney = {
   run,
   run_cron,
   main_runner,
-  t_status_regular,
-  t_status_flash,
-  flash_payout,
+  t_status,
 };
 
 module.exports = tourney;
