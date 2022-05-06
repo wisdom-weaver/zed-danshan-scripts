@@ -74,7 +74,7 @@ const ft_price_ob = {
 const get_ft = (usd) => {
   if (usd == "multi") return "multi";
   let ob = _.entries(ft_price_ob).find(([k, [disp, cn, mi, mx]]) => {
-    console.log(k, mi, mx, _.inRange(usd, mi, mx));
+    // console.log(k, mi, mx, _.inRange(usd, mi, mx));
     if (_.inRange(usd, mi, mx)) return true;
   });
   return (ob && ob[0]) || null;
@@ -350,25 +350,49 @@ const run_t_tot_fees = async (tid, tdoc) => {
           : { date: { $gte: entry_st, $lte: entry_ed } }),
         "meta_req.type": { $in: ["fee", "sponsor"] },
       },
-      { projection: { req_amt: 1, "meta_req.type": 1 } }
+      {
+        projection: {
+          pay_id: 1,
+          req_amt: 1,
+          "meta_req.type": 1,
+          "meta_req.hids": 1,
+          "meta_req.stable_name": 1,
+        },
+      }
     )
     .toArray();
-  // console.log(pays);
-  let tot_fees =
+  console.table(_.map(pays, (e) => ({ ...e, ...e.meta_req })));
+  let tot_fees_act =
     _.chain(pays)
       .filter((i) => getv(i, "meta_req.type") == "fee")
       .map("req_amt")
       .filter((e) => ![null, undefined, NaN].includes(parseFloat(e)))
       .sum()
       .value() ?? 0;
-  let tot_sponsors =
+  let tot_sponsors_act =
     _.chain(pays)
       .filter((i) => getv(i, "meta_req.type") == "sponsor")
       .map("req_amt")
       .filter((e) => ![null, undefined, NaN].includes(parseFloat(e)))
       .sum()
       .value() ?? 0;
-  return { tot_fees, tot_sponsors };
+  let hids = _.chain(pays)
+    .filter((i) => getv(i, "meta_req.type") == "fee")
+    .map("meta_req.hids")
+    .value();
+  hids = _.flatten(hids);
+  let hidsC = _.countBy(hids, (e) => e);
+  _.entries(hidsC).map(([hid, e]) => {
+    if (e > 1) {
+      console.log("dup", hid);
+      tot_fees_act = -1;
+      tot_sponsors_act = 0;
+    }
+  });
+  hids = _.chain(hids).uniq().compact().value();
+
+  let tot_fees = tdoc.entry_fee * hids.length;
+  return { tot_fees, tot_fees_act, tot_sponsors_act, tot_score: 0 };
 };
 
 // upcoming => entry not started
@@ -470,15 +494,16 @@ const run_tid = async (tid) => {
   //   );
   // return;
 
-  let txns_paid = _.filter(txns, (i) => i.status_code == 1);
-  let pays_doc = await run_t_tot_fees(tid, tdoc);
-  let total_capital = pays_doc.tot_fees + pays_doc.tot_sponsors;
-  let prize_pool = parseFloat(utils.dec(total_capital * 0.95, 4));
-
   let entry_fee = 0;
   console.log("tdoc.horse_cr.length", tdoc.horse_cr.length);
   if (tdoc.horse_cr.length > 1) entry_fee = "multi";
   else entry_fee = getv(tdoc, "horse_cr.0.cost") ?? 0;
+  tdoc.entry_fee = entry_fee;
+
+  let txns_paid = _.filter(txns, (i) => i.status_code == 1);
+  let pays_doc = await run_t_tot_fees(tid, tdoc);
+  let total_capital = pays_doc.tot_fees;
+  let prize_pool = parseFloat(utils.dec(total_capital * 0.95, 4));
 
   let prize_pool_usd = eth_t_usd(prize_pool);
   let entry_fee_usd = entry_fee == "multi" ? "multi" : eth_t_usd(entry_fee);
@@ -494,6 +519,11 @@ const run_tid = async (tid) => {
     entry_fee_usd,
     ft,
   };
+  if (fins.tot_fees == -1) {
+    fins.total_capital = -1;
+    fins.prize_pool = -1;
+    fins.prize_pool_usd = -1;
+  }
   console.log(fins);
 
   let hids_paid = _.chain(txns_paid)
