@@ -7,8 +7,10 @@ const polygonscan = require("./polygonscan");
 const moment = require("moment");
 const cron = require("node-cron");
 const crypto = require("crypto");
-const { iso, getv } = require("../utils/utils");
+const { iso, getv, nano } = require("../utils/utils");
 const sheet_ops = require("../../sheet_ops/sheets_ops");
+const { update } = require("lodash");
+const { push_bulkc } = require("../utils/bulk");
 
 const danshan_eth_address = process.env.danshan_eth_address;
 
@@ -53,7 +55,7 @@ const get_payments_list = async ({
   if (after || before) query.date = {};
   if (after) query.date.$gte = utils.iso(after);
   if (before) query.date.$lte = utils.iso(before);
-  // console.log(query);
+  console.log(query);
   let ar = await zed_db.db.collection(coll).find(query).toArray();
   return ar;
 };
@@ -113,9 +115,129 @@ const handle_dummies = async (dummies) => {
   return dummies.map(dummy_tx);
 };
 
-const verify_user_payments = async ([st, ed]) => {
+const verify_user_payments = async ([st, ed], status_codes = [0, -1]) => {
+  let update_ar = [];
+  let update_far = [];
+  const token = "WETH";
+  let list = await get_payments_list({
+    token,
+    before: ed,
+    after: st,
+    status_codes,
+  });
+  console.table(list);
+  
+  let rx_list = _.map(list, "reciever");
+  rx_list = _.uniq(rx_list)
+  console.log(rx_list);
+
+  let sx_list = _.map(list, "sender");
+  sx_list = _.uniq(sx_list)
+  console.log(sx_list);
+  let txs = [];
+  for (let rx of rx_list) {
+    let txar = await tokens_ob[token].get_txs({ address: rx });
+    txs.push(txar.result);
+  }
+  txs = _.flatten(txs);
+  // console.table(txs)
+
+  let exists_tx = await zed_db.db
+    .collection("payments")
+    .find(
+      {
+        $or: [
+          { date: { $gte: st, $lte: ed }, status_code: 1 },
+          { "meta.tx.hash": { $in: _.map(txs, "hash") } },
+        ],
+      },
+      { projection: { pay_id: 1, "meta.tx.hash": 1 } }
+    )
+    .toArray();
+  exists_tx = _.map(exists_tx, (e) => {
+    return { pay_id: e.pay_id, hash: getv(e, "meta.tx.hash") };
+  });
+  // console.table(exists_tx);
+  console.log("txns.len", txs.length);
+  console.log("exists_tx.len", exists_tx.length);
+
+  const list_map = _.chain(list)
+    .groupBy("sender")
+    .entries()
+    .map(([sender, sx_reqs]) => {
+      sender = sender?.toLowerCase();
+      sx_reqs = _.groupBy(sx_reqs, (e) => e["reciever"]?.toLowerCase());
+      return [sender, sx_reqs];
+    })
+    .fromPairs()
+    .value();
+  console.log(list_map);
+
+  for (let tx of txs) {
+    let { from, to, hash } = tx;
+    if (_.includes(exists_tx, (e) => e.hash == hash)) continue;
+
+    from = from.toLowerCase();
+    to = to.toLowerCase();
+    const shortlist = getv(list_map, `${from}.${to}`);
+    if (_.isEmpty(shortlist)) continue;
+
+    let { value, timeStamp } = tx;
+    let tx_amt = parseFloat(value);
+    let tx_nano = timeStamp * 1000;
+
+    for (let s_req of shortlist) {
+      // if (_.includes(exists_tx, (e) => e.hash == hash)) continue;
+      let { pay_id, date, req_amt } = s_req;
+
+      req_amt *= 1e18;
+      let [req_amt_mi, req_amt_mx] = [req_amt - mimi, req_amt + mimi];
+      if (_.isNaN(req_amt)) continue;
+      if (!(req_amt == tx_amt || _.inRange(tx_amt, req_amt_mi, req_amt_mx))) {
+        continue;
+      }
+      // console.log("amt match", tx_amt, req_amt, req_amt_mi, req_amt_mx);
+
+      let req_nano = nano(date);
+      let [req_nano_mi, req_nano_mx] = [
+        req_nano - allowed_buffer,
+        req_nano + allowed_buffer,
+      ];
+      if (!_.inRange(tx_nano, req_nano_mi, req_nano_mx)) {
+        continue;
+      }
+      // console.log("date match", iso(tx_nano), iso(req_nano));
+      console.log("pay", pay_id, "confimed paid");
+      exists_tx.push({ pay_id, hash });
+      update_ar.push({ pay_id, status: "paid", status_code: 1, meta: { tx } });
+      break;
+    }
+  }
+  console.log("# PAID confirmed", update_ar.length);
+  await push_bulkc("payments", update_ar, "payments", "pay_id");
+
+  const paid_pays = _.map(exists_tx, "pay_id");
+  update_far = _.chain(list)
+    .filter((e) => !paid_pays.includes(e.pay_id))
+    .map((e) => {
+      let date = e.date;
+      let req_nano = nano(date);
+      let req_nano_mx = req_nano + allowed_buffer;
+      if (nano() > req_nano_mx)
+        return { pay_id: e.pay_id, status: -1, status: "failed" };
+      else return null;
+    })
+    .compact()
+    .value();
+  console.log("# FAILED timed", update_far.length);
+  await push_bulkc("payments", update_far, "payments", "pay_id");
+};
+
+const verify_user_payments_old = async ([st, ed]) => {
   console.log("verify_user_payments\n", st, "->", ed);
-  for (let { token, get_balance, get_txs } of _.values(tokens_ob)) {
+  for (let { token, get_balance, get_txs } of _.values({
+    WETH: tokens_ob["WETH"],
+  })) {
     console.log("\n------------\n");
     console.log("started", utils.iso());
     console.log("token:", token);
@@ -123,12 +245,13 @@ const verify_user_payments = async ([st, ed]) => {
       token,
       before: ed,
       after: st,
-      status_code: 0,
+      status_codes: [0, -1, 1],
     });
 
     let update_paid = [];
 
     console.log("pending:", list.length);
+    console.table(list);
     if (list.length == 0) continue;
     // list = _.keyBy(list, "pay_id");
     let recievers = _.uniq(_.map(list, "reciever"));
@@ -137,7 +260,7 @@ const verify_user_payments = async ([st, ed]) => {
     let all_txns = [];
     for (let reciever of recievers) {
       let txns = await get_txs({ address: reciever });
-      // console.log(txns)
+      // console.table(txns)
       if (txns) txns = txns?.result || [];
       console.log("txns:", txns.length, "for", reciever);
       all_txns = [...all_txns, ...txns];
@@ -150,35 +273,55 @@ const verify_user_payments = async ([st, ed]) => {
 
     console.log("dummies:", dummies.length);
     console.log("all_txns:", all_txns.length);
+    console.table(all_txns);
 
     all_txns = [...all_txns, ...dummies];
     console.log("all_txns[updated]:", all_txns.length);
 
-    let existing_txns = await get_if_existing_txns(_.map(all_txns, "hash"));
+    let existing_txns = []; //await get_if_existing_txns(_.map(all_txns, "hash"));
     console.log("existing_txns:", existing_txns.length);
 
     for (let tx of all_txns) {
       if (existing_txns.includes(tx.hash)) {
-        console.log("tx exists already");
+        // console.log("tx exists already");
         continue;
       }
       let amt = parseFloat(tx.value);
       let timeStamp = parseFloat(tx.timeStamp) * 1000;
-      for (let [sender, sender_reqs] of _.entries(list_gp)) {
-        if (tx.from.toLowerCase() !== sender.toLowerCase()) continue;
-        let got_request = _.find(sender_reqs, (req) => {
-          if (!(req?.sender?.toLowerCase() == tx.from.toLowerCase()))
-            return false;
-          // console.log("1");
 
-          if (!(req?.reciever?.toLowerCase() == tx.to.toLowerCase()))
+      for (let [sender, sender_reqs] of _.entries(list_gp)) {
+        if (tx.from.toLowerCase() !== sender.toLowerCase()) {
+          continue;
+        }
+        console.log(`https://polygonscan.com/tx/${tx.hash}`);
+        console.log(tx.from, "->", tx.to);
+        console.log("\n=====\nsender", sender, "=>");
+        let got_request = _.find(sender_reqs, (req) => {
+          console.log("check", req.sender, "->", req.reciever);
+          if (!(req?.sender?.toLowerCase() == tx.from.toLowerCase())) {
+            console.log("na sender");
             return false;
-          // console.log("2");
+          }
+
+          if (!(req?.reciever?.toLowerCase() == tx.to.toLowerCase())) {
+            console.log("na reciever");
+            return false;
+          }
 
           let tnano = utils.nano(req.date);
           let [mi, mx] = [tnano - allowed_buffer, tnano + allowed_buffer];
           if (!_.inRange(timeStamp, mi, mx)) {
-            console.log("time failed");
+            console.log(req.pay_id, "time failed", timeStamp, tnano, mi, mx);
+            console.log(
+              req.pay_id,
+              "time failed",
+              sender,
+              iso(timeStamp),
+              iso(tnano),
+              "\n",
+              parseInt((nano(timeStamp) - nano(tnano)) / utils.mt),
+              `https://polygonscan.com/tx/${tx.hash}`
+            );
             return false;
           }
 
@@ -329,10 +472,18 @@ const runner = async () => {
   await verify_user_payments([st, ed]);
 };
 
-const run_dur = async ([st, ed]) => {
-  st = utils.iso(st);
-  ed = utils.iso(ed);
-  await verify_user_payments([st, ed]);
+const run_dur = async (st, ed) => {
+  let offset = 60 * utils.mt;
+  let now = nano(st);
+  let eed = nano(ed);
+  while (now < eed) {
+    console.log("\n### payments_running");
+    let a = iso(now);
+    let b = iso(Math.min(now + offset, eed));
+    console.log(a, "----->", b);
+    await verify_user_payments([a, b], [0, -1, 1]);
+    now += offset;
+  }
 };
 
 const run_cron = async () => {

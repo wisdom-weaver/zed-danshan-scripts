@@ -12,6 +12,7 @@ const pol_get = (query) => {
   try {
     query.apikey = polygonscan_api_key;
     let api = `${pol}/api?${qs.stringify(query)}`;
+    console.log(api)
     return fget(api);
   } catch (err) {
     console.error("err at pol-get", err.message);

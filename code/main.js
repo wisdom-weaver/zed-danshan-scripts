@@ -409,8 +409,7 @@ const main = async (args) => {
     if (arg2 == "runner") await payments.runner();
     if (arg2 == "run_cron") await payments.run_cron();
     if (arg2 == "run_dur") {
-      arg3 = jparse(arg3);
-      await payments.run_cron(arg3);
+      await payments.run_dur(arg3, arg4);
     }
   } else if (arg1 == "--tests") {
     try {
