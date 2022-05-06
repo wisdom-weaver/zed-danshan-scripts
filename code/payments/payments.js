@@ -39,6 +39,8 @@ const tokens_ob = {
   },
 };
 
+let running = 0;
+
 const get_payments_list = async ({
   before,
   after,
@@ -115,7 +117,11 @@ const handle_dummies = async (dummies) => {
   return dummies.map(dummy_tx);
 };
 
-const verify_user_payments = async ([st, ed], status_codes = [0, -1]) => {
+const verify_user_payments = async (
+  [st, ed],
+  status_codes = [0, -1],
+  cron_mode = 1
+) => {
   let update_ar = [];
   let update_far = [];
   const token = "WETH";
@@ -126,13 +132,13 @@ const verify_user_payments = async ([st, ed], status_codes = [0, -1]) => {
     status_codes,
   });
   console.table(list);
-  
+
   let rx_list = _.map(list, "reciever");
-  rx_list = _.uniq(rx_list)
+  rx_list = _.uniq(rx_list);
   console.log(rx_list);
 
   let sx_list = _.map(list, "sender");
-  sx_list = _.uniq(sx_list)
+  sx_list = _.uniq(sx_list);
   console.log(sx_list);
   let txs = [];
   for (let rx of rx_list) {
@@ -466,10 +472,28 @@ const test = async () => {
   });
 };
 
+const test_2 = async () => {
+  let sender = "0x55b76d32503e7c604d7ef2bab655fcfb31c2cafd";
+  console.log({ sender });
+  let txs = await tokens_ob["MATIC"].get_txs({ address: sender });
+  console.log("txs", txs.result.length);
+};
+
 const runner = async () => {
-  let st = moment().subtract(allowed_buffer, "millisecond").toISOString();
-  let ed = moment().toISOString();
-  await verify_user_payments([st, ed]);
+  if (running) {
+    console.log("############# pays already running.........");
+    return;
+  }
+  try {
+    running = 1;
+    let st = moment().subtract(allowed_buffer, "millisecond").toISOString();
+    let ed = moment().toISOString();
+    await verify_user_payments([st, ed]);
+    running = 0;
+  } catch (err) {
+    console.log("pays ERR\n", err);
+    running = 0;
+  }
 };
 
 const run_dur = async (st, ed) => {
@@ -487,7 +511,7 @@ const run_dur = async (st, ed) => {
 };
 
 const run_cron = async () => {
-  let cron_str = "0 * * * * *";
+  let cron_str = "*/10 * * * * *";
   cyclic_depedency.print_cron_details(cron_str);
   cron.schedule(cron_str, runner, { scheduled: true });
 };
@@ -524,6 +548,7 @@ const payments = {
   runner,
   run_cron,
   test,
+  test_2,
   fix,
 };
 module.exports = payments;

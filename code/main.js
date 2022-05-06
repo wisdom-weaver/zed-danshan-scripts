@@ -405,6 +405,7 @@ const main = async (args) => {
     }
   } else if (arg1 == "--payments") {
     if (arg2 == "test") await payments.test();
+    if (arg2 == "test_2") await payments.test_2();
     if (arg2 == "fix") await payments.fix();
     if (arg2 == "runner") await payments.runner();
     if (arg2 == "run_cron") await payments.run_cron();
