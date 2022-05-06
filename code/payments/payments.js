@@ -194,7 +194,8 @@ const verify_user_payments = async (
     let tx_nano = timeStamp * 1000;
 
     for (let s_req of shortlist) {
-      // if (_.includes(exists_tx, (e) => e.hash == hash)) continue;
+      if (_.includes(exists_tx, (e) => e.hash == hash || e.pay_id == pay_id))
+        continue;
       let { pay_id, date, req_amt } = s_req;
 
       req_amt *= 1e18;
