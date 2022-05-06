@@ -131,6 +131,7 @@ const verify_user_payments = async (
     after: st,
     status_codes,
   });
+  if (_.isEmpty(list)) return console.log("nothing to do");
   console.table(list);
 
   let rx_list = _.map(list, "reciever");
