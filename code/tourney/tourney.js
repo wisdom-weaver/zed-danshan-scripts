@@ -69,7 +69,7 @@ const ft_price_ob = {
   FT6: ["$100", "bg-red-400", 50, 100],
   FT7: ["$250", "bg-red-500", 100, 250],
   FT8: ["$500", "bg-red-600", 250, 500],
-  FT8: ["ultimate", "bg-red-800 shadow-md shadow-purple-500", 500, 1e14],
+  FT9: ["ultimate", "bg-red-800 shadow-md shadow-purple-500", 500, 1e14],
 };
 const get_ft = (usd) => {
   if (usd == "multi") return "multi";
