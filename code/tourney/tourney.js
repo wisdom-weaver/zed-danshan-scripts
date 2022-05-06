@@ -385,8 +385,6 @@ const run_t_tot_fees = async (tid, tdoc) => {
   _.entries(hidsC).map(([hid, e]) => {
     if (e > 1) {
       console.log("dup", hid);
-      tot_fees_act = -1;
-      tot_sponsors_act = 0;
     }
   });
   hids = _.chain(hids).uniq().compact().value();
