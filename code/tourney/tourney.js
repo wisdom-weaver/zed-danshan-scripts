@@ -338,14 +338,16 @@ const run_t_give_ranks = (hdocs, tdoc) => {
 };
 
 const run_t_tot_fees = async (tid, tdoc) => {
-  let { tourney_st, tourney_ed, entry_st, entry_ed } = tdoc;
+  let { tourney_st, tourney_ed, entry_st, entry_ed, type, status } = tdoc;
   let pays = await zed_db.db
     .collection("payments")
     .find(
       {
         status_code: 1,
         service: tcoll_stables(tid),
-        date: { $gte: entry_st, $lte: entry_ed },
+        ...(type == "flash" && status == "open"
+          ? { date: { $gte: entry_st } }
+          : { date: { $gte: entry_st, $lte: entry_ed } }),
         "meta_req.type": { $in: ["fee", "sponsor"] },
       },
       { projection: { req_amt: 1, "meta_req.type": 1 } }
