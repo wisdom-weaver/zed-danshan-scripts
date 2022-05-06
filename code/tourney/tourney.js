@@ -20,13 +20,24 @@ const {
   get_double_up_list,
 } = require("./depend");
 const send_weth = require("../payments/send_weth");
+const { fget } = require("../utils/fetch");
 
 let test_mode = 0;
 let running = 0;
-
+let eth_price = 0;
 // const tcoll = "tourney_master";
 // const tcoll_horses = (tid) => `tourney::${tid}::horses`;
 // const tcoll_stables = (tid) => `tourney::${tid}::stables`;
+
+const update_eth = async () => {
+  let ob = await fget(
+    `https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=BTC,USD`
+  );
+  eth_price = ob.USD;
+};
+const eth_t_usd = (c) => {
+  return c * eth_price;
+};
 
 const tfet_many = (coll, query, projection) => {
   if (projection) projection = { _id: 0, ...(projection || {}) };
@@ -46,6 +57,28 @@ const th2 = (...a) => tfet_many(tcoll_horses(a[0]), ...a.slice(1));
 const ts1 = (...a) => tfet_one_(tcoll_stables(a[0]), ...a.slice(1));
 const ts2 = (...a) => tfet_many(tcoll_stables(a[0]), ...a.slice(1));
 const tx2 = (...a) => tfet_many("payments", ...a.slice(1));
+
+const ft_price_ob = {
+  // FT0 ["$0", ],
+  // FTA: ["ALL", "bg-purple-500", -1e14, 1e14],
+  FT1: ["$2", "bg-green-500", -1, 2],
+  FT2: ["$5", "bg-green-400", 2, 5],
+  FT3: ["$10", "bg-yellow-400", 5, 10],
+  FT4: ["$25", "bg-yellow-600", 10, 25],
+  FT5: ["$50", "bg-orange-500", 25, 50],
+  FT6: ["$100", "bg-red-400", 50, 100],
+  FT7: ["$250", "bg-red-500", 100, 250],
+  FT8: ["$500", "bg-red-600", 250, 500],
+  FT8: ["ultimate", "bg-red-800 shadow-md shadow-purple-500", 500, 1e14],
+};
+const get_ft = (usd) => {
+  if (usd == "multi") return "multi";
+  let ob = _.entries(ft_price_ob).find(([k, [disp, cn, mi, mx]]) => {
+    console.log(k, mi, mx, _.inRange(usd, mi, mx));
+    if (_.inRange(usd, mi, mx)) return true;
+  });
+  return (ob && ob[0]) || null;
+};
 
 const get_flash_run_tids = async () => {
   let query = {
@@ -439,10 +472,25 @@ const run_tid = async (tid) => {
   let pays_doc = await run_t_tot_fees(tid, tdoc);
   let total_capital = pays_doc.tot_fees + pays_doc.tot_sponsors;
   let prize_pool = parseFloat(utils.dec(total_capital * 0.95, 4));
+
+  let entry_fee = 0;
+  console.log("tdoc.horse_cr.length", tdoc.horse_cr.length);
+  if (tdoc.horse_cr.length > 1) entry_fee = "multi";
+  else entry_fee = getv(tdoc, "horse_cr.0.cost") ?? 0;
+
+  let prize_pool_usd = eth_t_usd(prize_pool);
+  let entry_fee_usd = entry_fee == "multi" ? "multi" : eth_t_usd(entry_fee);
+  let ft = get_ft(
+    entry_fee_usd == "multi" ? getv(tdoc, "horse_cr.0.cost") : entry_fee_usd
+  );
   let fins = {
     ...pays_doc,
     total_capital,
     prize_pool,
+    entry_fee,
+    prize_pool_usd,
+    entry_fee_usd,
+    ft,
   };
   console.log(fins);
 
@@ -578,6 +626,7 @@ const thorse = async ([tid, hid]) => {
 };
 
 const run = async (tid) => {
+  await update_eth();
   await t_status();
   await run_tid(tid);
 };
@@ -762,6 +811,7 @@ const flash_runner = async () => {
 };
 
 const runner = async () => {
+  await update_eth();
   if (running) {
     console.log("############# tourney already running.........");
     return;
