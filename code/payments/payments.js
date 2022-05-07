@@ -379,8 +379,8 @@ const run_dur = async (st, ed) => {
 };
 
 const run_cron = async () => {
-  // let cron_str = "0 * * * * *";
-  let cron_str = "*/10 * * * * *";
+  let cron_str = "0 * * * * *";
+  // let cron_str = "*/10 * * * * *";
   cyclic_depedency.print_cron_details(cron_str);
   cron.schedule(cron_str, () => runner([0, -1], true), { scheduled: true });
 };
