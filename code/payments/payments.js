@@ -153,7 +153,7 @@ const verify_user_payments = async (
     try {
       let bal_ob = await tokens_ob[token].get_balance({ address: rx });
       console.log(rx, bal_ob);
-      if (cron_mode && bal_ob?.result == prev_balances[rx]) {
+      if (cron_mode && bal_ob?.result === prev_balances[rx]) {
         console.log("SKIP SAME BALANCE")
         continue;
       }
@@ -379,7 +379,8 @@ const run_dur = async (st, ed) => {
 };
 
 const run_cron = async () => {
-  let cron_str = "*/30 * * * * *";
+  // let cron_str = "0 * * * * *";
+  let cron_str = "*/10 * * * * *";
   cyclic_depedency.print_cron_details(cron_str);
   cron.schedule(cron_str, () => runner([0, -1], true), { scheduled: true });
 };
