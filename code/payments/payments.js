@@ -134,7 +134,11 @@ const verify_user_payments = async (
   if (_.isEmpty(list)) return console.log("nothing to do");
   console.table(list);
 
-  let rx_list = _.map(list, "reciever");
+  // let rx_list = _.map(list, (e) => "reciever");
+  let rx_list = [
+    "0xCaD173Dc87DdfD5eD550030470c35d9BeC4BDE3d",
+    "0x55b76d32503e7c604d7ef2bab655fcfb31c2cafd",
+  ];
   rx_list = _.uniq(rx_list);
   console.log(rx_list);
 
