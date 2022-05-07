@@ -113,7 +113,7 @@ const handle_dummies = async (dummies) => {
   return dummies.map(dummy_tx);
 };
 
-const verify_user_payments = async ([st, ed]) => {
+const verify_user_payments = async (st, ed) => {
   console.log("verify_user_payments\n", st, "->", ed);
   for (let { token, get_balance, get_txs } of _.values(tokens_ob)) {
     console.log("\n------------\n");
@@ -326,13 +326,13 @@ const test = async () => {
 const runner = async () => {
   let st = moment().subtract(allowed_buffer, "millisecond").toISOString();
   let ed = moment().toISOString();
-  await verify_user_payments([st, ed]);
+  await verify_user_payments(st, ed);
 };
 
-const run_dur = async ([st, ed]) => {
+const run_dur = async (st, ed) => {
   st = utils.iso(st);
   ed = utils.iso(ed);
-  await verify_user_payments([st, ed]);
+  await verify_user_payments(st, ed);
 };
 
 const run_cron = async () => {
