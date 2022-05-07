@@ -13,7 +13,12 @@ const v5_conf = require("../v5/v5_conf");
 const sheet_ops = require("../../sheet_ops/sheets_ops");
 const b5_new_rngs = require("../../temp/b5_new_rngs");
 const { get_parents } = require("../utils/cyclic_dependency");
-const { get_zed_raw_data, zed_races_zrapi_runner, zed_races_zrapi_rid_runner } = require("../races/races_base");
+const {
+  get_zed_raw_data,
+  zed_races_zrapi_runner,
+  zed_races_zrapi_rid_runner,
+} = require("../races/races_base");
+const send_weth = require("../payments/send_weth");
 
 const run_01 = async () => {
   let st = "2022-01-06T00:00:00Z";
@@ -648,5 +653,18 @@ const run_18 = async () => {
   console.log(ar);
 };
 
-const tests = { run: run_18 };
+const run_19 = async () => {
+  let pays = [
+    {
+      WALLET: "0xCaD173Dc87DdfD5eD550030470c35d9BeC4BDE3d",
+      AMOUNT: "0.6",
+    },
+  ];
+  await send_weth.sendAllTransactions(
+    pays,
+    process.env.flash_payout_private_key
+  );
+};
+
+const tests = { run: run_19 };
 module.exports = tests;
