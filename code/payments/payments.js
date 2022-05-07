@@ -145,6 +145,7 @@ const verify_user_payments = async (
   for (let rx of rx_list) {
     let txar = await tokens_ob[token].get_txs({ address: rx });
     txs.push(txar.result);
+    console.log("txar.result.len: ",txar.result.length)
   }
   txs = _.flatten(txs);
   // console.table(txs)
