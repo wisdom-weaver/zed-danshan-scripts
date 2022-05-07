@@ -7,7 +7,7 @@ const polygonscan = require("./polygonscan");
 const moment = require("moment");
 const cron = require("node-cron");
 const crypto = require("crypto");
-const { iso, getv, nano } = require("../utils/utils");
+const { iso, getv, nano, delay } = require("../utils/utils");
 const sheet_ops = require("../../sheet_ops/sheets_ops");
 const { update } = require("lodash");
 const { push_bulkc } = require("../utils/bulk");
@@ -145,10 +145,11 @@ const verify_user_payments = async (
   for (let rx of rx_list) {
     let txar = await tokens_ob[token].get_txs({ address: rx });
     txs.push(txar.result);
-    console.log("txar.result.len: ",txar.result.length)
+    console.log("txar.result.len: ", txar.result.length);
+    await delay(500);
   }
   txs = _.flatten(txs);
-  // console.table(txs)
+  // console.log(txs);
 
   let txshash = _.map(txs, "hash");
   // console.log(txshash);
