@@ -149,13 +149,15 @@ const verify_user_payments = async (
   txs = _.flatten(txs);
   // console.table(txs)
 
+  let txshash = _.map(txs, "hash");
+  // console.log(txshash);
   let exists_tx = await zed_db.db
     .collection("payments")
     .find(
       {
         $or: [
           { date: { $gte: st, $lte: ed }, status_code: 1 },
-          { "meta.tx.hash": { $in: _.map(txs, "hash") } },
+          { "meta.tx.hash": { $in: txshash } },
         ],
       },
       { projection: { pay_id: 1, "meta.tx.hash": 1 } }
@@ -182,7 +184,8 @@ const verify_user_payments = async (
 
   for (let tx of txs) {
     let { from, to, hash } = tx;
-    if (_.includes(exists_tx, (e) => e.hash == hash)) continue;
+    let hash_present = _.find(exists_tx, (e) => e.hash == hash);
+    if (hash_present) continue;
 
     from = from.toLowerCase();
     to = to.toLowerCase();
@@ -194,9 +197,12 @@ const verify_user_payments = async (
     let tx_nano = timeStamp * 1000;
 
     for (let s_req of shortlist) {
-      if (_.includes(exists_tx, (e) => e.hash == hash || e.pay_id == pay_id))
-        continue;
       let { pay_id, date, req_amt } = s_req;
+      let hash_present = _.find(
+        exists_tx,
+        (e) => e.hash == hash || e.pay_id == pay_id
+      );
+      if (hash_present) continue;
 
       req_amt *= 1e18;
       let [req_amt_mi, req_amt_mx] = [req_amt - mimi, req_amt + mimi];
@@ -232,7 +238,7 @@ const verify_user_payments = async (
       let req_nano = nano(date);
       let req_nano_mx = req_nano + allowed_buffer;
       if (nano() > req_nano_mx)
-        return { pay_id: e.pay_id, status: -1, status: "failed" };
+        return { pay_id: e.pay_id, status_code: -1, status: "failed" };
       else return null;
     })
     .compact()
@@ -507,7 +513,7 @@ const run_dur = async (st, ed) => {
     let a = iso(now);
     let b = iso(Math.min(now + offset, eed));
     console.log(a, "----->", b);
-    await verify_user_payments([a, b], [0, -1, 1]);
+    await verify_user_payments([a, b], [0, -1]);
     now += offset;
   }
 };
