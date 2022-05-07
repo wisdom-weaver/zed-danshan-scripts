@@ -18,6 +18,8 @@ const allowed_buffer = 15 * utils.mt;
 const mimi = 100;
 const coll = "payments";
 
+const prev_balances = {};
+
 const tokens_ob = {
   MATIC: {
     token: "MATIC",
@@ -122,6 +124,7 @@ const verify_user_payments = async (
   status_codes = [0, -1],
   cron_mode = 1
 ) => {
+  console.log({ date: iso(), cron_mode });
   let update_ar = [];
   let update_far = [];
   const token = "WETH";
@@ -131,7 +134,7 @@ const verify_user_payments = async (
     after: st,
     status_codes,
   });
-  if (_.isEmpty(list)) return console.log("nothing to do");
+  // if (_.isEmpty(list)) return console.log("nothing to do");
   console.table(list);
 
   // let rx_list = _.map(list, (e) => "reciever");
@@ -147,13 +150,25 @@ const verify_user_payments = async (
   console.log(sx_list);
   let txs = [];
   for (let rx of rx_list) {
-    let txar = await tokens_ob[token].get_txs({ address: rx });
-    txs.push(txar.result);
-    console.log("txar.result.len: ", txar.result.length);
-    await delay(500);
+    try {
+      let bal_ob = await tokens_ob[token].get_balance({ address: rx });
+      console.log(rx, bal_ob);
+      if (cron_mode && bal_ob?.result == prev_balances[rx]) {
+        console.log("SKIP SAME BALANCE")
+        continue;
+      }
+      prev_balances[rx] = bal_ob?.result;
+      let txar = await tokens_ob[token].get_txs({ address: rx });
+      txs.push(txar.result);
+      console.log("txar.result.len: ", txar.result?.length);
+      await delay(100);
+    } catch (err) {
+      console.log(err);
+      await delay(500);
+    }
   }
   txs = _.flatten(txs);
-  // console.log(txs);
+  // console.table(txs);
 
   let txshash = _.map(txs, "hash");
   // console.log(txshash);
@@ -253,167 +268,6 @@ const verify_user_payments = async (
   await push_bulkc("payments", update_far, "payments", "pay_id");
 };
 
-const verify_user_payments_old = async ([st, ed]) => {
-  console.log("verify_user_payments\n", st, "->", ed);
-  for (let { token, get_balance, get_txs } of _.values({
-    WETH: tokens_ob["WETH"],
-  })) {
-    console.log("\n------------\n");
-    console.log("started", utils.iso());
-    console.log("token:", token);
-    let list = await get_payments_list({
-      token,
-      before: ed,
-      after: st,
-      status_codes: [0, -1, 1],
-    });
-
-    let update_paid = [];
-
-    console.log("pending:", list.length);
-    console.table(list);
-    if (list.length == 0) continue;
-    // list = _.keyBy(list, "pay_id");
-    let recievers = _.uniq(_.map(list, "reciever"));
-    let list_gp = _.groupBy(list, "sender");
-    console.log("recievers", recievers);
-    let all_txns = [];
-    for (let reciever of recievers) {
-      let txns = await get_txs({ address: reciever });
-      // console.table(txns)
-      if (txns) txns = txns?.result || [];
-      console.log("txns:", txns.length, "for", reciever);
-      all_txns = [...all_txns, ...txns];
-    }
-    let dummies = _.filter(
-      list,
-      (i) => utils.getv(i, "meta_req.is_dummy") == true
-    );
-    dummies = await handle_dummies(dummies);
-
-    console.log("dummies:", dummies.length);
-    console.log("all_txns:", all_txns.length);
-    console.table(all_txns);
-
-    all_txns = [...all_txns, ...dummies];
-    console.log("all_txns[updated]:", all_txns.length);
-
-    let existing_txns = []; //await get_if_existing_txns(_.map(all_txns, "hash"));
-    console.log("existing_txns:", existing_txns.length);
-
-    for (let tx of all_txns) {
-      if (existing_txns.includes(tx.hash)) {
-        // console.log("tx exists already");
-        continue;
-      }
-      let amt = parseFloat(tx.value);
-      let timeStamp = parseFloat(tx.timeStamp) * 1000;
-
-      for (let [sender, sender_reqs] of _.entries(list_gp)) {
-        if (tx.from.toLowerCase() !== sender.toLowerCase()) {
-          continue;
-        }
-        console.log(`https://polygonscan.com/tx/${tx.hash}`);
-        console.log(tx.from, "->", tx.to);
-        console.log("\n=====\nsender", sender, "=>");
-        let got_request = _.find(sender_reqs, (req) => {
-          console.log("check", req.sender, "->", req.reciever);
-          if (!(req?.sender?.toLowerCase() == tx.from.toLowerCase())) {
-            console.log("na sender");
-            return false;
-          }
-
-          if (!(req?.reciever?.toLowerCase() == tx.to.toLowerCase())) {
-            console.log("na reciever");
-            return false;
-          }
-
-          let tnano = utils.nano(req.date);
-          let [mi, mx] = [tnano - allowed_buffer, tnano + allowed_buffer];
-          if (!_.inRange(timeStamp, mi, mx)) {
-            console.log(req.pay_id, "time failed", timeStamp, tnano, mi, mx);
-            console.log(
-              req.pay_id,
-              "time failed",
-              sender,
-              iso(timeStamp),
-              iso(tnano),
-              "\n",
-              parseInt((nano(timeStamp) - nano(tnano)) / utils.mt),
-              `https://polygonscan.com/tx/${tx.hash}`
-            );
-            return false;
-          }
-
-          let req_amt = parseFloat(req.req_amt) * 1e18;
-          let [mia, mxa] = [req_amt - mimi, req_amt + mimi];
-          console.log(amt, req_amt, _.inRange(amt, mia, mxa));
-          if (_.isNaN(amt) || _.isNaN(req_amt)) {
-            console.log("null amt failed");
-            return false;
-          }
-          if (amt == req_amt) {
-            return true;
-          } else if (_.inRange(amt, mia, mxa)) {
-            return true;
-          } else {
-            console.log("4");
-            console.log("tx:", req.pay_id, req_amt);
-            return false;
-          }
-          return true;
-        });
-
-        if (!got_request) continue;
-        // console.log("found", got_request);
-        got_request = {
-          pay_id: got_request.pay_id,
-          meta: { tx },
-          status_code: 1,
-          status: "paid",
-        };
-        update_paid = [...update_paid, got_request];
-      }
-    }
-    let paid_ids = _.map(update_paid, "pay_id");
-    console.log("found paid:", update_paid.length);
-    await push_bulk(coll, update_paid, "update_paid");
-
-    let now = utils.nano();
-    // console.log(now);
-    let failed_ids = _.map(list, (req) => {
-      if (paid_ids.includes(req.pay_id)) return false;
-      let tnano = utils.nano(req.date);
-      if (_.inRange(now, tnano, tnano + allowed_buffer)) return false;
-      return req.pay_id;
-    });
-    failed_ids = _.compact(failed_ids);
-    // console.log(failed_ids);
-
-    let to_fail_list =
-      (await get_payments_list({
-        token,
-        before: st,
-        after: null,
-        status_code: 0,
-      })) ?? [];
-    let to_fail_ids = _.map(to_fail_list, "pay_id");
-    // console.log(to_fail_list);
-    failed_ids = [...failed_ids, ...to_fail_ids];
-    console.log("found failed:", failed_ids.length, "(buffer time ended)");
-
-    if (!_.isEmpty(failed_ids)) {
-      await zed_db.db
-        .collection(coll)
-        .updateMany(
-          { pay_id: { $in: failed_ids } },
-          { $set: { status_code: -1, status: "failed" } }
-        );
-    }
-    console.log(token, "check completed", utils.iso());
-  }
-};
-
 const push_bulk = async (coll, obar, name = "-") => {
   try {
     if (_.isEmpty(obar))
@@ -493,7 +347,7 @@ const test_2 = async () => {
   console.log("txs", txs.result.length);
 };
 
-const runner = async () => {
+const runner = async (...a) => {
   if (running) {
     console.log("############# pays already running.........");
     return;
@@ -502,7 +356,7 @@ const runner = async () => {
     running = 1;
     let st = moment().subtract(allowed_buffer, "millisecond").toISOString();
     let ed = moment().toISOString();
-    await verify_user_payments([st, ed]);
+    await verify_user_payments([st, ed], ...a);
     running = 0;
   } catch (err) {
     console.log("pays ERR\n", err);
@@ -519,7 +373,7 @@ const run_dur = async (st, ed) => {
     let a = iso(now);
     let b = iso(Math.min(now + offset, eed));
     console.log(a, "----->", b);
-    await verify_user_payments([a, b], [0, -1]);
+    await verify_user_payments([a, b], [0, -1], true);
     now += offset;
   }
 };
@@ -527,7 +381,7 @@ const run_dur = async (st, ed) => {
 const run_cron = async () => {
   let cron_str = "*/30 * * * * *";
   cyclic_depedency.print_cron_details(cron_str);
-  cron.schedule(cron_str, runner, { scheduled: true });
+  cron.schedule(cron_str, () => runner([0, -1], true), { scheduled: true });
 };
 
 const fix = async () => {

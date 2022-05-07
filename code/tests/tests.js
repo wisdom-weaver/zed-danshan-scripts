@@ -666,5 +666,10 @@ const run_19 = async () => {
   );
 };
 
-const tests = { run: run_19 };
+const run_20 = async () => {
+  let date = moment().subtract(1, "hour").toISOString();
+  console.log(nano(date)/1000);
+};
+
+const tests = { run: run_20 };
 module.exports = tests;
