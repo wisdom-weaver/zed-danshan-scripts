@@ -446,6 +446,46 @@ const get_double_up_list = (tdoc, leader) => {
 
   return [];
 };
+const get_winner_all_list = (tdoc, leader) => {
+  let { prize_pool, payout_mode, score_mode, horse_cr } = tdoc;
+  let entry_fee = getv(horse_cr, "0.cost");
+  let k =
+    (score_mode == "total" && "tot_score") ||
+    (score_mode == "avg" && "avg_score") ||
+    null;
+
+  let tot = leader.length;
+  let win_pot = prize_pool;
+
+  let win = leader[0];
+  if (!win?.rank) return [];
+
+  console.log(win)
+
+  let win_ties = _.filter(leader, (i) => i[k] == win[k]);
+  if (win_ties.length == 1) {
+    return [{ ...win, amt: prize_pool, role: "winner_all" }];
+  }
+
+  let win_tie_amt = win_pot / win_ties.length;
+
+  win_ties.map((e) => {
+    if (!e.amt) e.amt = 0;
+    e.amt += win_tie_amt;
+    e.win_tie = win_tie_amt;
+    e.role = "winner_all";
+  });
+  console.table(win_ties)
+
+  let pays = win_ties || [];
+  pays = _.uniqBy(pays, "hid");
+  pays = pays.map((e) => {
+    let { rank, hid, wallet, amt, role } = e;
+    return { rank, hid, val: e[k], wallet, amt, role };
+  });
+
+  return pays;
+};
 
 const flash_pay_to_user = async (pays) => {
   let payments = pays.map((l) => ({
@@ -471,6 +511,7 @@ module.exports = {
   create_t,
   payout_single,
   get_double_up_list,
+  get_winner_all_list,
   refund_user,
   flash_payout_wallet,
   flash_payout_private_key,

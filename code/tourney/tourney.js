@@ -18,6 +18,7 @@ const {
   get_leaderboard_t,
   payout_single,
   get_double_up_list,
+  get_winner_all_list,
 } = require("./depend");
 const send_weth = require("../payments/send_weth");
 const { fget } = require("../utils/fetch");
@@ -719,9 +720,7 @@ const calc_payouts_list = async ({ tid }) => {
   let pays = [];
 
   if (payout_mode == "winner_all") {
-    console.table(leader);
-    if (!leader[0].rank) return [];
-    return [{ ...leader[0], amt: prize_pool }];
+    pays = get_winner_all_list(tdoc, leader);
   } else if (payout_mode == "double_up") {
     pays = get_double_up_list(tdoc, leader);
   }
