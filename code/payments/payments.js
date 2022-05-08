@@ -125,7 +125,7 @@ const handle_dummies = async (dummies) => {
 
 const verify_user_payments = async (
   [st, ed],
-  status_codes = [0, -1],
+  status_codes = [0],
   cron_mode = 1
 ) => {
   console.log({ date: iso(), cron_mode });
@@ -404,7 +404,7 @@ const run_dur = async (st, ed) => {
     let a = iso(now);
     let b = iso(Math.min(now + offset, eed));
     console.log(a, "----->", b);
-    await verify_user_payments([a, b], [0, -1, 1], true);
+    await verify_user_payments([a, b], [0, -1], true);
     now += offset;
   }
 };
@@ -413,7 +413,7 @@ const run_cron = async () => {
   let cron_str = "*/30 * * * * *";
   // let cron_str = "*/10 * * * * *";
   cyclic_depedency.print_cron_details(cron_str);
-  cron.schedule(cron_str, () => runner([0, -1], true), { scheduled: true });
+  cron.schedule(cron_str, () => runner([0], true), { scheduled: true });
 };
 
 const fix = async () => {
