@@ -1,5 +1,4 @@
 #!/usr/bin/env node --async-stack-traces
-
 require("dotenv").config();
 const Web3 = require("web3");
 const csv = require("csv-parser");
@@ -60,9 +59,11 @@ async function sendOneTransaction(
     payload = {
       from: fromAddress,
       gasPrice: web3.utils.toHex(Math.floor(gasPrice * 1.5)),
-      nonce: transCount,
+      //        nonce: nonce,
       gasLimit: web3.utils.toHex(gasLimit),
     };
+
+    //console.log(payload)
 
     info = await contract.methods.transfer(toAddress, amount).send(payload);
 
@@ -75,10 +76,10 @@ async function sendOneTransaction(
 }
 
 async function sendAllTransactions(payments, privateKey) {
-  const TOKEN_ADDRESS = "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619";
+  const WETH = "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619";
 
   const web3 = new Web3("https://polygon-rpc.com/");
-  let contract = new web3.eth.Contract(minABI, TOKEN_ADDRESS);
+  let contract = new web3.eth.Contract(minABI, WETH);
 
   web3.eth.accounts.wallet.add(
     web3.eth.accounts.privateKeyToAccount(privateKey)
@@ -93,7 +94,6 @@ async function sendAllTransactions(payments, privateKey) {
 
   for (const payment of payments) {
     try {
-      //   console.log({transCount})
       await sendOneTransaction(
         web3,
         contract,
@@ -114,3 +114,4 @@ const send_weth = {
 };
 
 module.exports = send_weth;
+
