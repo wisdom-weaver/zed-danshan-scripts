@@ -736,26 +736,26 @@ const flash_payout = async (tid) => {
     console.log("nothing to payout");
   } else {
     let adwallet = process.env.flash_payout_wallet;
-    await Promise.all(
-      pays.map((l) =>
-        payout_single({
-          tid,
-          payout_wallet: adwallet,
-          stable_name: l.stable_name,
-          wallet: l.wallet,
-          amt: l.amt,
-        })
-      )
-    );
+    // await Promise.all(
+    //   pays.map((l) =>
+    //     payout_single({
+    //       tid,
+    //       payout_wallet: adwallet,
+    //       stable_name: l.stable_name,
+    //       wallet: l.wallet,
+    //       amt: l.amt,
+    //     })
+    //   )
+    // );
     let payments = pays.map((l) => ({
       WALLET: l.wallet,
       AMOUNT: l.amt.toString(),
     }));
     console.table(payments);
     let key = process.env.flash_payout_private_key;
-    let count = await send_weth.sendAllTransactions(payments, key);
+    // let count = await send_weth.sendAllTransactions(payments, key);
     // let count = 0;
-    console.log("done transactions:", count);
+    // console.log("done transactions:", count);
   }
   await zed_db.db
     .collection(tcoll)
@@ -835,7 +835,7 @@ const flash_payout_ended = async () => {
 
 const flash_runner = async () => {
   await flash_run_current();
-  await flash_payout_ended();
+  // await flash_payout_ended();
   await flash_auto_start();
 };
 
@@ -867,6 +867,7 @@ const main_runner = async (args) => {
     if (arg2 == "run") await run(arg3);
     if (arg2 == "runner") await runner();
     if (arg2 == "flash_runner") await flash_runner();
+    if (arg2 == "flash_payout") await flash_payout(arg3);
     if (arg2 == "run_cron") await run_cron();
     if (arg2 == "t_status") await t_status();
   } catch (err) {
