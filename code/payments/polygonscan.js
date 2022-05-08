@@ -12,7 +12,7 @@ const pol_get = (query) => {
   try {
     query.apikey = polygonscan_api_key;
     let api = `${pol}/api?${qs.stringify(query)}`;
-    console.log(api)
+    console.log(api);
     return fget(api);
   } catch (err) {
     console.error("err at pol-get", err.message);
@@ -26,24 +26,34 @@ const get_tx_status = ({ txhash }) => {
     action: "gettxreceiptstatus",
     txhash,
   };
-  return eth_get(query);
+  return pol_get(query);
 };
-const get_token_txs = ({ address, contractaddress }) => {
+const get_token_txs = ({
+  address,
+  contractaddress,
+  startblock = 0,
+  endblock = 99999999,
+}) => {
   let query = {
     module: "account",
     action: "tokentx",
-    address: address,
+    // address: address,
     contractaddress,
-    startblock: 0,
-    endblock: 99999999,
-    page: 1,
-    offset: 0,
+    startblock,
+    endblock,
+    // page: 0,
+    // offset: 0,
     sort: "desc",
   };
   return pol_get(query);
 };
-const get_weth_txs = ({ address }) => {
-  return get_token_txs({ address, contractaddress: weth_contract_address });
+const get_weth_txs = ({ address, startblock, endblock }) => {
+  return get_token_txs({
+    address,
+    contractaddress: weth_contract_address,
+    startblock,
+    endblock,
+  });
 };
 const get_matic_txs = ({ address }) => {
   let query = {
@@ -83,6 +93,24 @@ const get_matic_balance = ({ address }) => {
   return pol_get(query);
 };
 
+const moralis_get_weth_txs = ({
+  address,
+  from_date = moment().add(-2, "minutes").toISOString(),
+  to_date = iso(),
+}) => {
+  let base = `https://deep-index.moralis.io/api/v2/${address}/erc20/transfers`;
+  const qqr = {
+    chain: "polygon",
+    from_date: from_date,
+    to_date: to_date,
+  };
+  // console.log(qqr)
+  let api = `${base}?${qs.stringify(qqr)}`;
+  // console.log(api);
+  let api_key = process.env.moralis_api_key;
+  return fget(api, null, { "x-api-key": api_key });
+};
+
 const polygonscan = {
   pol_get,
   get_tx_status,
@@ -92,5 +120,6 @@ const polygonscan = {
   get_token_balance,
   get_matic_balance,
   get_weth_balance,
+  moralis_get_weth_txs,
 };
 module.exports = polygonscan;

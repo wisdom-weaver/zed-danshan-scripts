@@ -35,7 +35,8 @@ const sn_fget = async (api) => {
   return resp?.data || null;
 };
 
-const fget = (api) => fetch(api).then((r) => r.json());
+const fget = (api, a, headers = {}) =>
+  fetch(api, { headers }).then((r) => r.json());
 const fpost = (api, data) =>
   fetch(api, {
     method: "POST",
