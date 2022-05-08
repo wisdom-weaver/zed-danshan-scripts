@@ -102,7 +102,7 @@ async function sendAllTransactions(payments, privateKey) {
         transCount
       );
       transCount = transCount + 1;
-      c++;
+      c = c + 1;
     } catch (err) {
       console.log(err.message);
     }
