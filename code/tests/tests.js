@@ -668,8 +668,18 @@ const run_19 = async () => {
 
 const run_20 = async () => {
   let date = moment().subtract(1, "hour").toISOString();
-  console.log(nano(date)/1000);
+  console.log(nano(date) / 1000);
 };
 
-const tests = { run: run_20 };
+const run_21 = async () => {
+  let pays = [
+    {
+      WALLET: "0xa0d9665E163f498082Cd73048DA17e7d69Fd9224",
+      AMOUNT: "0.1",
+    },
+  ];
+  await send_weth.sendAllTransactions(pays, process.env.flash_payout_private_key);
+};
+
+const tests = { run: run_21 };
 module.exports = tests;
