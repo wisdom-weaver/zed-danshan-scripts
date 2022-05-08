@@ -841,6 +841,7 @@ const flash_payout_ended = async () => {
   try {
     for (let tid of tids) {
       try {
+        console.log("flash_payout", tid);
         await flash_payout(tid);
       } catch (err) {
         console.log("Flash_payout err", tid, err.message);
@@ -853,7 +854,7 @@ const flash_payout_ended = async () => {
 
 const flash_runner = async () => {
   await flash_run_current();
-  // await flash_payout_ended();
+  await flash_payout_ended();
   await flash_auto_start();
 };
 
