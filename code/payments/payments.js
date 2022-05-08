@@ -160,8 +160,8 @@ const verify_user_payments = async (
     try {
       let txar = await moralis_get_weth_txs({
         address: rx,
-        from_date: iso(nano(st) - allowed_buffer - 5 * mt),
-        to_date: iso(nano(ed) + allowed_buffer + 5 * mt),
+        from_date: iso(nano(st) - allowed_buffer),
+        to_date: iso(nano(ed) + allowed_buffer),
       });
       txs.push(txar.result);
       // console.log("txar.result.len: ", txar.result?.length);
@@ -172,7 +172,7 @@ const verify_user_payments = async (
     }
   }
   txs = _.flatten(txs);
-  // console.table(txs);
+  console.table(txs);
 
   let txshash = _.map(txs, "hash");
   // console.log(txshash);
@@ -206,7 +206,7 @@ const verify_user_payments = async (
     })
     .fromPairs()
     .value();
-  // console.log(list_map);
+  console.log(list_map);
 
   for (let tx of txs) {
     tx.hash = tx.transaction_hash;
@@ -410,7 +410,7 @@ const run_dur = async (st, ed) => {
 };
 
 const run_cron = async () => {
-  let cron_str = "0 * * * * *";
+  let cron_str = "*/30 * * * * *";
   // let cron_str = "*/10 * * * * *";
   cyclic_depedency.print_cron_details(cron_str);
   cron.schedule(cron_str, () => runner([0, -1], true), { scheduled: true });
