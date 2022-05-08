@@ -213,7 +213,7 @@ const verify_user_payments = async (
     let { from_address: from, to_address: to, hash } = tx;
     let hash_present = _.find(exists_tx, (e) => e.hash == hash);
     if (hash_present) {
-      // console.log("hash present00", hash_present);
+      console.log("hash present00", hash_present);
       continue;
     }
 
