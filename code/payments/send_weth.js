@@ -90,7 +90,7 @@ async function sendAllTransactions(payments, privateKey) {
   );
 
   let transCount = await web3.eth.getTransactionCount(fromAddress);
-
+  let c = 0;
   for (const payment of payments) {
     try {
       //   console.log({transCount})
@@ -102,11 +102,12 @@ async function sendAllTransactions(payments, privateKey) {
         transCount
       );
       transCount = transCount + 1;
+      c++;
     } catch (err) {
       console.log(err.message);
     }
   }
-  return transCount;
+  return c;
 }
 
 const send_weth = {

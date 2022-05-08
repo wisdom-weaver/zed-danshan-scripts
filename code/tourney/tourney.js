@@ -705,57 +705,75 @@ const flash_run_current = async () => {
   }
 };
 
-const calc_payouts_list = async ({ tid }) => {
-  let tdoc = await get_tdoc(tid);
-  let { prize_pool, payout_mode, score_mode } = tdoc;
+const get_ranked_leader_t = async ({ tid }) => {
+  let tdoc = (await zed_db.db.collection(tcoll).findOne({ tid })) || null;
+  if (!tdoc) throw new Error("now such tourney");
+  let { prize_pool, payout_mode, score_mode, status, terminated } = tdoc;
   // prize_pool = 1;
-  console.log({ prize_pool, payout_mode, score_mode });
+  // console.log({ prize_pool, payout_mode, score_mode });
   let k =
     (score_mode == "total" && "tot_score") ||
     (score_mode == "avg" && "avg_score") ||
     null;
   let leader = await get_leaderboard_t({ tid });
   if (leader.length == 0) return [];
+  if (status == "open") return leader;
+  if (terminated == true) return leader;
 
   let pays = [];
 
   if (payout_mode == "winner_all") {
     pays = get_winner_all_list(tdoc, leader);
+    // console.table(leader);
+    // if (!leader[0].rank) pays = [];
+    // else pays = [{ ...leader[0], amt: prize_pool, role: "winner_all" }];
   } else if (payout_mode == "double_up") {
     pays = get_double_up_list(tdoc, leader);
+    // console.table(pays);
   }
-  return pays;
+  pays = _.keyBy(pays, "hid");
+  leader = leader.map((l) => {
+    let ob = pays[l.hid] || { role: "lose", amt: 0 };
+    return { ...l, ...ob };
+  });
+  return leader;
+};
+const calc_payouts_list = async ({ tid }) => {
+  let leader = await get_ranked_leader_t({ tid });
+  if (_.isEmpty(leader)) return [];
+  leader = _.filter(leader, (e) => ![undefined, NaN, null, 0].includes(e.amt));
+  return leader;
 };
 
 const flash_payout = async (tid) => {
   console.log("flash_payout");
   console.log(`## [ ${tid} ] started payout`, iso());
   let pays = await calc_payouts_list({ tid });
-  console.table(pays);
   if (_.isEmpty(pays)) {
     console.log("nothing to payout");
   } else {
+    console.table(pays);
     let adwallet = process.env.flash_payout_wallet;
-    // await Promise.all(
-    //   pays.map((l) =>
-    //     payout_single({
-    //       tid,
-    //       payout_wallet: adwallet,
-    //       stable_name: l.stable_name,
-    //       wallet: l.wallet,
-    //       amt: l.amt,
-    //     })
-    //   )
-    // );
+    await Promise.all(
+      pays.map((l) =>
+        payout_single({
+          tid,
+          payout_wallet: adwallet,
+          stable_name: l.stable_name,
+          wallet: l.wallet,
+          amt: l.amt,
+        })
+      )
+    );
     let payments = pays.map((l) => ({
       WALLET: l.wallet,
       AMOUNT: l.amt.toString(),
     }));
     console.table(payments);
     let key = process.env.flash_payout_private_key;
-    // let count = await send_weth.sendAllTransactions(payments, key);
+    let count = await send_weth.sendAllTransactions(payments, key);
     // let count = 0;
-    // console.log("done transactions:", count);
+    console.log("done transactions:", count);
   }
   await zed_db.db
     .collection(tcoll)
