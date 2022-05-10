@@ -75,6 +75,7 @@ const fetch_r = async (api, i = 3) => {
 };
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const cdelay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const key_mapping_bs_zed = [
   ["_id", "_id"],
@@ -304,6 +305,7 @@ const utils = {
   mt,
   getv,
   promises_n,
+  cdelay,
 };
 
 module.exports = utils;
