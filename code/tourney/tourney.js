@@ -404,8 +404,11 @@ const t_status = async () => {
     .find(
       {
         $or: [
-          { tourney_ed: { $gte: moment().add(-1, "days").toISOString() } },
-          { tourney_ed: { $eq: null } },
+          {
+            hide: { $ne: true },
+            tourney_ed: { $gte: moment().add(-1, "days").toISOString() },
+          },
+          { hide: { $ne: true }, tourney_ed: { $eq: null } },
         ],
       },
       {
@@ -445,7 +448,7 @@ const t_status = async () => {
 
 const run_tid = async (tid) => {
   let tdoc = await get_tdoc(tid, {});
-  // console.log(tdoc);
+  if (getv(tdoc, "hide") === true) return;
   let { tourney_st, tourney_ed, entry_st, entry_ed } = tdoc;
 
   let stables = await ts2(
