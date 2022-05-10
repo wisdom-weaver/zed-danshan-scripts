@@ -407,8 +407,8 @@ const run_t_tot_fees = async (tid, tdoc) => {
 };
 
 const fuser0_timer = 1 * 60;
-const fuser1_timer = 5;
-const fuser2_timer = 5;
+const fuser1_timer = 1 * 60;
+const fuser2_timer = 1 * 60;
 
 const refund_pay_user = async ({ tid, stable_name, pay_id }) => {
   console.log("refunding user", stable_name, "at", tid);
