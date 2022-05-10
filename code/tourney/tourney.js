@@ -1066,6 +1066,7 @@ const flash_payout_ended = async () => {
 };
 
 const flash_runner = async () => {
+  await update_eth();
   if (frunning) {
     console.log("############# tourney already frunning.........");
     return;
