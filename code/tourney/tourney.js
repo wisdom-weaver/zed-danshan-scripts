@@ -1118,7 +1118,7 @@ const main_runner = async (args) => {
     if (arg2 == "run_flash_cron") await run_flash_cron();
     if (arg2 == "t_status_regular") await t_status_regular();
   } catch (err) {
-    console.log(err);
+    console.log("Err in tourney runner", err);
   }
 };
 
