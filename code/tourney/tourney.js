@@ -526,7 +526,7 @@ const process_t_status_flash = async ({ tid }) => {
           entry_ed: moment(st).add(fuser1_timer, "minutes").toISOString(),
         };
       }
-    } else if (stables.length == 2) {
+    } else if (stables.length >= 2) {
       let txdoc1 = await zed_db.db.collection("payments").findOne({
         date: { $gte: entry_st },
         service: tcoll_stables(tid),
