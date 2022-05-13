@@ -1,8 +1,10 @@
 const _ = require("lodash");
 const { zed_ch, zed_db } = require("../connection/mongo_connect");
+const cyclic_depedency = require("../utils/cyclic_dependency");
 const { options } = require("../utils/options");
 const utils = require("../utils/utils");
 const { geno, dec } = require("../utils/utils");
+const cron = require("node-cron");
 
 const coll_br = "rating_breed5";
 const coll_y = "ymca5";
@@ -341,5 +343,16 @@ const test = async () => {
 
 const generate = generate_v2;
 
-const ymca5_table = { generate, get, test, update_z_id_row };
+const run_cron = async () => {
+  const runner = () => generate();
+  const cron_str = `0 0 * * 1,4`;
+  cyclic_depedency.print_cron_details(cron_str);
+  cron.schedule(cron_str, async () => {
+    console.log("started", iso());
+    await runner();
+    console.log("ended", iso());
+  });
+};
+
+const ymca5_table = { generate, get, test, update_z_id_row, run_cron };
 module.exports = ymca5_table;
