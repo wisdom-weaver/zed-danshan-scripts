@@ -35,6 +35,16 @@ const main_runner = async (args) => {
     }
   } else if (arg1 == "--ymca5_table") {
     if (arg2 == "generate") await mod.ymca5_table.generate();
+    if (arg2 == "cron") {
+      const runner = () => mod.ymca5_table.generate();
+      const cron_str = `0 0 * * 1,4`;
+      cyclic_depedency.print_cron_details(cron_str);
+      cron.schedule(cron_str, async () => {
+        console.log("started", iso());
+        await runner();
+        console.log("ended", iso());
+      });
+    }
     if (arg2 == "get") {
       let ob = await mod.ymca5_table.get(1);
       console.table(ob);
