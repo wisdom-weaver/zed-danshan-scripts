@@ -6,6 +6,7 @@ const cyclic_depedency = require("../utils/cyclic_dependency");
 const {
   struct_race_row_data,
   get_races_n,
+  get_ed_horse,
 } = require("../utils/cyclic_dependency");
 const utils = require("../utils/utils");
 const dp_scr = require("../v3/dp");
@@ -202,6 +203,7 @@ const only = async (hids) => {
 };
 const range = async ([st, ed]) => {
   console.log(name, "range", st, ed);
+  if(!ed) ed = await get_ed_horse();
   await bulk.run_bulk_range(name, generate, coll, st, ed, cs, test_mode);
 };
 
