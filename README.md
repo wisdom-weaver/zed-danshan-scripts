@@ -22,6 +22,8 @@ pm2 start node  --name "bt_races_miss" -- code/main --races miss_cron
 pm2 start node  --name "bt_races_scheduled" -- code/main --races scheduled_cron  
 pm2 start node  --name "bt_races_duplicate" -- code/main --races duplicate_cron  
 
+pm2 start node  --name "ymca5_table_cron" -- code/main.js v5 --ymca5_table run_cron
+
 pm2 start node  --name "bt_horses_fix" -- code/main.js --horses fixer
 pm2 start node  --name "bt_horses_new" -- code/main.js --horses new
 
