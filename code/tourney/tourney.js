@@ -950,7 +950,8 @@ const flash_payout = async (tid) => {
   console.log(`## [ ${tid} ] started payout`, iso());
   let pays = await calc_payouts_list({ tid });
   let tdoc = await get_tdoc(tid);
-  if (tdoc.payout_done == true)
+  let is_override = process.argv.includes("override") ?? false;
+  if (tdoc.payout_done == true && !is_override)
     return console.log("payout done at", tdoc.payout_date);
   if (tdoc.status !== "ended") return console.log("tourney not ended");
   let eda = moment().add(-5, "minutes").toISOString();

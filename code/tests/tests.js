@@ -681,5 +681,12 @@ const run_21 = async () => {
   // await send_weth.sendAllTransactions(pays, process.env.flash_payout_private_key);
 };
 
-const tests = { run: run_21 };
+const run_22 = async () => {
+  await zed_db.db
+    .collection("users")
+    .updateMany({}, { $set: { active: false } });
+    console.log("done")
+};
+
+const tests = { run: run_22 };
 module.exports = tests;
