@@ -1,3 +1,4 @@
+const cyclic_depedency = require("../utils/cyclic_dependency");
 const { jparse } = require("../utils/cyclic_dependency");
 const line = require("./line");
 const rating_breed = require("./rating_breed");
