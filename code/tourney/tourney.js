@@ -38,6 +38,7 @@ let running = 0;
 let frunning = 0;
 let eth_price = 0;
 let payout_test = 0;
+let eval_hidden = 0;
 // const tcoll = "tourney_master";
 // const tcoll_horses = (tid) => `tourney::${tid}::horses`;
 // const tcoll_stables = (tid) => `tourney::${tid}::stables`;
@@ -262,9 +263,10 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
         // 14: 1, // fee_cat
         // 15: 1, // adjfinishtime
         // 16: 1, // tc
-        // 20: 1, // fee_tag
-        // 21: 1, // entryfee_usd
-        // 23: 1, // pool
+        // 19: 1, // fee_tag
+        // 20: 1, // prize
+        // 21: 1, // prize_usd
+        22: 1, // hrating
       },
     })
     .sort({ 2: 1 })
@@ -288,6 +290,7 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
           gate: r[10],
           place: parseFloat(r[8]),
           flame: r[13],
+          hrating: r[22],
         };
         return rrow;
       });
@@ -655,6 +658,9 @@ const t_status_regular = async () => {
 const run_tid = async (tid) => {
   let tdoc = await get_tdoc(tid, {});
   // console.log(tdoc);
+  if (!tdoc) return console.log(`[ ${tid} ] no such tourney`);
+  if (!eval_hidden && tdoc.hide == true)
+    return console.log(`[ ${tid} ] this tourney is hidden`);
   let { tourney_st, tourney_ed, entry_st, entry_ed } = tdoc;
 
   let stables = await ts2(
