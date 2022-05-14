@@ -426,7 +426,10 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
 const run_t_give_ranks = (hdocs, tdoc) => {
   let mode = tdoc.score_mode;
   let k =
-    (mode == "total" && "tot_score") || (mode == "avg" && "avg_score") || null;
+    (mode == "total" && "tot_score") ||
+    (mode == "avg" && "avg_score") ||
+    (mode == "elo" && "elo_score") ||
+    null;
   if (!k) return hdocs;
   hdocs = _.sortBy(hdocs, (i) => {
     let val = Number(i[k]);
