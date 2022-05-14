@@ -425,6 +425,7 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
 
 const run_t_give_ranks = (hdocs, tdoc) => {
   let mode = tdoc.score_mode;
+  let type = tdoc.score_type;
   let k =
     (mode == "total" && "tot_score") ||
     (mode == "avg" && "avg_score") ||
@@ -432,7 +433,7 @@ const run_t_give_ranks = (hdocs, tdoc) => {
     null;
   let lim =
     (type == "regular" && mode == "elo" && 10) ||
-    (mode == "flash" && 5) ||
+    (type == "flash" && 5) ||
     1e14;
 
   null;
@@ -446,7 +447,7 @@ const run_t_give_ranks = (hdocs, tdoc) => {
   let i = 0;
   hdocs = _.map(hdocs, (e) => {
     let rank = null;
-    if (e[k] != 0 && e.traces_n >= lim ) rank = ++i;
+    if (e[k] != 0 && e.traces_n >= lim) rank = ++i;
     return { ...e, rank };
   });
   if (test_mode) console.log(hdocs);
@@ -976,6 +977,9 @@ const runtcron = async (...a) => {
     if (running == 1) return;
     try {
       running = 1;
+      // await zed_db.db
+      //   .collection(tcoll_horses(a[0]))
+      //   .updateMany({}, { $set: { rank: null } });
       await run(...a);
     } catch (err) {
       console.log(err);
