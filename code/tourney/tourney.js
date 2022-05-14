@@ -425,7 +425,7 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
 
 const run_t_give_ranks = (hdocs, tdoc) => {
   let mode = tdoc.score_mode;
-  let type = tdoc.score_type;
+  let type = tdoc.type;
   let k =
     (mode == "total" && "tot_score") ||
     (mode == "avg" && "avg_score") ||
@@ -433,6 +433,7 @@ const run_t_give_ranks = (hdocs, tdoc) => {
     null;
   let lim =
     (type == "regular" && mode == "elo" && 10) || (type == "flash" && 5) || 5;
+  console.log({ type, mode, lim });
 
   null;
   if (!k) return hdocs;
@@ -926,7 +927,7 @@ const run_tid = async (tid) => {
   }
   update_ar = _.flatten(update_ar);
   update_ar = run_t_give_ranks(update_ar, tdoc);
-  // if (test_mode) 
+  // if (test_mode)
   console.table(update_ar);
   await bulk.push_bulk(
     tcoll_horses(tid),
