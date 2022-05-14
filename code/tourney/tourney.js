@@ -430,6 +430,12 @@ const run_t_give_ranks = (hdocs, tdoc) => {
     (mode == "avg" && "avg_score") ||
     (mode == "elo" && "elo_score") ||
     null;
+  let lim =
+    (type == "regular" && mode == "elo" && 10) ||
+    (mode == "flash" && 5) ||
+    1e14;
+
+  null;
   if (!k) return hdocs;
   hdocs = _.sortBy(hdocs, (i) => {
     let val = Number(i[k]);
@@ -440,7 +446,7 @@ const run_t_give_ranks = (hdocs, tdoc) => {
   let i = 0;
   hdocs = _.map(hdocs, (e) => {
     let rank = null;
-    if (e[k] != 0 && e.traces_n >= 5) rank = ++i;
+    if (e[k] != 0 && e.traces_n >= lim ) rank = ++i;
     return { ...e, rank };
   });
   if (test_mode) console.log(hdocs);
