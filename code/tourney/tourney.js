@@ -39,7 +39,7 @@ let running = 0;
 let frunning = 0;
 let eth_price = 0;
 let payout_test = 0;
-let eval_hidden = 0;
+let eval_hidden = 1;
 // const tcoll = "tourney_master";
 // const tcoll_horses = (tid) => `tourney::${tid}::horses`;
 // const tcoll_stables = (tid) => `tourney::${tid}::stables`;
@@ -223,6 +223,30 @@ const get_horse_entry_date = async (hid, tdoc) => {
   return false;
 };
 
+const track_horse_elo = async ({ hid, tdoc, elo_list }) => {
+  let elo_curr = await get_elo_score(hid);
+  let ea = { elo_curr, elo_time: iso() };
+  if (_.isEmpty(elo_list)) return [ea];
+  let top = elo_list[elo_list.length - 1]?.elo_curr;
+  if (elo_curr == top) return elo_list;
+  else {
+    let leader_hdoc_ref = zed_db.db.collection(tcoll_horses(tdoc.tid));
+    elo_list = [...elo_list, ea];
+    await leader_hdoc_ref.updateOne({ hid }, { $set: { elo_list } });
+    return elo_list;
+  }
+};
+
+const get_opt_elo_from_list = (date, elo_list) => {
+  date = nano(date);
+  if (_.isEmpty(elo_list)) return null;
+  let ob = _.minBy(elo_list, (e) => {
+    if (date > nano(e.elo_time)) return 1e18;
+    return e.elo_time - date;
+  });
+  return ob.elo_curr ?? null;
+};
+
 const elo_races_do = async (hid, tdoc, races) => {
   const leader_hdoc_ref = zed_db.db.collection(tcoll_horses(tdoc.tid));
   let hdoc = await leader_hdoc_ref.findOne(
@@ -245,11 +269,15 @@ const elo_races_do = async (hid, tdoc, races) => {
       {
         $set: {
           elo_init,
-          elo_list: [{ rid: "init", elo_curr: elo_init, elo_time: iso(now) }],
+          elo_list: [{ id: "init", elo_curr: elo_init, elo_time: iso(now) }],
         },
       }
     );
     elo_last = null;
+  }
+  if (st < now) {
+    elo_list = await track_horse_elo({ hid, tdoc, elo_list });
+    // console.table(elo_list);
   }
   if (_.isEmpty(races)) return { elo_last: null, traces_n: 0, elo_score: null };
   races = _.sortBy(races, "date");
@@ -257,24 +285,12 @@ const elo_races_do = async (hid, tdoc, races) => {
   let traces_n = races.length;
   for (let i = 0; i < traces_n; i++) {
     let race = races[i];
-    let rid = getv(race, "rid");
-    let date = getv(race, "date");
-    let diff = moment(now).diff(moment(date), "minutes");
-    // console.log("race diff", diff);
-    let elo_rids = _.map(elo_list, "rid");
-    if (!elo_rids.includes(rid) && _.inRange(diff, 4, 6)) {
-      let elo_curr = await get_elo_score(hid);
-      let ea_elo_list = { rid, elo_curr, elo_time: iso(now) };
-      elo_list.push(ea_elo_list);
-      await leader_hdoc_ref.updateOne({ hid }, { $addToSet: ea_elo_list });
-    }
+    if (!race.hrating)
+      race.hrating = get_opt_elo_from_list(race.date, elo_list);
+
     races[i].score =
       i == 0 ? race.hrating - elo_init : race.hrating - races[i - 1].hrating;
-    if (i == traces_n - 1) {
-      if (!race.hrating)
-        elo_last = _.maxBy(elo_list, (e) => nano(e.elo_time))?.elo_curr;
-      else elo_last = race.hrating;
-    }
+    if (i == traces_n - 1) elo_last = race.hrating;
     races[i].score = -races[i].score;
   }
   // console.table(races);
