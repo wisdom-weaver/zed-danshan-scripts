@@ -434,7 +434,7 @@ const run_t_give_ranks = (hdocs, tdoc) => {
   let lim =
     (type == "regular" && mode == "elo" && 10) ||
     (type == "flash" && 5) ||
-    1e14;
+    5;
 
   null;
   if (!k) return hdocs;
