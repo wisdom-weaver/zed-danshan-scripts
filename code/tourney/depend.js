@@ -75,6 +75,7 @@ const get_leaderboard_t = async ({ tid }) => {
           stable_name: 1,
           tot_score: 1,
           avg_score: 1,
+          elo_score: 1,
           traces_n: 1,
         },
       }
@@ -332,6 +333,7 @@ const get_double_up_list = (tdoc, leader) => {
   let k =
     (score_mode == "total" && "tot_score") ||
     (score_mode == "avg" && "avg_score") ||
+    (score_mode == "elo" && "elo_score") ||
     null;
 
   let tot = leader.length;
@@ -458,6 +460,7 @@ const get_winner_all_list = (tdoc, leader) => {
   let k =
     (score_mode == "total" && "tot_score") ||
     (score_mode == "avg" && "avg_score") ||
+    (score_mode == "elo" && "elo_score") ||
     null;
 
   let tot = leader.length;
