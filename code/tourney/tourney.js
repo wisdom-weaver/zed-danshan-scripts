@@ -39,7 +39,7 @@ let running = 0;
 let frunning = 0;
 let eth_price = 0;
 let payout_test = 0;
-let eval_hidden = 1;
+let eval_hidden = 0;
 // const tcoll = "tourney_master";
 // const tcoll_horses = (tid) => `tourney::${tid}::horses`;
 // const tcoll_stables = (tid) => `tourney::${tid}::stables`;
