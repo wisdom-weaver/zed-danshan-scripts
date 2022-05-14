@@ -6,6 +6,7 @@ const utils = require("../utils/utils");
 const { getv } = require("../utils/utils");
 const send_weth = require("../payments/send_weth");
 const sha256 = require("crypto-js/sha256");
+const zedf = require("../utils/zedf");
 
 require("dotenv").config();
 
@@ -526,6 +527,11 @@ const amt_manip_leader = (hrow, tid) => {
   return tot;
 };
 
+const get_elo_score = async (hid) => {
+  let hdoc = await zedf.horse(hid);
+  return hdoc?.rating || null;
+};
+
 module.exports = {
   tcoll,
   tcollp,
@@ -543,4 +549,5 @@ module.exports = {
   flash_payout_private_key,
   danshan_eth_address,
   flash_pay_to_user,
+  get_elo_score,
 };

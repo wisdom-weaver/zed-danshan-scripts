@@ -29,6 +29,7 @@ const {
   refund_user,
   flash_payout_wallet,
   flash_payout_private_key,
+  get_elo_score,
 } = require("./depend");
 const send_weth = require("../payments/send_weth");
 const { fget } = require("../utils/fetch");
@@ -38,10 +39,12 @@ let running = 0;
 let frunning = 0;
 let eth_price = 0;
 let payout_test = 0;
-let eval_hidden = 0;
+let eval_hidden = 1;
 // const tcoll = "tourney_master";
 // const tcoll_horses = (tid) => `tourney::${tid}::horses`;
 // const tcoll_stables = (tid) => `tourney::${tid}::stables`;
+
+const max_elo_races = 10;
 
 const update_eth = async () => {
   let ob = await fget(
@@ -220,6 +223,67 @@ const get_horse_entry_date = async (hid, tdoc) => {
   return false;
 };
 
+const elo_races_do = async (hid, tdoc, races) => {
+  const leader_hdoc_ref = zed_db.db.collection(tcoll_horses(tdoc.tid));
+  let hdoc = await leader_hdoc_ref.findOne(
+    { hid },
+    { projection: { hid: 1, elo_init: 1, entry_date: 1, elo_list: 1 } }
+  );
+  // console.log(hdoc);
+  let now = iso();
+  let st = tdoc.tourney_st;
+  let diff = moment(st).diff(moment(now), "minutes");
+  let elo_init = hdoc?.elo_init || null;
+  let elo_last = hdoc?.elo_last || null;
+  let elo_list = hdoc?.elo_list || [];
+  // console.log("#diff", diff);
+  if (_.inRange(diff, 0, 5)) {
+    console.log("##eval inside");
+    elo_init = await get_elo_score(hid);
+    await leader_hdoc_ref.updateOne(
+      { hid },
+      {
+        $set: {
+          elo_init,
+          elo_list: [{ rid: "init", elo_curr: elo_init, elo_time: iso(now) }],
+        },
+      }
+    );
+    elo_last = null;
+  }
+  if (_.isEmpty(races)) return { elo_last: null, traces_n: 0, elo_score: null };
+  races = _.sortBy(races, "date");
+  races = races.slice(0, max_elo_races);
+  let traces_n = races.length;
+  for (let i = 0; i < traces_n; i++) {
+    let race = races[i];
+    let rid = getv(race, "rid");
+    let date = getv(race, "date");
+    let diff = moment(now).diff(moment(date), "minutes");
+    // console.log("race diff", diff);
+    let elo_rids = _.map(elo_list, "rid");
+    if (!elo_rids.includes(rid) && _.inRange(diff, 4, 6)) {
+      let elo_curr = await get_elo_score(hid);
+      let ea_elo_list = { rid, elo_curr, elo_time: iso(now) };
+      elo_list.push(ea_elo_list);
+      await leader_hdoc_ref.updateOne({ hid }, { $addToSet: ea_elo_list });
+    }
+    races[i].score =
+      i == 0 ? race.hrating - elo_init : race.hrating - races[i - 1].hrating;
+    if (i == traces_n - 1) {
+      if (!race.hrating)
+        elo_last = _.maxBy(elo_list, (e) => nano(e.elo_time))?.elo_curr;
+      else elo_last = race.hrating;
+    }
+    races[i].score = -races[i].score;
+  }
+  // console.table(races);
+  // console.table(elo_list);
+  let elo_score = -(elo_last - elo_init);
+  // console.log({ elo_init, elo_last });
+  return { hid, traces_n, elo_score, races, elo_last };
+};
+
 const run_t_horse = async (hid, tdoc, entry_date) => {
   if (!entry_date) {
     console.log("cant find entrydate of horse", hid, tdoc.tid);
@@ -252,7 +316,7 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
         3: 1, // entryfee
         4: 1, // raceid
         5: 1, // thisclass
-        // 6: 1, // hid
+        6: 1, // hid
         // 7: 1, // finishtime
         8: 1, // place
         // 9: 1, // name
@@ -281,6 +345,7 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
         let fee_tag = get_fee_tag(entryfee_usd);
         let rrow = {
           rid: r[4],
+          hid: r[6],
           date,
           rc: r[5],
           distance: r[1],
@@ -295,39 +360,49 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
         return rrow;
       });
 
-  races = _.uniqBy(races, (i) => i.rid);
-  if (test_mode) console.log("type:", tdoc.type);
-  if (test_mode) console.log("a0:", _.map(races, "rid"));
+  let update_doc = { hid, entry_date };
 
-  if (!_.isEmpty(rcr.fee_tag))
-    races = races.filter((r) => rcr.fee_tag.includes(r.fee_tag));
-  if (test_mode) console.log("a1:", _.map(races, "rid"));
-  if (tdoc.type == "flash") {
-    races = races.slice(0, 5) || [];
+  const is_elo_mode = tdoc.score_mode == "elo";
+  if (!is_elo_mode) {
+    races = _.uniqBy(races, (i) => i.rid);
+    if (test_mode) console.log("type:", tdoc.type);
+    if (test_mode) console.log("a0:", _.map(races, "rid"));
+
+    if (!_.isEmpty(rcr.fee_tag))
+      races = races.filter((r) => rcr.fee_tag.includes(r.fee_tag));
+    if (test_mode) console.log("a1:", _.map(races, "rid"));
+    if (tdoc.type == "flash") {
+      races = races.slice(0, 5) || [];
+    }
+
+    races = races.map((rrow) => {
+      let score = calc_t_score(rrow, tdoc);
+      rrow.score = score;
+      return rrow;
+    });
+
+    races = _.sortBy(races, (r) => -nano(r.date));
+    if (test_mode) console.log("a2:", _.map(races, "rid"));
+    if (test_mode) console.table(races);
+
+    let traces_n = races.length;
+    let tot_score = _.sumBy(races, "score");
+    if ([NaN, undefined, null].includes(tot_score)) tot_score = 0;
+    let avg_score = (tot_score || 0) / (traces_n || 1);
+
+    update_doc = {
+      hid,
+      traces_n,
+      tot_score,
+      avg_score,
+      races,
+      entry_date,
+    };
+  } else {
+    upd = await elo_races_do(hid, tdoc, races);
+    update_doc = { ...update_doc, ...upd };
+    // if (update_doc?.traces_n > 0) console.log("ELO:: ", update_doc);
   }
-
-  races = races.map((rrow) => {
-    let score = calc_t_score(rrow, tdoc);
-    rrow.score = score;
-    return rrow;
-  });
-  races = _.sortBy(races, (r) => -nano(r.date));
-  if (test_mode) console.log("a2:", _.map(races, "rid"));
-  if (test_mode) console.table(races);
-
-  let traces_n = races.length;
-  let tot_score = _.sumBy(races, "score");
-  if ([NaN, undefined, null].includes(tot_score)) tot_score = 0;
-  let avg_score = (tot_score || 0) / (traces_n || 1);
-
-  let update_doc = {
-    hid,
-    traces_n,
-    tot_score,
-    avg_score,
-    races,
-    entry_date,
-  };
   if (test_mode) console.log({ ...update_doc, races: "del" });
   return update_doc;
 };
@@ -651,7 +726,7 @@ const t_status_regular = async () => {
     upd.status = status;
     return upd;
   });
-  console.table(ar);
+  // console.table(ar);
   await bulk.push_bulkc(tcoll, ar, "tourney:t_status_regular", "tid");
 };
 
@@ -866,6 +941,24 @@ const run = async (tid) => {
   await update_eth();
   await t_status_regular();
   await run_tid(tid);
+};
+
+const runtcron = async (...a) => {
+  let running = 0;
+  let cron_str = "*/20 * * * * *";
+  print_cron_details(cron_str);
+  const runner = async () => {
+    if (running == 1) return;
+    try {
+      running = 1;
+      await run(...a);
+    } catch (err) {
+      console.log(err);
+    }
+    running = 0;
+  };
+  await runner();
+  cron.schedule(cron_str, runner);
 };
 
 const regular_runner = async () => {
@@ -1118,6 +1211,7 @@ const main_runner = async (args) => {
     if (arg2 == "test") await test(arg3);
     if (arg2 == "thorse") await thorse([arg3, arg4]);
     if (arg2 == "run") await run(arg3);
+    if (arg2 == "runtcron") await runtcron(arg3);
     if (arg2 == "runner") await runner();
     if (arg2 == "flash_runner") await flash_runner();
     if (arg2 == "flash_payout") await flash_payout(arg3);
