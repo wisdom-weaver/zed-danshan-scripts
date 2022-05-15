@@ -1187,6 +1187,7 @@ const flash_payout_ended = async () => {
         await flash_payout(tid);
       } catch (err) {
         console.log("Flash_payout err", tid, err.message);
+        console.log(err);
       }
     }
   } catch (err) {
