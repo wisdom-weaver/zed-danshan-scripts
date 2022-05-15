@@ -78,15 +78,15 @@ const tx2 = (...a) => tfet_many("payments", ...a.slice(1));
 const ft_price_ob = {
   // FT0 ["$0", ],
   // FTA: ["ALL", "bg-purple-500", -1e14, 1e14],
-  FT1: ["$2", "bg-green-500", -1, 2],
-  FT2: ["$5", "bg-green-400", 2, 5],
-  FT3: ["$10", "bg-yellow-400", 5, 10],
-  FT4: ["$25", "bg-yellow-600", 10, 25],
-  FT5: ["$50", "bg-orange-500", 25, 50],
-  FT6: ["$100", "bg-red-400", 50, 100],
-  FT7: ["$250", "bg-red-500", 100, 250],
-  FT8: ["$500", "bg-red-600", 250, 500],
-  FT9: ["ultimate", "bg-red-800 shadow-md shadow-purple-500", 500, 1e14],
+  FT1: ["$2", "bg-green-500", 0, 3.49],
+  FT2: ["$5", "bg-green-400", 3.5, 7.49],
+  FT3: ["$10", "bg-yellow-400", 7.5, 17.99],
+  FT4: ["$25", "bg-yellow-600", 18, 39],
+  FT5: ["$50", "bg-orange-500", 40, 74],
+  FT6: ["$100", "bg-red-400", 75, 120],
+  FT7: ["$250", "bg-red-500", 121, 300],
+  FT8: ["$500", "bg-red-600", 301, 600],
+  FT9: ["ultimate", "bg-red-800 shadow-md shadow-purple-500", 600.001, 1e14],
 };
 const get_ft = (usd) => {
   if (usd == "multi") return "multi";
