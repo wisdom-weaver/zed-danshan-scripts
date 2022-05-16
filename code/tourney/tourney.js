@@ -320,8 +320,8 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
   else rquery[5] = { $in: rcr.thisclass };
   if (_.isEmpty(rcr.distance));
   else rquery[1] = { $in: rcr.distance };
-  // if (_.isEmpty(rcr.fee_tag));
-  // else rquery[20] = { $in: [rcr.thisclass] };
+  if (_.isEmpty(rcr.fee_tag));
+  else rquery[19] = { $in: rcr.fee_tag };
 
   if (test_mode) console.log(JSON.stringify(rquery, "", 4));
 
@@ -346,7 +346,7 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
         // 14: 1, // fee_cat
         // 15: 1, // adjfinishtime
         // 16: 1, // tc
-        // 19: 1, // fee_tag
+        19: 1, // fee_tag
         // 20: 1, // prize
         // 21: 1, // prize_usd
         22: 1, // hrating
@@ -379,6 +379,8 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
         return rrow;
       });
 
+  console.table(races);
+
   let update_doc = { hid, entry_date };
 
   const is_elo_mode = tdoc.score_mode == "elo";
@@ -387,8 +389,8 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
     if (test_mode) console.log("type:", tdoc.type);
     if (test_mode) console.log("a0:", _.map(races, "rid"));
 
-    if (!_.isEmpty(rcr.fee_tag))
-      races = races.filter((r) => rcr.fee_tag.includes(r.fee_tag));
+    // if (!_.isEmpty(rcr.fee_tag))
+    // races = races.filter((r) => rcr.fee_tag.includes(r.fee_tag));
     if (test_mode) console.log("a1:", _.map(races, "rid"));
     if (tdoc.type == "flash") {
       races = races.slice(0, 5) || [];
