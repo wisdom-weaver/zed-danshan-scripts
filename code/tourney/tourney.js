@@ -933,7 +933,7 @@ const run_tid = async (tid) => {
   update_ar = _.flatten(update_ar);
   update_ar = run_t_give_ranks(update_ar, tdoc);
   // if (test_mode)
-  console.table(update_ar);
+  // console.table(update_ar);
   await bulk.push_bulk(
     tcoll_horses(tid),
     update_ar,
