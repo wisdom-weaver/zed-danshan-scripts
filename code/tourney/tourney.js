@@ -379,7 +379,7 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
         return rrow;
       });
 
-  console.table(races);
+  // console.table(races);
 
   let update_doc = { hid, entry_date };
 
