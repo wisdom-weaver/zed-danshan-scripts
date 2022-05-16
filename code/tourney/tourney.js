@@ -242,8 +242,9 @@ const get_opt_elo_from_list = (date, elo_list) => {
   if (_.isEmpty(elo_list)) return null;
   let ob = _.minBy(elo_list, (e) => {
     if (date > nano(e.elo_time)) return 1e18;
-    return e.elo_time - date;
+    return nano(e.elo_time) - date;
   });
+
   return ob.elo_curr ?? null;
 };
 
@@ -285,8 +286,10 @@ const elo_races_do = async (hid, tdoc, races) => {
   let traces_n = races.length;
   for (let i = 0; i < traces_n; i++) {
     let race = races[i];
-    if (!race.hrating)
+    if (!race.hrating) {
+      // console.log("hrating missing for ", race.rid);
       race.hrating = get_opt_elo_from_list(race.date, elo_list);
+    }
 
     races[i].score =
       i == 0 ? race.hrating - elo_init : race.hrating - races[i - 1].hrating;
@@ -960,7 +963,7 @@ const thorse = async ([tid, hid]) => {
   let tdoc = await get_tdoc(tid);
   let entry_date = await get_horse_entry_date(hid, tdoc);
   let doc = await run_t_horse(hid, tdoc, entry_date);
-  console.log(doc);
+  // console.log(doc);
 };
 
 const run = async (tid) => {
