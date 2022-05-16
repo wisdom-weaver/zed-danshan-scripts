@@ -44,7 +44,6 @@ let eval_hidden = 1;
 // const tcoll_horses = (tid) => `tourney::${tid}::horses`;
 // const tcoll_stables = (tid) => `tourney::${tid}::stables`;
 
-const max_elo_races = 10;
 
 const update_eth = async () => {
   let ob = await fget(
@@ -282,7 +281,7 @@ const elo_races_do = async (hid, tdoc, races) => {
   }
   if (_.isEmpty(races)) return { elo_last: null, traces_n: 0, elo_score: null };
   races = _.sortBy(races, "date");
-  races = races.slice(0, max_elo_races);
+  
   let traces_n = races.length;
   for (let i = 0; i < traces_n; i++) {
     let race = races[i];
@@ -299,6 +298,7 @@ const elo_races_do = async (hid, tdoc, races) => {
   // console.table(races);
   // console.table(elo_list);
   let elo_score = -(elo_last - elo_init);
+  elo_score = (elo_score || 0) / (traces_n || 1);
   // console.log({ elo_init, elo_last });
   return { hid, traces_n, elo_score, races, elo_last };
 };
