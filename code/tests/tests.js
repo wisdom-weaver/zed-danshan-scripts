@@ -675,10 +675,10 @@ const run_21 = async () => {
   let pays = [
     {
       WALLET: "0xa0d9665E163f498082Cd73048DA17e7d69Fd9224",
-      AMOUNT: "0.1",
+      AMOUNT: "0.2",
     },
   ];
-  // await send_weth.sendAllTransactions(pays, process.env.flash_payout_private_key);
+  await send_weth.sendAllTransactions(pays, process.env.flash_payout_private_key);
 };
 
 const run_22 = async () => {
@@ -688,5 +688,5 @@ const run_22 = async () => {
     console.log("done")
 };
 
-const tests = { run: run_22 };
+const tests = { run: run_21 };
 module.exports = tests;

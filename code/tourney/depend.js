@@ -455,7 +455,7 @@ const get_double_up_list = (tdoc, leader) => {
 };
 
 const get_winner_all_list = (tdoc, leader) => {
-  let { prize_pool, payout_mode, score_mode, horse_cr } = tdoc;
+  let { tid, prize_pool, payout_mode, score_mode, horse_cr } = tdoc;
   let entry_fee = getv(horse_cr, "0.cost");
   let k =
     (score_mode == "total" && "tot_score") ||
