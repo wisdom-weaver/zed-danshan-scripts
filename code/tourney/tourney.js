@@ -39,7 +39,7 @@ let running = 0;
 let frunning = 0;
 let eth_price = 0;
 let payout_test = 0;
-let eval_hidden = 1;
+let eval_hidden = 0;
 // const tcoll = "tourney_master";
 // const tcoll_horses = (tid) => `tourney::${tid}::horses`;
 // const tcoll_stables = (tid) => `tourney::${tid}::stables`;
@@ -239,10 +239,10 @@ const get_opt_elo_from_list = (date, elo_list) => {
   date = nano(date);
   if (_.isEmpty(elo_list)) return null;
   let ob = _.minBy(elo_list, (e) => {
-    if (date > nano(e.elo_time)) return 1e18;
-    return nano(e.elo_time) - date;
+    e.diff = date > nano(e.elo_time) ? 1e18 : nano(e.elo_time) - date;
+    return e.diff;
   });
-
+  if (ob.diff == 1e18) ob = elo_list[elo_list.length - 1];
   return ob.elo_curr ?? null;
 };
 
