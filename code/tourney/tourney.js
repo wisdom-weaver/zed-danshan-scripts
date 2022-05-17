@@ -44,7 +44,6 @@ let eval_hidden = 1;
 // const tcoll_horses = (tid) => `tourney::${tid}::horses`;
 // const tcoll_stables = (tid) => `tourney::${tid}::stables`;
 
-
 const update_eth = async () => {
   let ob = await fget(
     `https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=BTC,USD`
@@ -281,7 +280,7 @@ const elo_races_do = async (hid, tdoc, races) => {
   }
   if (_.isEmpty(races)) return { elo_last: null, traces_n: 0, elo_score: null };
   races = _.sortBy(races, "date");
-  
+
   let traces_n = races.length;
   for (let i = 0; i < traces_n; i++) {
     let race = races[i];
@@ -301,6 +300,129 @@ const elo_races_do = async (hid, tdoc, races) => {
   elo_score = (elo_score || 0) / (traces_n || 1);
   // console.log({ elo_init, elo_last });
   return { hid, traces_n, elo_score, races, elo_last };
+};
+
+const normal_races_do = async (hid, tdoc, races) => {
+  races = races.map((rrow) => {
+    let score = calc_t_score(rrow, tdoc);
+    rrow.score = score;
+    return rrow;
+  });
+
+  races = _.sortBy(races, (r) => -nano(r.date));
+  if (test_mode) console.log("a2:", _.map(races, "rid"));
+  if (test_mode) console.table(races);
+
+  let traces_n = races.length;
+  let tot_score = _.sumBy(races, "score");
+  if ([NaN, undefined, null].includes(tot_score)) tot_score = 0;
+  let avg_score = (tot_score || 0) / (traces_n || 1);
+
+  update_doc = {
+    hid,
+    traces_n,
+    tot_score,
+    avg_score,
+    races,
+  };
+  return update_doc;
+};
+
+const process_team_status = async (tdoc) => {
+  let { tid, tourney_st, tourney_ed, entry_st, entry_ed, status } = tdoc;
+  if (status !== "open") return {};
+  let stablesdocs = await zed_db.db
+    .collection(tcoll_stables(tid))
+    .find({})
+    .toArray();
+  stablesdocs = _.filter(stablesdocs, (e) => !_.isEmpty(e.horses));
+  let txns = _.flatten(_.map(stablesdocs, "transactions"));
+  let txnsdocs = await zed_db.db
+    .collection("payments")
+    .find(
+      {
+        pay_id: { $in: txns },
+        service: tcoll_stables(tid),
+        "meta_req.type": "fee",
+      },
+      { projection: { pay_id: 1, status_code: 1, date: 1, "meta_req.hids": 1 } }
+    )
+    .toArray();
+  txnsdocs = _.chain(txnsdocs).keyBy("pay_id").value();
+  stablesdocs = stablesdocs.map((e) => {
+    e.txns = _.fromPairs(e.transactions.map((txx) => [txx, txnsdocs[txx]]));
+    return e;
+  });
+  let stables_valid = _.filter(stablesdocs, (e) => {
+    tcodes = _.chain(e.txns)
+      .entries()
+      .filter(([pay_id, sta]) => sta == 1)
+      .map(0)
+      .value();
+    if (!_.isEmpty(tcodes)) return false;
+    e.valid_date = txnsdocs[tcodes[0].pay_id]?.date;
+    return true;
+  });
+
+  let stables_n = stables_valid.length;
+  if (stables_n > 2) {
+    stables_valid = _.sortBy(stables_valid, (e) => e.valid_date);
+    let stables_late = stables_valid.slice(2);
+    console.log(
+      `tid team : ${tid} stables_late`,
+      _.map(stables_late, "stable_name")
+    );
+    stables_valid = stables_valid.slice(0, 2);
+    stables_n = stables_valid.length;
+  }
+  console.log(
+    `tid team :${tid} stables_valid`,
+    _.map(stables_valid, "stable_name")
+  );
+
+  stables_valid = _.map(stables_valid, (e) => {
+    let { stable_name, valid_date, wallet } = e;
+    return {
+      stable_name,
+      valid_date,
+      wallet,
+      horses: getv(e, "meta_req.hids"),
+    };
+  });
+
+  let upd = { stables_n, stables_valid };
+  if (stables_n == 2) {
+    upd = {
+      ...upd,
+      status: "live",
+      tourney_st: iso(),
+      tourney_ed: moment()
+        .add(tdoc.flash_params.duration, "hours")
+        .toISOString(),
+      entry_ed: iso(),
+    };
+  }
+  return upd;
+};
+
+const post_process_team = async (tdoc, update_ar) => {
+  let { stables_n, stables_valid, tid } = tdoc;
+  if (stables_n == 0) return {};
+  let stablesdocs = [];
+  for (let { stable_name, hids } of stables_valid) {
+    let horses = _.filter(update_ar, (e) => hids.includes(e.hid));
+    let score =
+      (_.sumBy(horses, (e) => e.tot_score || 0) || 0) / (horses?.length || 1);
+    let traces_n = _.sumBy(horses, (e) => e.traces_n || 0);
+    stablesdocs.push({
+      stable_name,
+      traces_n,
+      score,
+      team_horses: hids,
+    });
+  }
+  console.table(stablesdocs);
+  await push_bulkc(tcoll_stables(tid), stablesdocs, "stable_name");
 };
 
 const run_t_horse = async (hid, tdoc, entry_date) => {
@@ -381,48 +503,21 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
 
   // console.table(races);
 
+  races = _.uniqBy(races, (i) => i.rid);
+
   let update_doc = { hid, entry_date };
 
   const is_elo_mode = tdoc.score_mode == "elo";
-  if (!is_elo_mode) {
-    races = _.uniqBy(races, (i) => i.rid);
-    if (test_mode) console.log("type:", tdoc.type);
-    if (test_mode) console.log("a0:", _.map(races, "rid"));
-
-    // if (!_.isEmpty(rcr.fee_tag))
-    // races = races.filter((r) => rcr.fee_tag.includes(r.fee_tag));
-    if (test_mode) console.log("a1:", _.map(races, "rid"));
-    if (tdoc.type == "flash") {
-      races = races.slice(0, 5) || [];
-    }
-
-    races = races.map((rrow) => {
-      let score = calc_t_score(rrow, tdoc);
-      rrow.score = score;
-      return rrow;
-    });
-
-    races = _.sortBy(races, (r) => -nano(r.date));
-    if (test_mode) console.log("a2:", _.map(races, "rid"));
-    if (test_mode) console.table(races);
-
-    let traces_n = races.length;
-    let tot_score = _.sumBy(races, "score");
-    if ([NaN, undefined, null].includes(tot_score)) tot_score = 0;
-    let avg_score = (tot_score || 0) / (traces_n || 1);
-
-    update_doc = {
-      hid,
-      traces_n,
-      tot_score,
-      avg_score,
-      races,
-      entry_date,
-    };
-  } else {
+  const is_team_mode = tdoc.score_mode == "team";
+  if (is_elo_mode) {
     upd = await elo_races_do(hid, tdoc, races);
     update_doc = { ...update_doc, ...upd };
     // if (update_doc?.traces_n > 0) console.log("ELO:: ", update_doc);
+  } else {
+    if (tdoc.type == "flash") {
+      races = races.slice(0, 5) || [];
+    }
+    upd = normal_races_do(hid, tdoc, races);
   }
   if (test_mode) console.log({ ...update_doc, races: "del" });
   return update_doc;
@@ -435,6 +530,7 @@ const run_t_give_ranks = (hdocs, tdoc) => {
     (mode == "total" && "tot_score") ||
     (mode == "avg" && "avg_score") ||
     (mode == "elo" && "elo_score") ||
+    (mode == "team" && "tot_score") ||
     null;
   let lim =
     (type == "regular" && mode == "elo" && 10) || (type == "flash" && 5) || 5;
@@ -553,11 +649,16 @@ const process_t_status_flash = async ({ tid }) => {
     tourney_ed,
     entry_st,
     entry_ed,
+    score_mode,
   } = tdoc;
   console.log({ type, status });
   console.log({ entry_st, entry_ed });
   console.log({ tourney_st, tourney_ed });
   let now = moment().toISOString();
+
+  const is_elo = score_mode == "elo";
+  const is_team = score_mode == "team";
+
   // if (status == "ended") return {};
   if (tourney_ed < now) return { status: "ended" };
 
@@ -584,18 +685,23 @@ const process_t_status_flash = async ({ tid }) => {
     console.log("stables", stables.length, "->", stables);
 
     if (horses_n >= tdoc.flash_params.minh) {
-      return {
-        status: "live",
-        tourney_st: iso(),
-        tourney_ed: moment()
-          .add(tdoc.flash_params.duration, "hours")
-          .toISOString(),
-        entry_ed: iso(),
-      };
+      if (is_team) {
+        let upd = await process_team_status(tdoc);
+        return upd;
+      } else {
+        return {
+          status: "live",
+          tourney_st: iso(),
+          tourney_ed: moment()
+            .add(tdoc.flash_params.duration, "hours")
+            .toISOString(),
+          entry_ed: iso(),
+        };
+      }
     } else if (stables.length == 0) {
       let st = entry_st;
       let diff = moment(now).diff(moment(st), "minutes");
-      console.log("stable0", diff, "minutes");
+      console.log("stable_0", diff, "minutes");
       return {};
     } else if (stables.length == 1) {
       let txdoc = await zed_db.db.collection("payments").findOne({
@@ -932,8 +1038,10 @@ const run_tid = async (tid) => {
   }
   update_ar = _.flatten(update_ar);
   update_ar = run_t_give_ranks(update_ar, tdoc);
-  // if (test_mode)
   // console.table(update_ar);
+
+  if (tdoc.score_mode == "team") await post_process_team(tdoc, update_ar);
+
   await bulk.push_bulk(
     tcoll_horses(tid),
     update_ar,
