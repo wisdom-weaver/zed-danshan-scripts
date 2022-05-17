@@ -33,13 +33,14 @@ const {
 } = require("./depend");
 const send_weth = require("../payments/send_weth");
 const { fget } = require("../utils/fetch");
+const { push_bulkc } = require("../utils/bulk");
 
 let test_mode = 0;
 let running = 0;
 let frunning = 0;
 let eth_price = 0;
-let payout_test = 0;
-let eval_hidden = 0;
+let payout_test = 1;
+let eval_hidden = 1;
 // const tcoll = "tourney_master";
 // const tcoll_horses = (tid) => `tourney::${tid}::horses`;
 // const tcoll_stables = (tid) => `tourney::${tid}::stables`;
@@ -330,7 +331,9 @@ const normal_races_do = async (hid, tdoc, races) => {
 
 const process_team_status = async (tdoc) => {
   let { tid, tourney_st, tourney_ed, entry_st, entry_ed, status } = tdoc;
-  if (status !== "open") return {};
+  if (status !== "open") return null;
+  let now = iso();
+
   let stablesdocs = await zed_db.db
     .collection(tcoll_stables(tid))
     .find({})
@@ -349,6 +352,8 @@ const process_team_status = async (tdoc) => {
     )
     .toArray();
   txnsdocs = _.chain(txnsdocs).keyBy("pay_id").value();
+  // console.log(txnsdocs);
+
   stablesdocs = stablesdocs.map((e) => {
     e.txns = _.fromPairs(e.transactions.map((txx) => [txx, txnsdocs[txx]]));
     return e;
@@ -356,11 +361,13 @@ const process_team_status = async (tdoc) => {
   let stables_valid = _.filter(stablesdocs, (e) => {
     tcodes = _.chain(e.txns)
       .entries()
-      .filter(([pay_id, sta]) => sta == 1)
+      .filter(([pay_id, p]) => p?.status_code == 1)
       .map(0)
+      .compact()
       .value();
-    if (!_.isEmpty(tcodes)) return false;
-    e.valid_date = txnsdocs[tcodes[0].pay_id]?.date;
+    if (_.isEmpty(tcodes)) return false;
+    e.valid_pay = tcodes[0];
+    e.valid_date = txnsdocs[tcodes[0]]?.date;
     return true;
   });
 
@@ -381,16 +388,19 @@ const process_team_status = async (tdoc) => {
   );
 
   stables_valid = _.map(stables_valid, (e) => {
-    let { stable_name, valid_date, wallet } = e;
+    let { stable_name, valid_date, valid_pay, wallet } = e;
+    // console.log(e);
     return {
       stable_name,
       valid_date,
+      valid_pay,
       wallet,
-      horses: getv(e, "meta_req.hids"),
+      horses: getv(e, `txns.${e.valid_pay}.meta_req.hids`) ?? [],
     };
   });
 
   let upd = { stables_n, stables_valid };
+
   if (stables_n == 2) {
     upd = {
       ...upd,
@@ -401,28 +411,68 @@ const process_team_status = async (tdoc) => {
         .toISOString(),
       entry_ed: iso(),
     };
+  } else if (stables_n == 1) {
+    let { valid_date, valid_pay } = stables_valid[0];
+    let st = valid_date;
+    console.log("stable_1", stables_valid[0].stable_name, valid_pay);
+    let diff = moment(now).diff(moment(st), "minutes");
+    console.log("stable_1", diff, "minutes");
+    if (diff >= fuser1_timer) {
+      if (getv(tdoc, "terminated") !== true) {
+        await zed_db.db
+          .collection(tcoll)
+          .updateOne({ tid }, { $set: { terminated: true } });
+        await refund_pay_user({
+          tid,
+          stable_name: stables_valid[0].stable_name,
+          pay_id: valid_pay,
+        });
+        let ed = moment(st).add(fuser1_timer, "minutes").toISOString();
+        return {
+          ...upd,
+          status: "ended",
+          tourney_st: ed,
+          tourney_ed: ed,
+          entry_ed: ed,
+        };
+      }
+    } else {
+      return {
+        ...upd,
+        status: "open",
+        tourney_st: null,
+        tourney_ed: null,
+        entry_ed: moment(st).add(fuser1_timer, "minutes").toISOString(),
+      };
+    }
   }
   return upd;
 };
 
 const post_process_team = async (tdoc, update_ar) => {
-  let { stables_n, stables_valid, tid } = tdoc;
+  let { stables_n = 0, stables_valid = [], tid } = tdoc;
   if (stables_n == 0) return {};
   let stablesdocs = [];
-  for (let { stable_name, hids } of stables_valid) {
-    let horses = _.filter(update_ar, (e) => hids.includes(e.hid));
+  for (let { stable_name, horses } of stables_valid) {
+    let team_horses = _.filter(update_ar, (e) => horses.includes(e.hid));
     let score =
-      (_.sumBy(horses, (e) => e.tot_score || 0) || 0) / (horses?.length || 1);
-    let traces_n = _.sumBy(horses, (e) => e.traces_n || 0);
+      (_.sumBy(team_horses, (e) => e.tot_score || 0) || 0) /
+      (team_horses?.length || 1);
+    let traces_n = _.sumBy(team_horses, (e) => e.traces_n || 0);
     stablesdocs.push({
       stable_name,
       traces_n,
       score,
-      team_horses: hids,
+      team_horses: team_horses,
     });
   }
   console.table(stablesdocs);
-  await push_bulkc(tcoll_stables(tid), stablesdocs, "stable_name");
+  await push_bulkc(
+    tcoll_stables(tid),
+    stablesdocs,
+    "team:stable",
+    "stable_name"
+  );
 };
 
 const run_t_horse = async (hid, tdoc, entry_date) => {
@@ -555,7 +605,16 @@ const run_t_give_ranks = (hdocs, tdoc) => {
 };
 
 const run_t_tot_fees = async (tid, tdoc) => {
-  let { tourney_st, tourney_ed, entry_st, entry_ed, type, status } = tdoc;
+  let {
+    tourney_st,
+    tourney_ed,
+    entry_st,
+    entry_ed,
+    type,
+    status,
+    score_mode,
+    stables_n = 0,
+  } = tdoc;
   let pays = await zed_db.db
     .collection("payments")
     .find(
@@ -606,7 +665,12 @@ const run_t_tot_fees = async (tid, tdoc) => {
   });
   hids = _.chain(hids).uniq().compact().value();
 
-  let tot_fees = tdoc.entry_fee * hids.length;
+  let tot_fees;
+  if (score_mode == "team") {
+    tot_fees = tdoc.entry_fee * stables_n;
+  } else {
+    tot_fees = tdoc.entry_fee * hids.length;
+  }
   return { tot_fees, tot_fees_act, tot_sponsors_act, tot_score: 0 };
 };
 
@@ -660,7 +724,7 @@ const process_t_status_flash = async ({ tid }) => {
   const is_team = score_mode == "team";
 
   // if (status == "ended") return {};
-  if (tourney_ed < now) return { status: "ended" };
+  if (tourney_ed && tourney_ed < now) return { status: "ended" };
 
   if (entry_st > now) return { status: "upcoming" };
 
@@ -684,20 +748,21 @@ const process_t_status_flash = async ({ tid }) => {
     let horses_n = _.flatten(_.values(hdocs))?.length || 0;
     console.log("stables", stables.length, "->", stables);
 
-    if (horses_n >= tdoc.flash_params.minh) {
-      if (is_team) {
-        let upd = await process_team_status(tdoc);
+    if (is_team) {
+      let upd = await process_team_status(tdoc);
+      if (upd) {
+        // console.log("TEAM UPDATE", upd);
         return upd;
-      } else {
-        return {
-          status: "live",
-          tourney_st: iso(),
-          tourney_ed: moment()
-            .add(tdoc.flash_params.duration, "hours")
-            .toISOString(),
-          entry_ed: iso(),
-        };
       }
+    } else if (!is_team && horses_n >= tdoc.flash_params.minh) {
+      return {
+        status: "live",
+        tourney_st: iso(),
+        tourney_ed: moment()
+          .add(tdoc.flash_params.duration, "hours")
+          .toISOString(),
+        entry_ed: iso(),
+      };
     } else if (stables.length == 0) {
       let st = entry_st;
       let diff = moment(now).diff(moment(st), "minutes");
@@ -793,10 +858,12 @@ const t_status_flash = async () => {
         $or: [
           {
             type: { $eq: "flash" },
+            ...(eval_hidden ? { hide: { $ne: true } } : {}),
             tourney_ed: { $gte: moment().add(20, "minutes").toISOString() },
           },
           {
             type: { $eq: "flash" },
+            ...(eval_hidden ? { hide: { $ne: true } } : {}),
             tourney_ed: { $eq: null },
           },
         ],
@@ -1346,6 +1413,20 @@ const runner = async () => {
     running = 0;
   }
 };
+const temp_fix = async () => {
+  let tid = "088484dd";
+  let fixdoc = {
+    status: "open",
+    tourney_st: null,
+    tourney_ed: null,
+    entry_ed: null,
+    status: "open",
+    terminated: false,
+    stables_valid: null,
+    stables_n: 0,
+  };
+  await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: fixdoc });
+};
 
 const main_runner = async (args) => {
   try {
@@ -1361,6 +1442,7 @@ const main_runner = async (args) => {
     if (arg2 == "run_cron") await run_cron();
     if (arg2 == "run_flash_cron") await run_flash_cron();
     if (arg2 == "t_status_regular") await t_status_regular();
+    if (arg2 == "temp_fix") await temp_fix();
   } catch (err) {
     console.log("Err in tourney runner", err);
   }
