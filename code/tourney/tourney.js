@@ -30,6 +30,7 @@ const {
   flash_payout_wallet,
   flash_payout_private_key,
   get_elo_score,
+  get_team_leader,
 } = require("./depend");
 const send_weth = require("../payments/send_weth");
 const { fget } = require("../utils/fetch");
@@ -311,8 +312,6 @@ const normal_races_do = async (hid, tdoc, races) => {
   });
 
   races = _.sortBy(races, (r) => -nano(r.date));
-  if (test_mode) console.log("a2:", _.map(races, "rid"));
-  if (test_mode) console.table(races);
 
   let traces_n = races.length;
   let tot_score = _.sumBy(races, "score");
@@ -400,6 +399,8 @@ const process_team_status = async (tdoc) => {
   });
 
   let upd = { stables_n, stables_valid };
+
+  console.table(stables_valid);
 
   if (stables_n == 2) {
     upd = {
@@ -567,9 +568,11 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
     if (tdoc.type == "flash") {
       races = races.slice(0, 5) || [];
     }
-    upd = normal_races_do(hid, tdoc, races);
+    upd = await normal_races_do(hid, tdoc, races);
+    update_doc = { ...update_doc, ...upd };
   }
   if (test_mode) console.log({ ...update_doc, races: "del" });
+  if (test_mode) console.table(update_doc.races);
   return update_doc;
 };
 
@@ -1219,31 +1222,29 @@ const get_ranked_leader_t = async ({ tid }) => {
   let { prize_pool, payout_mode, score_mode, status, terminated } = tdoc;
   // prize_pool = 1;
   // console.log({ prize_pool, payout_mode, score_mode });
-  let k =
-    (score_mode == "total" && "tot_score") ||
-    (score_mode == "avg" && "avg_score") ||
-    null;
-  let leader = await get_leaderboard_t({ tid });
+  let pays = [];
+  let leader = [];
+  if (score_mode == "team") {
+    leader = await get_team_leader(tdoc);
+  } else {
+    leader = await get_leaderboard_t({ tid });
+  }
   if (leader.length == 0) return [];
   if (status == "open") return leader;
   if (terminated == true) return leader;
 
-  let pays = [];
-
-  if (payout_mode == "winner_all") {
-    pays = get_winner_all_list(tdoc, leader);
-    // console.table(leader);
-    // if (!leader[0].rank) pays = [];
-    // else pays = [{ ...leader[0], amt: prize_pool, role: "winner_all" }];
-  } else if (payout_mode == "double_up") {
-    pays = get_double_up_list(tdoc, leader);
-    // console.table(pays);
+  if (score_mode !== "team") {
+    if (payout_mode == "winner_all") {
+      pays = get_winner_all_list(tdoc, leader);
+    } else if (payout_mode == "double_up") {
+      pays = get_double_up_list(tdoc, leader);
+    }
+    pays = _.keyBy(pays, "hid");
+    leader = leader.map((l) => {
+      let ob = pays[l.hid] || { role: "lose", amt: 0 };
+      return { ...l, ...ob };
+    });
   }
-  pays = _.keyBy(pays, "hid");
-  leader = leader.map((l) => {
-    let ob = pays[l.hid] || { role: "lose", amt: 0 };
-    return { ...l, ...ob };
-  });
   return leader;
 };
 const calc_payouts_list = async ({ tid }) => {

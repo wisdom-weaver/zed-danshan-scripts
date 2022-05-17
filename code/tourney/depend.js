@@ -501,6 +501,87 @@ const get_winner_all_list = (tdoc, leader) => {
   return pays;
 };
 
+const get_team_leader = async (tdoc) => {
+  // console.log("in get team leader");
+  let { tid, score_mode, type, stables_valid, prize_pool } = tdoc;
+  let stables_names = _.map(stables_valid, "stable_name");
+  let stables = await zed_db.db
+    .collection(tcoll_stables(tid))
+    .find({
+      stable_name: { $in: stables_names },
+    })
+    .toArray();
+
+  for (let s of stables) {
+    let hids = _.map(s.team_horses, "hid");
+    let hdocs = await zed_db.db
+      .collection(tcoll_horses(tid))
+      .find({ hid: { $in: hids } }, { projection: { _id: 0, races: 0 } })
+      .toArray();
+    hdocs = _.keyBy(hdocs, "hid");
+    let hdatas = await Promise.all(hids.map((hid) => get_hdata(hid)));
+    hdatas = _.keyBy(hdatas, "hid");
+    s.team_horses = s.team_horses.map((e) => {
+      let h = e.hid;
+      let o1 = hdocs[h];
+      let o2 = hdatas[h];
+      return { ...o1, ...o2, hid: h };
+    });
+  }
+  // return stables;
+
+  if (stables.length == 2) {
+    let team_a = stables[0];
+    let team_b = stables[1];
+    const win =
+      team_a.score != 0
+        ? team_a.score > team_b.score
+          ? team_a
+          : team_b
+        : null;
+    let win_pot = prize_pool;
+    let k = "score";
+
+    let pays = [];
+
+    if (!win) pays = [];
+    else {
+      let win_ties = _.filter(stables, (i) => i[k] == win[k]);
+      if (win_ties.length == 1) {
+        pays = [{ ...win, amt: prize_pool, role: "|win" }];
+      } else {
+        let win_tie_amt = win_pot / win_ties.length;
+
+        win_ties.map((e) => {
+          if (!e.amt) e.amt = 0;
+          e.amt += win_tie_amt;
+          e.win_tie = win_tie_amt;
+          if (!e.role) e.role = "";
+          e.role += "|win_ties";
+        });
+
+        pays = win_ties || [];
+        pays = _.uniqBy(pays, "stable_name");
+        pays = pays.map((e) => {
+          let { stable_name, rank, hid, wallet, amt, role } = e;
+          return { stable_name, rank, hid, val: e[k], wallet, amt, role };
+        });
+        pays = _.map(pays, (e) => {
+          let amt = amt_manip_leader({ hid: e.stable_name, ...e }, tid);
+          return { ...e, amt };
+        });
+      }
+    }
+    pays = _.keyBy(pays, "stable_name");
+    stables = stables.map((l) => {
+      let ob = pays[l.stable_name] || { role: "lose", amt: 0 };
+      return { ...l, ...ob };
+    });
+  }
+
+  return stables;
+};
+
 const flash_pay_to_user = async (pays) => {
   let payments = pays.map((l) => ({
     WALLET: l.wallet,
@@ -553,4 +634,5 @@ module.exports = {
   danshan_eth_address,
   flash_pay_to_user,
   get_elo_score,
+  get_team_leader,
 };
