@@ -243,7 +243,6 @@ const get_opt_elo_from_list = (date, elo_list) => {
     return e.diff;
   });
   if (ob.diff == 1e18) ob = elo_list[elo_list.length - 1];
-  console.log(ob);
   return ob.elo_curr ?? null;
 };
 
@@ -287,7 +286,7 @@ const elo_races_do = async (hid, tdoc, races) => {
     let race = races[i];
     if (!race.hrating) {
       race.hrating = get_opt_elo_from_list(race.date, elo_list);
-      console.log("hrating missing for ", race.rid, race.hrating);
+      // console.log("hrating missing for ", race.rid, race.hrating);
     }
 
     races[i].score =
@@ -295,8 +294,8 @@ const elo_races_do = async (hid, tdoc, races) => {
     if (i == traces_n - 1) elo_last = race.hrating;
     races[i].score = -races[i].score;
   }
-  console.table(races);
-  console.table(elo_list);
+  // console.table(races);
+  // console.table(elo_list);
   let elo_score = -(elo_last - elo_init);
   elo_score = (elo_score || 0) / (traces_n || 1);
   // console.log({ elo_init, elo_last });
