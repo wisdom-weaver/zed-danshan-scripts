@@ -674,11 +674,11 @@ const run_20 = async () => {
 const run_21 = async () => {
   let pays = [
     {
-      WALLET: "0xa0d9665E163f498082Cd73048DA17e7d69Fd9224",
-      AMOUNT: "0.2",
+      WALLET: "0xCaD173Dc87DdfD5eD550030470c35d9BeC4BDE3d",
+      AMOUNT: "0.3",
     },
   ];
-  await send_weth.sendAllTransactions(pays, process.env.flash_payout_private_key);
+  // await send_weth.sendAllTransactions(pays, process.env.flash_payout_private_key);
 };
 
 const run_22 = async () => {

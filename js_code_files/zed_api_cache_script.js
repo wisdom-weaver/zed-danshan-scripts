@@ -129,8 +129,8 @@ const horse_fatigue_update_cron = async () => {
 
 const test_api = (z) => `https://jsonplaceholder.typicode.com/todos/${z}`;
 
-const studs_api = (z, o = 0) =>
-  `https://api.zed.run/api/v1/stud/horses?offset=${o}&gen[]=${z}&gen[]=${z}&breed_type=${"genesis"}`;
+const studs_api = (z, bt, o = 0) =>
+  `https://api.zed.run/api/v1/stud/horses?offset=${o}&gen[]=${z}&gen[]=${z}&breed_type=${bt}`;
 
 let process_prev_curr_studs = (prev, curr) => {
   console.log("all", _.map(curr.new, "hid")?.length, "horses");
@@ -203,15 +203,18 @@ const studs_api_cacher = async (z) => {
     console.log("START studs_api_cacher");
     let id = "zed-studs-sniper";
     let z_apis = [
-      [1, 0],
-      [1, 10],
-      [1, 20],
-      [2, 0],
-      [2, 10],
-      [2, 20],
-      [3, 0],
-      [3, 10],
-      [3, 20],
+      [1, "genesis", 0],
+      [1, "genesis", 10],
+      [1, "genesis", 20],
+      [2, "genesis", 0],
+      [2, "genesis", 10],
+      [2, "genesis", 20],
+      [3, "genesis", 0],
+      [3, "genesis", 10],
+      [3, "genesis", 20],
+      [2, "legendary", 0],
+      [2, "legendary", 10],
+      [2, "legendary", 20],
     ].map(([z, o]) => studs_api(z, o));
     let api_doc = await Promise.all(z_apis.map((z_api) => zedf.get(z_api)));
     if (api_doc.includes(null)) {
