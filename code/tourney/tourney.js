@@ -30,16 +30,18 @@ const {
   flash_payout_wallet,
   flash_payout_private_key,
   get_elo_score,
+  get_team_leader,
 } = require("./depend");
 const send_weth = require("../payments/send_weth");
 const { fget } = require("../utils/fetch");
+const { push_bulkc } = require("../utils/bulk");
 
 let test_mode = 0;
 let running = 0;
 let frunning = 0;
 let eth_price = 0;
 let payout_test = 0;
-let eval_hidden = 0;
+let eval_hidden = 1;
 // const tcoll = "tourney_master";
 // const tcoll_horses = (tid) => `tourney::${tid}::horses`;
 // const tcoll_stables = (tid) => `tourney::${tid}::stables`;
@@ -302,6 +304,178 @@ const elo_races_do = async (hid, tdoc, races) => {
   return { hid, traces_n, elo_score, races, elo_last };
 };
 
+const normal_races_do = async (hid, tdoc, races) => {
+  races = races.map((rrow) => {
+    let score = calc_t_score(rrow, tdoc);
+    rrow.score = score;
+    return rrow;
+  });
+
+  races = _.sortBy(races, (r) => -nano(r.date));
+
+  let traces_n = races.length;
+  let tot_score = _.sumBy(races, "score");
+  if ([NaN, undefined, null].includes(tot_score)) tot_score = 0;
+  let avg_score = (tot_score || 0) / (traces_n || 1);
+
+  update_doc = {
+    hid,
+    traces_n,
+    tot_score,
+    avg_score,
+    races,
+  };
+  return update_doc;
+};
+
+const process_team_status = async (tdoc) => {
+  let { tid, tourney_st, tourney_ed, entry_st, entry_ed, status } = tdoc;
+  if (status !== "open") return null;
+  let now = iso();
+
+  let stablesdocs = await zed_db.db
+    .collection(tcoll_stables(tid))
+    .find({})
+    .toArray();
+  stablesdocs = _.filter(stablesdocs, (e) => !_.isEmpty(e.horses));
+  let txns = _.flatten(_.map(stablesdocs, "transactions"));
+  let txnsdocs = await zed_db.db
+    .collection("payments")
+    .find(
+      {
+        pay_id: { $in: txns },
+        service: tcoll_stables(tid),
+        "meta_req.type": "fee",
+      },
+      { projection: { pay_id: 1, status_code: 1, date: 1, "meta_req.hids": 1 } }
+    )
+    .toArray();
+  txnsdocs = _.chain(txnsdocs).keyBy("pay_id").value();
+  // console.log(txnsdocs);
+
+  stablesdocs = stablesdocs.map((e) => {
+    e.txns = _.fromPairs(e.transactions.map((txx) => [txx, txnsdocs[txx]]));
+    return e;
+  });
+  let stables_valid = _.filter(stablesdocs, (e) => {
+    tcodes = _.chain(e.txns)
+      .entries()
+      .filter(([pay_id, p]) => p?.status_code == 1)
+      .map(0)
+      .compact()
+      .value();
+    if (_.isEmpty(tcodes)) return false;
+    e.valid_pay = tcodes[0];
+    e.valid_date = txnsdocs[tcodes[0]]?.date;
+    return true;
+  });
+
+  let stables_n = stables_valid.length;
+  if (stables_n > 2) {
+    stables_valid = _.sortBy(stables_valid, (e) => e.valid_date);
+    let stables_late = stables_valid.slice(2);
+    console.log(
+      `tid team : ${tid} stables_late`,
+      _.map(stables_late, "stable_name")
+    );
+    stables_valid = stables_valid.slice(0, 2);
+    stables_n = stables_valid.length;
+  }
+  console.log(
+    `tid team :${tid} stables_valid`,
+    _.map(stables_valid, "stable_name")
+  );
+
+  stables_valid = _.map(stables_valid, (e) => {
+    let { stable_name, valid_date, valid_pay, wallet } = e;
+    // console.log(e);
+    return {
+      stable_name,
+      valid_date,
+      valid_pay,
+      wallet,
+      horses: getv(e, `txns.${e.valid_pay}.meta_req.hids`) ?? [],
+    };
+  });
+
+  let upd = { stables_n, stables_valid };
+
+  console.table(stables_valid);
+
+  if (stables_n == 2) {
+    upd = {
+      ...upd,
+      status: "live",
+      tourney_st: iso(),
+      tourney_ed: moment()
+        .add(tdoc.flash_params.duration, "hours")
+        .toISOString(),
+      entry_ed: iso(),
+    };
+  } else if (stables_n == 1) {
+    let { valid_date, valid_pay } = stables_valid[0];
+    let st = valid_date;
+    console.log("stable_1", stables_valid[0].stable_name, valid_pay);
+    let diff = moment(now).diff(moment(st), "minutes");
+    console.log("stable_1", diff, "minutes");
+    if (diff >= fuser1_timer) {
+      if (getv(tdoc, "terminated") !== true) {
+        await zed_db.db
+          .collection(tcoll)
+          .updateOne({ tid }, { $set: { terminated: true } });
+        await refund_pay_user({
+          tid,
+          stable_name: stables_valid[0].stable_name,
+          pay_id: valid_pay,
+        });
+        let ed = moment(st).add(fuser1_timer, "minutes").toISOString();
+        return {
+          ...upd,
+          status: "ended",
+          tourney_st: ed,
+          tourney_ed: ed,
+          entry_ed: ed,
+        };
+      }
+    } else {
+      return {
+        ...upd,
+        status: "open",
+        tourney_st: null,
+        tourney_ed: null,
+        entry_ed: moment(st).add(fuser1_timer, "minutes").toISOString(),
+      };
+    }
+  }
+  return upd;
+};
+
+const post_process_team = async (tdoc, update_ar) => {
+  let { stables_n = 0, stables_valid = [], tid } = tdoc;
+  if (stables_n == 0) return {};
+  let stablesdocs = [];
+  for (let { stable_name, horses } of stables_valid) {
+    let team_horses = _.filter(update_ar, (e) => horses.includes(e.hid));
+    let score =
+      (_.sumBy(team_horses, (e) => e.tot_score || 0) || 0) /
+      (team_horses?.length || 1);
+    let traces_n = _.sumBy(team_horses, (e) => e.traces_n || 0);
+    stablesdocs.push({
+      stable_name,
+      traces_n,
+      score,
+      team_horses: team_horses,
+    });
+  }
+  console.table(stablesdocs);
+  await push_bulkc(
+    tcoll_stables(tid),
+    stablesdocs,
+    "team:stable",
+    "stable_name"
+  );
+};
+
 const run_t_horse = async (hid, tdoc, entry_date) => {
   if (!entry_date) {
     console.log("cant find entrydate of horse", hid, tdoc.tid);
@@ -380,50 +554,25 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
 
   // console.table(races);
 
+  races = _.uniqBy(races, (i) => i.rid);
+
   let update_doc = { hid, entry_date };
 
   const is_elo_mode = tdoc.score_mode == "elo";
-  if (!is_elo_mode) {
-    races = _.uniqBy(races, (i) => i.rid);
-    if (test_mode) console.log("type:", tdoc.type);
-    if (test_mode) console.log("a0:", _.map(races, "rid"));
-
-    // if (!_.isEmpty(rcr.fee_tag))
-    // races = races.filter((r) => rcr.fee_tag.includes(r.fee_tag));
-    if (test_mode) console.log("a1:", _.map(races, "rid"));
-    if (tdoc.type == "flash") {
-      races = races.slice(0, 5) || [];
-    }
-
-    races = races.map((rrow) => {
-      let score = calc_t_score(rrow, tdoc);
-      rrow.score = score;
-      return rrow;
-    });
-
-    races = _.sortBy(races, (r) => -nano(r.date));
-    if (test_mode) console.log("a2:", _.map(races, "rid"));
-    if (test_mode) console.table(races);
-
-    let traces_n = races.length;
-    let tot_score = _.sumBy(races, "score");
-    if ([NaN, undefined, null].includes(tot_score)) tot_score = 0;
-    let avg_score = (tot_score || 0) / (traces_n || 1);
-
-    update_doc = {
-      hid,
-      traces_n,
-      tot_score,
-      avg_score,
-      races,
-      entry_date,
-    };
-  } else {
+  const is_team_mode = tdoc.score_mode == "team";
+  if (is_elo_mode) {
     upd = await elo_races_do(hid, tdoc, races);
     update_doc = { ...update_doc, ...upd };
     // if (update_doc?.traces_n > 0) console.log("ELO:: ", update_doc);
+  } else {
+    if (tdoc.type == "flash") {
+      races = races.slice(0, 5) || [];
+    }
+    upd = await normal_races_do(hid, tdoc, races);
+    update_doc = { ...update_doc, ...upd };
   }
   if (test_mode) console.log({ ...update_doc, races: "del" });
+  if (test_mode) console.table(update_doc.races);
   return update_doc;
 };
 
@@ -434,6 +583,7 @@ const run_t_give_ranks = (hdocs, tdoc) => {
     (mode == "total" && "tot_score") ||
     (mode == "avg" && "avg_score") ||
     (mode == "elo" && "elo_score") ||
+    (mode == "team" && "tot_score") ||
     null;
   let lim =
     (type == "regular" && mode == "elo" && 10) || (type == "flash" && 5) || 5;
@@ -458,7 +608,16 @@ const run_t_give_ranks = (hdocs, tdoc) => {
 };
 
 const run_t_tot_fees = async (tid, tdoc) => {
-  let { tourney_st, tourney_ed, entry_st, entry_ed, type, status } = tdoc;
+  let {
+    tourney_st,
+    tourney_ed,
+    entry_st,
+    entry_ed,
+    type,
+    status,
+    score_mode,
+    stables_n = 0,
+  } = tdoc;
   let pays = await zed_db.db
     .collection("payments")
     .find(
@@ -509,7 +668,12 @@ const run_t_tot_fees = async (tid, tdoc) => {
   });
   hids = _.chain(hids).uniq().compact().value();
 
-  let tot_fees = tdoc.entry_fee * hids.length;
+  let tot_fees;
+  if (score_mode == "team") {
+    tot_fees = tdoc.entry_fee * stables_n;
+  } else {
+    tot_fees = tdoc.entry_fee * hids.length;
+  }
   return { tot_fees, tot_fees_act, tot_sponsors_act, tot_score: 0 };
 };
 
@@ -552,13 +716,18 @@ const process_t_status_flash = async ({ tid }) => {
     tourney_ed,
     entry_st,
     entry_ed,
+    score_mode,
   } = tdoc;
   console.log({ type, status });
   console.log({ entry_st, entry_ed });
   console.log({ tourney_st, tourney_ed });
   let now = moment().toISOString();
+
+  const is_elo = score_mode == "elo";
+  const is_team = score_mode == "team";
+
   // if (status == "ended") return {};
-  if (tourney_ed < now) return { status: "ended" };
+  if (tourney_ed && tourney_ed < now) return { status: "ended" };
 
   if (entry_st > now) return { status: "upcoming" };
 
@@ -582,7 +751,13 @@ const process_t_status_flash = async ({ tid }) => {
     let horses_n = _.flatten(_.values(hdocs))?.length || 0;
     console.log("stables", stables.length, "->", stables);
 
-    if (horses_n >= tdoc.flash_params.minh) {
+    if (is_team) {
+      let upd = await process_team_status(tdoc);
+      if (upd) {
+        // console.log("TEAM UPDATE", upd);
+        return upd;
+      }
+    } else if (!is_team && horses_n >= tdoc.flash_params.minh) {
       return {
         status: "live",
         tourney_st: iso(),
@@ -594,7 +769,7 @@ const process_t_status_flash = async ({ tid }) => {
     } else if (stables.length == 0) {
       let st = entry_st;
       let diff = moment(now).diff(moment(st), "minutes");
-      console.log("stable0", diff, "minutes");
+      console.log("stable_0", diff, "minutes");
       return {};
     } else if (stables.length == 1) {
       let txdoc = await zed_db.db.collection("payments").findOne({
@@ -933,8 +1108,10 @@ const run_tid = async (tid) => {
   }
   update_ar = _.flatten(update_ar);
   update_ar = run_t_give_ranks(update_ar, tdoc);
-  // if (test_mode)
   // console.table(update_ar);
+
+  if (tdoc.score_mode == "team") await post_process_team(tdoc, update_ar);
+
   await bulk.push_bulk(
     tcoll_horses(tid),
     update_ar,
@@ -1045,31 +1222,29 @@ const get_ranked_leader_t = async ({ tid }) => {
   let { prize_pool, payout_mode, score_mode, status, terminated } = tdoc;
   // prize_pool = 1;
   // console.log({ prize_pool, payout_mode, score_mode });
-  let k =
-    (score_mode == "total" && "tot_score") ||
-    (score_mode == "avg" && "avg_score") ||
-    null;
-  let leader = await get_leaderboard_t({ tid });
+  let pays = [];
+  let leader = [];
+  if (score_mode == "team") {
+    leader = await get_team_leader(tdoc);
+  } else {
+    leader = await get_leaderboard_t({ tid });
+  }
   if (leader.length == 0) return [];
   if (status == "open") return leader;
   if (terminated == true) return leader;
 
-  let pays = [];
-
-  if (payout_mode == "winner_all") {
-    pays = get_winner_all_list(tdoc, leader);
-    // console.table(leader);
-    // if (!leader[0].rank) pays = [];
-    // else pays = [{ ...leader[0], amt: prize_pool, role: "winner_all" }];
-  } else if (payout_mode == "double_up") {
-    pays = get_double_up_list(tdoc, leader);
-    // console.table(pays);
+  if (score_mode !== "team") {
+    if (payout_mode == "winner_all") {
+      pays = get_winner_all_list(tdoc, leader);
+    } else if (payout_mode == "double_up") {
+      pays = get_double_up_list(tdoc, leader);
+    }
+    pays = _.keyBy(pays, "hid");
+    leader = leader.map((l) => {
+      let ob = pays[l.hid] || { role: "lose", amt: 0 };
+      return { ...l, ...ob };
+    });
   }
-  pays = _.keyBy(pays, "hid");
-  leader = leader.map((l) => {
-    let ob = pays[l.hid] || { role: "lose", amt: 0 };
-    return { ...l, ...ob };
-  });
   return leader;
 };
 const calc_payouts_list = async ({ tid }) => {
@@ -1239,6 +1414,20 @@ const runner = async () => {
     running = 0;
   }
 };
+const temp_fix = async () => {
+  let tid = "25ce2eeb";
+  let fixdoc = {
+    status: "open",
+    tourney_st: null,
+    tourney_ed: null,
+    entry_ed: null,
+    status: "open",
+    terminated: false,
+    stables_valid: null,
+    stables_n: 0,
+  };
+  await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: fixdoc });
+};
 
 const main_runner = async (args) => {
   try {
@@ -1254,6 +1443,7 @@ const main_runner = async (args) => {
     if (arg2 == "run_cron") await run_cron();
     if (arg2 == "run_flash_cron") await run_flash_cron();
     if (arg2 == "t_status_regular") await t_status_regular();
+    if (arg2 == "temp_fix") await temp_fix();
   } catch (err) {
     console.log("Err in tourney runner", err);
   }
