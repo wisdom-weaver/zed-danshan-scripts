@@ -686,12 +686,12 @@ const t_status_flash = async () => {
         $or: [
           {
             type: { $eq: "flash" },
-            ...(!eval_hidden ? { hide: { $ne: true } } : {}),
+            ...(eval_hidden ? {} : { hide: { $ne: true } }),
             tourney_ed: { $gte: moment().add(20, "minutes").toISOString() },
           },
           {
             type: { $eq: "flash" },
-            ...(!eval_hidden ? { hide: { $ne: true } } : {}),
+            ...(eval_hidden ? {} : { hide: { $ne: true } }),
             tourney_ed: { $eq: null },
           },
         ],
@@ -702,7 +702,7 @@ const t_status_flash = async () => {
   let tids = _.map(docs, "tid");
   for (let tid of tids) {
     let upd = await process_t_status_flash({ tid });
-    console.log("UPDATE STATUS", upd);
+    console.log("UPDATE t_flash statsus", tid);
     if (!_.isEmpty(upd))
       await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: upd });
     console.log("===");
