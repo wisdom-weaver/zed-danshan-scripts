@@ -861,12 +861,12 @@ const t_status_flash = async () => {
         $or: [
           {
             type: { $eq: "flash" },
-            ...(eval_hidden ? { hide: { $ne: true } } : {}),
+            ...(!eval_hidden ? { hide: { $ne: true } } : {}),
             tourney_ed: { $gte: moment().add(20, "minutes").toISOString() },
           },
           {
             type: { $eq: "flash" },
-            ...(eval_hidden ? { hide: { $ne: true } } : {}),
+            ...(!eval_hidden ? { hide: { $ne: true } } : {}),
             tourney_ed: { $eq: null },
           },
         ],
@@ -1415,7 +1415,7 @@ const runner = async () => {
   }
 };
 const temp_fix = async () => {
-  let tid = "088484dd";
+  let tid = "25ce2eeb";
   let fixdoc = {
     status: "open",
     tourney_st: null,
