@@ -686,12 +686,12 @@ const t_status_flash = async () => {
         $or: [
           {
             type: { $eq: "flash" },
-            ...(eval_hidden ? { hide: { $ne: true } } : {}),
+            ...(!eval_hidden ? { hide: { $ne: true } } : {}),
             tourney_ed: { $gte: moment().add(20, "minutes").toISOString() },
           },
           {
             type: { $eq: "flash" },
-            ...(eval_hidden ? { hide: { $ne: true } } : {}),
+            ...(!eval_hidden ? { hide: { $ne: true } } : {}),
             tourney_ed: { $eq: null },
           },
         ],
