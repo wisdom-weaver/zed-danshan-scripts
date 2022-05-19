@@ -227,7 +227,11 @@ const track_horse_elo = async ({ hid, tdoc, elo_list }) => {
   let elo_curr = await get_elo_score(hid);
   let ea = { elo_curr, elo_time: iso() };
   if (test_mode) console.log(ea);
-  if (_.isEmpty(elo_list)) return [ea];
+  if (_.isEmpty(elo_list)) {
+    ea.id = "empty_elo_list";
+    await leader_hdoc_ref.updateOne({ hid }, { $addToSet: { elo_list: ea } });
+    return [ea];
+  }
   let top = elo_list[elo_list.length - 1]?.elo_curr;
   if (elo_curr == top) return elo_list;
   else {
