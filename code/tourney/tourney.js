@@ -232,8 +232,8 @@ const track_horse_elo = async ({ hid, tdoc, elo_list }) => {
   else {
     let leader_hdoc_ref = zed_db.db.collection(tcoll_horses(tdoc.tid));
     elo_list = [...elo_list, ea];
-    if (!_.isEmpty(elo_list))
-      await leader_hdoc_ref.updateOne({ hid }, { $set: { elo_list } });
+    if (!_.isEmpty(ea))
+      await leader_hdoc_ref.updateOne({ hid }, { $addToSet: { elo_list: ea } });
     return elo_list;
   }
 };
