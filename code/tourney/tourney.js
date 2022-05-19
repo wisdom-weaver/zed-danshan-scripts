@@ -226,6 +226,7 @@ const get_horse_entry_date = async (hid, tdoc) => {
 const track_horse_elo = async ({ hid, tdoc, elo_list }) => {
   let elo_curr = await get_elo_score(hid);
   let ea = { elo_curr, elo_time: iso() };
+  if (test_mode) console.log(ea);
   if (_.isEmpty(elo_list)) return [ea];
   let top = elo_list[elo_list.length - 1]?.elo_curr;
   if (elo_curr == top) return elo_list;
@@ -281,8 +282,9 @@ const elo_races_do = async (hid, tdoc, races) => {
   }
   if (st < now) {
     elo_list = await track_horse_elo({ hid, tdoc, elo_list });
-    // console.table(elo_list);
   }
+  if (test_mode) console.table(elo_list);
+
   if (_.isEmpty(races)) return { elo_last: null, traces_n: 0, elo_score: null };
   races = _.sortBy(races, "date");
 
@@ -310,7 +312,7 @@ const elo_races_do = async (hid, tdoc, races) => {
 
   let elo_score = -(elo_last - elo_init);
   elo_score = (elo_score || 0) / (traces_n || 1);
-  // console.log({ elo_init, elo_last });
+  if (test_mode) console.log({ elo_init, elo_last });
   return { hid, traces_n, elo_score, races, elo_last };
 };
 
