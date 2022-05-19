@@ -232,7 +232,8 @@ const track_horse_elo = async ({ hid, tdoc, elo_list }) => {
   else {
     let leader_hdoc_ref = zed_db.db.collection(tcoll_horses(tdoc.tid));
     elo_list = [...elo_list, ea];
-    await leader_hdoc_ref.updateOne({ hid }, { $set: { elo_list } });
+    if (!_.isEmpty(elo_list))
+      await leader_hdoc_ref.updateOne({ hid }, { $set: { elo_list } });
     return elo_list;
   }
 };
@@ -262,6 +263,7 @@ const elo_races_do = async (hid, tdoc, races) => {
   let elo_last = hdoc?.elo_last || null;
   let elo_list = hdoc?.elo_list || [];
   // console.log("#diff", diff);
+  // console.table(elo_list);
   if (_.inRange(diff, 0, 5)) {
     console.log("##eval inside");
     elo_init = await get_elo_score(hid);
@@ -274,6 +276,7 @@ const elo_races_do = async (hid, tdoc, races) => {
         },
       }
     );
+    await cdelay(500);
     elo_last = null;
   }
   if (st < now) {
@@ -282,6 +285,12 @@ const elo_races_do = async (hid, tdoc, races) => {
   }
   if (_.isEmpty(races)) return { elo_last: null, traces_n: 0, elo_score: null };
   races = _.sortBy(races, "date");
+
+  if (!elo_init) {
+    if (elo_list?.length > 0) elo_init = elo_list[0]?.elo_curr;
+    else if (races?.length > 0) elo_init = races[0]?.hrating;
+    await leader_hdoc_ref.updateOne({ hid }, { $set: { elo_init } });
+  }
 
   let traces_n = races.length;
   for (let i = 0; i < traces_n; i++) {
@@ -298,6 +307,7 @@ const elo_races_do = async (hid, tdoc, races) => {
   }
   // console.table(races);
   // console.table(elo_list);
+
   let elo_score = -(elo_last - elo_init);
   elo_score = (elo_score || 0) / (traces_n || 1);
   // console.log({ elo_init, elo_last });

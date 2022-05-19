@@ -685,8 +685,184 @@ const run_22 = async () => {
   await zed_db.db
     .collection("users")
     .updateMany({}, { $set: { active: false } });
-    console.log("done")
+  console.log("done");
 };
 
-const tests = { run: run_21 };
+const run_23 = async () => {
+  let ar = await zed_db.db
+    .collection("horse_details")
+    .aggregate([
+      {
+        $match: {
+          hid: {
+            $gte: 365000,
+          },
+          "parents.mother": {
+            $ne: null,
+          },
+        },
+      },
+      {
+        $project: {
+          hid: 1,
+          mother: "$parents.mother",
+          father: "$parents.father",
+        },
+      },
+      {
+        $lookup: {
+          from: "horse_details",
+          localField: "mother",
+          foreignField: "hid",
+          as: "mdoc",
+        },
+      },
+      {
+        $lookup: {
+          from: "horse_details",
+          localField: "father",
+          foreignField: "hid",
+          as: "fdoc",
+        },
+      },
+      {
+        $lookup: {
+          from: "dp4",
+          localField: "mother",
+          foreignField: "hid",
+          as: "mdpdoc",
+        },
+      },
+      {
+        $lookup: {
+          from: "dp4",
+          localField: "father",
+          foreignField: "hid",
+          as: "fdpdoc",
+        },
+      },
+      {
+        $unwind: {
+          path: "$mdoc",
+          includeArrayIndex: "0",
+          preserveNullAndEmptyArrays: false,
+        },
+      },
+      {
+        $unwind: {
+          path: "$fdoc",
+          includeArrayIndex: "0",
+          preserveNullAndEmptyArrays: false,
+        },
+      },
+      {
+        $unwind: {
+          path: "$mdpdoc",
+          includeArrayIndex: "0",
+          preserveNullAndEmptyArrays: false,
+        },
+      },
+      {
+        $unwind: {
+          path: "$fdpdoc",
+          includeArrayIndex: "0",
+          preserveNullAndEmptyArrays: false,
+        },
+      },
+      {
+        $project: {
+          hid: 1,
+          mother: 1,
+          father: 1,
+          mother_bt: "$mdoc.breed_type",
+          father_bt: "$fdoc.breed_type",
+          mother_dist: "$mdpdoc.dist",
+          father_dist: "$fdpdoc.dist",
+        },
+      },
+      // {
+      //   $match: {
+      //     father_bt: "genesis",
+      //     mother_bt: "genesis",
+      //   },
+      // },
+      {
+        $lookup: {
+          from: "rcount",
+          localField: "hid",
+          foreignField: "hid",
+          as: "rcountdoc",
+        },
+      },
+      {
+        $unwind: {
+          path: "$rcountdoc",
+          includeArrayIndex: "0",
+          preserveNullAndEmptyArrays: false,
+        },
+      },
+      {
+        $project: {
+          hid: 1,
+          mother: 1,
+          father: 1,
+          mother_bt: 1,
+          father_bt: 1,
+          mother_dist: 1,
+          father_dist: 1,
+          win_n: "$rcountdoc.dist_ob.99.9000.1.0",
+          races_n: "$rcountdoc.dist_ob.99.9000.33.0",
+        },
+      },
+      {
+        $project: {
+          hid: 1,
+          mother: 1,
+          father: 1,
+          mother_bt: 1,
+          father_bt: 1,
+          win_n: 1,
+          races_n: 1,
+          mother_dist: 1,
+          father_dist: 1,
+          win_rate: {
+            $cond: [
+              { $eq: ["$races_n", 0] },
+              0,
+              { $divide: ["$win_n", "$races_n"] },
+            ],
+          },
+          same_dist: {
+            $cond: [{ $eq: ["$father_dist", "$mother_dist"] }, "SAME", "diff"],
+          },
+          key: {
+            $cond: [
+              { $eq: [{ $cmp: ["$father_bt", "$mother_bt"] }, -1] },
+              { $concat: ["$mother_bt", "-", "$father_bt"] },
+              { $concat: ["$father_bt", "-", "$mother_bt"] },
+            ],
+          },
+        },
+      },
+      { $match: { races_n: { $ne: 0 } } },
+      // { $limit: 100 },
+      {
+        $group: {
+          _id: { $concat: ["$key", " -- [ ", "$same_dist", " ]"] },
+          avg_win_rate: { $avg: "$win_rate" },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ])
+    .toArray();
+  console.table(ar);
+  if (false)
+    await sheet_ops.sheet_print_ob(ar, {
+      range: "avg_winrates_DP_same",
+      spreadsheetId: "1NjYzfWy-Ns52uMNXFbAYIPHRtDymrgX8TyKcM5h3RWU",
+    });
+};
+
+const tests = { run: run_23 };
 module.exports = tests;
