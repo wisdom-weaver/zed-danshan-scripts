@@ -320,7 +320,7 @@ const elo_races_do = async (hid, tdoc, races) => {
   let elo_score = -(elo_last - elo_init);
   if (elo_score >= 1.2) {
     let norm = await normal_races_do(hid, tdoc, races);
-    elo_score = norm.tot_score;
+    elo_score =  norm.tot_score;
   } else {
     elo_score = 0;
   }
