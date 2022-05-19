@@ -31,10 +31,13 @@ const {
   flash_payout_private_key,
   get_elo_score,
   get_team_leader,
+  get_payout_private_key,
+  get_payout_wallet,
 } = require("./depend");
 const send_weth = require("../payments/send_weth");
 const { fget } = require("../utils/fetch");
 const { push_bulkc } = require("../utils/bulk");
+const { overEvery } = require("lodash");
 
 let test_mode = 0;
 let running = 0;
@@ -1270,15 +1273,21 @@ const calc_payouts_list = async ({ tid }) => {
   return leader;
 };
 
-const flash_payout = async (tid) => {
-  console.log("flash_payout");
-  console.log(`## [ ${tid} ] started payout`, iso());
+const tourney_payout = async (tid) => {
+  console.log("tourney_payout");
+  console.log(`## [ ${tid} ]  started payout`, iso());
   let pays = await calc_payouts_list({ tid });
   let tdoc = await get_tdoc(tid);
+  let { type, score_mode = false } = tdoc;
+  console.log({ type, score_mode });
   let is_override = process.argv.includes("override") ?? false;
-  if (tdoc.payout_done == true && !is_override)
-    return console.log("payout done at", tdoc.payout_date);
   if (tdoc.status !== "ended") return console.log("tourney not ended");
+  if (!override) {
+    if (tdoc.payout_done == true)
+      return console.log("payout done at", tdoc.payout_date);
+    if (tdoc.auto_payout === "dont")
+      return console.log("payout set to DONT AUTO PAYOUT");
+  }
   let eda = moment().add(-5, "minutes").toISOString();
   let edb = moment().add(-15, "minutes").toISOString();
   eda = nano(eda);
@@ -1292,7 +1301,9 @@ const flash_payout = async (tid) => {
     console.log("nothing to payout");
   } else {
     console.table(pays);
-    let adwallet = process.env.flash_payout_wallet;
+    let adwallet = get_payout_wallet(type);
+    if (!adwallet)
+      return console.log("ERRR compatiable payout wallet not found");
     await Promise.all(
       pays.map((l) =>
         payout_single({
@@ -1309,10 +1320,13 @@ const flash_payout = async (tid) => {
       AMOUNT: l.amt.toString(),
     }));
     console.table(payments);
-    let key = process.env.flash_payout_private_key;
-    let count = await send_weth.sendAllTransactions(payments, key);
-    // let count = 0;
-    console.log("done transactions:", count);
+    let key = get_payout_private_key(type);
+    if (payout_test) {
+      console.log("payout in test mode: DIDNT PAYOUT");
+    } else {
+      let count = await send_weth.sendAllTransactions(payments, key);
+      console.log("done transactions:", count);
+    }
   }
   await zed_db.db
     .collection(tcoll)
@@ -1366,6 +1380,7 @@ const flash_payout_ended = async () => {
       {
         status: "ended",
         type: "flash",
+        ...(eval_hidden ? {} : { hide: { $ne: true } }),
         payout_done: { $ne: true },
         tourney_ed: {
           $lte: moment().add(-5, "minutes").toISOString(),
@@ -1381,9 +1396,43 @@ const flash_payout_ended = async () => {
     for (let tid of tids) {
       try {
         console.log("flash_payout", tid);
-        await flash_payout(tid);
+        await tourney_payout(tid);
       } catch (err) {
         console.log("Flash_payout err", tid, err.message);
+        console.log(err);
+      }
+    }
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const regular_payout_ended = async () => {
+  let tids = await zed_db.db
+    .collection(tcoll)
+    .find(
+      {
+        status: "ended",
+        type: "regular",
+        ...(eval_hidden ? {} : { hide: { $ne: true } }),
+        payout_done: { $ne: true },
+        tourney_ed: {
+          $lte: moment().add(-15, "minutes").toISOString(),
+          $gte: moment().add(-25, "minutes").toISOString(),
+        },
+      },
+      { projection: { tid: 1, _id: 0 } }
+    )
+    .toArray();
+  tids = _.map(tids, "tid");
+  console.log("# regular_payout_ended", tids.length, tids);
+  try {
+    for (let tid of tids) {
+      try {
+        console.log("regular_payout", tid);
+        await tourney_payout(tid);
+      } catch (err) {
+        console.log("regular_payout err", tid, err.message);
         console.log(err);
       }
     }
@@ -1422,7 +1471,7 @@ const runner = async () => {
     running = 1;
     await t_status_regular();
     await regular_runner();
-    // await flash_runner();
+    await regular_payout_ended();
     await t_status_regular();
     running = 0;
   } catch (err) {
@@ -1455,7 +1504,7 @@ const main_runner = async (args) => {
     if (arg2 == "runtcron") await runtcron(arg3);
     if (arg2 == "runner") await runner();
     if (arg2 == "flash_runner") await flash_runner();
-    if (arg2 == "flash_payout") await flash_payout(arg3);
+    if (arg2 == "flash_payout") await tourney_payout(arg3);
     if (arg2 == "run_cron") await run_cron();
     if (arg2 == "run_flash_cron") await run_flash_cron();
     if (arg2 == "t_status_regular") await t_status_regular();
@@ -1470,7 +1519,7 @@ const test = async () => {
   const fn = async () => {
     let tid = "ae0877c0";
     await run_tid(tid);
-    await flash_payout(tid);
+    // await tourney_payout(tid);
   };
   console.log("##run test cron", "tourney");
   print_cron_details(cron_str);

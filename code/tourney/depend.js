@@ -616,6 +616,18 @@ const get_elo_score = async (hid) => {
   return hdoc?.rating || null;
 };
 
+const get_payout_wallet = (key) => {
+  if (type == "regular") return process.env.regular_payout_wallet;
+  if (type == "flash") return process.env.flash_payout_wallet;
+  return null;
+};
+
+const get_payout_private_key = (key) => {
+  if (type == "regular") return process.env.regular_payout_private_key;
+  if (type == "flash") return process.env.flash_payout_private_key;
+  return null;
+};
+
 module.exports = {
   tcoll,
   tcollp,
@@ -635,4 +647,6 @@ module.exports = {
   flash_pay_to_user,
   get_elo_score,
   get_team_leader,
+  get_payout_wallet,
+  get_payout_private_key,
 };
