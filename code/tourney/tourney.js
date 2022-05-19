@@ -318,7 +318,12 @@ const elo_races_do = async (hid, tdoc, races) => {
   // console.table(elo_list);
 
   let elo_score = -(elo_last - elo_init);
-  elo_score = (elo_score || 0) / (traces_n || 1);
+  if (elo_score >= 1.2) {
+    let norm = await normal_races_do(hid, tdoc, races);
+    elo_score = norm.tot_score;
+  } else {
+    elo_score = 0;
+  }
   if (test_mode) console.log({ elo_init, elo_last });
   return { hid, traces_n, elo_score, races, elo_last };
 };
