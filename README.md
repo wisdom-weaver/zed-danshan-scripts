@@ -22,12 +22,24 @@ pm2 start node  --name "bt_races_miss" -- code/main --races miss_cron
 pm2 start node  --name "bt_races_scheduled" -- code/main --races scheduled_cron  
 pm2 start node  --name "bt_races_duplicate" -- code/main --races duplicate_cron  
 
-pm2 start node  --name "ymca5_table_cron" -- code/main.js v5 --ymca5_table run_cron
+race_horses
+pm2 start node --name "bt3_race_horses" -- code/main.js --race_horses run_cron
 
-pm2 start node  --name "bt_horses_fix" -- code/main.js --horses fixer
-pm2 start node  --name "bt_horses_new" -- code/main.js --horses new
+horses 
+pm2 start node  --name "bt_horses_fix" -- code/main.js --horses fixer 
+pm2 start node  --name "bt_horses_new" -- code/main.js --horses new 
 
-pm2 start node --name "line_run_cron" -- code/main.js v5 --line run_cron
+pm2 start node --name "line_run_cron" -- code/main.js v5 --line run_cron 
 
-pm2 start node --name "tourney::run_cron" -- code/main.js --tourney run_cron
-pm2 start node --name "tourney::run_flash_cron" -- code/main.js --tourney run_flash_cron
+tourney 
+pm2 start node --name "tourney::run_cron" -- code/main.js --tourney run_cron 
+pm2 start node --name "tourney::run_flash_cron" -- code/main.js --tourney run_flash_cron 
+
+ymca5_table 
+pm2 start node --name "ymca5_table_cron" -- code/main.js --ymca5_table run_cron 
+
+payments 
+pm2 start node --name "payments_cron" -- code/main.js --payments run_cron 
+
+parents htype 
+pm2 start node --name "parents_htype " -- code/main.js --parents fix_horse_type_all_cron
