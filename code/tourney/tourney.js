@@ -1292,7 +1292,7 @@ const tourney_payout = async (tid) => {
   console.log({ type, score_mode });
   let is_override = process.argv.includes("override") ?? false;
   if (tdoc.status !== "ended") return console.log("tourney not ended");
-  if (!override) {
+  if (!is_override) {
     if (tdoc.payout_done == true)
       return console.log("payout done at", tdoc.payout_date);
     if (tdoc.auto_payout === "dont")
