@@ -229,6 +229,7 @@ const get_horse_entry_date = async (hid, tdoc) => {
 const track_horse_elo = async ({ hid, tdoc, elo_list }) => {
   let elo_curr = await get_elo_score(hid);
   let ea = { elo_curr, elo_time: iso() };
+  let leader_hdoc_ref = zed_db.db.collection(tcoll_horses(tdoc.tid));
   if (test_mode) console.log(ea);
   if (_.isEmpty(elo_list)) {
     ea.id = "empty_elo_list";
@@ -238,7 +239,6 @@ const track_horse_elo = async ({ hid, tdoc, elo_list }) => {
   let top = elo_list[elo_list.length - 1]?.elo_curr;
   if (elo_curr == top) return elo_list;
   else {
-    let leader_hdoc_ref = zed_db.db.collection(tcoll_horses(tdoc.tid));
     elo_list = [...elo_list, ea];
     if (!_.isEmpty(ea))
       await leader_hdoc_ref.updateOne({ hid }, { $addToSet: { elo_list: ea } });

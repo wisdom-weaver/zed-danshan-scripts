@@ -798,9 +798,18 @@ const run_23 = async () => {
           mother_tun: {
             $switch: {
               branches: [
-                { case: { $in: ["$mother_dist", [1000, 1200, 1400]] }, then: "SPRINTER" },
-                { case: { $in: ["$mother_dist", [1600, 1800, 2000]] }, then: "MID-RUN" },
-                { case: { $in: ["$mother_dist", [2200, 2400, 2600]] }, then: "MARATHON" },
+                {
+                  case: { $in: ["$mother_dist", [1000, 1200, 1400]] },
+                  then: "SPRINTER",
+                },
+                {
+                  case: { $in: ["$mother_dist", [1600, 1800, 2000]] },
+                  then: "MID-RUN",
+                },
+                {
+                  case: { $in: ["$mother_dist", [2200, 2400, 2600]] },
+                  then: "MARATHON",
+                },
               ],
               default: null,
             },
@@ -808,9 +817,18 @@ const run_23 = async () => {
           father_tun: {
             $switch: {
               branches: [
-                { case: { $in: ["$father_dist", [1000, 1200, 1400]] }, then: "SPRINTER" },
-                { case: { $in: ["$father_dist", [1600, 1800, 2000]] }, then: "MID-RUN" },
-                { case: { $in: ["$father_dist", [2200, 2400, 2600]] }, then: "MARATHON" },
+                {
+                  case: { $in: ["$father_dist", [1000, 1200, 1400]] },
+                  then: "SPRINTER",
+                },
+                {
+                  case: { $in: ["$father_dist", [1600, 1800, 2000]] },
+                  then: "MID-RUN",
+                },
+                {
+                  case: { $in: ["$father_dist", [2200, 2400, 2600]] },
+                  then: "MARATHON",
+                },
               ],
               default: null,
             },
@@ -901,174 +919,201 @@ const run_23 = async () => {
 };
 
 const run_24 = async () => {
-  let ea = await zed_db.db
-    .collection("horse_details")
-    .aggregate([
-      {
-        $match: {
-          hid: {
-            $gte: 365000,
-          },
-          "parents.mother": {
-            $ne: null,
-          },
-        },
-      },
-      {
-        $project: {
-          hid: 1,
-          mother: "$parents.mother",
-          father: "$parents.father",
-        },
-      },
-      {
-        $lookup: {
-          from: "horse_details",
-          localField: "mother",
-          foreignField: "hid",
-          as: "mdoc",
-        },
-      },
-      {
-        $lookup: {
-          from: "horse_details",
-          localField: "father",
-          foreignField: "hid",
-          as: "fdoc",
-        },
-      },
-      {
-        $lookup: {
-          from: "ymca5",
-          localField: "mother",
-          foreignField: "hid",
-          as: "mdpdoc",
-        },
-      },
-      {
-        $lookup: {
-          from: "ymca5",
-          localField: "father",
-          foreignField: "hid",
-          as: "fdpdoc",
-        },
-      },
-      {
-        $unwind: {
-          path: "$mdoc",
-          includeArrayIndex: "0",
-          preserveNullAndEmptyArrays: false,
-        },
-      },
-      {
-        $unwind: {
-          path: "$fdoc",
-          includeArrayIndex: "0",
-          preserveNullAndEmptyArrays: false,
-        },
-      },
-      {
-        $unwind: {
-          path: "$mdpdoc",
-          includeArrayIndex: "0",
-          preserveNullAndEmptyArrays: false,
-        },
-      },
-      {
-        $unwind: {
-          path: "$fdpdoc",
-          includeArrayIndex: "0",
-          preserveNullAndEmptyArrays: false,
-        },
-      },
-      {
-        $project: {
-          hid: 1,
-          mother: 1,
-          father: 1,
-          mother_bt: "$mdoc.breed_type",
-          father_bt: "$fdoc.breed_type",
-          mother_ymca5: "$mdpdoc.ymca5",
-          father_ymca5: "$fdpdoc.ymca5",
-        },
-      },
-      {
-        $match: {
-          $or: [
-            {
-              mother_ymca5: { $gte: 0.7, $lte: 1 },
-              father_ymca5: { $gte: 1.3 },
+  let range_ar = [
+    [1.4, 1e4],
+    [1.3, 1.4],
+    [1.2, 1.3],
+    [1.1, 1.2],
+    [1, 1.1],
+    [0.7, 1],
+    [0, 0.7],
+  ];
+  let ar = [];
+  for (let [mi, mx] of range_ar) {
+    let ea = await zed_db.db
+      .collection("horse_details")
+      .aggregate([
+        {
+          $match: {
+            hid: {
+              $gte: 365000,
             },
-            {
-              father_ymca5: { $gte: 0.7, $lte: 1 },
-              mother_ymca5: { $gte: 1.3 },
+            "parents.mother": {
+              $ne: null,
             },
-          ],
+          },
         },
-      },
-      {
-        $lookup: {
-          from: "rcount",
-          localField: "hid",
-          foreignField: "hid",
-          as: "rcountdoc",
+        {
+          $project: {
+            hid: 1,
+            mother: "$parents.mother",
+            father: "$parents.father",
+          },
         },
-      },
-      {
-        $unwind: {
-          path: "$rcountdoc",
-          includeArrayIndex: "0",
-          preserveNullAndEmptyArrays: false,
+        {
+          $lookup: {
+            from: "horse_details",
+            localField: "mother",
+            foreignField: "hid",
+            as: "mdoc",
+          },
         },
-      },
-      {
-        $project: {
-          hid: 1,
-          mother: 1,
-          father: 1,
-          mother_bt: 1,
-          father_bt: 1,
-          mother_ymca5: 1,
-          father_ymca5: 1,
-          win_n: "$rcountdoc.dist_ob.99.9000.1.0",
-          races_n: "$rcountdoc.dist_ob.99.9000.33.0",
+        {
+          $lookup: {
+            from: "horse_details",
+            localField: "father",
+            foreignField: "hid",
+            as: "fdoc",
+          },
         },
-      },
-      {
-        $project: {
-          hid: 1,
-          mother: 1,
-          father: 1,
-          mother_bt: 1,
-          father_bt: 1,
-          win_n: 1,
-          races_n: 1,
-          mother_ymca5: 1,
-          father_ymca5: 1,
-          win_rate: {
-            $cond: [
-              { $eq: ["$races_n", 0] },
-              0,
-              { $divide: ["$win_n", "$races_n"] },
+        {
+          $lookup: {
+            from: "ymca5",
+            localField: "mother",
+            foreignField: "hid",
+            as: "mdpdoc",
+          },
+        },
+        {
+          $lookup: {
+            from: "ymca5",
+            localField: "father",
+            foreignField: "hid",
+            as: "fdpdoc",
+          },
+        },
+        {
+          $unwind: {
+            path: "$mdoc",
+            includeArrayIndex: "0",
+            preserveNullAndEmptyArrays: false,
+          },
+        },
+        {
+          $unwind: {
+            path: "$fdoc",
+            includeArrayIndex: "0",
+            preserveNullAndEmptyArrays: false,
+          },
+        },
+        {
+          $unwind: {
+            path: "$mdpdoc",
+            includeArrayIndex: "0",
+            preserveNullAndEmptyArrays: false,
+          },
+        },
+        {
+          $unwind: {
+            path: "$fdpdoc",
+            includeArrayIndex: "0",
+            preserveNullAndEmptyArrays: false,
+          },
+        },
+        {
+          $project: {
+            hid: 1,
+            mother: 1,
+            father: 1,
+            mother_bt: "$mdoc.breed_type",
+            father_bt: "$fdoc.breed_type",
+            mother_ymca5: "$mdpdoc.ymca5",
+            father_ymca5: "$fdpdoc.ymca5",
+          },
+        },
+        {
+          $match: {
+            $and: [
+              {
+                mother_ymca5: { $gte: mi, $lt: mx },
+                father_ymca5: { $gte: mi, $lt: mx },
+              },
+              {
+                // $not: {
+                $and: [
+                  { mother_bt: { $eq: "genesis" } },
+                  { father_bt: { $eq: "genesis" } },
+                ],
+                // },
+              },
+              // {
+              //   father_ymca5: { $gte: 0.7, $lte: 1 },
+              //   mother_ymca5: { $gte: 1.3 },
+              // },
             ],
           },
         },
-      },
-      { $match: { races_n: { $ne: 0 } } },
-      // { $limit: 10 },
-      {
-        $group: {
-          _id: `0.7|1.0 && 1.3`,
-          // _id: { $concat: ["$key", " -- [ ", "$same_dist", " ]"] },
-          avg_win_rate: { $avg: "$win_rate" },
-          count: { $sum: 1 },
+        {
+          $lookup: {
+            from: "rcount",
+            localField: "hid",
+            foreignField: "hid",
+            as: "rcountdoc",
+          },
         },
-      },
-      { $sort: { _id: 1 } },
-    ])
-    .toArray();
-  console.table(ea);
+        {
+          $unwind: {
+            path: "$rcountdoc",
+            includeArrayIndex: "0",
+            preserveNullAndEmptyArrays: false,
+          },
+        },
+        {
+          $project: {
+            hid: 1,
+            mother: 1,
+            father: 1,
+            mother_bt: 1,
+            father_bt: 1,
+            mother_ymca5: 1,
+            father_ymca5: 1,
+            win_n: "$rcountdoc.dist_ob.99.9000.1.0",
+            races_n: "$rcountdoc.dist_ob.99.9000.33.0",
+          },
+        },
+        {
+          $project: {
+            hid: 1,
+            mother: 1,
+            father: 1,
+            mother_bt: 1,
+            father_bt: 1,
+            win_n: 1,
+            races_n: 1,
+            mother_ymca5: 1,
+            father_ymca5: 1,
+            win_rate: {
+              $cond: [
+                { $eq: ["$races_n", 0] },
+                0,
+                { $divide: ["$win_n", "$races_n"] },
+              ],
+            },
+          },
+        },
+        { $match: { races_n: { $ne: 0 } } },
+        // { $limit: 15 },
+        {
+          $group: {
+            _id: `${mi} - ${mx}`,
+            // _id: { $concat: ["$key", " -- [ ", "$same_dist", " ]"] },
+            avg_win_rate: { $avg: "$win_rate" },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { _id: 1 } },
+      ])
+      .toArray();
+    console.table(ea);
+    ar.push(ea[0]);
+  }
+  console.table(ar);
+  if (true)
+    await sheet_ops.sheet_print_ob(ar, {
+      range: "ymca_both_genesis",
+      spreadsheetId: "1NjYzfWy-Ns52uMNXFbAYIPHRtDymrgX8TyKcM5h3RWU",
+    });
 };
 
-const tests = { run: run_23 };
+const tests = { run: run_24 };
 module.exports = tests;
