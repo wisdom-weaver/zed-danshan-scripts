@@ -309,21 +309,26 @@ const elo_races_do = async (hid, tdoc, races) => {
       // console.log("hrating missing for ", race.rid, race.hrating);
     }
 
-    races[i].score =
+    races[i].elo_diff =
       i == 0 ? race.hrating - elo_init : race.hrating - races[i - 1].hrating;
     if (i == traces_n - 1) elo_last = race.hrating;
-    races[i].score = -races[i].score;
+
+    races[i].score = 0;
+    if (races[i].elo_diff > 0 || races[i].elo_diff < -1)
+      races.score = calc_t_score(race, tdoc);
+    else races.score = 0;
   }
   // console.table(races);
   // console.table(elo_list);
 
-  let elo_score = -(elo_last - elo_init);
-  if (elo_score >= 1.2) {
-    let norm = await normal_races_do(hid, tdoc, races);
-    elo_score =  norm.tot_score;
-  } else {
-    elo_score = 0;
-  }
+  // let elo_score = -(elo_last - elo_init);
+  // if (elo_score >= 1.2) {
+  //   let norm = await normal_races_do(hid, tdoc, races);
+  //   elo_score =  norm.tot_score;
+  // } else {
+  //   elo_score = 0;
+  // }
+  let elo_score = _.sumBy(races, "score");
   if (test_mode) console.log({ elo_init, elo_last });
   return { hid, traces_n, elo_score, races, elo_last };
 };
