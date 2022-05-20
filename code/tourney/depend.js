@@ -616,13 +616,13 @@ const get_elo_score = async (hid) => {
   return hdoc?.rating || null;
 };
 
-const get_payout_wallet = (key) => {
+const get_payout_wallet = (type) => {
   if (type == "regular") return process.env.regular_payout_wallet;
   if (type == "flash") return process.env.flash_payout_wallet;
   return null;
 };
 
-const get_payout_private_key = (key) => {
+const get_payout_private_key = (type) => {
   if (type == "regular") return process.env.regular_payout_private_key;
   if (type == "flash") return process.env.flash_payout_private_key;
   return null;
