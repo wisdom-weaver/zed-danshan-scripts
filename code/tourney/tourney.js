@@ -315,8 +315,8 @@ const elo_races_do = async (hid, tdoc, races) => {
 
     races[i].score = 0;
     if (races[i].elo_diff > 0 || races[i].elo_diff < -1)
-      races.score = calc_t_score(race, tdoc);
-    else races.score = 0;
+      races[i].score = calc_t_score(race, tdoc);
+    else races[i].score = 0;
   }
   // console.table(races);
   // console.table(elo_list);
