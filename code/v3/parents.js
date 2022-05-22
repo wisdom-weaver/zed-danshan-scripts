@@ -23,7 +23,7 @@ const validate_kid_parents = (doc) => {
 
 const validate_kids_n_parents = async () => {
   let id = "invalid_kids";
-  await init();
+  // await init();
   await zed_db.db
     .collection("script")
     .updateOne({ id }, { $set: { id, invalid_kids: [] } }, { upsert: true });
@@ -90,7 +90,7 @@ const remove_kid = async (hid) => {
 };
 
 const update_invalid_kids_n_parents = async () => {
-  await init();
+  // await init();
   let cs = 10;
   let id = "invalid_kids";
   let { invalid_kids = [] } = await zed_db.db
