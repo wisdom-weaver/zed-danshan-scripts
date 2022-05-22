@@ -384,6 +384,9 @@ const main = async (args) => {
     if (arg2 == "fix_horse_type_all") {
       mod.parents.fix_horse_type_all();
     }
+    if (arg2 == "fix_parents_kids_mismatch") {
+      mod.parents.fix_parents_kids_mismatch();
+    }
   } else if (arg1 == "--dan_max_gap") {
     if (arg2 == "main") {
       dan.max_gap.main(arg3, arg4);
