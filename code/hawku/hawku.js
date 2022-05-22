@@ -61,12 +61,16 @@ const track_events = async ([st, ed]) => {
     };
     upd_ar.push(ndoc);
   }
+  upd_ar = _.uniqBy(upd_ar, "hid");
   await push_bulkc(coll, upd_ar, name, "hid");
 
   let now = parseInt(moment().format("X"));
-  let expired = await zed_db.db
-    .collection(coll)
-    .deleteMany({ expires_at: { $lte: now } });
+  let expired = await zed_db.db.collection(coll).deleteMany({
+    $or: [
+      { expires_at: { $lte: now } },
+      { active: false, listed_at: { $gte: now } },
+    ],
+  });
 };
 
 const runner = async () => {
