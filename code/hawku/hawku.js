@@ -10,6 +10,7 @@ const { fget } = require("../utils/fetch");
 const { getv, nano, iso, cdelay } = require("../utils/utils");
 const { push_bulkc } = require("../utils/bulk");
 const { print_cron_details } = require("../utils/cyclic_dependency");
+const cron = require("node-cron");
 
 let test_mode = 0;
 const name = "hawku";
