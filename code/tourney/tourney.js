@@ -329,6 +329,7 @@ const elo_races_do = async (hid, tdoc, races) => {
   //   elo_score = 0;
   // }
   let elo_score = _.sumBy(races, "score");
+  elo_score = (elo_score || 0) / (traces_n || 1);
   if (test_mode) console.log({ elo_init, elo_last });
   return { hid, traces_n, elo_score, races, elo_last };
 };
