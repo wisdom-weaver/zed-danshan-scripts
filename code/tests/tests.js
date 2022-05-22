@@ -674,7 +674,7 @@ const run_20 = async () => {
 const run_21 = async () => {
   let pays = [
     {
-      WALLET: "0xCaD173Dc87DdfD5eD550030470c35d9BeC4BDE3d",
+      WALLET: "0xc2014B17e2234ea18a50F292faEE29371126A3e0",
       AMOUNT: "0.3",
     },
   ];
@@ -1115,5 +1115,5 @@ const run_24 = async () => {
     });
 };
 
-const tests = { run: run_24 };
+const tests = { run: run_21 };
 module.exports = tests;

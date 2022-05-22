@@ -45,6 +45,7 @@ const s5 = {
 
 let test_mode = 0;
 const def_cs = 25;
+const name = "mega";
 
 const calc = async ({ hid }) => {
   hid = parseInt(hid);

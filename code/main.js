@@ -16,6 +16,7 @@ const finder = require("./tests/finder");
 const gapi = require("../gapi/gapi");
 const temp = require("../temp/temp");
 const tourney = require("./tourney/tourney");
+const hawku = require("./hawku/hawku");
 const mod = v3;
 
 const main = async (args) => {
@@ -428,6 +429,8 @@ const main = async (args) => {
   } else if (arg1 == "--temp") await temp.main_runner(args);
   else if (arg1 == "--tourney") {
     await tourney.main_runner(args);
+  } else if (arg1 == "--hawku") {
+    await hawku.main_runner();
   }
 
   console.log("---ed");
