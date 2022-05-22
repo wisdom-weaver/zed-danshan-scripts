@@ -253,14 +253,20 @@ const only = async (hids, cs = def_cs) => {
 
 const range = async (st, ed, cs = def_cs) => {
   if (!ed || ed == "ed") ed = await get_ed_horse();
-  let hids = get_hids(st, ed);
-  await only(hids, cs);
+  // let hids = get_hids(st, ed);
+  for (let i = st; i <= ed; i += cs) {
+    let hids = get_hids(i, i + cs);
+    await only(hids, cs);
+  }
   console.log("ended", name);
 };
 const range_w_parents_br = async (st, ed, cs = def_cs) => {
   if (!ed || ed == "ed") ed = await get_ed_horse();
-  let hids = get_hids(st, ed);
-  await only_w_parents_br(hids, cs);
+  // let hids = get_hids(st, ed);
+  for (let i = st; i <= ed; i += cs) {
+    let hids = get_hids(i, i + cs);
+    await only_w_parents_br(hids, cs);
+  }
   console.log("ended", name);
 };
 
