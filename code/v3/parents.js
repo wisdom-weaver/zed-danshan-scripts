@@ -1,6 +1,6 @@
 const _ = require("lodash");
 const { zed_db } = require("../connection/mongo_connect");
-const { delay, geno } = require("../utils/utils");
+const { delay, geno, get_hids } = require("../utils/utils");
 const cron = require("node-cron");
 const cron_parser = require("cron-parser");
 const { get_ed_horse } = require("../utils/cyclic_dependency");
@@ -34,8 +34,9 @@ const validate_kids_n_parents = async () => {
   // let h = 130000;
   // let [st, ed] = [h, ed_hid];
   console.log("getting", st, "->", ed);
-  let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
-  for (let chunk_hids of _.chunk(hids, cs)) {
+  // let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
+  for (let i = st; i <= ed; i += cs) {
+    let chunk_hids = get_hids(i, i + cs);
     // console.log(chunk_hids);
     let [st_h, ed_h] = [chunk_hids[0], chunk_hids[chunk_hids.length - 1]];
     let docs = await zed_db
@@ -205,7 +206,8 @@ const fix_horse_type_all = async () => {
   // let [st, ed] = [h, ed_hid];
   console.log("getting", st, "->", ed);
   let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
-  for (let chunk_hids of _.chunk(hids, cs)) {
+  for (let i = st; i <= ed; i += cs) {
+    let chunk_hids = get_hids(i, i + cs);
     await fix_horse_type_after_kids(chunk_hids);
   }
 };
