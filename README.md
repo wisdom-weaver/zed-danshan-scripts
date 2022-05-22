@@ -43,3 +43,6 @@ pm2 start node --name "payments_cron" -- code/main.js --payments run_cron
 
 parents htype 
 pm2 start node --name "parents_htype " -- code/main.js --parents fix_horse_type_all_cron
+
+hawku prices 
+pm2 start node --name "hawku_prices" -- code/main.js --hawku run_cron 
