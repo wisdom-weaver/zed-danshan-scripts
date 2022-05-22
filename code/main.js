@@ -277,6 +277,10 @@ const main = async (args) => {
     }
   } else if (arg1 == "--mega") {
     let def_cs = 25;
+    if (arg2 == "allw") {
+      let cs = arg3 ? parseInt(arg3) : def_cs;
+      mod.mega.allw(cs);
+    }
     if (arg2 == "all") {
       let cs = arg3 ? parseInt(arg3) : def_cs;
       mod.mega.all(cs);

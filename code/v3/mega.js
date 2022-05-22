@@ -272,8 +272,19 @@ const range_w_parents_br = async (st, ed, cs = def_cs) => {
 
 const all = async (cs = def_cs) => {
   let [st, ed] = [1, await get_ed_horse()];
-  let hids = get_hids(st, ed);
-  await only(hids);
+  for (let i = st; i <= ed; i += cs) {
+    let hids = get_hids(i, i + cs);
+    await only(hids);
+  }
+};
+
+const allw = async (cs = def_cs) => {
+  let [st, ed] = [1, await get_ed_horse()];
+  for (let i = st; i <= ed; i += cs) {
+    console.log(i, i + cs);
+    let hids = get_hids(i, i + cs);
+    await only_w_parents_br(hids);
+  }
 };
 
 const test = async (hids) => {
@@ -285,6 +296,7 @@ const test = async (hids) => {
 };
 
 const mega = {
+  allw,
   calc,
   generate,
   test,
