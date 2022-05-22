@@ -234,7 +234,11 @@ const get_range = async (range) => {
   let cs = def_cs;
   let hids_all = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
   console.log([st, ed]);
-  await get_only(hids_all);
+  for (let i = st; i <= ed; i += cs) {
+    console.log(i, i + cs);
+    let hids = get_hids(i, i + cs);
+    await get_only(hids);
+  }
 };
 
 const get_valid_hids_in_details = async (hids) => {
