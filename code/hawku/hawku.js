@@ -79,7 +79,7 @@ const runner = async () => {
   await run([st, ed]);
 };
 
-const run = async (st, ed) => {
+const run = async ([st, ed]) => {
   console.log(iso(st), "->", iso(ed));
   let now = nano(st);
   let edn = nano(ed);
@@ -104,7 +104,7 @@ const main_runner = async () => {
   let args = process.argv;
   let [_node, _cfile, arg1, arg2, arg3, arg4, arg5] = args;
   if (arg2 == "runner") await runner();
-  if (arg2 == "run") await run(arg3, arg4);
+  if (arg2 == "run") await run([arg3, arg4]);
   if (arg2 == "run_cron") await run_cron();
 };
 
