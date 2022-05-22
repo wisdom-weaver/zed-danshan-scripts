@@ -232,7 +232,6 @@ const get_range = async (range) => {
   ed = utils.get_n(ed);
   if (ed == "ed" || ed == null) ed = await get_ed_horse();
   let cs = def_cs;
-  let hids_all = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
   console.log([st, ed]);
   for (let i = st; i <= ed; i += cs) {
     console.log(i, i + cs);
