@@ -57,6 +57,8 @@ const track_events = async ([st, ed]) => {
       active,
       expires_at,
       listed_at,
+      expires_at_iso: iso(expires_at * 1000),
+      listed_at_iso: iso(listed_at * 1000),
       active,
     };
     upd_ar.push(ndoc);
