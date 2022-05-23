@@ -304,16 +304,11 @@ const elo_races_do = async (hid, tdoc, races) => {
   let traces_n = races.length;
   for (let i = 0; i < traces_n; i++) {
     let race = races[i];
-    // if (!race.hrating) {
-    let got = race.hrating;
-    race.hrating = get_opt_elo_from_list(race.date, elo_list);
-    if (!race.hrating) race.hrating = got;
-    // console.log("hrating missing for ", race.rid, race.hrating);
-    // }
+    race.enter = i == 0 ? elo_init : races[i - 1].exit;
+    race.exit = get_opt_elo_from_list(race.date, elo_list);
 
-    races[i].elo_diff =
-      i == 0 ? race.hrating - elo_init : race.hrating - races[i - 1].hrating;
-    if (i == traces_n - 1) elo_last = race.hrating;
+    races[i].elo_diff = race.exit - race.enter;
+    if (i == traces_n - 1) elo_last = race.exit;
 
     races[i].score = 0;
     if (races[i].elo_diff > 0 || races[i].elo_diff < -1)
