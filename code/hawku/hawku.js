@@ -153,6 +153,7 @@ const post_track = async ({ actives = [], events = [], sales = [] }) => {
         price,
         token_id: hid,
       } = e;
+      if (!last_updated_at) last_updated_at = event_created_at;
       let doc = {
         hid,
         active,
