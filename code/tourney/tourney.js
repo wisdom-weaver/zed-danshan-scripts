@@ -310,10 +310,10 @@ const elo_races_do = async (hid, tdoc, races) => {
     races[i].elo_diff = race.exit - race.enter;
     if (i == traces_n - 1) elo_last = race.exit;
 
-    races[i].score = 0;
-    if (races[i].elo_diff > 0 || races[i].elo_diff < -1)
-      races[i].score = calc_t_score(race, tdoc);
-    else races[i].score = 0;
+    races[i].score = calc_t_score(race, tdoc);
+    if (_.inRange(race.place, 7, 12.1)) {
+      if (_.inRange(races[i].elo_diff, -1, 0.0001)) races[i].score = 0;
+    }
   }
   // console.table(races);
   // console.table(elo_list);
@@ -328,6 +328,7 @@ const elo_races_do = async (hid, tdoc, races) => {
   let elo_score = _.sumBy(races, "score");
   elo_score = (elo_score || 0) / (traces_n || 1);
   if (test_mode) console.log({ elo_init, elo_last });
+  if (test_mode) console.table(elo_list);
   return { hid, traces_n, elo_score, races, elo_last };
 };
 
