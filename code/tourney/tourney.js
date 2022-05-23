@@ -304,10 +304,12 @@ const elo_races_do = async (hid, tdoc, races) => {
   let traces_n = races.length;
   for (let i = 0; i < traces_n; i++) {
     let race = races[i];
-    if (!race.hrating) {
-      race.hrating = get_opt_elo_from_list(race.date, elo_list);
-      // console.log("hrating missing for ", race.rid, race.hrating);
-    }
+    // if (!race.hrating) {
+    let got = race.hrating;
+    race.hrating = get_opt_elo_from_list(race.date, elo_list);
+    if (!race.hrating) race.hrating = got;
+    // console.log("hrating missing for ", race.rid, race.hrating);
+    // }
 
     races[i].elo_diff =
       i == 0 ? race.hrating - elo_init : race.hrating - races[i - 1].hrating;
@@ -1507,6 +1509,7 @@ const temp_fix = async () => {
 
 const main_runner = async (args) => {
   try {
+    console.log(args);
     let [_node, _cfile, args1, arg2, arg3, arg4, arg5, arg6] = args;
     console.log("# --tourney ", iso());
     if (arg2 == "test") await test(arg3);
