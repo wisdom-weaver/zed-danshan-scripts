@@ -114,6 +114,7 @@ const track_sales = async ([st, ed]) => {
 
 const post_track = async ({ actives = [], events = [], sales = [] }) => {
   let bulk = [];
+  let now = fX(iso());
   console.log("actives: ", actives.length);
   console.log("events : ", events.length);
   console.log("sales  : ", sales.length);
@@ -191,18 +192,29 @@ const post_track = async ({ actives = [], events = [], sales = [] }) => {
         },
       });
     });
+
+  bulk.push({ deleteMany: { filter: { expires_at: { $lte: now } } } });
+
   let ref = zed_db.db.collection(coll);
   if (!_.isEmpty(bulk)) {
     let resp = await ref.bulkWrite(bulk);
-    console.log(resp);
+    let ok = getv(resp, "ok");
+    let writeErrors = getv(resp, "writeErrors")?.length || 0;
+    let nInserted = getv(resp, "nInserted");
+    let nUpserted = getv(resp, "nUpserted");
+    let nMatched = getv(resp, "nMatched");
+    let nModified = getv(resp, "nModified");
+    let nRemoved = getv(resp, "nRemoved");
+    console.log({
+      ok,
+      writeErrors,
+      nInserted,
+      nUpserted,
+      nMatched,
+      nModified,
+      nRemoved,
+    });
   } else console.log("nothing to write");
-
-  await cdelay(1000);
-  // delete expired
-  let now = fX(iso());
-  await ref.deleteMany({
-    expires_at: { $lte: now },
-  });
 };
 
 const runner = async () => {
