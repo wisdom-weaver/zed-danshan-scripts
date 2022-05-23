@@ -19,9 +19,36 @@ const coll = "hawku";
 const base = `https://api.hawku.com/api/v1/marketplace`;
 const asset_contract_address = `0x67F4732266C7300cca593C814d46bee72e40659F`;
 const base_events = `${base}/listing-events`;
+const base_active = `${base}/active-listings`;
+const base_sales = `${base}/active-listings`;
 const head = { "X-HAWKU-TOKEN": process.env.hawku_token };
 // timestamp_start=1651436952&timestamp_end=1653164952&offset=500&
 
+const hget = async (base_ap, par) => {
+  const se = qs.stringify(par);
+  const api = `${base_ap}?${se}`;
+  const resp = await fget(api, null, head).catch((err) => console.log(err));
+  return resp;
+};
+
+const fX = (date) => moment(date).format("X");
+
+const track_active = async ([st, ed]) => {
+  st = fX(st);
+  ed = fX(ed);
+  const par = {
+    asset_contract_address,
+    timestamp_start: st,
+    timestamp_end: ed,
+  };
+  const resp = await hget(base_active, par);
+  let data = getv(resp, "data");
+  if (_.isEmpty(data)) {
+    console.log("active:: empty");
+    return [];
+  }
+  return data;
+};
 const track_events = async ([st, ed]) => {
   console.log("tracking", st, ed);
   st = moment(st).format("X");
@@ -33,45 +60,148 @@ const track_events = async ([st, ed]) => {
   };
   // console.log(par);
   // console.log(head);
-  const se = qs.stringify(par);
-  const api = `${base_events}?${se}`;
-  const resp = await fget(api, null, head).catch((err) => console.log(err));
+  const resp = await hget(base_events, par);
   let data = getv(resp, "data");
-  let upd_ar = [];
-  let del_hids = [];
-  for (let doc of data) {
-    let {
-      active,
-      asset_contract_address,
-      currency,
-      event_created_at,
-      expires_at,
-      listed_at,
-      owner: stable,
-      price,
-      token_id: hid,
-    } = doc;
-    let ndoc = {
-      hid,
-      price,
-      active,
-      expires_at,
-      listed_at,
-      expires_at_iso: iso(expires_at * 1000),
-      listed_at_iso: iso(listed_at * 1000),
-      active,
-    };
-    upd_ar.push(ndoc);
+  if (_.isEmpty(data)) {
+    console.log("events:: empty");
+    return [];
   }
-  upd_ar = _.uniqBy(upd_ar, "hid");
-  await push_bulkc(coll, upd_ar, name, "hid");
+  return data;
+  // let upd_ar = [];
+  // for (let doc of data) {
+  //   let {
+  //     active,
+  //     asset_contract_address,
+  //     currency,
+  //     event_created_at,
+  //     expires_at,
+  //     listed_at,
+  //     owner: stable,
+  //     price,
+  //     token_id: hid,
+  //   } = doc;
+  //   let ndoc = {
+  //     hid,
+  //     price,
+  //     active,
+  //     expires_at,
+  //     listed_at,
+  //     expires_at_iso: iso(expires_at * 1000),
+  //     listed_at_iso: iso(listed_at * 1000),
+  //     active,
+  //   };
+  //   upd_ar.push(ndoc);
+  // }
+  // upd_ar = _.uniqBy(upd_ar, "hid");
+  // await push_bulkc(coll, upd_ar, name, "hid");
+};
+const track_sales = async ([st, ed]) => {
+  st = fX(st);
+  ed = fX(ed);
+  const par = {
+    asset_contract_address,
+    timestamp_start: st,
+    timestamp_end: ed,
+  };
+  const resp = await hget(base_sales, par);
+  let data = getv(resp, "data");
+  if (_.isEmpty(data)) {
+    console.log("sales:: empty");
+    return [];
+  }
+  return data;
+};
 
-  let now = parseInt(moment().format("X"));
-  let expired = await zed_db.db.collection(coll).deleteMany({
-    $or: [
-      { expires_at: { $lte: now } },
-      { active: false, listed_at: { $gte: now } },
-    ],
+const post_track = async ({ actives = [], events = [], sales = [] }) => {
+  let bulk = [];
+  console.log("actives: ", actives.length);
+  console.log("events : ", events.length);
+  console.log("sales  : ", sales.length);
+  if (!_.isEmpty(actives))
+    actives.map((e) => {
+      let { last_updated_at, expires_at, listed_at, price, token_id: hid } = e;
+      let doc = {
+        hid,
+        active: true,
+        last_updated_at,
+        expires_at,
+        listed_at,
+        price,
+      };
+      bulk.push({
+        updateOne: {
+          filter: {
+            $or: [
+              { hid, last_updated_at: { $lte: last_updated_at } },
+              { hid, listed_at: { $lte: listed_at } },
+            ],
+          },
+          update: { $set: doc },
+          upsert: true,
+        },
+      });
+    });
+  if (!_.isEmpty(events))
+    events.map((e) => {
+      let {
+        active,
+        event_created_at,
+        last_updated_at,
+        expires_at,
+        listed_at,
+        price,
+        token_id: hid,
+      } = e;
+      let doc = {
+        hid,
+        active,
+        event_created_at,
+        last_updated_at,
+        expires_at,
+        listed_at,
+        price,
+      };
+      bulk.push({
+        updateOne: {
+          filter: {
+            $or: [
+              { hid, last_updated_at: { $lte: event_created_at } },
+              { hid, event_created_at: { $lte: event_created_at } },
+            ],
+          },
+          update: { $set: doc },
+          upsert: false,
+        },
+      });
+    });
+
+  if (!_.isEmpty(sales))
+    sales.map((e) => {
+      let { token_id: hid, last_updated_at, listed_at, expires_at } = e;
+      let doc = { active: false, expires_at };
+      bulk.push({
+        updateOne: {
+          filter: {
+            hid,
+            listed_at: { $lte: last_updated_at },
+            last_updated_at: { $lte: last_updated_at },
+          },
+          update: { $set: doc },
+          upsert: false,
+        },
+      });
+    });
+  let ref = zed_db.db.collection(coll);
+  if (!_.isEmpty(bulk)) {
+    let resp = await ref.bulkWrite(bulk);
+    console.log(resp);
+  } else console.log("nothing to write");
+
+  await cdelay(1000);
+  // delete expired
+  let now = fX(iso());
+  await ref.deleteMany({
+    expires_at: { $lte: now },
   });
 };
 
@@ -90,7 +220,13 @@ const run = async ([st, ed]) => {
     let now_st = nano(now);
     let now_ed = Math.min(edn, now_st + off);
     // console.log(iso(now_st), iso(now_ed));
-    await track_events([iso(now_st), iso(now_ed)]);
+    let actives = await track_active([iso(now_st), iso(now_ed)]);
+    let events = await track_events([iso(now_st), iso(now_ed)]);
+    let sales = await track_sales([iso(now_st), iso(now_ed)]);
+    await post_track({ actives, events, sales });
+    // console.table(actives);
+    // console.table(events);
+    // console.table(sales);
     await cdelay(1000);
     now += off;
   }

@@ -1504,18 +1504,72 @@ const temp_fix = async () => {
   await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: fixdoc });
 };
 
+const fix = async () => {
+  const prraces = (rs) => {
+    let nr = _.chain(rs)
+      .clone()
+      .map((r) => {
+        let { rid, date, place, enter, exit, elo_diff } = r;
+        return { rid, date, place, enter, exit, elo_diff };
+      })
+      .value();
+    console.table(nr);
+  };
+
+  let tid = "3dc56ddb";
+  let hid = 133549;
+  let thdoc = await zed_db.db.collection(tcoll_horses(tid)).findOne({ hid });
+  let { elo_init, elo_list, races } = thdoc;
+  console.table(elo_list);
+  prraces(races);
+
+  let frid = "x2usJPyk";
+  let celo = 1371.34
+  ;
+
+  let frdate = _.find(races, { rid: frid })?.date;
+  console.log({
+    frid,
+    celo,
+    frdate,
+  });
+  let elref = _.find(elo_list, { elo_curr: celo });
+  elref.elo_time = moment(frdate).add(+1, "minute").toISOString();
+
+  let traces_n = races.length;
+  for (let i = 0; i < traces_n; i++) {
+    let race = races[i];
+    race.enter = i == 0 ? elo_init : races[i - 1].exit;
+    race.exit = get_opt_elo_from_list(race.date, elo_list);
+
+    races[i].elo_diff = race.exit - race.enter;
+    if (i == traces_n - 1) elo_last = race.exit;
+  }
+  console.table(elo_list);
+  prraces(races);
+
+  if (true) {
+  // if (false) {
+    await zed_db.db
+      .collection(tcoll_horses(tid))
+      .updateOne({ hid }, { $set: { elo_list } });
+    await run_tid(tid);
+  }
+};
+
 const main_runner = async (args) => {
   try {
     console.log(args);
     let [_node, _cfile, args1, arg2, arg3, arg4, arg5, arg6] = args;
     console.log("# --tourney ", iso());
     if (arg2 == "test") await test(arg3);
+    if (arg2 == "fix") await fix();
     if (arg2 == "thorse") await thorse([arg3, arg4]);
     if (arg2 == "run") await run(arg3);
     if (arg2 == "runtcron") await runtcron(arg3);
     if (arg2 == "runner") await runner();
     if (arg2 == "flash_runner") await flash_runner();
-    if (arg2 == "flash_payout") await tourney_payout(arg3);
+    if (arg2 == "tourney_payout") await tourney_payout(arg3);
     if (arg2 == "run_cron") await run_cron();
     if (arg2 == "run_flash_cron") await run_flash_cron();
     if (arg2 == "t_status_regular") await t_status_regular();
