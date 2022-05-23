@@ -312,7 +312,8 @@ const elo_races_do = async (hid, tdoc, races) => {
 
     races[i].score = calc_t_score(race, tdoc);
     if (_.inRange(race.place, 7, 12.1)) {
-      if (_.inRange(races[i].elo_diff, -1, 0.0001)) races[i].score = 0;
+      if (races[i].elo_diff > 0) races[i].score = 0; // rise
+      else if (_.inRange(races[i].elo_diff, -1, 0.0001)) races[i].score = 0; // fall less than 1
     }
   }
   // console.table(races);
