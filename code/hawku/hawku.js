@@ -20,7 +20,7 @@ const base = `https://api.hawku.com/api/v1/marketplace`;
 const asset_contract_address = `0x67F4732266C7300cca593C814d46bee72e40659F`;
 const base_events = `${base}/listing-events`;
 const base_active = `${base}/active-listings`;
-const base_sales = `${base}/active-listings`;
+const base_sales = `${base}/sales`;
 const head = { "X-HAWKU-TOKEN": process.env.hawku_token };
 // timestamp_start=1651436952&timestamp_end=1653164952&offset=500&
 
@@ -112,12 +112,8 @@ const track_sales = async ([st, ed]) => {
   return data;
 };
 
-const post_track = async ({ actives = [], events = [], sales = [] }) => {
+const get_bulk_actives = (actives) => {
   let bulk = [];
-  let now = fX(iso());
-  console.log("actives: ", actives.length);
-  console.log("events : ", events.length);
-  console.log("sales  : ", sales.length);
   if (!_.isEmpty(actives))
     actives.map((e) => {
       let { last_updated_at, expires_at, listed_at, price, token_id: hid } = e;
@@ -129,6 +125,7 @@ const post_track = async ({ actives = [], events = [], sales = [] }) => {
         listed_at,
         price,
       };
+      // console.log(doc);
       bulk.push({
         updateOne: {
           filter: {
@@ -142,6 +139,10 @@ const post_track = async ({ actives = [], events = [], sales = [] }) => {
         },
       });
     });
+  return bulk;
+};
+const get_bulk_events = (events) => {
+  let bulk = [];
   if (!_.isEmpty(events))
     events.map((e) => {
       let {
@@ -176,25 +177,44 @@ const post_track = async ({ actives = [], events = [], sales = [] }) => {
         },
       });
     });
+  return bulk;
+};
 
+const get_bulk_sales = (sales) => {
+  let bulk = [];
   if (!_.isEmpty(sales))
     sales.map((e) => {
-      let { token_id: hid, last_updated_at, listed_at, expires_at } = e;
-      let doc = { active: false, expires_at };
+      let { token_id: hid, sold_at } = e;
+      let doc = { active: false };
       bulk.push({
         updateOne: {
           filter: {
             hid,
-            listed_at: { $lte: last_updated_at },
-            last_updated_at: { $lte: last_updated_at },
+            listed_at: { $lte: sold_at },
+            last_updated_at: { $lte: sold_at },
           },
           update: { $set: doc },
           upsert: false,
         },
       });
     });
+  return bulk;
+};
 
-  bulk.push({ deleteMany: { filter: { expires_at: { $lte: now } } } });
+const post_track = async ({ actives = [], events = [], sales = [] }) => {
+  let bulk = [];
+  let now = fX(iso());
+  console.log("actives: ", actives.length);
+  console.log("events : ", events.length);
+  console.log("sales  : ", sales.length);
+  let bulk_actives = get_bulk_actives(actives);
+  let bulk_events = get_bulk_events(events);
+  let bulk_sales = get_bulk_sales(sales);
+  bulk = [...bulk_actives, ...bulk_events, ...bulk_sales];
+
+  bulk.push({
+    deleteMany: { filter: { expires_at: { $ne: null, $lte: now } } },
+  });
 
   let ref = zed_db.db.collection(coll);
   if (!_.isEmpty(bulk)) {
@@ -224,6 +244,8 @@ const runner = async () => {
   await run([st, ed]);
 };
 
+const curr_actives = async () => {};
+
 const run = async ([st, ed]) => {
   console.log(iso(st), "->", iso(ed));
   let now = nano(st);
@@ -251,12 +273,19 @@ const run_cron = async () => {
   cron.schedule(cron_str, runner);
 };
 
+const clear = async () => {
+  await zed_db.db.collection(coll).deleteMany({});
+  console.log("cleared");
+};
+
 const main_runner = async () => {
   let args = process.argv;
   let [_node, _cfile, arg1, arg2, arg3, arg4, arg5] = args;
   if (arg2 == "runner") await runner();
+  if (arg2 == "curr_actives") await curr_actives();
   if (arg2 == "run") await run([arg3, arg4]);
   if (arg2 == "run_cron") await run_cron();
+  if (arg2 == "clear") await clear();
 };
 
 const hawku = { main_runner };
