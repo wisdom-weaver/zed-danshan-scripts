@@ -17,6 +17,7 @@ const gapi = require("../gapi/gapi");
 const temp = require("../temp/temp");
 const tourney = require("./tourney/tourney");
 const hawku = require("./hawku/hawku");
+const { fixers } = require("./fixers/fixer");
 const mod = v3;
 
 const main = async (args) => {
@@ -438,6 +439,8 @@ const main = async (args) => {
     await tourney.main_runner(args);
   } else if (arg1 == "--hawku") {
     await hawku.main_runner();
+  } else if (arg1 == "--fixers") {
+    await fixers.main_runner();
   }
 
   console.log("---ed");
