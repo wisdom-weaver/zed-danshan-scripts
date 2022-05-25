@@ -5,7 +5,7 @@ const { getv, cdelay } = require("../utils/utils");
 const mega = require("../v3/mega");
 
 const race0err = async () => {
-  let cs = 100;
+  let cs = 200;
   let ed = await get_ed_horse();
   for (let i = 0; i <= ed; i += cs) {
     let exec = [];
