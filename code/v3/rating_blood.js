@@ -223,7 +223,7 @@ const calc = async ({ hid, races = [], tc }) => {
     ob.overall_rat = await calc_overall_rat({ hid, races });
     ob.tunnel_rat = await calc_tunnel_rat({ hid, races });
     ob.races_n = races?.length ?? 0;
-    console.log(ob)
+    // console.log(ob)
     return ob;
   } catch (err) {
     console.log("err on rating", hid);
