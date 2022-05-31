@@ -47,84 +47,78 @@ const dist_factor = {
 };
 
 const calc_speed_from_races = (races) => {
+  if (_.isEmpty(races)) return null;
   let mx = _.maxBy(races, (i) => {
     return getv(i, "finishtime");
   });
   let { distance, finishtime } = mx;
   let speed = dist_factor[distance] * finishtime;
-  console.log("max_speed", { distance, finishtime, speed });
+  // console.log("max_speed", { distance, finishtime, speed });
+  return speed;
 };
 
 const calc = async ({ hid, races }) => {
   try {
     let speed = calc_speed_from_races(races);
-    return { hid, speed };
+    let ob = { hid, speed };
+    console.log(ob);
+    return ob;
   } catch (err) {
     console.log("err on horse speed", hid);
     console.log(err);
     return null;
   }
 };
+
 const generate = async (hid) => {
-  let st = moment().add(-90, "days").toISOString();
-  let ed = moment().add(0, "days").toISOString();
-  console.log(st, ed);
-  let races = await zed_ch.db
-    .collection("zed")
-    .find(
-      {
-        6: hid,
-        2: { $gte: st, $lte: ed },
-      },
-      { projection: { 1: 1, 7: 1 } }
-    )
-    .toArray();
-  races = cyclic_depedency.struct_race_row_data(races);
-  // console.table(races);
-  let ob = await calc({ hid, races });
-  return ob;
-};
-const test = async (hids) => {
-  test_mode = 1;
-  for (let hid of hids) {
-    let ob = await generate(hid);
-    console.log(hid, ob);
+  try {
+    hid = parseInt(hid);
+    let st = moment().add(-90, "days").toISOString();
+    let ed = moment().add(0, "days").toISOString();
+    let races = await zed_ch.db
+      .collection("zed")
+      .find(
+        { 2: { $gte: st, $lte: ed }, 4: hid },
+        { projection: { 1: 1, 7: 1 } }
+      )
+      .toArray();
+    races = cyclic_depedency.struct_race_row_data(races);
+    let speed = calc_speed_from_races(races);
+    let ob = { hid, speed };
+    return ob;
+  } catch (err) {
+    console.log("err in speed", err);
   }
 };
 
-const all = async () => bulk.run_bulk_all(name, generate, coll, cs, test_mode);
-const only = async (hids) =>
-  bulk.run_bulk_only(name, generate, coll, hids, cs, test_mode);
+const all = async () => {
+  console.log(name, "all");
+  await bulk.run_bulk_all(name, generate, coll, cs, test_mode);
+};
+const only = async (hids) => {
+  console.log(name, "only");
+  if (hids[0] == "b5") {
+    hids = await zed_db.db
+      .collection("horse_details")
+      .find({ tx_date: { $gte: v5_conf.st_date } }, { projection: { hid: 1 } })
+      .toArray();
+    hids = _.map(hids, "hid");
+    console.log("b5", hids);
+  }
+  await bulk.run_bulk_only(name, generate, coll, hids, cs, test_mode);
+};
 const range = async ([st, ed]) => {
-  st = parseInt(st);
-  ed = parseInt(ed);
-  bulk.run_bulk_range(name, generate, coll, st, ed, cs, test_mode);
-};
-
-const fixer = async () => {
-  let all_hids = await cyclic_depedency.get_all_hids();
-  all_hids = all_hids.slice(157001);
-  for (let chunk of _.chunk(all_hids, 2000)) {
-    let [a, b] = [chunk[0], chunk[chunk.length - 1]];
-    console.log(a, "->", b);
-    await Promise.all(
-      chunk.map((hid) => {
-        return zed_db.db
-          .collection(coll)
-          .updateOne({ hid }, { $set: null_br_doc(hid) }, { upsert: true });
-      })
-    );
-  }
-  console.log("ENDED fixer");
+  console.log(name, "range", st, ed);
+  if (!ed) ed = await get_ed_horse();
+  await bulk.run_bulk_range(name, generate, coll, st, ed, cs, test_mode);
 };
 
 const speed = {
   generate,
   calc,
-  test,
+  // test,
   all,
   only,
   range,
-  fixer,
 };
 module.exports = speed;
