@@ -10,6 +10,7 @@ const {
   write_to_path,
   dec,
   getv,
+  get_hids,
 } = require("../utils/utils");
 const app_root = require("app-root-path");
 const {
