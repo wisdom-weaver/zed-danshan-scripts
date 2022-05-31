@@ -1515,18 +1515,16 @@ const fix = async () => {
       .value();
     console.table(nr);
   };
-
-  let tid = "3dc56ddb";
-  let hid = 133549;
+  // cbae0c69/205411
+  let tid = "cbae0c69";
+  let hid = 205411;
   let thdoc = await zed_db.db.collection(tcoll_horses(tid)).findOne({ hid });
   let { elo_init, elo_list, races } = thdoc;
   console.table(elo_list);
   prraces(races);
 
-  let frid = "x2usJPyk";
-  let celo = 1371.34
-  ;
-
+  let frid = "scAqPPKP";
+  let celo = 1423.36;
   let frdate = _.find(races, { rid: frid })?.date;
   console.log({
     frid,
@@ -1534,7 +1532,9 @@ const fix = async () => {
     frdate,
   });
   let elref = _.find(elo_list, { elo_curr: celo });
-  elref.elo_time = moment(frdate).add(+1, "minute").toISOString();
+  elref.elo_time = moment(frdate)
+    .add(+1, "minute")
+    .toISOString();
 
   let traces_n = races.length;
   for (let i = 0; i < traces_n; i++) {
@@ -1548,8 +1548,10 @@ const fix = async () => {
   console.table(elo_list);
   prraces(races);
 
-  if (true) {
-  // if (false) {
+  // if (true) {
+  if (process.argv.includes("override")) {
+    console.log("overriding");
+    await cdelay(4000);
     await zed_db.db
       .collection(tcoll_horses(tid))
       .updateOne({ hid }, { $set: { elo_list } });

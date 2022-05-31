@@ -4,6 +4,7 @@ const line = require("./line");
 const rating_breed = require("./rating_breed");
 const rcount = require("./rcount");
 const ymca5_s = require("./ymca5");
+const speed = require("./speed");
 const ymca5_table = require("./ymca5_table");
 
 const mod = {
@@ -12,6 +13,7 @@ const mod = {
   rating_breed,
   rcount,
   line,
+  speed,
 };
 
 const main_runner = async (args) => {
@@ -37,7 +39,7 @@ const main_runner = async (args) => {
   } else if (arg1 == "--ymca5_table") {
     if (arg2 == "generate") await mod.ymca5_table.generate();
     if (arg2 == "run_cron") {
-      await mod.ymca5_table.run_cron()
+      await mod.ymca5_table.run_cron();
     }
     if (arg2 == "get") {
       let ob = await mod.ymca5_table.get(1);
@@ -112,6 +114,33 @@ const main_runner = async (args) => {
     }
     if (arg2 == "run_cron") {
       await mod.line.run_cron();
+    }
+  } else if (arg1 == "--speed") {
+    console.log("# speed");
+    if (arg2 == "all") await mod.speed.all();
+    if (arg2 == "only") {
+      let conf = JSON.parse(arg3) || {};
+      await mod.speed.only(conf);
+    }
+    if (arg2 == "range") {
+      await mod.speed.range(jparse(arg3));
+    }
+    if (arg2 == "fixer") {
+      await mod.speed.fixer();
+    }
+    if (arg2 == "test") {
+      let conf = JSON.parse(arg3) || {};
+      await mod.speed.test(conf);
+    }
+    if (arg2 == "pair_test") {
+      let conf = JSON.parse(arg3) || {};
+      await mod.speed.pair_test(conf);
+    }
+    if (arg2 == "fix") {
+      await mod.speed.fix();
+    }
+    if (arg2 == "run_cron") {
+      await mod.speed.run_cron();
     }
   }
 };
