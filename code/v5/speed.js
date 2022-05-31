@@ -48,11 +48,15 @@ const dist_factor = {
 
 const calc_speed_from_races = (races) => {
   if (_.isEmpty(races)) return null;
-  let mx = _.maxBy(races, (i) => {
-    return getv(i, "finishtime");
+  let mx = _.minBy(races, (i) => {
+    let val = getv(i, "finishtime");
+    if (!val) return 1e14;
+    return val;
   });
+  if (mx == 1e14) return null;
   let { distance, finishtime } = mx;
-  let speed = dist_factor[distance] * finishtime;
+  let speed = ((distance / finishtime) * 60 * 60) / 1000;
+  speed = dist_factor[distance] * speed;
   // console.log("max_speed", { distance, finishtime, speed });
   return speed;
 };
