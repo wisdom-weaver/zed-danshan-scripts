@@ -78,10 +78,11 @@ const generate = async (hid) => {
     let races = await zed_ch.db
       .collection("zed")
       .find(
-        { 2: { $gte: st, $lte: ed }, 4: hid },
+        { 2: { $gte: st, $lte: ed }, 6: hid },
         { projection: { 1: 1, 7: 1 } }
       )
       .toArray();
+    // console.table(races);
     races = cyclic_depedency.struct_race_row_data(races);
     let speed = calc_speed_from_races(races);
     let ob = { hid, speed };
