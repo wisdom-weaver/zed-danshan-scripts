@@ -159,7 +159,14 @@ const calc = async ({ hid, races = undefined }) => {
 };
 const generate = async (hid) => {
   hid = parseInt(hid);
-  let races = await get_races_of_hid(hid);
+  // let races = await get_races_of_hid(hid);
+  let [st, ed] = cyclic_depedency.get_90d_range();
+  let races = await zed_ch.db
+    .collection("zed")
+    .find({ 2: { $gte: st, $lte: ed }, 6: hid },  )
+    .toArray();
+  // console.table(races);
+  races = cyclic_depedency.struct_race_row_data(races);
   let ob = await calc({ hid, races });
   if (test_mode) console.log(ob);
   return ob;

@@ -33,7 +33,7 @@ let cs = 25;
 let tot_runs = 1;
 const name = "speed";
 const coll = "speed";
-let test_mode = 0;
+let test_mode = 1;
 
 const dist_factor = {
   1000: 1.0,
@@ -49,16 +49,28 @@ const dist_factor = {
 
 const calc_speed_from_races = (races) => {
   if (_.isEmpty(races)) return null;
-  let mx = _.minBy(races, (i) => {
-    let val = getv(i, "finishtime");
-    if (!val) return 1e14;
-    return val;
-  });
-  if (mx == 1e14) return null;
-  let { distance, finishtime } = mx;
-  let speed = ((distance / finishtime) * 60 * 60) / 1000;
-  speed = dist_factor[distance] * speed;
-  // console.log("max_speed", { distance, finishtime, speed });
+  let gp = _.groupBy(races, "distance");
+  gp = _.chain(gp)
+    .entries()
+    .map(([d, rs]) => {
+      d = parseInt(d);
+      let mx = _.minBy(rs, (i) => {
+        let val = getv(i, "finishtime");
+        if (!val) return 1e14;
+        return val;
+      });
+      if (mx == 1e14) return { distance, speed_init: null };
+      let { distance, finishtime } = mx;
+      let speed_init = ((distance / finishtime) * 60 * 60) / 1000;
+      return { distance, speed_init };
+    })
+    .value();
+  if (test_mode) console.table(gp);
+  let pick = _.maxBy(gp, (i) => getv(i, "speed_init"));
+  if (_.isEmpty(pick)) return null;
+  let { distance, speed_init } = pick;
+  let speed = dist_factor[distance] * speed_init;
+  if (test_mode) console.log("max_speed", { distance, speed_init, speed });
   return speed;
 };
 
@@ -66,7 +78,7 @@ const calc = async ({ hid, races }) => {
   try {
     let speed = calc_speed_from_races(races);
     let ob = { hid, speed };
-    console.log(ob);
+    // console.log(ob);
     return ob;
   } catch (err) {
     console.log("err on horse speed", hid);

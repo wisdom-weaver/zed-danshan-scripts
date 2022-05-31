@@ -243,7 +243,14 @@ const generate = async (hid) => {
       { hid },
       { projection: { tc: 1, bloodline: 1, breed_type: 1, genotype: 1 } }
     );
-  let races = await get_races_of_hid(hid);
+  // let races = await get_races_of_hid(hid);
+  let [st, ed] = cyclic_depedency.get_90d_range();
+  let races = await zed_ch.db
+    .collection("zed")
+    .find({ 2: { $gte: st, $lte: ed }, 6: hid },  )
+    .toArray();
+  // console.table(races);
+  races = cyclic_depedency.struct_race_row_data(races);
   if (test_mode) console.log("races.len:", races.length);
   let tc = hdoc?.tc;
   let ob = await calc({ races, tc, hid, hdoc });

@@ -1,13 +1,15 @@
 const {
   get_races_of_hid,
   get_ed_horse,
+  get_90d_range,
 } = require("../utils/cyclic_dependency");
 const mdb = require("../connection/mongo_connect");
 const _ = require("lodash");
 const bulk = require("../utils/bulk");
-const { zed_db } = require("../connection/mongo_connect");
+const { zed_db, zed_ch } = require("../connection/mongo_connect");
 const { calc_race_score } = require("./race_score");
 const { push_bulk } = require("../utils/bulk");
+const cyclic_depedency = require("../utils/cyclic_dependency");
 const coll = "rating_blood3";
 const name = "rating_blood v3";
 const cs = 200;
@@ -232,8 +234,14 @@ const calc = async ({ hid, races = [], tc }) => {
 };
 const generate = async (hid) => {
   hid = parseInt(hid);
-  let races = await get_races_of_hid(hid);
-  // console.log(races[0]);
+  // let races = await get_races_of_hid(hid);
+  let [st, ed] = cyclic_depedency.get_90d_range();
+  let races = await zed_ch.db
+    .collection("zed")
+    .find({ 2: { $gte: st, $lte: ed }, 6: hid },  )
+    .toArray();
+  // console.table(races);
+  races = cyclic_depedency.struct_race_row_data(races);
   let doc = await zed_db.db
     .collection("horse_details")
     .findOne({ hid }, { tc: 1 });

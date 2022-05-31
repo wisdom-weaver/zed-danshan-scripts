@@ -118,6 +118,7 @@ const calc = async ({ hid, races = [], from = null }) => {
 
 const generate = async (hid) => {
   try {
+    let [st, ed] = cyclic_depedency.get_90d_range();
     hid = parseInt(hid);
     let details = await zed_db.db
       .collection("horse_details")
@@ -152,14 +153,18 @@ const generate = async (hid) => {
       if (!ddist)
         races = await zed_ch.db
           .collection("zed")
-          .find({ 6: hid })
+          .find({ 6: hid, 2: { $gte: st, $lte: ed } })
           .sort({ 2: 1 })
           .limit(fraces_n)
           .toArray();
       else
         races = await zed_ch.db
           .collection("zed")
-          .find({ 6: hid, 1: { $in: [parseInt(ddist), ddist?.toString()] } })
+          .find({
+            2: { $gte: st, $lte: ed },
+            6: hid,
+            1: { $in: [parseInt(ddist), ddist?.toString()] },
+          })
           .sort({ 2: 1 })
           .limit(fraces_n_dp)
           .toArray();
@@ -167,7 +172,7 @@ const generate = async (hid) => {
       if (test_mode) console.log("still new mode");
       races = await zed_ch.db
         .collection("zed")
-        .find({ 6: hid })
+        .find({ 6: hid, 2: { $gte: st, $lte: ed } })
         .sort({ 2: 1 })
         .limit(fraces_n)
         .toArray();
@@ -203,7 +208,7 @@ const only = async (hids) => {
 };
 const range = async ([st, ed]) => {
   console.log(name, "range", st, ed);
-  if(!ed) ed = await get_ed_horse();
+  if (!ed) ed = await get_ed_horse();
   await bulk.run_bulk_range(name, generate, coll, st, ed, cs, test_mode);
 };
 

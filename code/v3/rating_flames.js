@@ -3,6 +3,7 @@ const mdb = require("../connection/mongo_connect");
 const _ = require("lodash");
 const bulk = require("../utils/bulk");
 const { zed_db } = require("../connection/mongo_connect");
+const cyclic_depedency = require("../utils/cyclic_dependency");
 const coll = "rating_flames3";
 const name = "rating_flames v3";
 const cs = 1000;
@@ -153,7 +154,15 @@ const calc = async ({ hid, races = [], tc }) => {
 };
 const generate = async (hid) => {
   hid = parseInt(hid);
-  let races = await get_races_of_hid(hid);
+  // let races = await get_races_of_hid(hid);
+  let [st, ed] = cyclic_depedency.get_90d_range();
+  let races = await zed_ch.db
+    .collection("zed")
+    .find({ 2: { $gte: st, $lte: ed }, 6: hid },  )
+    .toArray();
+  // console.table(races);
+  races = cyclic_depedency.struct_race_row_data(races);
+
   let doc =
     (await zed_db.db.collection("horse_details").findOne({ hid }, { tc: 1 })) ||
     null;

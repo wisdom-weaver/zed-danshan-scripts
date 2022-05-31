@@ -11,6 +11,7 @@ const cron_parser = require("cron-parser");
 const zedf = require("./zedf");
 const cronstrue = require("cronstrue");
 const v5_conf = require("../v5/v5_conf");
+const moment = require("moment");
 
 const key_mapping_bs_zed = [
   ["_id", "_id"],
@@ -359,6 +360,12 @@ const get_owner_horses_zed_hids = async ({ oid, offset = 0 }) => {
   return ar;
 };
 
+const get_90d_range = () => {
+  let st = moment().add(-90, "days").toISOString();
+  let ed = moment().add(0, "days").toISOString();
+  return [st, ed];
+};
+
 const cyclic_depedency = {
   get_races_of_hid,
   from_ch_zed_collection,
@@ -382,6 +389,7 @@ const cyclic_depedency = {
   get_range_hids,
   valid_b5,
   get_owner_horses_zed_hids,
+  get_90d_range,
 };
 
 module.exports = cyclic_depedency;
