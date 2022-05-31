@@ -98,7 +98,12 @@ const generate = async (hid) => {
 
 const all = async () => {
   console.log(name, "all");
-  await bulk.run_bulk_all(name, generate, coll, cs, test_mode);
+  let [st, ed] = [1, await get_ed_horse()];
+  for (let i = st; i <= ed; i += cs) {
+    console.log(i, i + cs);
+    let hids = get_hids(i, i + cs);
+    await bulk.run_bulk_only(name, generate, coll, hids, cs, test_mode);
+  }
 };
 const only = async (hids) => {
   console.log(name, "only");
