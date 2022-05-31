@@ -73,6 +73,7 @@ const calc = async ({ hid }) => {
     .collection("zed")
     .find({ 2: { $gte: st, $lte: ed }, 6: hid })
     .toArray();
+  races = cyclic_depedency.struct_race_row_data(races);
 
   if (test_mode) {
     console.log("#hid", hid, "class:", tc, "races_n:", races.length);
