@@ -73,11 +73,10 @@ const generate = async (hid) => {
     .collection("zed")
     .find(
       {
+        6: hid,
         2: { $gte: st, $lte: ed },
       },
-      {
-        projection: { 1: 1, 7: 1 },
-      }
+      { projection: { 1: 1, 7: 1 } }
     )
     .toArray();
   races = cyclic_depedency.struct_race_row_data(races);
