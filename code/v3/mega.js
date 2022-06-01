@@ -125,9 +125,89 @@ const calc = async ({ hid }) => {
     rcount_doc,
   };
 };
+const calc_racing = async ({ hid }) => {
+  hid = parseInt(hid);
+  let hdoc = await zed_db.db
+    .collection("horse_details")
+    .findOne({ hid }, { tc: 1 });
+  if (_.isEmpty(hdoc)) {
+    console.log("empty horse", hid);
+    hdoc = await zedf
+      .horse(hid)
+      .then((doc) => cyclic_depedency.struct_zed_hdoc(hid, doc));
+    // console.log(hdoc);
+    if (!hdoc) return null;
+    await zed_db.db
+      .collection("horse_details")
+      .updateOne({ hid }, { $set: hdoc }, { upsert: true });
+    // return;
+  }
+  let tc = hdoc?.tc || null;
+  let races = await get_races_of_hid(hid);
+  if (test_mode) {
+    console.log("#hid", hid, "class:", tc, "races_n:", races.length);
+  }
+  let [
+    rating_blood,
+    // rating_breed,
+    rating_flames,
+    base_ability,
+    // ymca2,
+    // est_ymca,
+    dp4,
+    hraces_stats,
+
+    ymca5,
+    // breed5,
+    rcount_doc,
+  ] = await Promise.all([
+    s3.rating_blood.calc({ hid, races, tc }),
+    // s3.rating_breed.calc({ hid, tc }),
+    s3.rating_flames.calc({ hid, races, tc }),
+    s3.base_ability.calc({ hid, races, tc, hdoc }),
+    // s3.ymca2.calc({ hid, races, details: hdoc, from: "mega" }),
+    // s3.est_ymca.calc({ hid, races, hdoc }),
+    s3.dp.calc({ hid, races, hdoc }),
+    s3.hraces_stats.calc({ hid, races, hdoc }),
+
+    s5.ymca5.calc({ hid, races, hdoc, from: "mega" }),
+    // s5.rating_breed.calc({ hid, races, hdoc }),
+    s5.rcount.calc({ hid, races, hdoc }),
+  ]);
+  if (test_mode) {
+    // console.log("rating_blood", rating_blood);
+    // console.log("rating_breed", rating_breed);
+    // console.log("rating_flames", rating_flames);
+    // console.log("base_ability", base_ability);
+    // console.log("ymca2", ymca2);
+    // console.log("dp4", dp4);
+    // console.log("hraces_stats", hraces_stats);
+  }
+  // let ymca2_doc = { hid, ymca2 };
+  // let est_ymca_doc = { hid, est_ymca };
+
+  let ymca5_doc = { hid, ymca5 };
+
+  return {
+    hid,
+    rating_blood,
+    // rating_breed,
+    rating_flames,
+    base_ability,
+    // ymca2_doc,
+    // est_ymca_doc,
+    dp4,
+    hraces_stats,
+    ymca5_doc,
+    // breed5,
+    rcount_doc,
+  };
+};
 
 const generate = async (hid) => {
-  let docs = await calc({ hid });
+  let docs;
+  if (process.argv.includes("--racing-only")) docs = await calc_racing({ hid });
+  else docs = await calc({ hid });
   return docs;
 };
 
