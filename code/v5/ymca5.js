@@ -153,7 +153,7 @@ const generate = async (hid) => {
       if (!ddist)
         races = await zed_ch.db
           .collection("zed")
-          .find({ 6: hid, 2: { $gte: st, $lte: ed } })
+          .find({ 6: hid })
           .sort({ 2: 1 })
           .limit(fraces_n)
           .toArray();
@@ -161,7 +161,6 @@ const generate = async (hid) => {
         races = await zed_ch.db
           .collection("zed")
           .find({
-            2: { $gte: st, $lte: ed },
             6: hid,
             1: { $in: [parseInt(ddist), ddist?.toString()] },
           })
@@ -172,7 +171,7 @@ const generate = async (hid) => {
       if (test_mode) console.log("still new mode");
       races = await zed_ch.db
         .collection("zed")
-        .find({ 6: hid, 2: { $gte: st, $lte: ed } })
+        .find({ 6: hid })
         .sort({ 2: 1 })
         .limit(fraces_n)
         .toArray();
