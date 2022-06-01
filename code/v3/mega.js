@@ -24,6 +24,7 @@ const est_ymca = require("./est_ymca");
 const dp = require("./dp");
 const zedf = require("../utils/zedf");
 const cyclic_depedency = require("../utils/cyclic_dependency");
+const { speed } = require("../v5/v5");
 
 const s3 = {
   rating_flames,
@@ -41,6 +42,7 @@ const s5 = {
   ymca5: v5_ymca5,
   rating_breed: v5_rating_breed,
   rcount: v5_rcount,
+  speed,
 };
 
 let test_mode = 0;
@@ -65,7 +67,14 @@ const calc = async ({ hid }) => {
     // return;
   }
   let tc = hdoc?.tc || null;
-  let races = await get_races_of_hid(hid);
+  // let races = await get_races_of_hid(hid);
+  let [st, ed] = cyclic_depedency.get_90d_range();
+  let races = await zed_ch.db
+    .collection("zed")
+    .find({ 2: { $gte: st, $lte: ed }, 6: hid })
+    .toArray();
+  races = cyclic_depedency.struct_race_row_data(races);
+
   if (test_mode) {
     console.log("#hid", hid, "class:", tc, "races_n:", races.length);
   }
@@ -82,6 +91,7 @@ const calc = async ({ hid }) => {
     ymca5,
     breed5,
     rcount_doc,
+    speed_doc,
   ] = await Promise.all([
     s3.rating_blood.calc({ hid, races, tc }),
     s3.rating_breed.calc({ hid, tc }),
@@ -95,6 +105,7 @@ const calc = async ({ hid }) => {
     s5.ymca5.calc({ hid, races, hdoc, from: "mega" }),
     s5.rating_breed.calc({ hid, races, hdoc }),
     s5.rcount.calc({ hid, races, hdoc }),
+    s5.speed.calc({ hid, races, hdoc }),
   ]);
   if (test_mode) {
     console.log("rating_blood", rating_blood);
@@ -104,6 +115,7 @@ const calc = async ({ hid }) => {
     console.log("ymca2", ymca2);
     console.log("dp4", dp4);
     console.log("hraces_stats", hraces_stats);
+    console.log("speed_doc", speed_doc);
   }
   let ymca2_doc = { hid, ymca2 };
   let est_ymca_doc = { hid, est_ymca };
@@ -123,8 +135,10 @@ const calc = async ({ hid }) => {
     ymca5_doc,
     breed5,
     rcount_doc,
+    speed_doc,
   };
 };
+
 const calc_racing = async ({ hid }) => {
   hid = parseInt(hid);
   let hdoc = await zed_db.db
@@ -160,6 +174,7 @@ const calc_racing = async ({ hid }) => {
     ymca5,
     // breed5,
     rcount_doc,
+    speed_doc,
   ] = await Promise.all([
     s3.rating_blood.calc({ hid, races, tc }),
     // s3.rating_breed.calc({ hid, tc }),
@@ -173,6 +188,7 @@ const calc_racing = async ({ hid }) => {
     s5.ymca5.calc({ hid, races, hdoc, from: "mega" }),
     // s5.rating_breed.calc({ hid, races, hdoc }),
     s5.rcount.calc({ hid, races, hdoc }),
+    s5.speed.calc({ hid, races, hdoc }),
   ]);
   if (test_mode) {
     // console.log("rating_blood", rating_blood);
@@ -201,6 +217,7 @@ const calc_racing = async ({ hid }) => {
     ymca5_doc,
     // breed5,
     rcount_doc,
+    speed_doc,
   };
 };
 
@@ -224,6 +241,7 @@ const push_mega_bulk = async (datas_ar) => {
   let ymca5_doc_bulk = [];
   let breed5_bulk = [];
   let rcount_bulk = [];
+  let speed_doc_bulk = [];
 
   datas_ar = _.compact(datas_ar);
   datas_ar.map((data) => {
@@ -241,6 +259,7 @@ const push_mega_bulk = async (datas_ar) => {
       ymca5_doc,
       breed5,
       rcount_doc,
+      speed_doc,
     } = data;
     if (!_.isEmpty(rating_blood)) rating_blood_bulk.push(rating_blood);
     if (!_.isEmpty(rating_breed)) rating_breed_bulk.push(rating_breed);
@@ -253,6 +272,7 @@ const push_mega_bulk = async (datas_ar) => {
     if (!_.isEmpty(ymca5_doc)) ymca5_doc_bulk.push(ymca5_doc);
     if (!_.isEmpty(breed5)) breed5_bulk.push(breed5);
     if (!_.isEmpty(rcount_doc)) rcount_bulk.push(rcount_doc);
+    if (!_.isEmpty(speed_doc)) speed_doc_bulk.push(speed_doc);
   });
 
   if (test_mode) {
@@ -265,6 +285,7 @@ const push_mega_bulk = async (datas_ar) => {
     console.log("dp4_bulk.len", dp4_bulk.length);
     console.log("hraces_stats_bulk.len", hraces_stats_bulk.length);
     console.log("rcount_bulk.len", rcount_bulk.length);
+    console.log("speed_doc_bulk.len", speed_doc_bulk.length);
   }
   await Promise.all([
     bulk.push_bulk("rating_blood3", rating_blood_bulk, "rating_blood"),
@@ -278,6 +299,7 @@ const push_mega_bulk = async (datas_ar) => {
     bulk.push_bulk("ymca5", ymca5_doc_bulk, "ymca5"),
     bulk.push_bulk("rating_breed5", breed5_bulk, "breed5"),
     bulk.push_bulk("rcount", rcount_bulk, "rcount"),
+    bulk.push_bulk("speed", speed_doc_bulk, "speed"),
   ]);
   let [a, b] = [datas_ar[0]?.hid, datas_ar[datas_ar.length - 1]?.hid];
   console.log("pushed_mega_bulk", datas_ar.length, `[${a} -> ${b}]`);
