@@ -616,7 +616,10 @@ const run_t_give_ranks = (hdocs, tdoc) => {
     (mode == "team" && "tot_score") ||
     null;
   let lim =
-    (type == "regular" && mode == "elo" && 10) || (type == "flash" && 5) || 5;
+    (type == "regular" && mode == "elo" && 10) ||
+    (type == "flash" && mode == "elo" && 5) ||
+    (type == "flash" && 5) ||
+    5;
   console.log({ type, mode, lim });
 
   null;
