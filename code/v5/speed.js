@@ -24,6 +24,7 @@ const bulk = require("../utils/bulk");
 const cyclic_depedency = require("../utils/cyclic_dependency");
 const utils = require("../utils/utils");
 const moment = require("moment");
+const { sheet_print_ob } = require("../../sheet_ops/sheets_ops");
 
 let mx = 11000;
 let st = 1;
@@ -59,23 +60,34 @@ const calc_speed_from_races = (races) => {
         if (!val) return 1e14;
         return val;
       });
-      if (mx == 1e14) return { distance, speed_init: null };
+      if (mx == 1e14) return { distance, speed_init: null, speed: null };
       let { distance, finishtime } = mx;
       let speed_init = ((distance / finishtime) * 60 * 60) / 1000;
-      return { distance, speed_init };
+      let speed = dist_factor[distance] * speed_init;
+      return { distance, speed_init, speed };
     })
     .value();
-  if (test_mode) console.table(gp);
-  let pick = _.maxBy(gp, (i) => getv(i, "speed_init"));
+  if (test_mode) {
+    console.table(gp);
+  }
+  let pick = _.maxBy(gp, (i) => getv(i, "speed"));
   if (_.isEmpty(pick)) return null;
-  let { distance, speed_init } = pick;
-  let speed = dist_factor[distance] * speed_init;
-  if (test_mode) console.log("max_speed", { distance, speed_init, speed });
-  return speed;
+  let { distance, speed_init, speed } = pick;
+  let final_speed = speed * 1.45;
+  if (test_mode)
+    console.log("max_speed", { distance, speed_init, speed, final_speed });
+  // console.log(final_speed);
+  return final_speed;
 };
 
 const calc = async ({ hid, races }) => {
   try {
+    races = _.sortBy(races, "date");
+    let st = moment().add(-90, "days").toISOString();
+    let ed = moment().add(0, "days").toISOString();
+    races = _.sortBy(races, (i) => {
+      return i.date > st && i.date < ed;
+    });
     let speed = calc_speed_from_races(races);
     let ob = { hid, speed };
     // console.log(ob);
