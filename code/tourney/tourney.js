@@ -590,6 +590,7 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
   const is_elo_mode = tdoc.score_mode == "elo";
   const is_team_mode = tdoc.score_mode == "team";
   if (is_elo_mode) {
+    if (tdoc.type == "flash") races = races?.slice(0, 5) || [];
     upd = await elo_races_do(hid, tdoc, races);
     update_doc = { ...update_doc, ...upd };
     // if (update_doc?.traces_n > 0) console.log("ELO:: ", update_doc);
