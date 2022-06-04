@@ -3,14 +3,17 @@ const qs = require("query-string");
 const {
   get_date_range_fromto,
   print_cron_details,
+  z_mi_mx,
 } = require("../utils/cyclic_dependency");
 const { fget } = require("../utils/fetch");
-const { nano, iso, cdelay } = require("../utils/utils");
+const { nano, iso, cdelay, geno } = require("../utils/utils");
 const moment = require("moment");
 const { zed_db } = require("../connection/mongo_connect");
 const zedf = require("../utils/zedf");
 const cron = require("node-cron");
 const { push_bulkc } = require("../utils/bulk");
+const { options } = require("../utils/options");
+const { max } = require("lodash");
 
 let ref;
 const coll = "studs";
@@ -19,14 +22,14 @@ const name = "studs";
 let test_mode = 0;
 let runnable = 1;
 
-// const base_api = `https://api.zed.run/api/v1/stud/horses`;
-// const mapi = ({ offset = 0, gen = [], breed_type, bloodline }) => {
-//   let se = qs.stringify(
-//     { offset, gen, breed_type, bloodline },
-//     { arrayFormat: "bracket" }
-//   );
-//   return `${base_api}?${se}`;
-// };
+const base_api = `https://api.zed.run/api/v1/stud/horses`;
+const mapi = ({ offset = 0, gen = [], breed_type, bloodline }) => {
+  let se = qs.stringify(
+    { offset, gen, breed_type, bloodline },
+    { arrayFormat: "bracket" }
+  );
+  return `${base_api}?${se}`;
+};
 
 const get_hid = (inpu) => {
   let str;
@@ -107,6 +110,7 @@ const struct_hdoc = (hdoc, type, in_date) => {
       if (type == "out") is_in_stud = false;
     }
   }
+  if (type == "cur") is_in_stud = true;
   return {
     hid,
     gender,
@@ -130,7 +134,7 @@ const run_in = async (ar) => {
     return { hid, ...e, ...hdocf };
   });
   ar = _.compact(ar);
-  console.table(ar);
+  // console.table(ar);
   await push_bulkc(coll, ar, name, "hid");
   await cdelay(2000);
 };
@@ -147,7 +151,7 @@ const run_out = async (ar) => {
     return { ...e, ...hdocf, hid };
   });
   ar = _.compact(ar);
-  console.table(ar);
+  // console.table(ar);
   await push_bulkc(coll, ar, name, "hid");
   await cdelay(2000);
 };
@@ -197,6 +201,40 @@ const run_cron = async () => {
   cron.schedule(cron_str, runner, { scheduled: true });
 };
 
+const get_current_in_cat = async (ob) => {
+  let { bloodline, breed_type, z } = ob;
+  let offset = 0;
+  let ar = [];
+  do {
+    let api = mapi({ ...ob, offset, gen: [z, z] });
+    // console.log(api);
+    let resp = await zedf.get(api);
+    if (_.isEmpty(resp)) break;
+    offset += resp.length;
+    ar.push(resp);
+    cdelay(500);
+  } while (true);
+  ar = _.flatten(ar);
+  return ar;
+};
+
+const get_current = async () => {
+  for (let bl of options.bloodline)
+    for (let bt of options.breed_type) {
+      let [mi = 1, mx = 268] = z_mi_mx[`${bl}-${bt}`];
+      for (let z = mi; z <= mx; z++) {
+        let now = iso();
+        let ar = await get_current_in_cat({ bloodline: bl, breed_type: bt, z });
+        console.log(`Z${z}-${bl}-${bt}`, ar.length);
+        ar = ar.map((e) => ({ ...e, hid: e.horse_id }));
+        ar = ar.map((e) => struct_hdoc(e, "cur"));
+        ar = ar.map((e) => ({ ...e, date: now, type: "cur" }));
+        // console.table(ar);
+        await run_in(ar);
+      }
+    }
+};
+
 const clear = async () => {
   await ref.deleteMany({});
 };
@@ -210,6 +248,7 @@ const main_runner = async () => {
   if (a2 == "run") await run();
   if (a2 == "runner") await runner();
   if (a2 == "run_cron") await run_cron();
+  if (a2 == "get_current") await get_current();
   // if (a2 == "clear") await clear();
 };
 

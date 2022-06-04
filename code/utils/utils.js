@@ -204,7 +204,9 @@ const per = (a, b) => {
 };
 
 const geno = (z) => {
-  if (z.startsWith("Z")) z = z.slice(1);
+  if (!z) return null;
+  z = z.toString();
+  if (z?.startsWith("Z")) z = z.slice(1);
   return parseFloat(z);
 };
 

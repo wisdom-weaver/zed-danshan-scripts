@@ -372,6 +372,33 @@ const get_date_range_fromto = (a, b, c, d) => {
   return [st, ed];
 };
 
+const z_mi_mx = {
+  "Nakamoto-genesis": [1, 2],
+  "Nakamoto-legendary": [2, 4],
+  "Nakamoto-exclusive": [3, 268],
+  "Nakamoto-elite": [4, 268],
+  "Nakamoto-cross": [5, 268],
+  "Nakamoto-pacer": [7, 268],
+  "Szabo-genesis": [3, 4],
+  "Szabo-legendary": [4, 8],
+  "Szabo-exclusive": [5, 268],
+  "Szabo-elite": [6, 268],
+  "Szabo-cross": [7, 268],
+  "Szabo-pacer": [8, 268],
+  "Finney-genesis": [5, 7],
+  "Finney-legendary": [6, 14],
+  "Finney-exclusive": [7, 268],
+  "Finney-elite": [8, 268],
+  "Finney-cross": [9, 268],
+  "Finney-pacer": [10, 268],
+  "Buterin-genesis": [8, 10],
+  "Buterin-legendary": [9, 20],
+  "Buterin-exclusive": [10, 268],
+  "Buterin-elite": [11, 268],
+  "Buterin-cross": [12, 268],
+  "Buterin-pacer": [13, 268],
+};
+
 const cyclic_depedency = {
   get_races_of_hid,
   from_ch_zed_collection,
@@ -396,7 +423,8 @@ const cyclic_depedency = {
   valid_b5,
   get_owner_horses_zed_hids,
   get_90d_range,
-  get_date_range_fromto
+  get_date_range_fromto,
+  z_mi_mx,
 };
 
 module.exports = cyclic_depedency;
