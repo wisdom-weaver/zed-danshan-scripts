@@ -201,7 +201,7 @@ const run_cron = async () => {
   cron.schedule(cron_str, runner, { scheduled: true });
 };
 
-const get_current_in_cat = async (ob) => {
+const get_current_in_catraw = async (ob) => {
   let { bloodline, breed_type, z } = ob;
   let offset = 0;
   let ar = [];
@@ -217,22 +217,33 @@ const get_current_in_cat = async (ob) => {
   ar = _.flatten(ar);
   return ar;
 };
+const get_current_in_cat = async (ob) => {
+  let { bloodline, breed_type, z } = ob;
+  let now = iso();
+  let ar = await get_current_in_catraw({ bloodline, breed_type, z });
+  console.log(`Z${z}-${bloodline}-${breed_type}`, ar.length);
+  ar = ar.map((e) => ({ ...e, hid: e.horse_id }));
+  ar = ar.map((e) => struct_hdoc(e, "cur"));
+  ar = ar.map((e) => ({ ...e, date: now, type: "cur" }));
+  // console.table(ar);
+  await run_in(ar);
+};
 
-const get_current = async () => {
+const get_current = async (a3 = 3) => {
+  let ks = [];
+  let cs = parseFloat(a3) || 3;
+  if (!cs || _.isNaN(cs)) cs = 3;
   for (let bl of options.bloodline)
     for (let bt of options.breed_type) {
       let [mi = 1, mx = 268] = z_mi_mx[`${bl}-${bt}`];
       for (let z = mi; z <= mx; z++) {
-        let now = iso();
-        let ar = await get_current_in_cat({ bloodline: bl, breed_type: bt, z });
-        console.log(`Z${z}-${bl}-${bt}`, ar.length);
-        ar = ar.map((e) => ({ ...e, hid: e.horse_id }));
-        ar = ar.map((e) => struct_hdoc(e, "cur"));
-        ar = ar.map((e) => ({ ...e, date: now, type: "cur" }));
-        // console.table(ar);
-        await run_in(ar);
+        ks.push({ bloodline: bl, breed_type: bt, z });
       }
     }
+  for (let chu of _.chunk(ks, cs)) {
+    await Promise.all(chu.map((e) => get_current_in_cat(e)));
+  }
+  console.log("done");
 };
 
 const clear = async () => {
