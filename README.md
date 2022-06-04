@@ -46,3 +46,6 @@ pm2 start node --name "parents_htype " -- code/main.js --parents fix_horse_type_
 
 hawku prices 
 pm2 start node --name "hawku_prices" -- code/main.js --hawku run_cron 
+
+mate 
+pm2 start node --name "mate::cron" -- code/main.js --mate run_cron 

@@ -1,0 +1,217 @@
+const _ = require("lodash");
+const qs = require("query-string");
+const {
+  get_date_range_fromto,
+  print_cron_details,
+} = require("../utils/cyclic_dependency");
+const { fget } = require("../utils/fetch");
+const { nano, iso, cdelay } = require("../utils/utils");
+const moment = require("moment");
+const { zed_db } = require("../connection/mongo_connect");
+const zedf = require("../utils/zedf");
+const cron = require("node-cron");
+const { push_bulkc } = require("../utils/bulk");
+
+let ref;
+const coll = "studs";
+const name = "studs";
+
+let test_mode = 0;
+let runnable = 1;
+
+// const base_api = `https://api.zed.run/api/v1/stud/horses`;
+// const mapi = ({ offset = 0, gen = [], breed_type, bloodline }) => {
+//   let se = qs.stringify(
+//     { offset, gen, breed_type, bloodline },
+//     { arrayFormat: "bracket" }
+//   );
+//   return `${base_api}?${se}`;
+// };
+
+const get_hid = (inpu) => {
+  let str;
+  if (inpu.length == 650) str = inpu.substring(458, 458 + 8);
+  else if (inpu.length == 74) str = inpu.substring(74 - 8);
+  else return null;
+  let hid = parseInt(str, 16);
+  return hid;
+};
+const get_stud_transfer_type = (inpu) => {
+  if (inpu.length == 650) return "in";
+  else if (inpu.length == 74) return "out";
+  else return null;
+};
+
+const extract_raw = async ({
+  from_date = undefined,
+  to_date = undefined,
+  cursor = undefined,
+  limit = undefined,
+}) => {
+  let se = qs.stringify({
+    chain: "polygon",
+    from_date,
+    to_date,
+    cursor,
+    limit,
+  });
+  let api = `https://deep-index.moralis.io/api/v2/0x7adbced399630dd11a97f2e2dc206911167071ae?${se}`;
+  let resp = await fget(api, null, {
+    "X-API-Key": process.env.moralis_api_key,
+  });
+  return resp;
+};
+
+const extract = async ([st, ed]) => {
+  let ar = [];
+  let cursor;
+  let n = 1;
+  do {
+    let from_date = st;
+    let to_date = ed;
+    let resp = await extract_raw({ from_date, to_date, cursor });
+    const { total, page_size, cursor: cn, page } = resp;
+    cursor = cn;
+    if (!cursor) break;
+    ar.push(resp?.result);
+  } while (n--);
+  ar = _.flatten(ar);
+  return ar;
+};
+
+const get_hdocs = async (hids) => {
+  let hdocs = [];
+  for (let chu of _.chunk(hids, 10)) {
+    let ea = await Promise.all(
+      chu.map((h) => zedf.horse(h).then((d) => ({ ...d, hid: h })))
+    );
+    ea = _.compact(ea);
+    hdocs.push(ea);
+  }
+  hdocs = _.flatten(hdocs);
+  hdocs = _.keyBy(hdocs, "hid");
+  return hdocs;
+};
+
+const struct_hdoc = (hdoc, type, in_date) => {
+  let { hid, horse_type, is_in_stud, breeding_cycle_reset, breeding_counter } =
+    hdoc;
+  let gender =
+    (["Stallion", "Colt"].includes(horse_type) && "M") ||
+    (["Filly", "Mare"].includes(horse_type) && "F") ||
+    null;
+  if (in_date) {
+    let diff = moment().diff(moment(in_date), "minutes");
+    if (_.inRange(diff, 0, 10.1)) {
+      if (type == "in") is_in_stud = true;
+      if (type == "out") is_in_stud = false;
+    }
+  }
+  return {
+    hid,
+    gender,
+    horse_type,
+    stud: is_in_stud,
+    breeding_counter,
+    breeding_cycle_reset,
+  };
+};
+
+const run_in = async (ar) => {
+  console.log("#run_in", ar.length);
+  let hids = _.map(ar, "hid");
+  // console.log(hids);
+  let hdocs = await get_hdocs(hids);
+  ar = _.map(ar, (e) => {
+    let hid = e.hid;
+    let hdoc = hdocs[hid];
+    if (!hdoc) return null;
+    let hdocf = struct_hdoc(hdoc, "in", e.date);
+    return { hid, ...e, ...hdocf };
+  });
+  ar = _.compact(ar);
+  console.table(ar);
+  await push_bulkc(coll, ar, name, "hid");
+  await cdelay(2000);
+};
+const run_out = async (ar) => {
+  console.log("#run_out", ar.length);
+  let hids = _.map(ar, "hid");
+  // console.log(hids);
+  let hdocs = await get_hdocs(hids);
+  ar = _.map(ar, (e) => {
+    let hid = e.hid;
+    let hdoc = hdocs[hid];
+    if (!hdoc) return null;
+    let hdocf = struct_hdoc(hdoc, "out", e.date);
+    return { ...e, ...hdocf, hid };
+  });
+  ar = _.compact(ar);
+  console.table(ar);
+  await push_bulkc(coll, ar, name, "hid");
+  await cdelay(2000);
+};
+const rem_expired = async () => {
+  let now = iso();
+  console.log("deleting expired before", now);
+  await ref.deleteMany({
+    $or: [{ breeding_cycle_reset: { $lte: now } }, { stud: false }],
+  });
+  await cdelay(2000);
+};
+
+const structure_txns_resp = (ar) => {
+  if (_.isEmpty(ar)) return [];
+  let stru = ar.map((e) => {
+    let { hash, from_address, to_address, input, block_timestamp } = e;
+    let type = get_stud_transfer_type(input);
+    if (!type) return null;
+    let hid = get_hid(input);
+    return { type, stable: from_address, hid, date: block_timestamp, hash };
+  });
+  stru = _.compact(stru);
+  return stru;
+};
+
+const run = async ([st, ed]) => {
+  console.log("### mate run");
+  console.log(`getting .. ${st} - ${ed}`);
+  let ar = await extract([st, ed]);
+  ar = structure_txns_resp(ar);
+  console.table(ar);
+  console.log("found:", ar?.length);
+  ar = _.groupBy(ar, "type");
+  await run_in(ar?.in);
+  await run_out(ar?.out);
+  await rem_expired();
+};
+
+const runner = async () => {
+  let [st, ed] = get_date_range_fromto(-10, "minutes", 0, "minutes");
+  await run([st, ed]);
+};
+
+const run_cron = async () => {
+  let cron_str = "0 * * * * *";
+  print_cron_details(cron_str);
+  cron.schedule(cron_str, runner, { scheduled: true });
+};
+
+const clear = async () => {
+  await ref.deleteMany({});
+};
+
+const main_runner = async () => {
+  ref = await zed_db.db.collection(coll);
+  let args = process.argv;
+  let [n, f, a1, a2, a3, a4] = args;
+  if (args.includes("test")) test_mode = 1;
+  if (!runnable) return;
+  if (a2 == "run") await run();
+  if (a2 == "runner") await runner();
+  if (a2 == "run_cron") await run_cron();
+  // if (a2 == "clear") await clear();
+};
+
+const mate = { main_runner };
+module.exports = mate;

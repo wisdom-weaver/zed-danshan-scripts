@@ -366,6 +366,12 @@ const get_90d_range = () => {
   return [st, ed];
 };
 
+const get_date_range_fromto = (a, b, c, d) => {
+  let st = moment().add(a, b).toISOString();
+  let ed = moment().add(c, d).toISOString();
+  return [st, ed];
+};
+
 const cyclic_depedency = {
   get_races_of_hid,
   from_ch_zed_collection,
@@ -390,6 +396,7 @@ const cyclic_depedency = {
   valid_b5,
   get_owner_horses_zed_hids,
   get_90d_range,
+  get_date_range_fromto
 };
 
 module.exports = cyclic_depedency;

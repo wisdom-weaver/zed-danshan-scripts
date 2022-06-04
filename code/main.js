@@ -18,6 +18,7 @@ const temp = require("../temp/temp");
 const tourney = require("./tourney/tourney");
 const hawku = require("./hawku/hawku");
 const { fixers } = require("./fixers/fixer");
+const mate = require("./mate/mate");
 const mod = v3;
 
 const main = async (args) => {
@@ -441,6 +442,8 @@ const main = async (args) => {
     await hawku.main_runner();
   } else if (arg1 == "--fixers") {
     await fixers.main_runner();
+  } else if (arg1 == "--mate") {
+    await mate.main_runner();
   }
 
   console.log("---ed");
