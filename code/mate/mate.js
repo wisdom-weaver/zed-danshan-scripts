@@ -97,8 +97,14 @@ const get_hdocs = async (hids) => {
 };
 
 const struct_hdoc = (hdoc, type, in_date) => {
-  let { hid, horse_type, is_in_stud, breeding_cycle_reset, breeding_counter } =
-    hdoc;
+  let {
+    hid,
+    horse_type,
+    is_in_stud,
+    breeding_cycle_reset,
+    breeding_counter,
+    mating_price,
+  } = hdoc;
   let gender =
     (["Stallion", "Colt"].includes(horse_type) && "M") ||
     (["Filly", "Mare"].includes(horse_type) && "F") ||
@@ -111,11 +117,13 @@ const struct_hdoc = (hdoc, type, in_date) => {
     }
   }
   if (type == "cur") is_in_stud = true;
+  if (mating_price) mating_price = parseFloat(mating_price) / 1e18;
   return {
     hid,
     gender,
     horse_type,
     stud: is_in_stud,
+    mating_price,
     breeding_counter,
     breeding_cycle_reset,
   };
