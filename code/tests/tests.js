@@ -1115,5 +1115,217 @@ const run_24 = async () => {
     });
 };
 
-const tests = { run: run_21 };
+const run_25 = async () => {
+  let rg = [
+    [97, 97],
+    [96, 95],
+    [95, 95],
+    [94, 94],
+    [95, 93],
+    [93, 95],
+  ];
+  let ar = [];
+  for (let [msp, fsp] of rg) {
+    let ea = await zed_db.db
+      .collection("horse_details")
+      .aggregate([
+        {
+          $match: {
+            hid: { $gte: 360000 },
+          },
+        },
+        {
+          $project: {
+            hid: 1,
+            mother: "$parents.mother",
+            father: "$parents.father",
+          },
+        },
+        {
+          $match: {
+            mother: {
+              $ne: null,
+            },
+            father: {
+              $ne: null,
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: "speed",
+            localField: "mother",
+            foreignField: "hid",
+            as: "sp_doc_m",
+          },
+        },
+        {
+          $unwind: {
+            path: "$sp_doc_m",
+            includeArrayIndex: "0",
+            preserveNullAndEmptyArrays: false,
+          },
+        },
+        {
+          $lookup: {
+            from: "speed",
+            localField: "father",
+            foreignField: "hid",
+            as: "sp_doc_f",
+          },
+        },
+        {
+          $unwind: {
+            path: "$sp_doc_f",
+            includeArrayIndex: "0",
+            preserveNullAndEmptyArrays: false,
+          },
+        },
+        {
+          $project: {
+            hid: 1,
+            mother: 1,
+            mspeed: {
+              $ifNull: ["$sp_doc_m.speed", null],
+            },
+            father: 1,
+            fspeed: {
+              $ifNull: ["$sp_doc_f.speed", null],
+            },
+          },
+        },
+        {
+          $match: {
+            mspeed: {
+              $gte: msp,
+            },
+            fspeed: {
+              $gte: fsp,
+            },
+          },
+        },
+        // { $limit: 10 },
+        {
+          $lookup: {
+            from: "speed",
+            localField: "hid",
+            foreignField: "hid",
+            as: "sp_doc",
+          },
+        },
+        {
+          $unwind: {
+            path: "$sp_doc",
+            includeArrayIndex: "0",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $project: {
+            hid: 1,
+            mother: 1,
+            mspeed: 1,
+            father: 1,
+            fspeed: 1,
+            speed: {
+              $ifNull: ["$sp_doc.speed", null],
+            },
+          },
+        },
+        {
+          $group: {
+            _id: `${msp} ${fsp}`,
+            count_all: {
+              $sum: 1,
+            },
+            count_valid_speed: {
+              $sum: {
+                $cond: [{ $ne: ["$speed", null] }, 1, 0],
+              },
+            },
+            avg_baby_speed: {
+              $avg: "$speed",
+            },
+            babies: {
+              $push: "$hid",
+            },
+          },
+        },
+      ])
+      .toArray();
+    if (_.isEmpty(ea)) continue;
+    let ob = ea[0];
+    let doc = {
+      _id: ob._id,
+      msp,
+      fsp,
+      count_all: ob.count_all,
+      count_valid_speed: ob.count_valid_speed,
+      avg_baby_speed: ob.avg_baby_speed,
+      babies: ob.babies?.join(", "),
+    };
+    ar.push(doc);
+    console.log(doc);
+  }
+  console.table(ar);
+  await sheet_ops.sheet_print_ob(ar, {
+    range: "Speedbreed!A9",
+    spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
+  });
+};
+const run_26 = async () => {
+  console.log("run 26");
+  let ar = await zed_db.db
+    .collection("horse_details")
+    .aggregate([
+      // {
+      //   $match: {
+      //     hid: {
+      //       $gte: 360000,
+      //     },
+      //   },
+      // },
+      {
+        $lookup: {
+          from: "speed",
+          localField: "hid",
+          foreignField: "hid",
+          as: "sp_doc",
+        },
+      },
+      {
+        $unwind: {
+          path: "$sp_doc",
+          includeArrayIndex: "0",
+          preserveNullAndEmptyArrays: false,
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+
+          hid: 1,
+          speed: "$sp_doc.speed",
+        },
+      },
+      {
+        $sort: {
+          speed: -1,
+        },
+      },
+      {
+        $limit: 10,
+      },
+    ])
+    .toArray();
+  ar = ar.map((e, i) => ({ rank: i + 1, ...e }));
+  console.table(ar);
+
+  await sheet_ops.sheet_print_ob(ar, {
+    range: "Speedbreed!E20",
+    spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
+  });
+};
+
+const tests = { run: run_26 };
 module.exports = tests;

@@ -39,10 +39,19 @@ const get_hid = (inpu) => {
   let hid = parseInt(str, 16);
   return hid;
 };
+
 const get_stud_transfer_type = (inpu) => {
   if (inpu.length == 650) return "in";
   else if (inpu.length == 74) return "out";
   else return null;
+};
+
+const get_mating_price = (inp) => {
+  try {
+    return parseInt(inp.slice(380, 380 + 14), 16) / 1e18;
+  } catch (err) {
+    return null;
+  }
 };
 
 const extract_raw = async ({
@@ -179,7 +188,8 @@ const structure_txns_resp = (ar) => {
     let type = get_stud_transfer_type(input);
     if (!type) return null;
     let hid = get_hid(input);
-    return { type, stable: from_address, hid, date: block_timestamp, hash };
+    let mating_price = get_mating_price(input)
+    return { type, stable: from_address, hid, date: block_timestamp, hash, mating_price };
   });
   stru = _.compact(stru);
   return stru;
@@ -268,7 +278,7 @@ const main_runner = async () => {
   if (a2 == "runner") await runner();
   if (a2 == "run_cron") await run_cron();
   if (a2 == "get_current") await get_current();
-  // if (a2 == "clear") await clear();
+  if (a2 == "clear") await clear();
 };
 
 const mate = { main_runner };

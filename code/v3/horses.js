@@ -447,7 +447,7 @@ const fix_unnamed = async () => {
   console.log("completed zed_horses_fix_unnamed_foal");
 };
 const fix_unnamed_cron = async () => {
-  let runner = zed_horses_fix_unnamed_foal;
+  let runner = fix_unnamed;
   let cron_str = "0 */3 * * *";
   const c_itvl = cron_parser.parseExpression(cron_str);
   console.log("Next run:", c_itvl.next().toISOString(), "\n");
