@@ -227,6 +227,7 @@ const get_horse_entry_date = async (hid, tdoc) => {
 };
 
 const track_horse_elo = async ({ hid, tdoc, elo_list }) => {
+  console.log("track_horse_elo", hid, tdoc?.tid);
   let elo_curr = await get_elo_score(hid);
   let ea = { elo_curr, elo_time: iso() };
   let leader_hdoc_ref = zed_db.db.collection(tcoll_horses(tdoc.tid));
@@ -249,6 +250,8 @@ const track_horse_elo = async ({ hid, tdoc, elo_list }) => {
 const get_opt_elo_from_list = (date, elo_list) => {
   date = nano(date);
   if (_.isEmpty(elo_list)) return null;
+  if (!_.isEmpty(elo_list))
+    elo_list = _.sortBy(elo_list, (e) => nano(e.elo_time));
   let ob = _.minBy(elo_list, (e) => {
     e.diff = date > nano(e.elo_time) ? 1e18 : nano(e.elo_time) - date;
     return e.diff;
@@ -1524,6 +1527,7 @@ const fix = async () => {
   let hid = parseInt(process.argv[5]);
   let thdoc = await zed_db.db.collection(tcoll_horses(tid)).findOne({ hid });
   let { elo_init, elo_list, races } = thdoc;
+  elo_list = elo_list.filter((e) => !_.isNil(e.elo_curr));
   console.table(elo_list);
   prraces(races);
 
@@ -1536,9 +1540,27 @@ const fix = async () => {
     frdate,
   });
   let elref = _.find(elo_list, { elo_curr: celo });
+  console.log("elref", elref);
+  if (!elref) {
+    console.log("empty elref");
+    let last_ref = _.findIndex(elo_list, (e) => e.elo_time > frdate);
+    elo_list.splice(last_ref, 0, {
+      elo_curr: celo,
+      elo_time: moment(frdate)
+        .add(+1, "minute")
+        .toISOString(),
+    });
+    console.log("UPDTED ELO LIST");
+    console.table(elo_list);
+    elref = last_ref;
+  }
+  // return;
   elref.elo_time = moment(frdate)
     .add(+1, "minute")
     .toISOString();
+
+  if (!_.isEmpty(elo_list))
+    elo_list = _.sortBy(elo_list, (e) => nano(e.elo_time));
 
   let traces_n = races.length;
   for (let i = 0; i < traces_n; i++) {
@@ -1559,8 +1581,68 @@ const fix = async () => {
     await zed_db.db
       .collection(tcoll_horses(tid))
       .updateOne({ hid }, { $set: { elo_list } });
-    // await run_tid(tid);
+    await run_tid(tid);
   }
+};
+
+const elo_h_getter = async () => {
+  const ftids = await get_flash_run_tids(); // console.log(ftids)
+  const rtids = await get_tids({ active: true }); // console.log(rtids)
+  const all_act_tids = [...ftids, ...rtids];
+
+  let filt =
+    (await zed_db.db
+      .collection(tcoll)
+      .find(
+        {
+          tid: { $in: all_act_tids },
+          score_mode: "elo",
+        },
+        { projection: { tid: 1 } }
+      )
+      .toArray()) || [];
+  let tids = _.map(filt, "tid");
+  console.log("tids:", tids);
+  // return;
+  let cs = 10;
+  for (let tid of tids) {
+    // console.log("tid", tid);
+    let tdoc = await get_tdoc(tid);
+    let thorses =
+      (await zed_db.db
+        .collection(tcoll_horses(tid))
+        .find({}, { projection: { elo_list: 1, hid: 1 } })
+        .toArray()) || [];
+    // console.log(thorses);
+    if (_.isEmpty(thorses)) continue;
+    for (let chu of _.chunk(thorses, cs)) {
+      await Promise.all(
+        chu.map(({ hid, elo_list }) => track_horse_elo({ hid, tdoc, elo_list }))
+      );
+    }
+  }
+};
+
+let elo_h_running = 0;
+const elo_h_getter_run_cron = async () => {
+  const runner = async () => {
+    console.log({ elo_h_running });
+    if (elo_h_running) {
+      console.log("elo_h getter already running.........");
+      return;
+    }
+    try {
+      elo_h_running = 1;
+      await elo_h_getter();
+      elo_h_running = 0;
+    } catch (err) {
+      console.log("TOURNEY elo_h_getter_run_cron ERR\n", err);
+      elo_h_running = 0;
+    }
+  };
+  const cron_str = "* * * * *";
+  print_cron_details(cron_str);
+  cron.schedule(cron_str, runner);
 };
 
 const main_runner = async (args) => {
@@ -1579,6 +1661,8 @@ const main_runner = async (args) => {
     if (arg2 == "run_cron") await run_cron();
     if (arg2 == "run_flash_cron") await run_flash_cron();
     if (arg2 == "t_status_regular") await t_status_regular();
+    if (arg2 == "elo_h_getter") await elo_h_getter();
+    if (arg2 == "elo_h_getter_run_cron") await elo_h_getter_run_cron();
     if (arg2 == "temp_fix") await temp_fix();
   } catch (err) {
     console.log("Err in tourney runner", err);
