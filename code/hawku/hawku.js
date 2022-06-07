@@ -226,15 +226,17 @@ const post_track = async ({ actives = [], events = [], sales = [] }) => {
     let nMatched = getv(resp, "nMatched");
     let nModified = getv(resp, "nModified");
     let nRemoved = getv(resp, "nRemoved");
-    console.log({
-      ok,
-      writeErrors,
-      nInserted,
-      nUpserted,
-      nMatched,
-      nModified,
-      nRemoved,
-    });
+    let str = "";
+    str += ok ? "ok " : "NOT OK";
+    if (ok) {
+      if (!_.isNil(nInserted)) str += nInserted + "I ";
+      if (!_.isNil(nUpserted)) str += nUpserted + "U ";
+      if (!_.isNil(nMatched)) str += nMatched + "M ";
+      if (!_.isNil(nModified)) str += nModified + "% ";
+      if (!_.isNil(nRemoved)) str += nRemoved + "R ";
+      if (!_.isNil(writeErrors)) str += writeErrors + "E";
+    }
+    console.log(str);
   } else console.log("nothing to write");
 };
 
@@ -278,6 +280,34 @@ const clear = async () => {
   console.log("cleared");
 };
 
+const fixer = async (dur, durunit) => {
+  console.log({ dur, durunit });
+  let ed = moment().toISOString();
+  let st = moment().subtract(dur, durunit).toISOString();
+  console.log(iso(st), "->", iso(ed));
+  let now = nano(st);
+  let edn = nano(ed);
+  let off = 6 * 60 * utils.mt;
+  while (now < edn) {
+    let now_st = nano(now);
+    let now_ed = Math.min(edn, now_st + off);
+    // console.log(iso(now_st), iso(now_ed));
+    let sales = await track_sales([iso(now_st), iso(now_ed)]);
+    await post_track({ actives: [], events: [], sales });
+    // console.table(actives);
+    // console.table(events);
+    // console.table(sales);
+    await cdelay(1000);
+    now += off;
+  }
+};
+
+const fixer_cron = () => {
+  const cron_str = "0 */6 * * *";
+  print_cron_details(cron_str);
+  cron.schedule(cron_str, () => fixer(6, "hours"));
+};
+
 const main_runner = async () => {
   let args = process.argv;
   let [_node, _cfile, arg1, arg2, arg3, arg4, arg5] = args;
@@ -286,6 +316,12 @@ const main_runner = async () => {
   if (arg2 == "run") await run([arg3, arg4]);
   if (arg2 == "run_cron") await run_cron();
   if (arg2 == "clear") await clear();
+  if (arg2 == "fixer") {
+    let dur = parseInt(getv(args, "4") ?? 1) || 1;
+    let durunit = getv(args, "5") ?? "days";
+    await fixer(dur, durunit);
+  }
+  if (arg2 == "fixer_cron") await fixer_cron();
 };
 
 const hawku = { main_runner };
