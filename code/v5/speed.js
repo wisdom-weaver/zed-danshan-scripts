@@ -155,5 +155,6 @@ const speed = {
   all,
   only,
   range,
+  dist_factor,
 };
 module.exports = speed;

@@ -74,7 +74,7 @@ const race0err = async () => {
     for (let j = s; j <= e; j++) {
       let r1 = getv(db_n, `${j}.races_n`) ?? 0;
       let r2 = getv(ch_n, `${j}.races_rn`) ?? 0;
-      if (r1 !== r2) exec.push({ hid: j, r1, r2 });
+      if (Math.abs(r1 - r5) > 7) exec.push({ hid: j, r1, r2 });
     }
     console.log(`${s}->${e} :: ${exec.length} found`);
     await mega.only(_.map(exec, "hid"));
@@ -91,3 +91,4 @@ const main_runner = async () => {
 
 const fixers = { main_runner };
 module.exports = { fixers };
+1;

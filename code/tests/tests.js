@@ -12,13 +12,14 @@ const v3rng = require("../v3/gaps");
 const v5_conf = require("../v5/v5_conf");
 const sheet_ops = require("../../sheet_ops/sheets_ops");
 const b5_new_rngs = require("../../temp/b5_new_rngs");
-const { get_parents } = require("../utils/cyclic_dependency");
+const { get_parents, get_races_of_hid } = require("../utils/cyclic_dependency");
 const {
   get_zed_raw_data,
   zed_races_zrapi_runner,
   zed_races_zrapi_rid_runner,
 } = require("../races/races_base");
 const send_weth = require("../payments/send_weth");
+const { dist_factor } = require("../v5/speed");
 
 const run_01 = async () => {
   let st = "2022-01-06T00:00:00Z";
@@ -1327,5 +1328,61 @@ const run_26 = async () => {
   });
 };
 
-const tests = { run: run_26 };
+const run_27 = async () => {
+  let dist = 1000;
+  let row = 16;
+  let lim = 3;
+  let rar = [
+    [329925, `F${row}`, `F${row + 1}`],
+    [342190, `G${row}`, `G${row + 1}`],
+    [7700, `H${row}`, `H${row + 1}`],
+  ];
+  for (let [hid, cell0, cell1] of rar) {
+    let races = await get_races_of_hid(hid);
+    let ar = _.chain(races)
+      .filter((e) => parseInt(e.distance) == dist)
+      .sortBy((e) => e.finishtime)
+      .map((e) => {
+        let { finishtime, raceid, distance } = e;
+        return { finishtime };
+      })
+      .slice(0, lim)
+      .value();
+    let avg = _.meanBy(ar, "finishtime");
+    let speed_init = ((distance / finishtime) * 60 * 60) / 1000;
+    let speed = dist_factor[distance] * speed_init;
+    console.log({ hid, speed, speed_init });
+    if (process.argv.includes("write")) {
+      await sheet_ops.sheet_print_cell(avg, {
+        range: `Sheet7!${cell0}`,
+        spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
+      });
+      await sheet_ops.sheet_print_cell(avg, {
+        range: `Sheet7!${cell0}`,
+        spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
+      });
+    }
+  }
+};
+
+const run_28 = async () => {
+  let finishtime = parseFloat(process.argv[4]);
+  let cell0 = process.argv[5];
+  let cell1 = process.argv[6];
+  let distance = 1000;
+  let speed_init = ((distance / finishtime) * 60 * 60) / 1000;
+  let speed = dist_factor[distance] * speed_init;
+  speed = speed * 1.45;
+  console.log({ speed_init, speed });
+  await sheet_ops.sheet_print_cell(speed_init, {
+    range: `Sheet7!${cell0}`,
+    spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
+  });
+  await sheet_ops.sheet_print_cell(speed, {
+    range: `Sheet7!${cell1}`,
+    spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
+  });
+};
+
+const tests = { run: run_28 };
 module.exports = tests;
