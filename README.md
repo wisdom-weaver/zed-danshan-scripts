@@ -34,6 +34,7 @@ pm2 start node --name "line_run_cron" -- code/main.js v5 --line run_cron
 tourney 
 pm2 start node --name "tourney::run_cron" -- code/main.js --tourney run_cron 
 pm2 start node --name "tourney::run_flash_cron" -- code/main.js --tourney run_flash_cron 
+pm2 start node --name "elo_h_getter_run_cron" -- code/main.js --tourney elo_h_getter_run_cron 
 
 ymca5_table 
 pm2 start node --name "ymca5_table_cron" -- code/main.js --ymca5_table run_cron 
