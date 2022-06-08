@@ -375,6 +375,8 @@ const range_w_parents_br = async (st, ed, cs = def_cs) => {
 
 const all = async (cs = def_cs) => {
   let [st, ed] = [1, await get_ed_horse()];
+  if (_.isNaN(cs) || _.isNil(cs)) cs = def_cs;
+  console.log([st, ed], cs);
   for (let i = st; i <= ed; i += cs) {
     let hids = get_hids(i, i + cs);
     await only(hids);
@@ -383,6 +385,8 @@ const all = async (cs = def_cs) => {
 
 const allw = async (cs = def_cs) => {
   let [st, ed] = [1, await get_ed_horse()];
+  if (_.isNaN(cs) || _.isNil(cs)) cs = def_cs;
+  console.log([st, ed], cs);
   for (let i = st; i <= ed; i += cs) {
     console.log(i, i + cs);
     let hids = get_hids(i, i + cs);

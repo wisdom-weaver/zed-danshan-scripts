@@ -211,6 +211,7 @@ const geno = (z) => {
 };
 
 const get_hids = (st, ed) => {
+  console.log("gethids", st, ed);
   let hids = new Array(ed - st + 1).fill(0).map((e, i) => i + st);
   hids = hids.filter((hid) => ![15745, 15812].includes(hid));
   return hids;
