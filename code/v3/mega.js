@@ -68,8 +68,7 @@ const calc = async ({ hid }) => {
     // return;
   }
   let tc = hdoc?.tc || null;
-  let allraces = await get_races_of_hid(hid);
-  let races = cyclic_depedency.filter_r1000(allraces);
+  let races = await get_races_of_hid(hid);
   // let [st, ed] = cyclic_depedency.get_90d_range();
   // let races = await zed_ch.db
   //   .collection("zed")
@@ -115,7 +114,7 @@ const calc = async ({ hid }) => {
 
     s5.ymca5.calc({ hid, races, hdoc, from: "mega" }),
     s5.rating_breed.calc({ hid, races, hdoc }),
-    s5.rcount.calc({ hid, races: allraces, hdoc }),
+    s5.rcount.calc({ hid, races, hdoc }),
     s5.speed.calc({ hid, races, hdoc }),
   ]);
   if (test_mode) {
@@ -169,7 +168,7 @@ const calc_racing = async ({ hid }) => {
   }
   let tc = hdoc?.tc || null;
   let allraces = await get_races_of_hid(hid);
-  let races = cyclic_depedency.filter_r1000(allraces);
+  
   // if (test_mode)
   console.log(
     "#hid",
@@ -207,7 +206,7 @@ const calc_racing = async ({ hid }) => {
 
     s5.ymca5.calc({ hid, races, hdoc, from: "mega" }),
     // s5.rating_breed.calc({ hid, races, hdoc }),
-    s5.rcount.calc({ hid, races: allraces, hdoc }),
+    s5.rcount.calc({ hid, races, hdoc }),
     s5.speed.calc({ hid, races, hdoc }),
   ]);
   if (test_mode) {

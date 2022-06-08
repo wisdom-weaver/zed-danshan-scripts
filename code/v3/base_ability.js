@@ -183,6 +183,8 @@ const diff = () => {};
 const calc = async ({ hid, races = [], tc, hdoc }) => {
   try {
     hid = parseInt(hid);
+    races = cyclic_depedency.filter_r1000(races);
+
     let dist_races = race_utils.filter_races(
       races,
       { d: [1400, 1600, 1800] },
@@ -244,7 +246,7 @@ const generate = async (hid) => {
       { projection: { tc: 1, bloodline: 1, breed_type: 1, genotype: 1 } }
     );
   let races = await get_races_of_hid(hid);
-  races = cyclic_depedency.filter_r1000(races);
+
   // let [st, ed] = cyclic_depedency.get_90d_range();
   // let races = await zed_ch.db
   //   .collection("zed")

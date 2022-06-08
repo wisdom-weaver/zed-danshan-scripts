@@ -67,6 +67,8 @@ const get_dist_pos_ob = async (hid, races = undefined) => {
 const calc = async ({ hid, races = undefined }) => {
   try {
     hid = parseInt(hid);
+    races = cyclic_depedency.filter_r1000(races);
+
     let races_n = races.length;
     // let races_n = await get_races_n(hid);
     // if (test_mode) console.log({ races_n });
@@ -160,7 +162,6 @@ const calc = async ({ hid, races = undefined }) => {
 const generate = async (hid) => {
   hid = parseInt(hid);
   let races = await get_races_of_hid(hid);
-  races = cyclic_depedency.filter_r1000(races);
   // let [st, ed] = cyclic_depedency.get_90d_range();
   // let races = await zed_ch.db
   //   .collection("zed")
