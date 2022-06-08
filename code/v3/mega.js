@@ -78,7 +78,7 @@ const calc = async ({ hid }) => {
   if (test_mode) {
     console.log("#hid", hid, "class:", tc, "races_n:", races.length);
   }
-  console.log("#hid", hid, "class:", tc, "races_n:", races.length);
+  // console.log("#hid", hid, "class:", tc, "races_n:", races.length);
   let [
     rating_blood,
     rating_breed,
