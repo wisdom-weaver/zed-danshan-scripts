@@ -108,7 +108,7 @@ const calc = async ({ hid, races }) => {
     races = _.sortBy(races, "date");
     let st = moment().add(-90, "days").toISOString();
     let ed = moment().add(0, "days").toISOString();
-    console.log(st, ed);
+    // console.log(st, ed);
     races = _.filter(races, (i) => {
       return _.inRange(nano(i.date), nano(st), nano(ed));
     });
