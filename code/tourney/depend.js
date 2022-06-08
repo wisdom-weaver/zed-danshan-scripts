@@ -327,6 +327,52 @@ const payout_all = async (body) => {
   };
 };
 
+const flash_pay_to_user = async (pays) => {
+  let payments = pays.map((l) => ({
+    WALLET: l.wallet,
+    AMOUNT: l.amt.toString(),
+  }));
+  console.table(payments);
+  let count = await send_weth.sendAllTransactions(
+    payments,
+    flash_payout_private_key
+  );
+  console.log("done txns:", count);
+};
+
+const get_elo_score = async (hid) => {
+  let hdoc = await zedf.horse(hid);
+  return hdoc?.rating || null;
+};
+
+const get_payout_wallet = (type) => {
+  if (type == "regular") return process.env.regular_payout_wallet;
+  if (type == "flash") return process.env.flash_payout_wallet;
+  return null;
+};
+
+const get_payout_private_key = (type) => {
+  if (type == "regular") return process.env.regular_payout_private_key;
+  if (type == "flash") return process.env.flash_payout_private_key;
+  return null;
+};
+
+const amt_manip_leader = (hrow, tid) => {
+  let { hid, wallet, amt } = hrow;
+  let base = amt;
+  const unq = `${tid}-${wallet}-${hid}`;
+  let hash = sha256(unq).toString();
+  let fact = parseInt(Math.log10(base));
+  let add = parseInt(hash.slice(-6), "16") % 1000;
+  add = add * 1e-8;
+  base = base.toString();
+  base = parseFloat(base.slice(0, base.indexOf(".") + 5));
+  let tot = base + add;
+  tot = parseFloat(tot).toFixed(8);
+  // console.log({ base, add, tot });
+  return tot;
+};
+
 const get_double_up_list = (tdoc, leader) => {
   let { tid, prize_pool, payout_mode, score_mode, horse_cr } = tdoc;
   let entry_fee = getv(horse_cr, "0.cost");
@@ -398,7 +444,7 @@ const get_double_up_list = (tdoc, leader) => {
       let { rank, hid, wallet, amt, stable_name } = e;
       return { rank, hid, val: e[k], wallet, amt, stable_name };
     });
-    console.table(pays);
+    // console.table(pays);
     let total = _.sumBy(pays, "amt");
     // console.log({ total });
   } else {
@@ -455,12 +501,11 @@ const get_double_up_list = (tdoc, leader) => {
 };
 
 const get_winner_all_list = (tdoc, leader) => {
-  let { tid, prize_pool, payout_mode, score_mode, horse_cr } = tdoc;
+  let { prize_pool, payout_mode, score_mode, horse_cr } = tdoc;
   let entry_fee = getv(horse_cr, "0.cost");
   let k =
     (score_mode == "total" && "tot_score") ||
     (score_mode == "avg" && "avg_score") ||
-    (score_mode == "elo" && "elo_score") ||
     null;
 
   let tot = leader.length;
@@ -491,11 +536,6 @@ const get_winner_all_list = (tdoc, leader) => {
   pays = pays.map((e) => {
     let { rank, hid, wallet, amt, role } = e;
     return { rank, hid, val: e[k], wallet, amt, role };
-  });
-
-  pays = _.map(pays, (e) => {
-    let amt = amt_manip_leader(e, tid);
-    return { ...e, amt };
   });
 
   return pays;
@@ -533,12 +573,16 @@ const get_team_leader = async (tdoc) => {
   if (stables.length == 2) {
     let team_a = stables[0];
     let team_b = stables[1];
-    const win =
-      team_a.score != 0
-        ? team_a.score > team_b.score
-          ? team_a
-          : team_b
-        : null;
+
+    const get_win_team = (team_a, team_b) => {
+      let a = team_a?.score;
+      let b = team_b?.score;
+      console.log({ a, b });
+      if (!a && !b) return null;
+      if (a == b) return null;
+      return a > b ? team_a : team_b;
+    };
+    const win = get_win_team(team_a, team_b);
     let win_pot = prize_pool;
     let k = "score";
 
@@ -578,54 +622,53 @@ const get_team_leader = async (tdoc) => {
       return { ...l, ...ob };
     });
   }
-
+  // console.table(stables);
   return stables;
 };
 
-const flash_pay_to_user = async (pays) => {
-  let payments = pays.map((l) => ({
-    WALLET: l.wallet,
-    AMOUNT: l.amt.toString(),
-  }));
-  console.table(payments);
-  let count = await send_weth.sendAllTransactions(
-    payments,
-    flash_payout_private_key
-  );
-  console.log("done txns:", count);
+const get_ranked_leader_t = async ({ tid }) => {
+  let tdoc = (await zed_db.db.collection(tcoll).findOne({ tid })) || null;
+  if (!tdoc) throw new Error("now such tourney");
+  let { prize_pool, payout_mode, score_mode, status, terminated } = tdoc;
+  // console.log({ prize_pool, payout_mode, score_mode });
+  let pays = [];
+  let leader = [];
+  if (score_mode == "team") {
+    leader = await get_team_leader(tdoc);
+  } else {
+    leader = await get_leaderboard_t({ tid });
+  }
+  if (leader.length == 0) return [];
+  if (status == "open") return leader;
+  if (terminated == true) return leader;
+
+  if (score_mode !== "team") {
+    if (payout_mode == "winner_all") {
+      pays = get_winner_all_list(tdoc, leader);
+    } else if (payout_mode == "double_up") {
+      pays = get_double_up_list(tdoc, leader);
+    }
+    pays = _.keyBy(pays, "hid");
+    leader = leader.map((l) => {
+      let ob = pays[l.hid] || { role: "lose", amt: 0 };
+      return { ...l, ...ob };
+    });
+  }
+  return leader;
 };
 
-const amt_manip_leader = (hrow, tid) => {
-  let { hid, wallet, amt } = hrow;
-  let base = amt;
-  const unq = `${tid}-${wallet}-${hid}`;
+const manip_amt_by_hids = (base, hids, tid) => {
+  hids = _.sortBy(hids, (e) => _.toNumber(e));
+  const unq = `${hids.join("-")}-${tid}`;
   let hash = sha256(unq).toString();
   let fact = parseInt(Math.log10(base));
-  let add = parseInt(hash.slice(-6), "16") % 1000;
-  add = add * 1e-8;
-  base = base.toString();
-  base = parseFloat(base.slice(0, base.indexOf(".") + 5));
-  let tot = base + add;
-  tot = parseFloat(tot).toFixed(8);
-  // console.log({ base, add, tot });
+  let add = (parseInt(hash.slice(-5), "16") % 1000) * Math.pow(10, fact - 5);
+  let tot = parseFloat(base) + add;
+  // console.log("unq", unq);
+  // console.log("hash", hash);
+  tot = parseFloat(tot.toFixed(8));
+  // console.log({ add, base, fact, tot });
   return tot;
-};
-
-const get_elo_score = async (hid) => {
-  let hdoc = await zedf.horse(hid);
-  return hdoc?.rating || null;
-};
-
-const get_payout_wallet = (type) => {
-  if (type == "regular") return process.env.regular_payout_wallet;
-  if (type == "flash") return process.env.flash_payout_wallet;
-  return null;
-};
-
-const get_payout_private_key = (type) => {
-  if (type == "regular") return process.env.regular_payout_private_key;
-  if (type == "flash") return process.env.flash_payout_private_key;
-  return null;
 };
 
 module.exports = {
@@ -649,4 +692,5 @@ module.exports = {
   get_team_leader,
   get_payout_wallet,
   get_payout_private_key,
+  get_ranked_leader_t,
 };

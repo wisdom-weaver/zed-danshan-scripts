@@ -1367,21 +1367,51 @@ const run_27 = async () => {
 
 const run_28 = async () => {
   let finishtime = parseFloat(process.argv[4]);
-  let cell0 = process.argv[5];
+  // let cell0 = process.argv[5];
+  let distance = parseFloat(process.argv[5]);
   let cell1 = process.argv[6];
-  let distance = 1000;
   let speed_init = ((distance / finishtime) * 60 * 60) / 1000;
   let speed = dist_factor[distance] * speed_init;
   speed = speed * 1.45;
   console.log({ speed_init, speed });
-  await sheet_ops.sheet_print_cell(speed_init, {
-    range: `Sheet7!${cell0}`,
-    spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
-  });
+  // await sheet_ops.sheet_print_cell(speed_init, {
+  //   range: `Sheet7!${cell0}`,
+  //   spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
+  // });
   await sheet_ops.sheet_print_cell(speed, {
-    range: `Sheet7!${cell1}`,
+    range: `FastestTimeLogic!${cell1}`,
     spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
   });
+};
+
+const run_29 = async () => {
+  // let dist = 1600;
+  let hid = 128497;
+  // let cell0 = "C4";
+  let aaa = [
+    [1600, "A4"],
+    [1800, "B4"],
+    [2000, "C4"],
+  ];
+  let races = await get_races_of_hid(hid);
+  for (let [distance, cell] of aaa) {
+    let ar = _.chain(races)
+      .filter((e) => parseInt(e.distance) == distance)
+      .sortBy((e) => e.finishtime)
+      .map((e) => {
+        let { finishtime, raceid, distance } = e;
+        return { [distance]: finishtime };
+      })
+      // .slice(0, lim)
+      .value();
+    console.table(ar);
+    if (process.argv.includes("write")) {
+      await sheet_ops.sheet_print_ob(ar, {
+        range: `FastestTimeLogic!${cell}`,
+        spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
+      });
+    }
+  }
 };
 
 const tests = { run: run_28 };

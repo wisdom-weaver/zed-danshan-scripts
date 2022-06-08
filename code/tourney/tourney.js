@@ -33,6 +33,7 @@ const {
   get_team_leader,
   get_payout_private_key,
   get_payout_wallet,
+  get_ranked_leader_t,
 } = require("./depend");
 const send_weth = require("../payments/send_weth");
 const { fget } = require("../utils/fetch");
@@ -1268,39 +1269,9 @@ const flash_run_current = async () => {
   }
 };
 
-const get_ranked_leader_t = async ({ tid }) => {
-  let tdoc = (await zed_db.db.collection(tcoll).findOne({ tid })) || null;
-  if (!tdoc) throw new Error("now such tourney");
-  let { prize_pool, payout_mode, score_mode, status, terminated } = tdoc;
-  // prize_pool = 1;
-  // console.log({ prize_pool, payout_mode, score_mode });
-  let pays = [];
-  let leader = [];
-  if (score_mode == "team") {
-    leader = await get_team_leader(tdoc);
-  } else {
-    leader = await get_leaderboard_t({ tid });
-  }
-  if (leader.length == 0) return [];
-  if (status == "open") return leader;
-  if (terminated == true) return leader;
-
-  if (score_mode !== "team") {
-    if (payout_mode == "winner_all") {
-      pays = get_winner_all_list(tdoc, leader);
-    } else if (payout_mode == "double_up") {
-      pays = get_double_up_list(tdoc, leader);
-    }
-    pays = _.keyBy(pays, "hid");
-    leader = leader.map((l) => {
-      let ob = pays[l.hid] || { role: "lose", amt: 0 };
-      return { ...l, ...ob };
-    });
-  }
-  return leader;
-};
 const calc_payouts_list = async ({ tid }) => {
   let leader = await get_ranked_leader_t({ tid });
+  console.table(leader);
   if (_.isEmpty(leader)) return [];
   leader = _.filter(leader, (e) => ![undefined, NaN, null, 0].includes(e.amt));
   return leader;
