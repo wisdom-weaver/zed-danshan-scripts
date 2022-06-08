@@ -11,6 +11,7 @@ const {
   dec,
   getv,
   get_hids,
+  nano,
 } = require("../utils/utils");
 const app_root = require("app-root-path");
 const {
@@ -49,49 +50,73 @@ const dist_factor = {
 };
 
 const calc_speed_from_races = (races) => {
-  if (_.isEmpty(races)) return null;
+  if (_.isEmpty(races)) {
+    // console.log("no races");
+    return { n90: 0, d90: 0, speed: null };
+  }
+  let n90 = races.length;
   let gp = _.groupBy(races, "distance");
   gp = _.chain(gp)
     .entries()
     .map(([d, rs]) => {
       d = parseInt(d);
-      let mx = _.minBy(rs, (i) => {
-        let val = getv(i, "finishtime");
-        if (!val) return 1e14;
-        return val;
-      });
+      let d90 = rs.length;
+      let lim = (d90 < 10 && 1) || (_.inRange(d90, 10, 20) && 2) || 3;
+      // console.log({ d, d90, lim });
+      let mx = _.chain(rs)
+        .sortBy((i) => {
+          let val = getv(i, "finishtime");
+          if (!val) return 1e14;
+          return val;
+        })
+        .slice(0, lim)
+        .map("finishtime")
+        .mean()
+        .value();
+      // console.log(mx);
       if (mx == 1e14) return { distance, speed_init: null, speed: null };
-      let { distance, finishtime } = mx;
+      let distance = d;
+      let finishtime = mx;
       let speed_init = ((distance / finishtime) * 60 * 60) / 1000;
       let speed = dist_factor[distance] * speed_init;
-      return { distance, speed_init, speed };
+      return { distance, speed_init, speed, d90 };
     })
     .value();
   if (test_mode) {
     console.table(gp);
   }
   let pick = _.maxBy(gp, (i) => getv(i, "speed"));
-  if (_.isEmpty(pick)) return null;
-  let { distance, speed_init, speed } = pick;
+  if (_.isEmpty(pick)) return { n90: 0, d90: 0, speed: null };
+  let { distance, speed_init, speed, d90 } = pick;
   let final_speed = speed * 1.45;
   if (test_mode)
-    console.log("max_speed", { distance, speed_init, speed, final_speed });
+    console.log("max_speed", {
+      distance,
+      speed_init,
+      speed,
+      final_speed,
+      d90,
+      n90,
+    });
   // console.log(final_speed);
-  return final_speed;
+  return { speed: final_speed, d90, n90 };
 };
 
 const calc = async ({ hid, races }) => {
   try {
+    // console.log("calc", races.length);
     races = _.sortBy(races, "date");
     let st = moment().add(-90, "days").toISOString();
     let ed = moment().add(0, "days").toISOString();
-    races = _.sortBy(races, (i) => {
-      return i.date > st && i.date < ed;
+    console.log(st, ed);
+    races = _.filter(races, (i) => {
+      return _.inRange(nano(i.date), nano(st), nano(ed));
     });
-    let speed = calc_speed_from_races(races);
-    let ob = { hid, speed };
-    // console.log(ob);
-    return ob;
+    // console.table(races);
+    let speed_ob = calc_speed_from_races(races);
+    speed_ob.hid = hid;
+    // console.log(speed_ob);
+    return speed_ob;
   } catch (err) {
     console.log("err on horse speed", hid);
     console.log(err);
@@ -101,6 +126,7 @@ const calc = async ({ hid, races }) => {
 
 const generate = async (hid) => {
   try {
+    // console.log("generate");
     hid = parseInt(hid);
     let st = moment().add(-90, "days").toISOString();
     let ed = moment().add(0, "days").toISOString();
@@ -108,16 +134,16 @@ const generate = async (hid) => {
       .collection("zed")
       .find(
         { 2: { $gte: st, $lte: ed }, 6: hid },
-        { projection: { 1: 1, 7: 1 } }
+        { projection: { 1: 1, 2: 1, 7: 1 } }
       )
       .toArray();
     // console.table(races);
     races = cyclic_depedency.struct_race_row_data(races);
-    let speed = calc_speed_from_races(races);
-    let ob = { hid, speed };
+    let ob = calc({ hid, races });
     return ob;
   } catch (err) {
     console.log("err in speed", err);
+    console.log(err);
   }
 };
 

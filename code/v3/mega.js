@@ -67,17 +67,18 @@ const calc = async ({ hid }) => {
     // return;
   }
   let tc = hdoc?.tc || null;
-  // let races = await get_races_of_hid(hid);
-  let [st, ed] = cyclic_depedency.get_90d_range();
-  let races = await zed_ch.db
-    .collection("zed")
-    .find({ 2: { $gte: st, $lte: ed }, 6: hid })
-    .toArray();
-  races = cyclic_depedency.struct_race_row_data(races);
+  let races = await get_races_of_hid(hid);
+  // let [st, ed] = cyclic_depedency.get_90d_range();
+  // let races = await zed_ch.db
+  //   .collection("zed")
+  //   .find({ 2: { $gte: st, $lte: ed }, 6: hid })
+  //   .toArray();
+  // races = cyclic_depedency.struct_race_row_data(races);
 
   if (test_mode) {
     console.log("#hid", hid, "class:", tc, "races_n:", races.length);
   }
+  console.log("#hid", hid, "class:", tc, "races_n:", races.length);
   let [
     rating_blood,
     rating_breed,
