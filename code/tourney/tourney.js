@@ -308,7 +308,10 @@ const elo_races_do = async (hid, tdoc, races) => {
   for (let i = 0; i < traces_n; i++) {
     let race = races[i];
     race.enter = i == 0 ? elo_init : races[i - 1].exit;
-    race.exit = get_opt_elo_from_list(race.date, elo_list);
+    let finishdate = moment(race.date)
+      .add(race.finishtime, "seconds")
+      .toISOString();
+    race.exit = get_opt_elo_from_list(finishdate, elo_list);
 
     races[i].elo_diff = race.exit - race.enter;
     if (i == traces_n - 1) elo_last = race.exit;
@@ -541,7 +544,7 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
         4: 1, // raceid
         5: 1, // thisclass
         6: 1, // hid
-        // 7: 1, // finishtime
+        7: 1, // finishtime
         8: 1, // place
         // 9: 1, // name
         10: 1, // gate
@@ -578,6 +581,7 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
           entryfee_usd,
           gate: r[10],
           place: parseFloat(r[8]),
+          finishtime: parseFloat(r[7]),
           flame: r[13],
           hrating: r[22],
         };
@@ -1516,8 +1520,8 @@ const fix = async () => {
     let nr = _.chain(rs)
       .clone()
       .map((r) => {
-        let { rid, date, place, enter, exit, elo_diff } = r;
-        return { rid, date, place, enter, exit, elo_diff };
+        let { rid, date, place, finishtime, enter, exit, elo_diff } = r;
+        return { rid, date, place, finishtime, enter, exit, elo_diff };
       })
       .value();
     console.table(nr);
@@ -1539,6 +1543,12 @@ const fix = async () => {
     celo,
     frdate,
   });
+  if (frid == "print") {
+    // console.table(races);
+    // console.table(elo_list)
+    return;
+  }
+
   let elref = _.find(elo_list, { elo_curr: celo });
   console.log("elref", elref);
   if (!elref) {
@@ -1566,7 +1576,8 @@ const fix = async () => {
   for (let i = 0; i < traces_n; i++) {
     let race = races[i];
     race.enter = i == 0 ? elo_init : races[i - 1].exit;
-    race.exit = get_opt_elo_from_list(race.date, elo_list);
+    let finishdate = moment(race.date).add(race.finishtime).toISOString();
+    race.exit = get_opt_elo_from_list(finishdate, elo_list);
 
     races[i].elo_diff = race.exit - race.enter;
     if (i == traces_n - 1) elo_last = race.exit;
