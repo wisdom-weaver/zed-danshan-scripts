@@ -885,10 +885,22 @@ const process_t_status_flash = async ({ tid }) => {
     }
   }
   if (status == "live" && tourney_st && tourney_ed) {
+    let hcount = await zed_db.db
+      .collection(tcoll_horses(tid))
+      .find({}, { projection: { hid: 1, traces_n: 1, _id: 0 } })
+      .toArray();
+    let all_finished_lim =
+      !_.isEmpty(hcount) &&
+      _.reduce(hcount, (acc, e) => acc && e.traces_n >= 5, true);
+    // console.table(hcount);
+    // console.log({ all_finished_lim });
+
     if (!_.inRange(nano(now), nano(tourney_st), nano(tourney_ed)))
       return { status: "ended" };
-    else return { status: "live" };
-
+    else if (all_finished_lim) {
+      return { status: "ended", tourney_ed: iso() };
+    }
+    return { status: "live" };
     return upd;
   }
 };
@@ -1681,15 +1693,8 @@ const main_runner = async (args) => {
 };
 
 const test = async () => {
-  const cron_str = "*/20 * * * * *";
-  const fn = async () => {
-    let tid = "ae0877c0";
-    await run_tid(tid);
-    // await tourney_payout(tid);
-  };
-  console.log("##run test cron", "tourney");
-  print_cron_details(cron_str);
-  cron.schedule(cron_str, fn, cron_conf);
+  let tid = "00739750";
+  process_t_status_flash({ tid });
 };
 
 const tourney = {
