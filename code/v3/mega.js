@@ -16,6 +16,7 @@ const { zed_ch, zed_db } = require("../connection/mongo_connect");
 const {
   get_races_of_hid,
   get_ed_horse,
+  filter_r1000,
 } = require("../utils/cyclic_dependency");
 const bulk = require("../utils/bulk");
 const { get_hids } = require("../utils/utils");
@@ -67,7 +68,8 @@ const calc = async ({ hid }) => {
     // return;
   }
   let tc = hdoc?.tc || null;
-  let races = await get_races_of_hid(hid);
+  let allraces = await get_races_of_hid(hid);
+  let races = cyclic_depedency.filter_r1000(allraces);
   // let [st, ed] = cyclic_depedency.get_90d_range();
   // let races = await zed_ch.db
   //   .collection("zed")
@@ -75,9 +77,17 @@ const calc = async ({ hid }) => {
   //   .toArray();
   // races = cyclic_depedency.struct_race_row_data(races);
 
-  if (test_mode) {
-    console.log("#hid", hid, "class:", tc, "races_n:", races.length);
-  }
+  // if (test_mode)
+  console.log(
+    "#hid",
+    hid,
+    "class:",
+    tc,
+    "races_n:",
+    races.length,
+    allraces.length
+  );
+
   // console.log("#hid", hid, "class:", tc, "races_n:", races.length);
   let [
     rating_blood,
@@ -105,7 +115,7 @@ const calc = async ({ hid }) => {
 
     s5.ymca5.calc({ hid, races, hdoc, from: "mega" }),
     s5.rating_breed.calc({ hid, races, hdoc }),
-    s5.rcount.calc({ hid, races, hdoc }),
+    s5.rcount.calc({ hid, races: allraces, hdoc }),
     s5.speed.calc({ hid, races, hdoc }),
   ]);
   if (test_mode) {
@@ -158,10 +168,19 @@ const calc_racing = async ({ hid }) => {
     // return;
   }
   let tc = hdoc?.tc || null;
-  let races = await get_races_of_hid(hid);
-  if (test_mode) {
-    console.log("#hid", hid, "class:", tc, "races_n:", races.length);
-  }
+  let allraces = await get_races_of_hid(hid);
+  let races = cyclic_depedency.filter_r1000(allraces);
+  // if (test_mode)
+  console.log(
+    "#hid",
+    hid,
+    "class:",
+    tc,
+    "races_n:",
+    races.length,
+    allraces.length
+  );
+
   let [
     rating_blood,
     // rating_breed,
@@ -188,7 +207,7 @@ const calc_racing = async ({ hid }) => {
 
     s5.ymca5.calc({ hid, races, hdoc, from: "mega" }),
     // s5.rating_breed.calc({ hid, races, hdoc }),
-    s5.rcount.calc({ hid, races, hdoc }),
+    s5.rcount.calc({ hid, races: allraces, hdoc }),
     s5.speed.calc({ hid, races, hdoc }),
   ]);
   if (test_mode) {

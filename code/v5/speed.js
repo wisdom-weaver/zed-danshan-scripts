@@ -106,6 +106,8 @@ const calc = async ({ hid, races }) => {
   try {
     // console.log("calc", races.length);
     races = _.sortBy(races, "date");
+    races = cyclic_depedency.filter_r1000(races);
+
     let st = moment().add(-90, "days").toISOString();
     let ed = moment().add(0, "days").toISOString();
     // console.log(st, ed);
@@ -133,7 +135,7 @@ const generate = async (hid) => {
     let races = await zed_ch.db
       .collection("zed")
       .find(
-        { 2: { $gte: st, $lte: ed }, 6: hid },
+        { 2: { $gte: st, $lte: ed }, 6: hid, 5: { $ne: 1000 } },
         { projection: { 1: 1, 2: 1, 7: 1 } }
       )
       .toArray();

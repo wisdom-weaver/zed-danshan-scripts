@@ -235,6 +235,7 @@ const calc = async ({ hid, races = [], tc }) => {
 const generate = async (hid) => {
   hid = parseInt(hid);
   let races = await get_races_of_hid(hid);
+  races = cyclic_depedency.filter_r1000(races);
   // let [st, ed] = cyclic_depedency.get_90d_range();
   // let races = await zed_ch.db
   //   .collection("zed")
@@ -312,7 +313,9 @@ const test = async (hid) => {
   hid = parseInt(hid);
   // let hid = 126065;
   let races = await get_races_of_hid(hid);
+  races = cyclic_depedency.filter_r1000(races);
   let ob = await calc_overall_rat({ hid, races });
+
   console.table(ob);
   let ob3 = await calc_tunnel_rat({ hid, races });
   console.table(ob3);

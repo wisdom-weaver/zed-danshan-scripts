@@ -399,6 +399,12 @@ const z_mi_mx = {
   "Buterin-pacer": [13, 268],
 };
 
+const filter_r1000 = (races) => {
+  if (_.isEmpty(races)) return [];
+  races = races.filter((e) => e.thisclass != 1000);
+  return races;
+};
+
 const cyclic_depedency = {
   get_races_of_hid,
   from_ch_zed_collection,
@@ -425,6 +431,7 @@ const cyclic_depedency = {
   get_90d_range,
   get_date_range_fromto,
   z_mi_mx,
+  filter_r1000,
 };
 
 module.exports = cyclic_depedency;
