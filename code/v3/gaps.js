@@ -37,6 +37,9 @@ const run_race = async (race = []) => {
   try {
     if (_.isEmpty(race)) return null;
     race = cyclic_depedency.struct_race_row_data(race);
+    if (race.thisclass == 1000) {
+      return console.log("r1000 race exit");
+    }
     race = _.uniqBy(race, (e) => `${e.raceid}-${e.hid}`);
     race = race.map((ea) => {
       let { place, flame } = ea;
@@ -96,7 +99,7 @@ const run_rid = async (rid) => {
     .collection("zed")
     .find(
       { 4: rid },
-      { projection: { 1: 1, 2: 1, 4: 1, 6: 1, 8: 1, 13: 1, 7: 1 } }
+      { projection: { 1: 1, 2: 1, 4: 1, 5: 1, 6: 1, 8: 1, 13: 1, 7: 1 } }
     )
     .toArray();
   await run_race(race);
@@ -109,7 +112,7 @@ const run_1dur = async (st, ed) => {
     .collection("zed")
     .find(
       { 2: { $gte: st, $lte: ed } },
-      { projection: { 1: 1, 2: 1, 4: 1, 6: 1, 8: 1, 13: 1, 7: 1 } }
+      { projection: { 1: 1, 2: 1, 4: 1, 5: 1, 6: 1, 8: 1, 13: 1, 7: 1 } }
     )
     .toArray();
   await run_raw_races(races);
