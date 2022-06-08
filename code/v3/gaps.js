@@ -37,9 +37,7 @@ const run_race = async (race = []) => {
   try {
     if (_.isEmpty(race)) return null;
     race = cyclic_depedency.struct_race_row_data(race);
-    if (race.thisclass == 1000) {
-      return console.log("r1000 race exit");
-    }
+    
     race = _.uniqBy(race, (e) => `${e.raceid}-${e.hid}`);
     race = race.map((ea) => {
       let { place, flame } = ea;

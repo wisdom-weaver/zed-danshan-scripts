@@ -76,16 +76,8 @@ const calc = async ({ hid }) => {
   //   .toArray();
   // races = cyclic_depedency.struct_race_row_data(races);
 
-  // if (test_mode)
-  console.log(
-    "#hid",
-    hid,
-    "class:",
-    tc,
-    "races_n:",
-    races.length,
-    allraces.length
-  );
+  if (test_mode)
+    console.log("#hid", hid, "class:", tc, "races_n:", races.length);
 
   // console.log("#hid", hid, "class:", tc, "races_n:", races.length);
   let [
@@ -167,18 +159,10 @@ const calc_racing = async ({ hid }) => {
     // return;
   }
   let tc = hdoc?.tc || null;
-  let allraces = await get_races_of_hid(hid);
-  
-  // if (test_mode)
-  console.log(
-    "#hid",
-    hid,
-    "class:",
-    tc,
-    "races_n:",
-    races.length,
-    allraces.length
-  );
+  let races = await get_races_of_hid(hid);
+
+  if (test_mode)
+    console.log("#hid", hid, "class:", tc, "races_n:", races.length);
 
   let [
     rating_blood,
