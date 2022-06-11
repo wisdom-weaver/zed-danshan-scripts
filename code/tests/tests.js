@@ -4,7 +4,14 @@ const _ = require("lodash");
 const { zed_ch, zed_db } = require("../connection/mongo_connect");
 const cyclic_depedency = require("../utils/cyclic_dependency");
 const moment = require("moment");
-const { iso, nano, getv } = require("../utils/utils");
+const {
+  iso,
+  nano,
+  getv,
+  write_to_path,
+  read_from_path,
+  calc_median,
+} = require("../utils/utils");
 const mega = require("../v3/mega");
 const utils = require("../utils/utils");
 const races_scheduled = require("../races/races_scheduled");
@@ -12,7 +19,13 @@ const v3rng = require("../v3/gaps");
 const v5_conf = require("../v5/v5_conf");
 const sheet_ops = require("../../sheet_ops/sheets_ops");
 const b5_new_rngs = require("../../temp/b5_new_rngs");
-const { get_parents, get_races_of_hid } = require("../utils/cyclic_dependency");
+const {
+  get_parents,
+  get_races_of_hid,
+  get_ed_horse,
+  get_range_hids,
+  ag_look,
+} = require("../utils/cyclic_dependency");
 const {
   get_zed_raw_data,
   zed_races_zrapi_runner,
@@ -1414,5 +1427,363 @@ const run_29 = async () => {
   }
 };
 
-const tests = { run: run_28 };
+const run_30 = async () => {
+  let ar = [];
+  let cs = 1000;
+  let ed = 500000; //await get_ed_horse();
+  for (let i = 0; i <= ed; i += cs) {
+    console.log(i, i + cs);
+    let hids = await get_range_hids(i, i + cs);
+    let ea = await zed_db.db
+      .collection("speed")
+      .find({ hid: { $in: hids } })
+      .toArray();
+    ar.push(ea);
+  }
+  ar = _.flatten(ar);
+  write_to_path({ file_path: "speeds_data.json", data: ar });
+  console.log("done");
+};
+
+const run_31 = async () => {
+  let ar = read_from_path({ file_path: "speeds_data.json" });
+  ar = _.filter(ar, (e) => e.speed != null);
+  ar = _.sortBy(ar, (e) => -parseFloat(e.speed));
+  let ob = [];
+  for (let per of [1, 2, 5, 10, 20, 25, 30, 40]) {
+    let n = ar.length;
+    let count = parseInt((ar.length * per) / 100);
+    let eaar = _.slice(ar, 0, count);
+    let min = _.minBy(eaar, (e) => e.speed)?.speed;
+    let max = _.maxBy(eaar, (e) => e.speed)?.speed;
+    let avg = _.meanBy(eaar, (e) => e.speed);
+    let ea = {
+      total: n,
+      top: per,
+      count_top: count,
+      avg,
+      min,
+      max,
+    };
+    ob.push(ea);
+  }
+  console.table(ob);
+};
+
+const run_32 = async () => {
+  // let hids = [24393, 147719];
+  let range = [];
+  for (let val of [93.076, 92.137]) {
+    // let speed = await zed_db.db.collection("speed").findOne({ hid });
+    // speed = speed?.speed;
+    let speed = val;
+    let [spmi, spmx] = [speed * 0.9995, speed * 1.0005];
+    console.log(spmi, spmx);
+    range.push([spmi, spmx]);
+  }
+  console.log(range);
+  let ar = await zed_db.db
+    .collection("horse_details")
+    .aggregate([
+      { $match: { hid: { $gte: 360000 } } },
+      {
+        $project: {
+          hid: 1,
+          father: "$parents.father",
+          mother: "$parents.mother",
+        },
+      },
+      {
+        $match: {
+          mother: { $ne: null },
+          father: { $ne: null },
+        },
+      },
+      {
+        $lookup: {
+          from: "speed",
+          localField: "mother",
+          foreignField: "hid",
+          as: "spdoc_m",
+        },
+      },
+      {
+        $unwind: {
+          path: "$spdoc_m",
+          includeArrayIndex: "0",
+          preserveNullAndEmptyArrays: false,
+        },
+      },
+      {
+        $lookup: {
+          from: "speed",
+          localField: "father",
+          foreignField: "hid",
+          as: "spdoc_f",
+        },
+      },
+      {
+        $unwind: {
+          path: "$spdoc_f",
+          includeArrayIndex: "0",
+          preserveNullAndEmptyArrays: false,
+        },
+      },
+      {
+        $project: {
+          hid: 1,
+          mother: 1,
+          father: 1,
+          speed_m: "$spdoc_m.speed",
+          speed_f: "$spdoc_f.speed",
+        },
+      },
+      {
+        $match: {
+          $or: [
+            // {
+            //   $and: [
+            //     { speed_m: { $gte: range[0][0], $lte: range[0][1] } },
+            //     { speed_f: { $gte: range[1][0], $lte: range[1][1] } },
+            //   ],
+            // },
+            {
+              $and: [
+                { speed_m: { $gte: range[1][0], $lte: range[1][1] } },
+                { speed_f: { $gte: range[0][0], $lte: range[0][1] } },
+              ],
+            },
+          ],
+        },
+      },
+      // {
+      //   $match: {
+      //     $or: [
+      //       { speed_m: { $gte: range[0][0], $lte: range[0][1] } },
+      //       { speed_f: { $gte: range[1][0], $lte: range[1][1] } },
+      //     ],
+      //   },
+      // },
+      {
+        $lookup: {
+          from: "speed",
+          localField: "hid",
+          foreignField: "hid",
+          as: "spdoc",
+        },
+      },
+      {
+        $unwind: {
+          path: "$spdoc",
+          includeArrayIndex: "0",
+          preserveNullAndEmptyArrays: false,
+        },
+      },
+      {
+        $project: {
+          hid: 1,
+          speed: "$spdoc.speed",
+          mother: 1,
+          speed_m: 1,
+          father: 1,
+          speed_f: 1,
+        },
+      },
+    ])
+    .toArray();
+  console.log(ar);
+
+  if (process.argv.includes("write")) {
+    await sheet_ops.sheet_print_ob(ar, {
+      range: `Analyzer 6!$A40`,
+      spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
+    });
+  }
+
+  let count_all = ar.length;
+  let speeds = _.map(ar, "speed");
+  speeds = _.filter(speeds, (e) => ![null, 0, undefined, NaN].includes(e));
+  console.log(speeds);
+  let count_valid = speeds.length;
+  let min = _.min(speeds);
+  let max = _.max(speeds);
+  let med = calc_median(speeds);
+  let avg = _.mean(speeds);
+  let resp = [
+    {
+      count_all,
+      count_valid,
+      min,
+      max,
+      med,
+      avg,
+    },
+  ];
+  console.table(resp);
+  if (process.argv.includes("write")) {
+    await sheet_ops.sheet_print_ob(resp, {
+      range: `Analyzer 6!A11`,
+      spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
+    });
+  }
+};
+
+const run_33 = async () => {
+  let hids = [24393, 147719];
+  let range = [];
+  for (let hid of hids) {
+    let doc = await zed_db.db.collection("speed").findOne({ hid });
+    let val = getv(doc, "br");
+    let [spmi, spmx] = [val * 0.9995, val * 1.0005];
+    console.log(spmi, spmx);
+    range.push([spmi, spmx]);
+  }
+  console.log(range);
+  let ar = await zed_db.db
+    .collection("horse_details")
+    .aggregate([
+      {
+        $project: {
+          hid: 1,
+          father: "$parents.father",
+          mother: "$parents.mother",
+        },
+      },
+      {
+        $match: {
+          mother: {
+            $ne: null,
+          },
+          father: {
+            $ne: null,
+          },
+        },
+      },
+      // {
+      //   $lookup: {
+      //     from: "speed",
+      //     localField: "mother",
+      //     foreignField: "hid",
+      //     as: "spdoc_m",
+      //   },
+      // },
+      // {
+      //   $unwind: {
+      //     path: "$spdoc_m",
+      //     includeArrayIndex: "0",
+      //     preserveNullAndEmptyArrays: false,
+      //   },
+      // },
+      // {
+      //   $lookup: {
+      //     from: "speed",
+      //     localField: "father",
+      //     foreignField: "hid",
+      //     as: "spdoc_f",
+      //   },
+      // },
+      // {
+      //   $unwind: {
+      //     path: "$spdoc_f",
+      //     includeArrayIndex: "0",
+      //     preserveNullAndEmptyArrays: false,
+      //   },
+      // },
+      ...ag_look("rating_breed5", "mother", "hid", "brdoc_m", false),
+      ...ag_look("rating_breed5", "father", "hid", "brdoc_f", false),
+      {
+        $project: {
+          hid: 1,
+          mother: 1,
+          father: 1,
+          // speed_m: "$spdoc_m.speed",
+          // speed_f: "$spdoc_f.speed",
+          br_m: "$brdoc_m.speed",
+          br_f: "$brdoc_f.speed",
+        },
+      },
+      {
+        $match: {
+          $or: [
+            {
+              $and: [
+                { ["brdoc_m"]: { $gte: range[0][0], $lte: range[0][1] } },
+                { ["brdoc_f"]: { $gte: range[1][0], $lte: range[1][1] } },
+              ],
+            },
+            {
+              $and: [
+                { ["brdoc_f"]: { $gte: range[0][0], $lte: range[0][1] } },
+                { ["brdoc_m"]: { $gte: range[1][0], $lte: range[1][1] } },
+              ],
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "speed",
+          localField: "hid",
+          foreignField: "hid",
+          as: "spdoc",
+        },
+      },
+      {
+        $unwind: {
+          path: "$spdoc",
+          includeArrayIndex: "0",
+          preserveNullAndEmptyArrays: false,
+        },
+      },
+      {
+        $project: {
+          hid: 1,
+          speed: "$spdoc.speed",
+          mother: 1,
+          speed_m: 1,
+          father: 1,
+          speed_f: 1,
+        },
+      },
+    ])
+    .toArray();
+  console.log(ar);
+
+  if (process.argv.includes("write")) {
+    await sheet_ops.sheet_print_ob(ar, {
+      range: `Analyzer 6!$A30`,
+      spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
+    });
+  }
+
+  return;
+  let count_all = ar.length;
+  let speeds = _.map(ar, "speed");
+  speeds = _.filter(speeds, (e) => ![null, 0, undefined, NaN].includes(e));
+  console.log(speeds);
+  let count_valid = speeds.length;
+  let min = _.min(speeds);
+  let max = _.max(speeds);
+  let med = calc_median(speeds);
+  let avg = _.mean(speeds);
+  let resp = [
+    {
+      count_all,
+      count_valid,
+      min,
+      max,
+      med,
+      avg,
+    },
+  ];
+  console.table(resp);
+  if (process.argv.includes("write")) {
+    await sheet_ops.sheet_print_ob(resp, {
+      range: `Analyzer 6!$A8`,
+      spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
+    });
+  }
+};
+
+const tests = { run: run_32 };
 module.exports = tests;

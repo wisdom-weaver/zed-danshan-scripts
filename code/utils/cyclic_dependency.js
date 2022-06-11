@@ -405,6 +405,28 @@ const filter_r1000 = (races) => {
   return races;
 };
 
+const ag_look = (coll, loc, frn, as, preserve = true, project = null) => {
+  let ag = [
+    {
+      $lookup: {
+        from: coll,
+        localField: loc,
+        foreignField: frn,
+        as: as,
+      },
+    },
+    {
+      $unwind: {
+        path: `$${as}`,
+        includeArrayIndex: "0",
+        preserveNullAndEmptyArrays: preserve,
+      },
+    },
+  ];
+  if (!_.isEmpty(project)) ag.push({ $project: project });
+  return ag;
+};
+
 const cyclic_depedency = {
   get_races_of_hid,
   from_ch_zed_collection,
@@ -432,6 +454,7 @@ const cyclic_depedency = {
   get_date_range_fromto,
   z_mi_mx,
   filter_r1000,
+  ag_look,
 };
 
 module.exports = cyclic_depedency;

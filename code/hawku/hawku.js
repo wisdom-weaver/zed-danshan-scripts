@@ -241,7 +241,7 @@ const post_track = async ({ actives = [], events = [], sales = [] }) => {
 };
 
 const runner = async () => {
-  let st = moment().add(-10, "minutes").toISOString();
+  let st = moment().add(-1, "minutes").toISOString();
   let ed = moment().add(0, "minutes").toISOString();
   await run([st, ed]);
 };
@@ -270,7 +270,7 @@ const run = async ([st, ed]) => {
 };
 
 const run_cron = async () => {
-  const cron_str = "*/10 * * * *";
+  const cron_str = "*/30 * * * * *";
   print_cron_details(cron_str);
   cron.schedule(cron_str, runner);
 };
