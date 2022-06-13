@@ -28,7 +28,7 @@ const push = async (ob) => {
 };
 
 const push_ar = async (ar) => {
-  // console.table(ar);
+  console.table(ar);
   await Promise.all(ar.map(push));
 };
 
