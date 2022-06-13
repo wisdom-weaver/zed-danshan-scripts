@@ -64,7 +64,7 @@ const update_lagging = async () => {
   if (_.isEmpty(resp)) return console.log("no lagging horses");
   let hids = _.map(resp, "hid");
   for (let chu of _.chunk(hids, run_cs)) {
-    await mega.only_w_parents_br(chu, run_cs);
+    await mega.only(chu, run_cs);
   }
 };
 
