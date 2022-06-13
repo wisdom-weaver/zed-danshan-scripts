@@ -19,7 +19,7 @@ const {
   filter_r1000,
 } = require("../utils/cyclic_dependency");
 const bulk = require("../utils/bulk");
-const { get_hids } = require("../utils/utils");
+const { get_hids, iso } = require("../utils/utils");
 const utils = require("../utils/utils");
 const est_ymca = require("./est_ymca");
 const dp = require("./dp");
@@ -124,6 +124,8 @@ const calc = async ({ hid }) => {
 
   let ymca5_doc = { hid, ymca5 };
 
+  let stats_check_doc = { hid, last_updated: iso(), races: [] };
+
   return {
     hid,
     rating_blood,
@@ -138,6 +140,7 @@ const calc = async ({ hid }) => {
     breed5,
     rcount_doc,
     speed_doc,
+    stats_check_doc,
   };
 };
 
@@ -245,6 +248,7 @@ const push_mega_bulk = async (datas_ar) => {
   let breed5_bulk = [];
   let rcount_bulk = [];
   let speed_doc_bulk = [];
+  let stats_check_bulk = [];
 
   datas_ar = _.compact(datas_ar);
   datas_ar.map((data) => {
@@ -263,6 +267,7 @@ const push_mega_bulk = async (datas_ar) => {
       breed5,
       rcount_doc,
       speed_doc,
+      stats_check_doc,
     } = data;
     if (!_.isEmpty(rating_blood)) rating_blood_bulk.push(rating_blood);
     if (!_.isEmpty(rating_breed)) rating_breed_bulk.push(rating_breed);
@@ -276,6 +281,7 @@ const push_mega_bulk = async (datas_ar) => {
     if (!_.isEmpty(breed5)) breed5_bulk.push(breed5);
     if (!_.isEmpty(rcount_doc)) rcount_bulk.push(rcount_doc);
     if (!_.isEmpty(speed_doc)) speed_doc_bulk.push(speed_doc);
+    if (!_.isEmpty(stats_check_doc)) stats_check_bulk.push(stats_check_doc);
   });
 
   if (test_mode) {
@@ -289,6 +295,7 @@ const push_mega_bulk = async (datas_ar) => {
     console.log("hraces_stats_bulk.len", hraces_stats_bulk.length);
     console.log("rcount_bulk.len", rcount_bulk.length);
     console.log("speed_doc_bulk.len", speed_doc_bulk.length);
+    console.log("stats_check_bulk.len", stats_check_bulk.length);
   }
   await Promise.all([
     bulk.push_bulk("rating_blood3", rating_blood_bulk, "rating_blood"),
@@ -303,6 +310,7 @@ const push_mega_bulk = async (datas_ar) => {
     bulk.push_bulk("rating_breed5", breed5_bulk, "breed5"),
     bulk.push_bulk("rcount", rcount_bulk, "rcount"),
     bulk.push_bulk("speed", speed_doc_bulk, "speed"),
+    bulk.push_bulk("stats_check", stats_check_bulk, "stats_check"),
   ]);
   let [a, b] = [datas_ar[0]?.hid, datas_ar[datas_ar.length - 1]?.hid];
   console.log("pushed_mega_bulk", datas_ar.length, `[${a} -> ${b}]`);

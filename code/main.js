@@ -133,15 +133,7 @@ const main = async (args) => {
       await mod.hraces_stats.range(a, b);
     }
   } else if (arg1 == "--race_horses") {
-    if (arg2 == "test") {
-      race_horses.test();
-    }
-    if (arg2 == "run_cron") {
-      race_horses.run_cron();
-    }
-    if (arg2 == "run") {
-      race_horses.run();
-    }
+    await race_horses.main_runner()
   } else if (arg1 == "--rating_flames") {
     if (arg2 == "all") mod.rating_flames.all();
     if (arg2 == "only") {

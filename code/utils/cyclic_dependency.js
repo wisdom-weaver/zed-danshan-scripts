@@ -210,15 +210,6 @@ const get_prize = async ({ race_id, hid }) => {
   return result;
 };
 
-const jparse = (c) => {
-  try {
-    return JSON.parse(c);
-  } catch (err) {
-    console.log(err);
-    return [];
-  }
-};
-
 const next_run = (cron_str) => {
   const c_itvl = cron_parser.parseExpression(cron_str);
   return c_itvl.next().toISOString();
@@ -427,6 +418,19 @@ const ag_look = (coll, loc, frn, as, preserve = true, project = null) => {
   return ag;
 };
 
+const jparse = (c) => {
+  try {
+    return JSON.parse(c);
+  } catch (err) {
+    console.log("jparse err ", err.message);
+    return null;
+  }
+};
+
+const jstr = (c) => {
+  return JSON.stringify(c);
+};
+
 const cyclic_depedency = {
   get_races_of_hid,
   from_ch_zed_collection,
@@ -455,6 +459,8 @@ const cyclic_depedency = {
   z_mi_mx,
   filter_r1000,
   ag_look,
+  jparse,
+  jstr,
 };
 
 module.exports = cyclic_depedency;
