@@ -7,6 +7,7 @@ const cron_parser = require("cron-parser");
 const utils = require("../utils/utils");
 const cyclic_depedency = require("../utils/cyclic_dependency");
 const { getv } = require("../utils/utils");
+const { get_date_range_fromto } = require("../utils/cyclic_dependency");
 
 const def_cs = 4000;
 const run_cs = 15;
@@ -70,11 +71,11 @@ const agglag = [
       },
     },
   },
-  // {
-  //   $match: {
-  //     elig: true,
-  //   },
-  // },
+  {
+    $match: {
+      elig: true,
+    },
+  },
   // {
   //   $count: "hid",
   // },
@@ -84,6 +85,20 @@ const update_lagging = async () => {
   let ref = zed_db.db.collection(coll);
   let resp = await ref
     .aggregate([...agglag, { $sort: { latest_race: -1 } }, { $limit: 100 }])
+    .toArray();
+  if (_.isEmpty(resp)) return console.log("no lagging horses");
+  console.table(resp);
+  let hids = _.map(resp, "hid");
+  for (let chu of _.chunk(hids, run_cs)) {
+    await mega.only(chu, run_cs);
+  }
+};
+
+const update_dur = async ([st, ed]) => {
+  console.log({ st, ed });
+  let ref = zed_db.db.collection(coll);
+  let resp = await ref
+    .aggregate([...agglag, { $match: { latest_race: { $gte: st, $lte: ed } } }])
     .toArray();
   if (_.isEmpty(resp)) return console.log("no lagging horses");
   console.table(resp);
@@ -112,6 +127,7 @@ const update_horse_tc = async (doc) => {
 };
 
 let lagrunning = 0;
+let lagrunning2 = 0;
 const run_cron = () => {
   let cron_str = "*/5 * * * * *";
   cyclic_depedency.print_cron_details(cron_str);
@@ -123,6 +139,21 @@ const run_cron = () => {
       lagrunning = 0;
     } catch (err) {
       lagrunning = 0;
+    }
+  };
+  cron.schedule(cron_str, runner, utils.cron_conf);
+};
+const run_miss_cron = () => {
+  let cron_str = "0 */10 * * * *";
+  cyclic_depedency.print_cron_details(cron_str);
+  const runner = async () => {
+    if (lagrunning2 == 1) return console.log("race horses update running");
+    try {
+      lagrunning2 = 1;
+      await update_dur(get_date_range_fromto(-1, "hour", -10, "minutes"));
+      lagrunning2 = 0;
+    } catch (err) {
+      lagrunning2 = 0;
     }
   };
   cron.schedule(cron_str, runner, utils.cron_conf);
@@ -140,11 +171,14 @@ const test = async () => {
 };
 
 const main_runner = async () => {
-  let [_node, _cfile, arg1, arg2, arg3, arg4, arg5] = process.argv;
+  let [_node, _cfile, arg1, arg2, arg3, arg4, arg5, arg6, arg7] = process.argv;
   if (arg2 == "test") await test();
   if (arg2 == "lag") await update_lagging();
+  if (arg2 == "dur")
+    await update_dur(get_date_range_fromto(arg3, arg4, arg5, arg6));
   if (arg2 == "remain") await remain();
   if (arg2 == "run_cron") await run_cron();
+  if (arg2 == "run_miss_cron") await run_miss_cron();
 };
 
 const race_horses = {
