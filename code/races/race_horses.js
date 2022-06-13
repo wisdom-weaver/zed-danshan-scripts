@@ -9,7 +9,7 @@ const cyclic_depedency = require("../utils/cyclic_dependency");
 const { getv } = require("../utils/utils");
 
 const def_cs = 4000;
-const run_cs = 20;
+const run_cs = 50;
 
 const coll = "stats_check";
 const push = async (ob) => {
