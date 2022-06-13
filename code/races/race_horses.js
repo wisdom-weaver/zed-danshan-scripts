@@ -117,7 +117,7 @@ const remain = async () => {
       .toArray();
     c = getv(c, "0.hid") ?? 0;
     console.log("horses need stats : ", c);
-    cdelay(5000);
+    await cdelay(5000);
   }
 };
 
