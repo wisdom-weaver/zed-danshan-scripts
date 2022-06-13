@@ -24,6 +24,7 @@ pm2 start node  --name "bt_races_duplicate" -- code/main --races duplicate_cron
 
 race_horses
 pm2 start node --name "bt3_race_horses" -- code/main.js --race_horses run_cron
+pm2 start node --name "bt3_race_horses_miss" -- code/main.js --race_horses run_miss_cron
 
 horses 
 pm2 start node  --name "bt_horses_fix" -- code/main.js --horses fixer 
