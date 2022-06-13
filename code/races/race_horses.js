@@ -88,7 +88,7 @@ const update_horse_tc = async (doc) => {
 
 let lagrunning = 0;
 const run_cron = (cs = def_cs) => {
-  let cron_str = "0 */5 * * * *";
+  let cron_str = "*/5 * * * * *";
   cyclic_depedency.print_cron_details(cron_str);
   const runner = async () => {
     if (lagrunning == 1) return console.log("race horses update lag running");
