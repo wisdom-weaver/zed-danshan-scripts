@@ -1785,5 +1785,35 @@ const run_33 = async () => {
   }
 };
 
-const tests = { run: run_32 };
+const run_34 = async () => {
+  let init = "2022-01-01T00:00Z";
+  let dist = 2600;
+  for (let i = 0; i <= 7; i++) {
+    let st = moment(init).add(i, "month").toISOString();
+    let ed = moment(st).add(1, "month").toISOString();
+    let doc = await zed_ch.db
+      .collection("zed")
+      .aggregate([
+        {
+          $match: {
+            2: { $gte: st, $lte: ed },
+            1: { $in: [dist, dist.toString()] },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            avg_finish: { $avg: "$7" },
+          },
+        },
+      ])
+      .toArray();
+    let ea = doc[0];
+    ea.month = i + 1;
+    ea.dist = dist;
+    console.table([ea]);
+  }
+};
+
+const tests = { run: run_34 };
 module.exports = tests;
