@@ -8,6 +8,7 @@ const utils = require("../utils/utils");
 const cyclic_depedency = require("../utils/cyclic_dependency");
 const { getv } = require("../utils/utils");
 const { get_date_range_fromto } = require("../utils/cyclic_dependency");
+const { delay } = require("lodash");
 
 const def_cs = 4000;
 const run_cs = 15;
@@ -110,11 +111,14 @@ const update_dur = async ([st, ed]) => {
 
 const remain = async () => {
   let ref = zed_db.db.collection(coll);
-  let c = await ref
-    .aggregate([...agglag, { $sort: { latest_race: -1 } }, { $count: "hid" }])
-    .toArray();
-  c = getv(c, "0.hid") ?? 0;
-  console.log("horses need stats : ", c);
+  while (true) {
+    let c = await ref
+      .aggregate([...agglag, { $sort: { latest_race: -1 } }, { $count: "hid" }])
+      .toArray();
+    c = getv(c, "0.hid") ?? 0;
+    console.log("horses need stats : ", c);
+    delay(5000);
+  }
 };
 
 const update_horse_tc = async (doc) => {
@@ -166,7 +170,7 @@ const test = async () => {
   //   { hid: 6651, rid: "suMyYqZK", date: "2022-06-12T02:18:00", tc: 99 },
   // ]);
   let ref = zed_db.db.collection(coll);
-  ref.deleteMany({});
+  // ref.deleteMany({});
   console.log("done");
 };
 
