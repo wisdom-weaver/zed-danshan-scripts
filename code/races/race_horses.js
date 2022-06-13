@@ -9,7 +9,7 @@ const cyclic_depedency = require("../utils/cyclic_dependency");
 const { getv } = require("../utils/utils");
 
 const def_cs = 4000;
-const run_cs = 10;
+const run_cs = 20;
 
 const coll = "stats_check";
 const push = async (ob) => {
@@ -59,7 +59,7 @@ const agglag = [
 const update_lagging = async () => {
   let ref = zed_db.db.collection(coll);
   let resp = await ref
-    .aggregate([...agglag, { $sort: { latest_race: -1 } }, { $limit: 50 }])
+    .aggregate([...agglag, { $sort: { latest_race: -1 } }, { $limit: 100 }])
     .toArray();
   if (_.isEmpty(resp)) return console.log("no lagging horses");
   let hids = _.map(resp, "hid");
