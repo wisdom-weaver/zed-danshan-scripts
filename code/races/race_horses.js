@@ -11,7 +11,7 @@ const { get_date_range_fromto } = require("../utils/cyclic_dependency");
 const { delay } = require("lodash");
 
 const def_cs = 4000;
-const run_cs = 15;
+const run_cs = 20;
 
 const coll = "stats_check";
 const push = async (ob) => {
