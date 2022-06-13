@@ -9,7 +9,7 @@ const cyclic_depedency = require("../utils/cyclic_dependency");
 const { getv } = require("../utils/utils");
 
 const def_cs = 4000;
-const run_cs = 15;
+const run_cs = 25;
 
 const coll = "stats_check";
 const push = async (ob) => {
@@ -87,15 +87,14 @@ const update_horse_tc = async (doc) => {
 };
 
 let lagrunning = 0;
-const run_cron = (cs = def_cs) => {
+const run_cron = () => {
   let cron_str = "*/5 * * * * *";
   cyclic_depedency.print_cron_details(cron_str);
   const runner = async () => {
-    console.log("race horses race cron lagrunning", lagrunning);
-    if (lagrunning == 1) return console.log("race horses update lag running");
+    if (lagrunning == 1) return console.log("race horses update running");
     try {
       lagrunning = 1;
-      await update_lagging(cs);
+      await update_lagging();
       lagrunning = 0;
     } catch (err) {
       lagrunning = 0;
