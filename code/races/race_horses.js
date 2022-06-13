@@ -94,6 +94,7 @@ const run_cron = (cs = def_cs) => {
     console.log("race horses race cron lagrunning", lagrunning);
     if (lagrunning == 1) return console.log("race horses update lag running");
     try {
+      lagrunning = 1;
       await update_lagging(cs);
       lagrunning = 0;
     } catch (err) {
