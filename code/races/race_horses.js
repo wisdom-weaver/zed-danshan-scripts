@@ -86,6 +86,7 @@ const update_lagging = async () => {
     .aggregate([...agglag, { $sort: { latest_race: -1 } }, { $limit: 100 }])
     .toArray();
   if (_.isEmpty(resp)) return console.log("no lagging horses");
+  console.table(resp);
   let hids = _.map(resp, "hid");
   for (let chu of _.chunk(hids, run_cs)) {
     await mega.only(chu, run_cs);
