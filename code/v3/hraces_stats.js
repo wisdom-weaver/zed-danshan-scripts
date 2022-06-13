@@ -55,8 +55,7 @@ const calc = async ({ hid, races = [], tc }) => {
     ob.races_n = races.length
     return ob;
   } catch (err) {
-    console.log("err on get_rating_flames", hid);
-    console.log(err);
+    console.log("err on hraces stats", hid, err.message);
   }
 };
 const generate = async (hid) => {
