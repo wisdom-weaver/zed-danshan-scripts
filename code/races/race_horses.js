@@ -19,7 +19,7 @@ const push = async (ob) => {
   let resp = await zed_db.db.collection(coll).updateOne(
     { hid },
     {
-      $setOnInsert: { hid },
+      $setOnInsert: { hid, last_updated: null },
       $addToSet: { races: { rid, date, tc } },
     },
     { upsert: true }
@@ -45,7 +45,12 @@ const agglag = [
       hid: 1,
       last_updated: 1,
       latest_race: 1,
-      elig: { $lt: ["$last_updated", "$latest_race"] },
+      elig: {
+        $or: [
+          { $lt: ["$last_updated", "$latest_race"] },
+          { last_updated: null },
+        ],
+      },
     },
   },
   { $match: { elig: true } },
@@ -101,6 +106,7 @@ const test = async () => {
   console.log("racehorses test");
   await push_ar([
     { hid: 425214, rid: "suMyYqZK", date: "2022-06-12T02:18:00", tc: 99 },
+    { hid: 6651, rid: "suMyYqZK", date: "2022-06-12T02:18:00", tc: 99 },
   ]);
 };
 
