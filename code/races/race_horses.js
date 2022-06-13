@@ -6,7 +6,7 @@ const cron = require("node-cron");
 const cron_parser = require("cron-parser");
 const utils = require("../utils/utils");
 const cyclic_depedency = require("../utils/cyclic_dependency");
-const { getv } = require("../utils/utils");
+const { getv, cdelay } = require("../utils/utils");
 const { get_date_range_fromto } = require("../utils/cyclic_dependency");
 const { delay } = require("lodash");
 
@@ -117,7 +117,7 @@ const remain = async () => {
       .toArray();
     c = getv(c, "0.hid") ?? 0;
     console.log("horses need stats : ", c);
-    delay(5000);
+    cdelay(5000);
   }
 };
 
