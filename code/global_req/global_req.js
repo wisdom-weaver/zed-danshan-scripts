@@ -31,18 +31,18 @@ const redis_gs = async (redid, ex, fn) => {
 };
 
 const download = async () => {
-  // data.ymca2_avgs = await redis_gs("global_req.data.ymca2_avgs", 15 * 60, () =>
-  //   ymca2_table.get()
-  // );
-  // data.ymca5_avgs = await redis_gs("global_req.data.ymca5_avgs", 15 * 60, () =>
-  //   ymca5_table.get()
-  // );
-  // data.z_ALL = await redis_gs("global_req.data.z_ALL", 15 * 60, () =>
-  //   get_z_ALL_meds()
-  // );
-  data.ymca2_avgs = await ymca2_table.get();
-  data.ymca5_avgs = await ymca5_table.get();
-  data.z_ALL = await get_z_ALL_meds();
+  data.ymca2_avgs = await redis_gs("global_req.data.ymca2_avgs", 15 * 60, () =>
+    ymca2_table.get()
+  );
+  data.ymca5_avgs = await redis_gs("global_req.data.ymca5_avgs", 15 * 60, () =>
+    ymca5_table.get()
+  );
+  data.z_ALL = await redis_gs("global_req.data.z_ALL", 15 * 60, () =>
+    get_z_ALL_meds()
+  );
+  // data.ymca2_avgs = await ymca2_table.get();
+  // data.ymca5_avgs = await ymca5_table.get();
+  // data.z_ALL = await get_z_ALL_meds();
 
 };
 
