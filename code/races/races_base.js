@@ -373,10 +373,10 @@ const zed_push_races_to_mongo = async (races) => {
     }
   }
   let hids = _.map(horses_ar, "hid");
-  if (push_race_horses_on) {
-    console.log("race_horses.len:", horses_ar.length);
-    await race_horses.push_ar(horses_ar);
-  }
+  // if (push_race_horses_on) {
+  console.log("race_horses.len:", horses_ar.length);
+  await race_horses.push_ar(horses_ar);
+  // }
   if (!_.isEmpty(mongo_push)) {
     await zed_ch.db.collection("zed").bulkWrite(mongo_push);
   }
