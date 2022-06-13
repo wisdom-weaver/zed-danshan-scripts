@@ -209,6 +209,7 @@ const calc_racing = async ({ hid }) => {
   // let est_ymca_doc = { hid, est_ymca };
 
   let ymca5_doc = { hid, ymca5 };
+  let stats_check_doc = { hid, last_updated: iso(), races: [] };
 
   return {
     hid,
@@ -224,13 +225,14 @@ const calc_racing = async ({ hid }) => {
     // breed5,
     rcount_doc,
     speed_doc,
+    stats_check_doc,
   };
 };
 
-const generate = async (hid) => {
+const generate = async (hid, mega_mode = "racing") => {
   let docs;
-  if (process.argv.includes("--racing-only")) docs = await calc_racing({ hid });
-  else docs = await calc({ hid });
+  if (mega_mode == "racing") docs = await calc_racing({ hid });
+  else if (mega_mode == "all") docs = await calc({ hid });
   return docs;
 };
 
