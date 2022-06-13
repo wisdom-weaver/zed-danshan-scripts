@@ -9,7 +9,7 @@ const cyclic_depedency = require("../utils/cyclic_dependency");
 const { getv } = require("../utils/utils");
 
 const def_cs = 4000;
-const run_cs = 25;
+const run_cs = 15;
 
 const coll = "stats_check";
 const push = async (ob) => {
@@ -130,10 +130,13 @@ const run_cron = () => {
 
 const test = async () => {
   console.log("racehorses test");
-  await push_ar([
-    { hid: 425214, rid: "suMyYqZK", date: "2022-06-12T02:18:00", tc: 99 },
-    { hid: 6651, rid: "suMyYqZK", date: "2022-06-12T02:18:00", tc: 99 },
-  ]);
+  // await push_ar([
+  //   { hid: 425214, rid: "suMyYqZK", date: "2022-06-12T02:18:00", tc: 99 },
+  //   { hid: 6651, rid: "suMyYqZK", date: "2022-06-12T02:18:00", tc: 99 },
+  // ]);
+  let ref = zed_db.db.collection(coll);
+  ref.deleteMany({});
+  console.log("done");
 };
 
 const main_runner = async () => {
