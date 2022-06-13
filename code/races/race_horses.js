@@ -91,6 +91,7 @@ const run_cron = (cs = def_cs) => {
   let cron_str = "*/5 * * * * *";
   cyclic_depedency.print_cron_details(cron_str);
   const runner = async () => {
+    console.log("race horses race cron lagrunning", lagrunning);
     if (lagrunning == 1) return console.log("race horses update lag running");
     try {
       await update_lagging(cs);
