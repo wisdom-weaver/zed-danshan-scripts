@@ -36,7 +36,24 @@ const agglag = [
   {
     $project: {
       hid: 1,
-      latest_race: { $max: "$races.date" },
+      races: 1,
+      last_updated: 1,
+      sizegt0: {
+        $gt: [{ $size: "$races" }, 0],
+      },
+    },
+  },
+  {
+    $match: {
+      sizegt0: true,
+    },
+  },
+  {
+    $project: {
+      hid: 1,
+      latest_race: {
+        $ifNull: [{ $max: "$races.date" }, "2000"],
+      },
       last_updated: 1,
     },
   },
@@ -48,12 +65,19 @@ const agglag = [
       elig: {
         $or: [
           { $lt: ["$last_updated", "$latest_race"] },
-          { last_updated: null },
+          { $eq: ["$last_updated", null] },
         ],
       },
     },
   },
-  { $match: { elig: true } },
+  // {
+  //   $match: {
+  //     elig: true,
+  //   },
+  // },
+  // {
+  //   $count: "hid",
+  // },
 ];
 
 const update_lagging = async () => {
