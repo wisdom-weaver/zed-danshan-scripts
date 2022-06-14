@@ -99,7 +99,7 @@ const calc_speed_from_races = (races) => {
       n90,
     });
   // console.log(final_speed);
-  return { speed: final_speed, d90, n90 };
+  return { speed: final_speed, d90, n90, distance };
 };
 
 const calc = async ({ hid, races }) => {

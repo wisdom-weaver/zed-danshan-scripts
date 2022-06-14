@@ -48,9 +48,9 @@ const get_dist_pos_ob = async (hid, races = undefined) => {
     if (races !== undefined)
       dist_races = _.filter(races, (i) => i.distance == d) ?? [];
 
-    for (let p of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
-      if (races == undefined) {
-        ob[d][p] = await zed_ch.db.collection("zed").countDocuments({
+      for (let p of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
+        if (races == undefined) {
+          ob[d][p] = await zed_ch.db.collection("zed").countDocuments({
           6: hid,
           1: { $in: [d, d.toString()] },
           8: { $in: [p, p.toString()] },
@@ -67,6 +67,7 @@ const get_dist_pos_ob = async (hid, races = undefined) => {
 const calc = async ({ hid, races = undefined }) => {
   try {
     hid = parseInt(hid);
+    console.log("dp gen", hid);
     races = cyclic_depedency.filter_r1000(races);
 
     let races_n = races.length;
@@ -161,6 +162,7 @@ const calc = async ({ hid, races = undefined }) => {
 };
 const generate = async (hid) => {
   hid = parseInt(hid);
+  console.log("generate", hid)
   let races = await get_races_of_hid(hid);
   // let [st, ed] = cyclic_depedency.get_90d_range();
   // let races = await zed_ch.db

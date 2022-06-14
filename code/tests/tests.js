@@ -33,6 +33,7 @@ const {
 } = require("../races/races_base");
 const send_weth = require("../payments/send_weth");
 const { dist_factor } = require("../v5/speed");
+const { knex_conn } = require("../connection/knex_connect");
 
 const run_01 = async () => {
   let st = "2022-01-06T00:00:00Z";
@@ -1471,17 +1472,6 @@ const run_31 = async () => {
 };
 
 const run_32 = async () => {
-  // let hids = [24393, 147719];
-  let range = [];
-  for (let val of [93.076, 92.137]) {
-    // let speed = await zed_db.db.collection("speed").findOne({ hid });
-    // speed = speed?.speed;
-    let speed = val;
-    let [spmi, spmx] = [speed * 0.9995, speed * 1.0005];
-    console.log(spmi, spmx);
-    range.push([spmi, spmx]);
-  }
-  console.log(range);
   let ar = await zed_db.db
     .collection("horse_details")
     .aggregate([
@@ -1539,32 +1529,6 @@ const run_32 = async () => {
         },
       },
       {
-        $match: {
-          $or: [
-            // {
-            //   $and: [
-            //     { speed_m: { $gte: range[0][0], $lte: range[0][1] } },
-            //     { speed_f: { $gte: range[1][0], $lte: range[1][1] } },
-            //   ],
-            // },
-            {
-              $and: [
-                { speed_m: { $gte: range[1][0], $lte: range[1][1] } },
-                { speed_f: { $gte: range[0][0], $lte: range[0][1] } },
-              ],
-            },
-          ],
-        },
-      },
-      // {
-      //   $match: {
-      //     $or: [
-      //       { speed_m: { $gte: range[0][0], $lte: range[0][1] } },
-      //       { speed_f: { $gte: range[1][0], $lte: range[1][1] } },
-      //     ],
-      //   },
-      // },
-      {
         $lookup: {
           from: "speed",
           localField: "hid",
@@ -1589,40 +1553,35 @@ const run_32 = async () => {
           speed_f: 1,
         },
       },
+      {
+        $match: {
+          $expr: {
+            $and: [
+              { $ne: ["$speed", "null"] },
+              { $gte: ["$speed", 94] },
+              { $gt: ["$speed", "$speed_f"] },
+              { $gt: ["$speed", "$speed_m"] },
+            ],
+          },
+        },
+      },
+      { $sort: { speed: -1 } },
+      // {
+      //   $match: {
+      //     $or: [
+      //       { speed_m: { $gte: range[0][0], $lte: range[0][1] } },
+      //       { speed_f: { $gte: range[1][0], $lte: range[1][1] } },
+      //     ],
+      //   },
+      // },
+      // { $limit: 30 },
     ])
     .toArray();
-  console.log(ar);
-
-  if (process.argv.includes("write")) {
+  // console.table(ar);
+  // if (process.argv.includes("write")) {
+  if (true) {
     await sheet_ops.sheet_print_ob(ar, {
-      range: `Analyzer 6!$A40`,
-      spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
-    });
-  }
-
-  let count_all = ar.length;
-  let speeds = _.map(ar, "speed");
-  speeds = _.filter(speeds, (e) => ![null, 0, undefined, NaN].includes(e));
-  console.log(speeds);
-  let count_valid = speeds.length;
-  let min = _.min(speeds);
-  let max = _.max(speeds);
-  let med = calc_median(speeds);
-  let avg = _.mean(speeds);
-  let resp = [
-    {
-      count_all,
-      count_valid,
-      min,
-      max,
-      med,
-      avg,
-    },
-  ];
-  console.table(resp);
-  if (process.argv.includes("write")) {
-    await sheet_ops.sheet_print_ob(resp, {
-      range: `Analyzer 6!A11`,
+      range: `sp94!$A1`,
       spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
     });
   }
@@ -1787,7 +1746,7 @@ const run_33 = async () => {
 
 const run_34 = async () => {
   let init = "2022-01-01T00:00Z";
-  let dist = 2600;
+  let dist = 1000;
   for (let i = 0; i <= 7; i++) {
     let st = moment(init).add(i, "month").toISOString();
     let ed = moment(st).add(1, "month").toISOString();
@@ -1815,5 +1774,94 @@ const run_34 = async () => {
   }
 };
 
-const tests = { run: run_34 };
+const run_35 = async () => {
+  let ar = await zed_db.db
+    .collection("speed")
+    .aggregate([
+      { $sort: { speed: 1 } },
+      { $match: { speed: { $ne: null } } },
+      { $limit: 200 },
+      { $project: { _id: 0, speed: 1 } },
+    ])
+    .toArray();
+  console.table(ar);
+  await sheet_ops.sheet_print_ob(ar, {
+    spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
+    range: "BA!B2",
+  });
+};
+
+const run_36 = async () => {
+  console.log("run_36");
+  /*
+  select stats->'1600'->'median_speed_pd' as sp
+  from horses
+  -- where id=3312
+  where stats->'1600'->'median_speed_pd' is not null
+  order by stats->'1600'->'median_speed_pd' DESC
+  limit 10
+  */
+
+  for (let [dist, ord, cell] of [
+    [1600, "desc", "A3"],
+    [1600, "asc", "B3"],
+
+    // [1400, "desc", "C3"],
+    // [1400, "asc", "D3"],
+
+    // [1800, "desc", "E3"],
+    // [1800, "asc", "F3"],
+  ]) {
+    // let dist = 1600;
+    // let ord = "asc";
+    let k = `${ord == "desc" ? "high" : "low"}_med_sp_${dist}`;
+    // let cell = "B3";
+
+    let ar = await knex_conn
+      .select(
+        knex_conn.raw(`
+        id as hid,
+        (
+          COALESCE(cast(stats->'${dist}'->'firsts' as int),0) +
+          COALESCE(cast(stats->'${dist}'->'seconds' as int),0) +
+          COALESCE(cast(stats->'${dist}'->'thirds' as int),0) +
+          COALESCE(cast(stats->'${dist}'->'fourths' as int),0) +
+          COALESCE(cast(stats->'${dist}'->'other' as int),0)
+        ) as n,
+        stats->'${dist}'->'median_speed' as ${k}`)
+      )
+      .from("horses")
+      // .where(knex_conn.raw(`id=3312`))
+      .whereRaw(
+        `
+      (
+        COALESCE(cast(stats->'${dist}'->'firsts' as int),0) +
+        COALESCE(cast(stats->'${dist}'->'seconds' as int),0) +
+        COALESCE(cast(stats->'${dist}'->'thirds' as int),0) +
+        COALESCE(cast(stats->'${dist}'->'fourths' as int),0) +
+        COALESCE(cast(stats->'${dist}'->'other' as int),0)
+        ) >= 15 
+        and stats->'${dist}'->'median_speed' != 'null'
+      `
+      )
+      .orderBy(knex_conn.raw(`stats->'${dist}'->'median_speed'`), ord)
+      .limit(100);
+    ar = ar.filter((e, i) => {
+      e["rat"] = e[k] * dist_factor[dist] * 1.45;
+      return true;
+    });
+    console.table(ar.slice(0, 10));
+    ar = ar.map((e) => ({
+      [k]: e.rat,
+    }));
+    // console.table(ar);
+
+    await sheet_ops.sheet_print_ob(ar, {
+      spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
+      range: `BA!${cell}`,
+    });
+  }
+};
+
+const tests = { run: run_36 };
 module.exports = tests;

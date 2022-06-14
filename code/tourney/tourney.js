@@ -591,6 +591,8 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
 
   // console.table(races);
 
+  if (tdoc.tid == "a5f339e0") races = races.slice(0, 7);
+
   races = _.uniqBy(races, (i) => i.rid);
 
   let update_doc = { hid, entry_date };
@@ -624,6 +626,7 @@ const run_t_give_ranks = (hdocs, tdoc) => {
     (mode == "team" && "tot_score") ||
     null;
   let lim =
+    (tdoc.tid == "a5f339e0" && 7) ||
     (type == "regular" && mode == "elo" && 10) ||
     (type == "flash" && mode == "elo" && 5) ||
     (type == "flash" && 5) ||

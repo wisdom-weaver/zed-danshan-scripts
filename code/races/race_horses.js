@@ -170,7 +170,7 @@ const test = async () => {
   //   { hid: 6651, rid: "suMyYqZK", date: "2022-06-12T02:18:00", tc: 99 },
   // ]);
   let ref = zed_db.db.collection(coll);
-  // ref.deleteMany({});
+  ref.deleteMany({});
   console.log("done");
 };
 

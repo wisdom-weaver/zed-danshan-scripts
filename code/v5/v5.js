@@ -6,6 +6,7 @@ const rcount = require("./rcount");
 const ymca5_s = require("./ymca5");
 const speed = require("./speed");
 const ymca5_table = require("./ymca5_table");
+const base_ability = require("./base_ability");
 
 const mod = {
   ymca5: ymca5_s,
@@ -14,11 +15,13 @@ const mod = {
   rcount,
   line,
   speed,
+  base_ability,
 };
 
 const main_runner = async (args) => {
   let [_node, _cfile, v, arg1, arg2, arg3, arg4, arg5] = args;
   console.log("# v5");
+  if (arg1 == "--base_ability") await mod.base_ability.main_runner();
   if (arg1 == "--ymca5") {
     console.log("# ymca5");
     if (arg2 == "all") await mod.ymca5.all();
