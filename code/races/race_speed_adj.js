@@ -114,7 +114,7 @@ const update_dur = async (from, to) => {
   to = iso(to);
   console.log(from, to);
   let now = nano(from);
-  let off = 10 * 1000;
+  let off = 1 * 60 * 60 * 1000;
   let ref = zed_ch.db.collection("zed");
   do {
     let now_ed = Math.min(now + off, nano(to));
