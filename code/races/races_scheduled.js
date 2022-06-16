@@ -31,7 +31,7 @@ const get_all = async () => {
   //   all = [...all, ...curr];
   // }
   let ar = await Promise.all(
-    [0, 1, 2, 3, 4, 5, 6, 99].map(get_races_scheduled_c)
+    [0, 1, 2, 3, 4, 5, 6, 99, 1000].map(get_races_scheduled_c)
   );
   let all = _.flatten(ar);
   console.log(`scheduled:`, all.length);

@@ -25,6 +25,7 @@ const {
   get_ed_horse,
   get_range_hids,
   ag_look,
+  get_date_range_fromto,
 } = require("../utils/cyclic_dependency");
 const {
   get_zed_raw_data,
@@ -1863,5 +1864,33 @@ const run_36 = async () => {
   }
 };
 
-const tests = { run: run_36 };
+const run_37 = async () => {
+  let [st, ed] = get_date_range_fromto(-10, "days", 0, "days");
+  console.log(st, ed);
+  let doc = await zed_ch.db
+    .collection("zed")
+    .aggregate([
+      {
+        $match: {
+          1: 1600,
+          2: { $gte: st, $lte: ed },
+        },
+      },
+      {
+        $project: {
+          time: "$7",
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          mean_time: { $avg: "$time" },
+        },
+      },
+    ])
+    .toArray();
+  console.log(doc);
+};
+
+const tests = { run: run_37 };
 module.exports = tests;
