@@ -26,6 +26,7 @@ const dp = require("./dp");
 const zedf = require("../utils/zedf");
 const cyclic_depedency = require("../utils/cyclic_dependency");
 const { speed } = require("../v5/v5");
+const horses = require("./horses");
 
 const s3 = {
   rating_flames,
@@ -81,6 +82,7 @@ const calc = async ({ hid }) => {
 
   // console.log("#hid", hid, "class:", tc, "races_n:", races.length);
   let [
+    nhdoc,
     rating_blood,
     rating_breed,
     rating_flames,
@@ -95,6 +97,7 @@ const calc = async ({ hid }) => {
     rcount_doc,
     speed_doc,
   ] = await Promise.all([
+    horses.get_hdoc(hid),
     s3.rating_blood.calc({ hid, races, tc }),
     s3.rating_breed.calc({ hid, tc }),
     s3.rating_flames.calc({ hid, races, tc }),
@@ -128,6 +131,7 @@ const calc = async ({ hid }) => {
 
   return {
     hid,
+    nhdoc,
     rating_blood,
     rating_breed,
     rating_flames,
@@ -168,6 +172,7 @@ const calc_racing = async ({ hid }) => {
     console.log("#hid", hid, "class:", tc, "races_n:", races.length);
 
   let [
+    nhdoc,
     rating_blood,
     // rating_breed,
     rating_flames,
@@ -182,6 +187,7 @@ const calc_racing = async ({ hid }) => {
     rcount_doc,
     speed_doc,
   ] = await Promise.all([
+    horses.get_hdoc(hid),
     s3.rating_blood.calc({ hid, races, tc }),
     // s3.rating_breed.calc({ hid, tc }),
     s3.rating_flames.calc({ hid, races, tc }),
@@ -213,6 +219,7 @@ const calc_racing = async ({ hid }) => {
 
   return {
     hid,
+    nhdoc,
     rating_blood,
     // rating_breed,
     rating_flames,
@@ -237,6 +244,8 @@ const generate = async (hid, mega_mode = "racing") => {
 };
 
 const push_mega_bulk = async (datas_ar) => {
+  let nhdoc_bulk = [];
+
   let rating_blood_bulk = [];
   let rating_breed_bulk = [];
   let rating_flames_bulk = [];
@@ -256,6 +265,7 @@ const push_mega_bulk = async (datas_ar) => {
   datas_ar.map((data) => {
     let {
       hid,
+      nhdoc,
       rating_blood,
       rating_breed,
       rating_flames,
@@ -271,6 +281,7 @@ const push_mega_bulk = async (datas_ar) => {
       speed_doc,
       stats_check_doc,
     } = data;
+    if (!_.isEmpty(nhdoc)) nhdoc_bulk.push(nhdoc);
     if (!_.isEmpty(rating_blood)) rating_blood_bulk.push(rating_blood);
     if (!_.isEmpty(rating_breed)) rating_breed_bulk.push(rating_breed);
     if (!_.isEmpty(rating_flames)) rating_flames_bulk.push(rating_flames);
@@ -300,6 +311,7 @@ const push_mega_bulk = async (datas_ar) => {
     console.log("stats_check_bulk.len", stats_check_bulk.length);
   }
   await Promise.all([
+    bulk.push_bulk("horse_details", nhdoc_bulk, "hdoc"),
     bulk.push_bulk("rating_blood3", rating_blood_bulk, "rating_blood"),
     bulk.push_bulk("rating_breed3", rating_breed_bulk, "rating_breed"),
     bulk.push_bulk("rating_flames3", rating_flames_bulk, "rating_flames"),

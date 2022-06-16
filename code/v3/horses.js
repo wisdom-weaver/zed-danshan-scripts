@@ -97,6 +97,10 @@ const struct_zed_hdoc = (hid, doc) => {
   // console.log(hid, ob);
   return ob;
 };
+
+const get_hdoc = (hid) =>
+  zedf.horse(hid).then((doc) => struct_zed_hdoc(hid, doc));
+
 const add_hdocs = async (hids, cs = def_cs) => {
   for (let chunk_hids of _.chunk(hids, cs)) {
     let obar = await Promise.all(
@@ -503,6 +507,8 @@ const horses = {
   get_missings,
   delete_only,
   fixer,
+  struct_zed_hdoc,
+  get_hdoc,
 };
 
 module.exports = horses;
