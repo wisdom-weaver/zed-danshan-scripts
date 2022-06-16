@@ -154,6 +154,7 @@ const main_runner = async () => {
   console.log("race speed adj");
   let [n, f, a1, a2, a3, a4, a5] = process.argv;
   if (a2 == "test") await test();
+  if (a2 == "update") await update_dur(a3, a4);
 };
 const race_speed_adj = {
   main_runner,
