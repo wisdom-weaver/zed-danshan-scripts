@@ -81,7 +81,7 @@ const wrap_rating_for_races = async (racesData) => {
   await Promise.all(proms);
 };
 
-const get_zed_raw_data = async (from, to) => {
+const get_zed_raw_data = async (from, to, cursor, lim = 100) => {
   try {
     let arr = [];
     let json = {};
@@ -124,10 +124,19 @@ const get_zed_raw_data = async (from, to) => {
         }
       }
     }
+    pageInfo: page_info {
+      startCursor: start_cursor
+      endCursor: end_cursor
+      hasNextPage: has_next_page
+      hasPreviousPage: has_previous_page
+      __typename
+    }
+    __typename
   }
 }`,
       variables: {
-        first: 500,
+        first: lim,
+        after: cursor,
         input: {
           dates: {
             from: from,
@@ -145,6 +154,7 @@ const get_zed_raw_data = async (from, to) => {
     };
     let result = await axios(axios_config);
     let edges = result?.data?.data?.getRaceResults?.edges || [];
+    let pageInfo = result?.data?.data?.getRaceResults?.pageInfo || {};
     let racesData = {};
     for (let edgeIndex in edges) {
       let edge = edges[edgeIndex];
@@ -202,14 +212,13 @@ const get_zed_raw_data = async (from, to) => {
     await wrap_rating_for_races(racesData);
     // for (let [rid, raceData] of _.entries(racesData))
     //   console.table(_.values(raceData));
-
-    return racesData;
+    return { racesData, pageInfo };
   } catch (err) {
     console.log("err", err);
     return [];
   }
 };
-const get_zed_rids_only = async (from, to) => {
+const get_zed_rids_only_inner = async (from, to, cursor, lim = 100) => {
   try {
     from = iso(from);
     to = iso(to);
@@ -232,10 +241,19 @@ const get_zed_rids_only = async (from, to) => {
         status
       }
     }
+    pageInfo: page_info {
+      startCursor: start_cursor
+      endCursor: end_cursor
+      hasNextPage: has_next_page
+      hasPreviousPage: has_previous_page
+      __typename
+    }
+    __typename
   }
 }`,
       variables: {
-        first: 20000,
+        first: lim,
+        after: cursor,
         input: {
           dates: {
             from: from,
@@ -253,13 +271,35 @@ const get_zed_rids_only = async (from, to) => {
     };
     let result = await axios(axios_config);
     let edges = result?.data?.data?.getRaceResults?.edges || [];
+    let pageInfo = result?.data?.data?.getRaceResults?.pageInfo || {};
+
     let racesData = [];
     racesData = _.map(edges, (e) => e.node.raceId);
-    return racesData;
+    return { rids: racesData, pageInfo };
   } catch (err) {
     console.log("err", err);
     return [];
   }
+};
+
+const get_zed_rids_only = async (from, to) => {
+  let rids = [],
+    cursor,
+    pinf;
+  from = iso(from);
+  to = iso(to);
+  do {
+    let resp = await get_zed_rids_only_inner(from, to, cursor, 100);
+    pinf = resp.pageInfo;
+    cursor = pinf.endCursor;
+    let ccrids = resp.rids;
+
+    // console.log({ cursor }, pinf.hasNextPage, ccrids?.length);
+    rids.push(ccrids);
+  } while (pinf.hasNextPage);
+  rids = _.flatten(rids);
+  // console.log("got", rids.length);
+  return rids;
 };
 
 const get_zed_ch_rids_only = async (from, to) => {
@@ -404,7 +444,20 @@ const zed_races_gql_runner_inner = async (
   let t_s = new Date(to).toISOString().slice(11, 19);
   try {
     console.log("\n#", date_str, f_s, "->", t_s);
-    let races = await get_zed_raw_data(from, to);
+    let races = [],
+      cursor,
+      pinf;
+    do {
+      let resp = await get_zed_raw_data(from, to, cursor, 100);
+      pinf = resp.pageInfo;
+      cursor = pinf.endCursor;
+      let ccraces = resp.racesData;
+
+      console.log({ cursor }, pinf.hasNextPage, _.keys(ccraces)?.length);
+      races = { ...races, ...ccraces };
+    } while (pinf.hasNextPage);
+    console.log("got", parseInt(_.keys(races).length));
+
     if (_.keys(races).length == 0) {
       console.log("no races");
       return;

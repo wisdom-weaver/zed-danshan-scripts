@@ -5,6 +5,7 @@ const races_base = require("./races_base");
 const races_scheduled = require("./races_scheduled");
 const races_duplicate = require("./races_duplicate");
 const { print_cron_details } = require("../utils/cyclic_dependency");
+const { zed_races_gql_runner } = require("./races_base");
 
 const cron_conf = { scheduled: true };
 const race_conf_gql = { check_exists: true, durr: 1 * 60 * 60 * 1000 };
@@ -24,7 +25,7 @@ const live = async () => {
 const live_cron = async () => {
   // let cron_str = "*/30 * * * * *"; // testing
   let cron_str = "*/10 * * * * *";
-  print_cron_details(cron_str)
+  print_cron_details(cron_str);
   cron.schedule(cron_str, live, cron_conf);
 };
 
@@ -94,7 +95,16 @@ const manual = async (rids) => {
   await races_base.zed_race_run_rids(rids);
   console.log("manual ended");
 };
-const test = async () => {};
+const test = async () => {
+  let st = "2022-06-01T00:00:00Z";
+  let ed = "2022-06-17T00:00:00Z";
+  await races_base.zed_races_gql_runner(st, ed, {
+    check_exists: true,
+    durr: 1 * 60 * 60 * 1000,
+    push_race_horses_on: 1,
+    cs: 15,
+  });
+};
 
 const zed_races = {
   run_dur,
@@ -109,5 +119,6 @@ const zed_races = {
   duplicate: races_duplicate.runner,
   duplicate_cron: races_duplicate.run_cron,
   duplicate_run_dur: races_duplicate.run_dur,
+  test,
 };
 module.exports = zed_races;
