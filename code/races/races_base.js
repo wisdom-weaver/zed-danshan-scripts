@@ -14,6 +14,7 @@ const gap = require("../v3/gaps");
 const compiler = require("../dan/compiler/compiler_dp");
 const utils = require("../utils/utils");
 const moment = require("moment");
+const { race_speed_adj } = require("./race_speed_adj");
 
 const zed_gql = "https://zed-ql.zed.run/graphql/getRaceResults";
 const zed_secret_key = process.env.zed_secret_key;
@@ -210,8 +211,10 @@ const get_zed_raw_data = async (from, to, cursor, lim = 100) => {
     }
 
     await wrap_rating_for_races(racesData);
-    // for (let [rid, raceData] of _.entries(racesData))
-    //   console.table(_.values(raceData));
+    await race_speed_adj.run_racesdata_speed_adj_raw(racesData);
+    if (false)
+      for (let [rid, raceData] of _.entries(racesData))
+        console.table(_.values(raceData));
     return { racesData, pageInfo };
   } catch (err) {
     console.log("err", err);
@@ -298,25 +301,12 @@ const get_zed_rids_only = async (from, to) => {
     rids.push(ccrids);
   } while (pinf.hasNextPage);
   rids = _.flatten(rids);
+  rids = _.chain(rids).uniq().compact().value();
   // console.log("got", rids.length);
   return rids;
 };
 
-const get_zed_ch_rids_only = async (from, to) => {
-  try {
-    from = iso(from);
-    to = utils.iso(utils.nano(to) + 1000);
-    let docs =
-      (await zed_ch.db
-        .collection("zed")
-        .find({ 2: { $gte: from, $lte: to } }, { projection: { _id: 0, 4: 1 } })
-        .toArray()) || [];
-    return _.chain(docs).map(4).uniq().compact().value();
-  } catch (err) {
-    console.log("err", err);
-    return [];
-  }
-};
+const get_zed_ch_rids_only = get_zed_rids_only;
 
 const add_times_flames_odds_to_1race = async ([rid, race], config) => {
   let raw_race = _.values(race);
@@ -638,6 +628,7 @@ const zed_races_zrapi_rid_runner = async (
   rid,
   conf = { mode: "err", check_exists: 0 }
 ) => {
+  // console.log("zed_races_zrapi_rid_runner", rid);
   let { mode = "err" } = conf;
   let [base, results, flames] = await Promise.all([
     zed_race_base_data(rid),
@@ -657,7 +648,8 @@ const zed_races_zrapi_rid_runner = async (
       flame: flames[hid],
     };
   });
-  console.log("base", base);
+  // console.log("base", base);
+  
   let pool = {
     1: parseFloat(getv(base, "prize.first") ?? 0) / 1e18,
     2: parseFloat(getv(base, "prize.second") ?? 0) / 1e18,
@@ -719,7 +711,10 @@ const zed_races_zrapi_rid_runner = async (
     ar = ar.map((i) => ({ ...i, 11: null }));
     // console.log(mode, thisclass, odds_ob);
   }
+  // console.log(ar)
+  ar = race_speed_adj.run_race_speed_adj_raw(ar);
   ar = _.keyBy(ar, "6");
+  // console.table(ar)
   // console.log(rid);
   // console.table(ar);
   return ar;
@@ -764,10 +759,13 @@ const zed_races_zrapi_runner = async (
       // continue;
       let rids_all = await get_zed_rids_only(now, now_ed);
       console.log("total_races: ", rids_all.length);
-      let rids_ch = await get_zed_ch_rids_only(now, now_ed);
-      console.log("db_races   : ", rids_ch.length);
-      let rids = _.difference(rids_all, rids_ch);
-      console.log("miss_races : ", rids.length);
+      let rids = [];
+      if (race_conf?.check_exists) {
+        let rids_ch = await get_zed_ch_rids_only(now, now_ed);
+        console.log("db_races   : ", rids_ch.length);
+        rids = _.difference(rids_all, rids_ch);
+        console.log("miss_races : ", rids.length);
+      } else rids = rids_all;
       for (let chunk_rids of _.chunk(rids, cs)) {
         console.log("getting", chunk_rids.toString());
         let races = await Promise.all(

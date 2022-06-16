@@ -395,9 +395,9 @@ const get_sims_zed_odds = async (rid, mode = "fetch", raw_race) => {
     // console.log(ret);
     return ret;
   } catch (err) {
-    console.log(err)
+    console.log(err);
     return {};
   }
 };
 
-module.exports = { get_sims_zed_odds };
+module.exports = { get_sims_zed_odds, preset_global };

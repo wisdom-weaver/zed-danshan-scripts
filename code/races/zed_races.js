@@ -6,6 +6,7 @@ const races_scheduled = require("./races_scheduled");
 const races_duplicate = require("./races_duplicate");
 const { print_cron_details } = require("../utils/cyclic_dependency");
 const { zed_races_gql_runner } = require("./races_base");
+const { race_speed_adj } = require("./race_speed_adj");
 
 const cron_conf = { scheduled: true };
 const race_conf_gql = { check_exists: true, durr: 1 * 60 * 60 * 1000 };
@@ -96,10 +97,13 @@ const manual = async (rids) => {
   console.log("manual ended");
 };
 const test = async () => {
-  let st = "2022-06-01T00:00:00Z";
-  let ed = "2022-06-17T00:00:00Z";
-  await races_base.zed_races_gql_runner(st, ed, {
-    check_exists: true,
+  let st = "2022-06-01T00:00:01Z";
+  let ed = "2022-06-01T00:00:02Z";
+  // let fn = races_base.zed_races_gql_runner
+  // let fn = races_base.zed_races_zrapi_runner
+  let fn = race_speed_adj.update_dur;
+  await fn(st, ed, {
+    check_exists: false,
     durr: 1 * 60 * 60 * 1000,
     push_race_horses_on: 1,
     cs: 15,

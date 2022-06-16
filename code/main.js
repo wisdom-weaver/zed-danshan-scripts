@@ -19,6 +19,7 @@ const tourney = require("./tourney/tourney");
 const hawku = require("./hawku/hawku");
 const { fixers } = require("./fixers/fixer");
 const mate = require("./mate/mate");
+const { race_speed_adj } = require("./races/race_speed_adj");
 const mod = v3;
 
 const main = async (args) => {
@@ -133,7 +134,7 @@ const main = async (args) => {
       await mod.hraces_stats.range(a, b);
     }
   } else if (arg1 == "--race_horses") {
-    await race_horses.main_runner()
+    await race_horses.main_runner();
   } else if (arg1 == "--rating_flames") {
     if (arg2 == "all") mod.rating_flames.all();
     if (arg2 == "only") {
@@ -436,6 +437,8 @@ const main = async (args) => {
     await fixers.main_runner();
   } else if (arg1 == "--mate") {
     await mate.main_runner();
+  } else if (arg1 == "--race_speed_adj") {
+    await race_speed_adj.main_runner();
   }
 
   console.log("---ed");

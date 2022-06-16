@@ -35,6 +35,7 @@ const {
 const send_weth = require("../payments/send_weth");
 const { dist_factor } = require("../v5/speed");
 const { knex_conn } = require("../connection/knex_connect");
+const { preset_global } = require("../races/sims");
 
 const run_01 = async () => {
   let st = "2022-01-06T00:00:00Z";
@@ -1865,31 +1866,81 @@ const run_36 = async () => {
 };
 
 const run_37 = async () => {
-  let [st, ed] = get_date_range_fromto(-10, "days", 0, "days");
+  let [st, ed] = get_date_range_fromto(-90, "days", 0, "days");
   console.log(st, ed);
-  let doc = await zed_ch.db
-    .collection("zed")
-    .aggregate([
-      {
-        $match: {
-          1: 1600,
-          2: { $gte: st, $lte: ed },
+  let ar = [];
+  for (let dist of [1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600]) {
+    let doc = await zed_ch.db
+      .collection("zed")
+      .aggregate([
+        {
+          $match: {
+            1: dist,
+            8: { $in: [6, 7] },
+            2: { $gte: st, $lte: ed },
+          },
         },
-      },
-      {
-        $project: {
-          time: "$7",
+        {
+          $project: {
+            pos: "$8",
+            time: "$7",
+          },
         },
-      },
-      {
-        $group: {
-          _id: null,
-          mean_time: { $avg: "$time" },
+        {
+          $group: {
+            _id: "$pos",
+            mean_time: { $avg: "$time" },
+          },
         },
-      },
-    ])
-    .toArray();
-  console.log(doc);
+      ])
+      .toArray();
+    doc = _.chain(doc).keyBy("_id").mapValues("mean_time").value();
+    let t6 = doc[6];
+    let t7 = doc[7];
+    let t67mean = doc[7];
+    let ob = { dist, t6, t7, t67mean };
+    ar.push(ob);
+    console.log(ob);
+  }
+  await sheet_ops.sheet_print_ob(ar, {
+    range: "Normalized times!A10",
+    spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
+  });
+};
+
+const run_38 = async () => {
+  let doc = preset_global;
+  doc = _.chain(doc)
+    .entries()
+    .map(([k, row]) => {
+      return { k, ...row };
+    })
+    .value();
+  await sheet_ops.sheet_print_ob(doc, {
+    range: "Normalized times!A10",
+    spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
+  });
+};
+
+const run_39 = async () => {
+  let rid = "6rGVigMv";
+  let race = await zed_ch.db.collection("zed").find({ 4: rid }).toArray();
+  race = cyclic_depedency.struct_race_row_data(race);
+  race = _.keyBy(race, "place");
+  let dist = race[1].distance;
+  let t6 = race[6].finishtime;
+  let t7 = race[7].finishtime;
+  // console.table(race);
+  const t67mean = _.mean([t6, t7]);
+  const tmean = 95.65;
+  console.log({ t6, t7 });
+  console.log({ t67mean, tmean });
+  let tadj = tmean - t67mean;
+  let t1 = race[1].finishtime;
+  let t1adj = t1 + tadj;
+  let speed_init = ((dist / t1adj) * 60 * 60) / 1000;
+  let speedadj = speed_init * 1.45 * dist_factor[dist];
+  console.table([{ tadj, t1, t1adj, speed_init, speedadj }]);
 };
 
 const tests = { run: run_37 };
