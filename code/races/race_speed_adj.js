@@ -97,7 +97,7 @@ const run_rid = async (rid) => {
 
 const spedit_write_bulk = async (race) => {
   let ref = zed_ch.db.collection("zed");
-  console.table(race);
+  // console.table(race);
   let bulk = race.map((e) => ({
     updateOne: {
       filter: { 4: e["4"], 6: e["6"] },
