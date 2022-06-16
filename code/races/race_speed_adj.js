@@ -124,8 +124,10 @@ const update_dur = async (from, to) => {
     raws = _.groupBy(raws, "4");
 
     console.log(iso(now), iso(now_ed), _.keys(raws).length, "races");
+
     let upd = [];
     for (let [rid, race] of _.entries(raws)) {
+      console.log(rid);
       race = run_race_speed_adj_raw(race);
       race = race.map((e) => ({
         4: e[4],
