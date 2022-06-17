@@ -30,7 +30,7 @@ const { sheet_print_ob } = require("../../sheet_ops/sheets_ops");
 let mx = 11000;
 let st = 1;
 let ed = mx;
-let cs = 25;
+let cs = 50;
 
 let tot_runs = 1;
 const name = "speed";
@@ -112,8 +112,8 @@ const all = async () => {
   console.log(name, "all");
   let [st, ed] = [1, await get_ed_horse()];
   for (let i = st; i <= ed; i += cs) {
-    console.log(i, i + cs);
-    let hids = get_hids(i, i + cs);
+    console.log(i, i + cs - 1);
+    let hids = get_hids(i, i + cs - 1);
     await bulk.run_bulk_only(name, generate, coll, hids, cs, test_mode);
   }
 };

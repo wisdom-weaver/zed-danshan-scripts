@@ -1969,5 +1969,38 @@ const run_40 = async () => {
     });
 };
 
-const tests = { run: run_40 };
+const run_41 = async () => {
+  let hid = 393589;
+  let [st, ed] = get_date_range_fromto(-90, "days", 0, "minutes");
+
+  for (let dist of [1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600]) {
+    let ar = await zed_ch.db
+      .collection("zed")
+      .aggregate([
+        {
+          $match: {
+            1: dist,
+            6: hid,
+            2: { $gte: st, $lte: ed },
+            25: { $ne: null },
+          },
+        },
+        { $sort: { 25: -1 } },
+        { $limit: 1 },
+        {
+          $project: {
+            _id: 0,
+            hid: "$6",
+            speed: "$25",
+            adjtime: "$23",
+            distance: "$1",
+          },
+        },
+      ])
+      .toArray();
+    console.table(ar);
+  }
+};
+
+const tests = { run: run_41 };
 module.exports = tests;
