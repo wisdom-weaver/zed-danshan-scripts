@@ -1943,5 +1943,31 @@ const run_39 = async () => {
   console.table([{ tadj, t1, t1adj, speed_init, speedadj }]);
 };
 
-const tests = { run: run_37 };
+const run_40 = async () => {
+  let lim = 20;
+  let [st, ed] = get_date_range_fromto(-90, "days", 0, "minutes");
+  let ar = await zed_ch.db
+    .collection("zed")
+    .aggregate([
+      { $match: { 2: { $gte: st, $lte: ed }, 24: { $ne: null } } },
+      { $sort: { 24: 1 } },
+      { $limit: lim },
+      {
+        $project: {
+          _id: 0,
+          hid: "$6",
+          speed: "$24",
+        },
+      },
+    ])
+    .toArray();
+  console.table(ar);
+  if (true)
+    await sheet_ops.sheet_print_ob(ar, {
+      range: "speedrathl!D1",
+      spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
+    });
+};
+
+const tests = { run: run_40 };
 module.exports = tests;

@@ -49,59 +49,6 @@ const dist_factor = {
   2600: 1.04369422,
 };
 
-const calc_speed_from_races = (races) => {
-  if (_.isEmpty(races)) {
-    // console.log("no races");
-    return { n90: 0, d90: 0, speed: null };
-  }
-  let n90 = races.length;
-  let gp = _.groupBy(races, "distance");
-  gp = _.chain(gp)
-    .entries()
-    .map(([d, rs]) => {
-      d = parseInt(d);
-      let d90 = rs.length;
-      let lim = (d90 < 10 && 1) || (_.inRange(d90, 10, 20) && 2) || 3;
-      // console.log({ d, d90, lim });
-      let mx = _.chain(rs)
-        .sortBy((i) => {
-          let val = getv(i, "finishtime");
-          if (!val) return 1e14;
-          return val;
-        })
-        .slice(0, lim)
-        .map("finishtime")
-        .mean()
-        .value();
-      // console.log(mx);
-      if (mx == 1e14) return { distance, speed_init: null, speed: null };
-      let distance = d;
-      let finishtime = mx;
-      let speed_init = ((distance / finishtime) * 60 * 60) / 1000;
-      let speed = dist_factor[distance] * speed_init;
-      return { distance, speed_init, speed, d90 };
-    })
-    .value();
-  if (test_mode) {
-    console.table(gp);
-  }
-  let pick = _.maxBy(gp, (i) => getv(i, "speed"));
-  if (_.isEmpty(pick)) return { n90: 0, d90: 0, speed: null };
-  let { distance, speed_init, speed, d90 } = pick;
-  let final_speed = speed * 1.45;
-  if (test_mode)
-    console.log("max_speed", {
-      distance,
-      speed_init,
-      speed,
-      final_speed,
-      d90,
-      n90,
-    });
-  // console.log(final_speed);
-  return { speed: final_speed, d90, n90, distance };
-};
-
 const calc = async ({ hid, races }) => {
   try {
     // console.log("calc", races.length);
@@ -110,13 +57,25 @@ const calc = async ({ hid, races }) => {
 
     let st = moment().add(-90, "days").toISOString();
     let ed = moment().add(0, "days").toISOString();
-    // console.log(st, ed);
-    races = _.filter(races, (i) => {
-      return _.inRange(nano(i.date), nano(st), nano(ed));
-    });
-    // console.table(races);
-    let speed_ob = calc_speed_from_races(races);
-    speed_ob.hid = hid;
+    let ar = await zed_ch.db
+      .collection("zed")
+      .aggregate([
+        { $match: { 6: hid, 2: { $gte: st, $lte: ed }, 25: { $ne: null } } },
+        { $sort: { 25: -1 } },
+        { $limit: 1 },
+        {
+          $project: {
+            _id: 0,
+            hid: "$6",
+            speed: "$25",
+            adjtime: "$23",
+            distance: "$1",
+          },
+        },
+      ])
+      .toArray();
+    let speed_ob = getv(ar, "0");
+    if (_.isEmpty(speed_ob)) speed_ob = { hid, distance: null, speed: null };
     // console.log(speed_ob);
     return speed_ob;
   } catch (err) {
