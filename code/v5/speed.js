@@ -30,7 +30,7 @@ const { sheet_print_ob } = require("../../sheet_ops/sheets_ops");
 let mx = 11000;
 let st = 1;
 let ed = mx;
-let cs = 50;
+let cs = 25;
 
 let tot_runs = 1;
 const name = "speed";
