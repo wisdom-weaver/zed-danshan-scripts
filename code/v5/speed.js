@@ -89,18 +89,7 @@ const generate = async (hid) => {
   try {
     // console.log("generate");
     hid = parseInt(hid);
-    let st = moment().add(-90, "days").toISOString();
-    let ed = moment().add(0, "days").toISOString();
-    let races = await zed_ch.db
-      .collection("zed")
-      .find(
-        { 2: { $gte: st, $lte: ed }, 6: hid, 5: { $ne: 1000 } },
-        { projection: { 1: 1, 2: 1, 7: 1 } }
-      )
-      .toArray();
-    // console.table(races);
-    races = cyclic_depedency.struct_race_row_data(races);
-    let ob = calc({ hid, races });
+    let ob = calc({ hid });
     return ob;
   } catch (err) {
     console.log("err in speed", err);
