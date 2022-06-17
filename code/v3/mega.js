@@ -187,7 +187,7 @@ const calc_racing = async ({ hid }) => {
     rcount_doc,
     speed_doc,
   ] = await Promise.all([
-    horses.get_hdoc(hid),
+    races.length % 3 == 0 ? horses.get_hdoc(hid) : () => null,
     s3.rating_blood.calc({ hid, races, tc }),
     // s3.rating_breed.calc({ hid, tc }),
     s3.rating_flames.calc({ hid, races, tc }),
