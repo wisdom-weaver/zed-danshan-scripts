@@ -89,7 +89,8 @@ const generate = async (hid) => {
   try {
     // console.log("generate");
     hid = parseInt(hid);
-    let ob = calc({ hid });
+    let ob = await calc({ hid });
+    // console.log(ob)
     return ob;
   } catch (err) {
     console.log("err in speed", err);
