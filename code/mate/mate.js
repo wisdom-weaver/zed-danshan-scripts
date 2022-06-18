@@ -188,8 +188,15 @@ const structure_txns_resp = (ar) => {
     let type = get_stud_transfer_type(input);
     if (!type) return null;
     let hid = get_hid(input);
-    let mating_price = get_mating_price(input)
-    return { type, stable: from_address, hid, date: block_timestamp, hash, mating_price };
+    let mating_price = get_mating_price(input);
+    return {
+      type,
+      stable: from_address,
+      hid,
+      date: block_timestamp,
+      hash,
+      mating_price,
+    };
   });
   stru = _.compact(stru);
   return stru;
@@ -274,7 +281,7 @@ const main_runner = async () => {
   let [n, f, a1, a2, a3, a4] = args;
   if (args.includes("test")) test_mode = 1;
   if (!runnable) return;
-  if (a2 == "run") await run();
+  if (a2 == "run") await run([a3, a4]);
   if (a2 == "runner") await runner();
   if (a2 == "run_cron") await run_cron();
   if (a2 == "get_current") await get_current();

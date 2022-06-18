@@ -1457,6 +1457,7 @@ const run_31 = async () => {
     let n = ar.length;
     let count = parseInt((ar.length * per) / 100);
     let eaar = _.slice(ar, 0, count);
+    let hids = _.map(ar, "hid").slice(0, 10).join(", ");
     let min = _.minBy(eaar, (e) => e.speed)?.speed;
     let max = _.maxBy(eaar, (e) => e.speed)?.speed;
     let avg = _.meanBy(eaar, (e) => e.speed);
@@ -1467,6 +1468,7 @@ const run_31 = async () => {
       avg,
       min,
       max,
+      hids,
     };
     ob.push(ea);
   }
@@ -2002,5 +2004,5 @@ const run_41 = async () => {
   }
 };
 
-const tests = { run: run_41 };
+const tests = { run: run_31 };
 module.exports = tests;
