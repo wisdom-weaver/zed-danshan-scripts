@@ -105,7 +105,7 @@ const main_runner = async (args) => {
       await mod.line.fixer();
     }
     if (arg2 == "test") {
-      let conf = JSON.parse(arg3) || {};
+      let conf = jparse(arg3) || {};
       await mod.line.test(conf);
     }
     if (arg2 == "pair_test") {

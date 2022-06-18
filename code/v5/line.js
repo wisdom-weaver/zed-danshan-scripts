@@ -2,12 +2,16 @@ const _ = require("lodash");
 const { zed_db, zed_ch } = require("../connection/mongo_connect");
 const bulk = require("../utils/bulk");
 const cyclic_depedency = require("../utils/cyclic_dependency");
-const { get_races_n, get_races_of_hid } = require("../utils/cyclic_dependency");
+const {
+  get_races_n,
+  get_races_of_hid,
+  get_range_hids,
+} = require("../utils/cyclic_dependency");
 const r4data = require("./r4");
 const cc = require("./color_codes");
 const ancestors = require("./ancestors");
 const sheet_ops = require("../../sheet_ops/sheets_ops");
-const { promises_n, iso } = require("../utils/utils");
+const { promises_n, iso, pad } = require("../utils/utils");
 const utils = require("../utils/utils");
 const { get_ancesters_stub, get_ancesters } = require("./ancestors");
 const cron = require("node-cron");
@@ -87,14 +91,43 @@ const generate = async (hid) => {
   }
 };
 
-const all = async () => bulk.run_bulk_all(name, generate, coll, cs, test_mode);
-const only = async (hids) =>
+const only = async (hids) => {
+  hids = await cyclic_depedency.filt_valid_hids(hids);
   bulk.run_bulk_only(name, generate, coll, hids, cs, test_mode);
+};
+
 const range = async (st, ed) => {
   st = parseInt(st);
   ed = parseInt(ed);
   if (!ed || ed == "ed") ed = await cyclic_depedency.get_ed_horse();
-  bulk.run_bulk_range(name, generate, coll, st, ed, cs, test_mode);
+  console.log({ st, ed });
+  for (let i = st; i <= ed; i += cs) {
+    /*
+┌─────────┬───────────┬────────┬────────┐
+│ (index) │    _id    │ minhid │ maxhid │
+├─────────┼───────────┼────────┼────────┤
+│    0    │ '010 1.1' │  4545  │ 19661  │
+│    1    │ '020 050' │  4510  │ 19674  │
+│    2    │ '050 100' │  4447  │ 19670  │
+│    3    │ '100 150' │  4452  │ 19655  │
+│    4    │ '100 200' │  4381  │ 47640  │
+│    5    │ '150 250' │  4553  │ 19386  │
+│    6    │ '250 500' │  4464  │ 42436  │
+│    7    │ '500 100' │  4363  │ 57422  │
+│    8    │   'def'   │  4356  │ 429966 │
+└─────────┴───────────┴────────┴────────┘
+    */
+
+    cs = 1;
+    let [a, b] = [i, i + cs - 1];
+    let hids = await cyclic_depedency.filt_valid_hids_range(a, b);
+    console.log(`hids: ${a} -> ${b} :`, hids.length);
+    await bulk.run_bulk_only(name, generate, coll, hids, cs, test_mode);
+  }
+};
+
+const all = async () => {
+  return range(1, null);
 };
 
 const fix = async () => {
@@ -116,31 +149,100 @@ const level_wt = (level) => {
 };
 
 const test = async (hids) => {
-  // test_mode = 1;
-  // for (let hid of hids) {
-  //   let ob = await calc({ hid });
-  //   console.log(ob);
-  // }
-  // console.log("done");
-  let [hid, row] = hids;
-  let baby_rng = await r4data.get_rng(hid);
-  let ans = await get_ancesters({ hid });
-  let ans_rngs = await Promise.all(
-    _.map(ans, 0).map((h) => r4data.get_rng(h).then((d) => [h, d]))
-  );
-  ans_rngs = _.fromPairs(ans_rngs);
-  let ob = ans.map(([hid, k, level]) => {
-    let rng = ans_rngs[hid];
-    return { hid, k, level, rng };
-  });
-  ob = [{ hid, k: "baby", level: 0, rng: baby_rng }, ...ob];
-  ob = _.chain(ob).keyBy("k").mapValues("rng");
-  ob.hid = hid;
-  console.table(ob);
-  // await sheet_ops.sheet_print_ob(ob, {
-  //   spreadsheetId: "1MWnILjDr71rW-Gp8HrKP6YnS03mJARygLSuS7xxsHhM",
-  //   range: `baby_rng_ances!A${row}`,
-  // });
+  let ar = await zed_db.db
+    .collection("horse_details")
+    .aggregate([
+      {
+        $project: {
+          hid: 1,
+          mid: "$parents.mother",
+          fid: "$parents.father",
+        },
+      },
+      {
+        $match: {
+          mid: {
+            $ne: null,
+          },
+          fid: {
+            $ne: null,
+          },
+        },
+      },
+      {
+        $project: {
+          hid: 1,
+          mdiff: {
+            $abs: {
+              $subtract: ["$hid", "$mid"],
+            },
+          },
+          fdiff: {
+            $abs: {
+              $subtract: ["$hid", "$fid"],
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          hid: 1,
+          diff: {
+            $min: ["$fdiff", "$mdiff"],
+          },
+        },
+      },
+      {
+        $sort: {
+          diff: 1,
+        },
+      },
+      {
+        $group: {
+          _id: {
+            $switch: {
+              branches: [
+                // [0, 0],
+                [1, 1.1],
+                [2, 5],
+                [5, 10],
+                [10, 15],
+                [15, 25],
+                [25, 50],
+                [50, 100],
+                [100, 200],
+              ].map(([a, b]) => {
+                return {
+                  case: {
+                    $and: [{ $lt: ["$diff", b] }, { $gte: ["$diff", a] }],
+
+                    // $and:[
+                    //   // ['$gte', ["$diff", a]],
+                    //   ['$lt', ["$diff", b]],
+                    // ]
+                  },
+                  then: `${_.pad(a, 3, "0")} ${_.pad(b, 3, "0")}`,
+                };
+              }),
+              default: "def",
+            },
+          },
+          minhid: {
+            $min: "$hid",
+          },
+          maxhid: {
+            $max: "$hid",
+          },
+        },
+      },
+      {
+        $sort: {
+          _id: 1,
+        },
+      },
+    ])
+    .toArray();
+  console.table(ar);
 };
 
 const pair_test = async (ar) => {

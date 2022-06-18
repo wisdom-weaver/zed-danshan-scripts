@@ -434,6 +434,24 @@ const jstr = (c) => {
   return JSON.stringify(c);
 };
 
+const filt_valid_hids = async (hids) => {
+  let docs = await zed_db.db
+    .collection("horse_details")
+    .find({ hid: { $in: hids } }, { projection: { hid: 1, _id: 0 } })
+    .toArray();
+  hids = _.map(docs, "hid");
+  return hids;
+};
+
+const filt_valid_hids_range = async (a, b) => {
+  let docs = await zed_db.db
+    .collection("horse_details")
+    .find({ hid: { $gte: a, $lte: b } }, { projection: { hid: 1, _id: 0 } })
+    .toArray();
+  hids = _.map(docs, "hid");
+  return hids;
+};
+
 const cyclic_depedency = {
   get_races_of_hid,
   from_ch_zed_collection,
@@ -464,6 +482,8 @@ const cyclic_depedency = {
   ag_look,
   jparse,
   jstr,
+  filt_valid_hids,
+  filt_valid_hids_range,
 };
 
 module.exports = cyclic_depedency;
