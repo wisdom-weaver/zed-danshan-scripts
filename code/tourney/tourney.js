@@ -1454,6 +1454,7 @@ const regular_payout_ended = async () => {
 
 const flash_runner = async () => {
   await update_eth();
+  console.log({update_eth})
   if (frunning) {
     console.log("############# tourney already frunning.........");
     return;
@@ -1474,6 +1475,7 @@ const flash_runner = async () => {
 
 const runner = async () => {
   await update_eth();
+  console.log({update_eth})
   if (running) {
     console.log("############# tourney already running.........");
     return;
@@ -1649,6 +1651,8 @@ const elo_h_getter_run_cron = async () => {
 const main_runner = async (args) => {
   try {
     console.log(args);
+    await update_eth();
+    console.log({ eth_price });
     let [_node, _cfile, args1, arg2, arg3, arg4, arg5, arg6] = args;
     console.log("# --tourney ", iso());
     if (arg2 == "test") await test(arg3);
