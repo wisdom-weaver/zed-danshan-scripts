@@ -113,7 +113,7 @@ const get_entryfee_usd = ({ date, fee }) => {
   return price * fee;
 };
 
-module.exports = {
+const base = {
   get_price_limits,
   get_price_limits_on_date,
   get_date,
@@ -124,3 +124,5 @@ module.exports = {
   auto_eth_cron,
   get_entryfee_usd,
 };
+
+module.exports = base;

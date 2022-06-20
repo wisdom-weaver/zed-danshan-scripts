@@ -1,4 +1,4 @@
-const { zed_db } = require("../connection/mongo_connect");
+const { zed_db, zed_ch } = require("../connection/mongo_connect");
 const { get_ed_horse } = require("./cyclic_dependency");
 const _ = require("lodash");
 const { get_hids } = require("./utils");
@@ -120,6 +120,18 @@ const push_bulkc = async (coll, obar, name = "-", key) => {
     console.log(err);
   }
 };
+const push_zed_ch_races = async (ar) => {
+  let bulk = ar.map((e) => {
+    return {
+      updateOne: {
+        filter: { 4: e[4], 6: e[6] },
+        update: { $set: { ...e } },
+        upsert: true,
+      },
+    };
+  });
+  return await zed_ch.db.collection("zed").bulkWrite(bulk);
+};
 
 const bulk = {
   run_bulk_all,
@@ -127,5 +139,6 @@ const bulk = {
   run_bulk_only,
   push_bulk,
   push_bulkc,
+  push_zed_ch_races,
 };
 module.exports = bulk;

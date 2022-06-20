@@ -20,40 +20,19 @@ const hawku = require("./hawku/hawku");
 const { fixers } = require("./fixers/fixer");
 const mate = require("./mate/mate");
 const { race_speed_adj } = require("./races/race_speed_adj");
+const base = require("./utils/base");
 const mod = v3;
 
 const main = async (args) => {
   await mdb.init();
   await global_req.download();
   await gapi.init();
+  await base.download_eth_prices();
 
   console.log("main");
   let [_node, _cfile, arg1, arg2, arg3, arg4, arg5] = args;
   if (arg1 == "--races") {
-    if (arg2 == "test") await zed_races.test();
-
-    if (arg2 == "run_dur") await zed_races.run_dur(arg3, arg4);
-
-    if (arg2 == "live") await zed_races.live();
-    if (arg2 == "live_cron") await zed_races.live_cron();
-
-    if (arg2 == "miss") await zed_races.miss(arg3, arg4);
-    if (arg2 == "miss_cron") await zed_races.miss_cron();
-
-    if (arg2 == "scheduled") await zed_races.scheduled();
-    if (arg2 == "scheduled_cron") await zed_races.scheduled_cron();
-    if (arg2 == "scheduled_process") await zed_races.scheduled_process();
-
-    if (arg2 == "duplicate") await zed_races.duplicate();
-    if (arg2 == "duplicate_cron") await zed_races.duplicate_cron();
-    if (arg2 == "duplicate_run_dur") {
-      await zed_races.duplicate_run_dur([arg3, arg4]);
-    }
-
-    if (arg2 == "manual") {
-      arg3 = arg3?.split(",") ?? [];
-      await zed_races.manual(arg3);
-    }
+    await zed_races.main_runner();
   } else if (arg1 == "--compiler_dp") {
     if (arg2 == "test") await dan.compiler_dp.test();
     if (arg2 == "run") await dan.compiler_dp.run();
