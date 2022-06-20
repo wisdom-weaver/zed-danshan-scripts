@@ -26,7 +26,6 @@ const dp = require("./dp");
 const zedf = require("../utils/zedf");
 const cyclic_depedency = require("../utils/cyclic_dependency");
 const { speed } = require("../v5/v5");
-const horses = require("./horses");
 
 const s3 = {
   rating_flames,
@@ -97,7 +96,7 @@ const calc = async ({ hid }) => {
     rcount_doc,
     speed_doc,
   ] = await Promise.all([
-    horses.get_hdoc(hid),
+    cyclic_depedency.get_hdoc_hhh(hid),
     s3.rating_blood.calc({ hid, races, tc }),
     s3.rating_breed.calc({ hid, tc }),
     s3.rating_flames.calc({ hid, races, tc }),
@@ -187,7 +186,7 @@ const calc_racing = async ({ hid }) => {
     rcount_doc,
     speed_doc,
   ] = await Promise.all([
-    races.length % 3 == 0 ? horses.get_hdoc(hid) : () => null,
+    races.length % 3 == 0 ? cyclic_depedency.get_hdoc_hhh(hid) : () => null,
     s3.rating_blood.calc({ hid, races, tc }),
     // s3.rating_breed.calc({ hid, tc }),
     s3.rating_flames.calc({ hid, races, tc }),

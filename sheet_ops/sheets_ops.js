@@ -47,16 +47,16 @@ const test = async () => {
   }
 };
 
-const struct_ob_to_values = (data) => {
+const struct_ob_to_values = (data, wkeys = true) => {
   let keys = _.keys(data[0]);
   console.log(keys);
   let ar = _.map(data, _.values);
-  let values = [keys, ...ar];
+  let values = wkeys ? [keys, ...ar] : ar;
   return values;
 };
 
-const sheet_print_ob = async (ob, { range, spreadsheetId }) => {
-  let values = struct_ob_to_values(ob);
+const sheet_print_ob = async (ob, { range, spreadsheetId }, wkeys = true) => {
+  let values = struct_ob_to_values(ob, wkeys);
   let conf = { range, spreadsheetId, values };
   return push_to_sheet(conf);
 };

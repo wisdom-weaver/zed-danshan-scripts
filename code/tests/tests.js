@@ -26,6 +26,8 @@ const {
   get_range_hids,
   ag_look,
   get_date_range_fromto,
+  struct_race_row_data,
+  jstr,
 } = require("../utils/cyclic_dependency");
 const {
   get_zed_raw_data,
@@ -36,6 +38,8 @@ const send_weth = require("../payments/send_weth");
 const { dist_factor } = require("../v5/speed");
 const { knex_conn } = require("../connection/knex_connect");
 const { preset_global } = require("../races/sims");
+const { rfn } = require("../connection/redis");
+const red = require("../connection/redis");
 
 const run_01 = async () => {
   let st = "2022-01-06T00:00:00Z";
@@ -2004,5 +2008,174 @@ const run_41 = async () => {
   }
 };
 
-const tests = { run: run_31 };
+const run_42 = async () => {
+  let [st, ed] = get_date_range_fromto(-90, "days", 0, "minutes");
+  const paid = 1;
+  const cell = "A12";
+  let ar = await zed_ch.db
+    .collection("zed")
+    .aggregate([
+      { $match: { 2: { $gte: st, $lte: ed }, 8: 1 } },
+      { $match: { 3: { [paid ? "$ne" : "$eq"]: "0.0" } } },
+      // { $limit: 5 },
+      { $group: { _id: "$5", avg_win_speedrat: { $avg: "$25" } } },
+    ])
+    .toArray();
+  ar = _.sortBy(ar, "_id");
+  // ar = struct_race_row_data(ar);
+  console.table(ar);
+  if (true) {
+    await sheet_ops.sheet_print_ob(ar, {
+      range: `WinSpeed!${cell}`,
+      spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
+    });
+  }
+};
+
+const run_43 = async () => {
+  let [st, ed] = get_date_range_fromto(-90, "days", 0, "minutes");
+
+  let ar = [];
+  let hids = [67008];
+  for (let hid of hids) {
+    let rs = await zed_ch.db
+      .collection("zed")
+      .find(
+        { 6: hid, 2: { $gte: st, $lte: ed } },
+        { projection: { 8: 1, 25: 1 } }
+      )
+      .toArray();
+    let speed_rat = _.max(_.map(rs, "25"));
+    let avg_winspeed_rat = _.mean(_.map(_.filter(rs, { 8: 1 }), "25"));
+    let median_speedrat = calc_median(_.map(rs, "25"));
+    let ob = {
+      hid,
+      speed_rat,
+      avg_winspeed_rat,
+      median_speedrat,
+    };
+    console.table([ob]);
+    ar.push(ob);
+  }
+  console.table(ar);
+  if (true) {
+    await sheet_ops.sheet_print_ob(
+      ar,
+      {
+        range: `WinSpeed!${"F7"}`,
+        spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
+      },
+      false
+    );
+  }
+};
+
+const run_44 = async () => {
+  // let [st, ed] = get_date_range_fromto(-90, "days", 0, "minutes");
+  let ex = 30 * 60; 
+  let [st, ed] = ["2022-06-09T18:52:18.474Z", "2022-06-19T18:52:18.475Z"];
+  console.log(st, ed);
+  let redid = `races::run44:${st}:${ed}`;
+  const get_races_fn = async () =>
+    zed_ch.db
+      .collection("zed")
+      .aggregate([
+        { $match: { 2: { $gte: st, $lte: ed }, 6: { $gte: 360000 }, 8: 1 } },
+        {
+          $project: {
+            _id: 0,
+            // date: "$2",
+            rc: "$5",
+            paid: { $cond: [{ $eq: ["$3", "0.0"] }, 0, 1] },
+            // fee: "$3",
+            rid: "$4",
+            hid: "$6",
+            speedrat: "$25",
+          },
+        },
+        // { $limit: 500 },
+        // { $match: { 3: { [paid ? "$ne" : "$eq"]: "0.0" } } },
+      ])
+      .toArray();
+  let races = await rfn(redid, get_races_fn, ex, 1);
+  console.table(races);
+
+  const hid_stas_fn = async (hid) => {
+    let rs = await zed_ch.db
+      .collection("zed")
+      .find(
+        { 6: hid, 2: { $gte: st, $lte: ed } },
+        { projection: { 8: 1, 25: 1 } }
+      )
+      .toArray();
+    if (rs.length < 20) return null;
+    let speedrat = _.max(_.map(rs, "25"));
+    let avg_winspeedrat = _.mean(_.map(_.filter(rs, { 8: 1 }), "25"));
+    let median_speedrat = calc_median(_.map(rs, "25"));
+    let bestrat = (median_speedrat * 3 + speedrat * 1) / 4;
+    let ob = {
+      hid,
+      speedrat,
+      avg_winspeedrat,
+      median_speedrat,
+      bestrat,
+    };
+    return ob;
+  };
+
+  let ar = [];
+
+  for (let { hid, rid, speedrat, rc, paid } of races) {
+    let hob = await red.rfn(
+      `hob:run_44:${hid}:${st}:${ed}`,
+      () => hid_stas_fn(hid),
+      ex,
+      1
+    );
+    console.log(hid, jstr(hob));
+    if (!hob) continue;
+    let hbestrat = hob.bestrat;
+    ar.push({ rid, rc, paid, hid, speedrat, hbestrat });
+  }
+  console.table(ar);
+  let ob = [
+    [0, 0],
+    [1, 0],
+    [2, 0],
+    [3, 0],
+    [4, 0],
+    [5, 0],
+    [6, 0],
+    [99, 0],
+    [1000, 0],
+
+    [0, 1],
+    [1, 1],
+    [2, 1],
+    [3, 1],
+    [4, 1],
+    [5, 1],
+    [6, 1],
+    [99, 1],
+    [1000, 1],
+  ].map(([rc, paid]) => {
+    let filt = _.filter(ar, { rc, paid });
+    let avgwinner_speedrat = _.meanBy(filt, "speedrat");
+    let avg_best = _.meanBy(filt, "hbestrat");
+    return { rc, paid, avgwinner_speedrat, avg_best };
+  });
+  console.table(ob);
+  if (true) {
+    await sheet_ops.sheet_print_ob(
+      ob,
+      {
+        range: `WinSpeed!${"A20"}`,
+        spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
+      },
+      
+    );
+  }
+};
+
+const tests = { run: run_44 };
 module.exports = tests;

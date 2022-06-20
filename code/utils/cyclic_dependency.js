@@ -452,6 +452,63 @@ const filt_valid_hids_range = async (a, b) => {
   return hids;
 };
 
+const struct_zed_hdoc_hhh = (hid, doc) => {
+  // console.log(hid, doc);
+  hid = parseInt(hid);
+  if (_.isEmpty(doc) || doc?.err) return null;
+  let {
+    bloodline,
+    breed_type,
+    genotype,
+    horse_type,
+    class: tc,
+    hash_info,
+    parents: parents_raw,
+    owner_stable_slug: slug,
+    rating,
+    tx_date,
+  } = doc;
+  let oid = doc.owner;
+  let stable_name = doc.owner_stable;
+  let { color, hex_code, name } = hash_info;
+  let parents = {
+    mother: parents_raw?.mother?.horse_id || null,
+    father: parents_raw?.father?.horse_id || null,
+  };
+  let parents_d = {};
+  if (parents.mother) {
+    let { bloodline, breed_type, genotype, horse_type } = parents_raw?.mother;
+    parents_d.mother = { bloodline, breed_type, genotype, horse_type };
+  } else parents_d.mother = null;
+  if (parents.father) {
+    let { bloodline, breed_type, genotype, horse_type } = parents_raw?.father;
+    parents_d.father = { bloodline, breed_type, genotype, horse_type };
+  } else parents_d.father = null;
+  let ob = {
+    hid,
+    bloodline,
+    breed_type,
+    genotype,
+    horse_type,
+    color,
+    hex_code,
+    name,
+    tc,
+    rating,
+    slug,
+    oid,
+    stable_name,
+    parents,
+    parents_d,
+    tx_date,
+  };
+  // console.log(hid, ob);
+  return ob;
+};
+
+const get_hdoc_hhh = (hid) =>
+  zedf.horse(hid).then((doc) => struct_zed_hdoc_hhh(hid, doc));
+
 const cyclic_depedency = {
   get_races_of_hid,
   from_ch_zed_collection,
@@ -484,6 +541,7 @@ const cyclic_depedency = {
   jstr,
   filt_valid_hids,
   filt_valid_hids_range,
+  get_hdoc_hhh,
 };
 
 module.exports = cyclic_depedency;

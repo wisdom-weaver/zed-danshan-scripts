@@ -67,7 +67,7 @@ const get_dist_pos_ob = async (hid, races = undefined) => {
 const calc = async ({ hid, races = undefined }) => {
   try {
     hid = parseInt(hid);
-    console.log("dp gen", hid);
+    // console.log("dp gen", hid);
     races = cyclic_depedency.filter_r1000(races);
 
     let races_n = races.length;
