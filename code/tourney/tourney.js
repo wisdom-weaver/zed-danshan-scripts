@@ -53,9 +53,11 @@ let eval_hidden = 1;
 
 const update_eth_fn = async () => {
   console.log("in update_eth_fn");
-  let ob = await fget(
-    `https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=BTC,USD`
-  );
+  // let ob =
+  //   (await fget(
+  //     `https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=BTC,USD`
+  //   )) || null;
+  let ob = null;
   if (_.isEmpty(ob)) ob = { BTC: 0.05547, USD: 1121.66 };
   console.log(ob);
   return ob.USD;
