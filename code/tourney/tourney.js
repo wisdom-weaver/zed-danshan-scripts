@@ -1454,7 +1454,7 @@ const regular_payout_ended = async () => {
 
 const flash_runner = async () => {
   await update_eth();
-  console.log({update_eth})
+  console.log({ update_eth });
   if (frunning) {
     console.log("############# tourney already frunning.........");
     return;
@@ -1475,7 +1475,7 @@ const flash_runner = async () => {
 
 const runner = async () => {
   await update_eth();
-  console.log({update_eth})
+  console.log({ update_eth });
   if (running) {
     console.log("############# tourney already running.........");
     return;
