@@ -16,7 +16,7 @@ const rget = async (redid) => {
 const rfn = async (redid, fn, ex, p = 0) => {
   let val = await redis.get(redid);
   val = jparse(val);
-  if (p) console.log(redid, _.isNil(val));
+  if (p) console.log(redid, !_.isNil(val));
   if (!val) {
     val = await fn();
     await redis.setex(redid, ex, jstr(val));

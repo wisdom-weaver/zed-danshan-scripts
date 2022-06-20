@@ -39,6 +39,7 @@ const send_weth = require("../payments/send_weth");
 const { fget } = require("../utils/fetch");
 const { push_bulkc } = require("../utils/bulk");
 const { overEvery } = require("lodash");
+const red = require("../connection/redis");
 
 let test_mode = 0;
 let running = 0;
@@ -50,13 +51,17 @@ let eval_hidden = 1;
 // const tcoll_horses = (tid) => `tourney::${tid}::horses`;
 // const tcoll_stables = (tid) => `tourney::${tid}::stables`;
 
-const update_eth = async () => {
-  console.log("in update_eth")
+const update_eth_fn = async () => {
+  console.log("in update_eth_fn");
   let ob = await fget(
     `https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=BTC,USD`
   );
-  console.log(ob)
-  eth_price = ob.USD;
+  console.log(ob);
+  return ob.USD
+};
+
+const update_eth = async () => {
+  eth_price = await red.rfn("tourney_eth_cost", () => update_eth_fn(), 60 * 2, 1);
 };
 const eth_t_usd = (c) => {
   let val = c * eth_price;
