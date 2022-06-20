@@ -56,12 +56,18 @@ const update_eth_fn = async () => {
   let ob = await fget(
     `https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=BTC,USD`
   );
+  if (_.isEmpty(ob)) ob = { BTC: 0.05547, USD: 1121.66 };
   console.log(ob);
-  return ob.USD
+  return ob.USD;
 };
 
 const update_eth = async () => {
-  eth_price = await red.rfn("tourney_eth_cost", () => update_eth_fn(), 60 * 2, 1);
+  eth_price = await red.rfn(
+    "tourney_eth_cost",
+    () => update_eth_fn(),
+    60 * 2,
+    1
+  );
 };
 const eth_t_usd = (c) => {
   let val = c * eth_price;
