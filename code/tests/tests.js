@@ -2072,7 +2072,7 @@ const run_43 = async () => {
 
 const run_44 = async () => {
   // let [st, ed] = get_date_range_fromto(-90, "days", 0, "minutes");
-  let ex = 30 * 60; 
+  let ex = 30 * 60;
   let [st, ed] = ["2022-06-09T18:52:18.474Z", "2022-06-19T18:52:18.475Z"];
   console.log(st, ed);
   let redid = `races::run44:${st}:${ed}`;
@@ -2166,16 +2166,93 @@ const run_44 = async () => {
   });
   console.table(ob);
   if (true) {
-    await sheet_ops.sheet_print_ob(
-      ob,
-      {
-        range: `WinSpeed!${"A20"}`,
-        spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
-      },
-      
-    );
+    await sheet_ops.sheet_print_ob(ob, {
+      range: `WinSpeed!${"A20"}`,
+      spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
+    });
   }
 };
 
-const tests = { run: run_44 };
+const run_45 = async () => {
+  let lim = 500;
+  let fin = [];
+  for (let [rc, paid] of [
+    // [0, 0],
+    // [1, 0],
+    // [2, 0],
+    // [3, 0],
+    // [4, 0],
+    // [5, 0],
+    // [6, 0],
+    // [99, 0],
+    // [1000, 0],
+
+    [0, 1],
+    [1, 1],
+    [2, 1],
+    [3, 1],
+    [4, 1],
+    [5, 1],
+    [6, 1],
+    // [99, 1],
+    // [1000, 1],
+  ]) {
+    // let [rc, dist, paid] = [1, "a", 1];
+    let ar = await zed_ch.db
+      .collection("zed")
+      .aggregate([
+        { $match: { 8: 1, 5: rc } },
+        { $sort: { 2: -1 } },
+        {
+          $project: {
+            _id: 0,
+            raceid: "$4",
+            hid: "$6",
+            date: "$2",
+            paid: { $cond: [{ $eq: ["$3", "0.0"] }, 0, 1] },
+            class: "$5",
+            dist: "$1",
+          },
+        },
+        { $match: { paid: paid } },
+        { $limit: lim },
+      ])
+      .toArray();
+    let hids = _.map(ar, "hid");
+    let speeds = await zed_db.db
+      .collection("speed")
+      .find(
+        { hid: { $in: hids } },
+        { projection: { _id: 0, hid: 1, speed: 1 } }
+      )
+      .toArray();
+    speeds = _.chain(speeds).keyBy("hid").mapValues("speed").value();
+    ar = ar.map((e) => {
+      return {
+        raceid: e.raceid,
+        hid: e.hid,
+        speedrat: speeds[e.hid],
+        date: e.date,
+        paid: e.paid,
+        class: e.class,
+        dist: e.dist,
+      };
+    });
+    console.table(ar);
+    let avg_speedrat = _.meanBy(ar, "speedrat");
+    let ob = { rc, paid, avg_speedrat };
+    console.log(ob);
+    fin.push(ob);
+  }
+
+  console.table(fin);
+  if (true) {
+    await sheet_ops.sheet_print_ob(fin, {
+      range: `WinSpeed!${"G30"}`,
+      spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
+    });
+  }
+};
+
+const tests = { run: run_45 };
 module.exports = tests;

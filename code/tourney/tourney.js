@@ -57,7 +57,9 @@ const update_eth = async () => {
   eth_price = ob.USD;
 };
 const eth_t_usd = (c) => {
-  return c * eth_price;
+  let val = c * eth_price;
+  // console.log("eth_t_usd", c, eth_price, val);
+  return val;
 };
 
 const tfet_many = (coll, query, projection) => {
@@ -1055,6 +1057,8 @@ const run_tid = async (tid) => {
   let pays_doc = await run_t_tot_fees(tid, tdoc);
   let total_capital = pays_doc.tot_fees;
   let prize_pool = parseFloat(utils.dec(total_capital * 0.95, 4));
+
+  console.log({ eth_price });
 
   let prize_pool_usd = eth_t_usd(prize_pool);
   let entry_fee_usd = entry_fee == "multi" ? "multi" : eth_t_usd(entry_fee);

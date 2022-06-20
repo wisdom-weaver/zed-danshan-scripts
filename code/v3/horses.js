@@ -5,7 +5,7 @@ const cron_parser = require("cron-parser");
 const cron = require("node-cron");
 const parents = require("./parents");
 const bulk = require("../utils/bulk");
-const { get_ed_horse } = require("../utils/cyclic_dependency");
+const { get_ed_horse, get_range_hids } = require("../utils/cyclic_dependency");
 const mega = require("./mega");
 const { delay, get_hids } = require("../utils/utils");
 const ancestry = require("./ancestry");
@@ -419,9 +419,11 @@ const get_range_hdocs = async (range) => {
   ed = utils.get_n(ed);
   if (ed == "ed" || ed == null) ed = await get_ed_horse();
   let cs = def_cs;
-  let hids_all = new Array(ed - st + 1).fill(0).map((ea, idx) => st + idx);
   console.log([st, ed]);
-  await get_only_hdocs(hids_all);
+  for (let i = st; i <= ed; i += cs) {
+    let hids = get_range_hids(i, i + cs - 1);
+    await get_only_hdocs(hids);
+  }
 };
 
 const fix_unnamed = async () => {
