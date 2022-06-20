@@ -51,9 +51,11 @@ let eval_hidden = 1;
 // const tcoll_stables = (tid) => `tourney::${tid}::stables`;
 
 const update_eth = async () => {
+  console.log("in update_eth")
   let ob = await fget(
     `https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=BTC,USD`
   );
+  console.log(ob)
   eth_price = ob.USD;
 };
 const eth_t_usd = (c) => {
