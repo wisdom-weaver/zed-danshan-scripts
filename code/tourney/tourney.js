@@ -40,6 +40,7 @@ const { fget } = require("../utils/fetch");
 const { push_bulkc } = require("../utils/bulk");
 const { overEvery } = require("lodash");
 const red = require("../connection/redis");
+const molaris = require("../utils/molaris");
 
 let test_mode = 0;
 let running = 0;
@@ -53,14 +54,10 @@ let eval_hidden = 1;
 
 const update_eth_fn = async () => {
   console.log("in update_eth_fn");
-  // let ob =
-  //   (await fget(
-  //     `https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=BTC,USD`
-  //   )) || null;
-  let ob = null;
-  if (_.isEmpty(ob)) ob = { BTC: 0.05547, USD: 1121.66 };
+  let ob = await molaris.get_eth_usd();
+  if (_.isEmpty(ob)) ob = { eth_usd: 1121.66 };
   console.log(ob);
-  return ob.USD;
+  return ob.eth_usd;
 };
 
 const update_eth = async () => {
