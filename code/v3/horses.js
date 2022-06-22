@@ -13,6 +13,7 @@ const utils = require("../utils/utils");
 const cyclic_depedency = require("../utils/cyclic_dependency");
 const rating_blood_S = require("./rating_blood");
 const mega2 = require("./mega2");
+const { line } = require("../v5/v5");
 
 const def_cs = 10;
 
@@ -175,6 +176,7 @@ const get_new = async () => {
     console.log("new    :", hids.length, "\n");
     if (!_.isEmpty(hids)) {
       await get_only(hids, 1);
+      await line.only(hids);
       console.log("\n\nGOT:", hids.length, "\n");
     }
     console.log("=====\nstarting again in 1 minute....");
@@ -312,14 +314,16 @@ const get_missing_only = async (hids_all, p = 1) => {
     let hids3 = await get_valid_hids_in_coll(chunk_hids, "rating_breed3");
     let hids4 = await get_valid_hids_in_coll(chunk_hids, "rating_flames3");
     let hids5 = await get_valid_hids_in_ancestry(chunk_hids);
+    let hids6 = await get_valid_hids_in_coll(chunk_hids, "line");
 
     if (p) console.log("hids1:", hids1.length);
     if (p) console.log("hids2:", hids2.length);
     if (p) console.log("hids3:", hids3.length);
     if (p) console.log("hids4:", hids4.length);
     if (p) console.log("hids5:", hids5.length);
+    if (p) console.log("hids6:", hids6.length);
 
-    let hids_exists = _.intersection(hids1, hids2, hids3, hids4, hids5);
+    let hids_exists = _.intersection(hids1, hids2, hids3, hids4, hids5, hids6);
     if (p) console.log("hids_exists", hids_exists.length);
     let missings = _.difference(chunk_hids, hids_exists);
     if (p) console.log("missings", missings.length, missings);
