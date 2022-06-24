@@ -18,13 +18,13 @@ const dists = [1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600];
 let off = 60 * mt;
 
 const generate = async () => {
-  let [st, ed] = get_date_range_fromto(-90, "days", 0, "minutes");
+  let [st, ed] = get_date_range_fromto(-1, "days", 0, "minutes");
   console.log([st, ed]);
   let glob = {};
   for (let dist of dists) {
     let ntimes = [];
 
-    for (let now = nano(st); now <= nano(ed); ) {
+    for (let now = nano(st); now < nano(ed); ) {
       let now_ed = now + off;
       try {
         let doc = await zed_ch.db
