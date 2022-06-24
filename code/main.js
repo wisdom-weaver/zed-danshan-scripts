@@ -21,6 +21,7 @@ const { fixers } = require("./fixers/fixer");
 const mate = require("./mate/mate");
 const { race_speed_adj } = require("./races/race_speed_adj");
 const base = require("./utils/base");
+const helpers = require("./helpers/helper");
 const mod = v3;
 
 const main = async (args) => {
@@ -418,6 +419,8 @@ const main = async (args) => {
     await mate.main_runner();
   } else if (arg1 == "--race_speed_adj") {
     await race_speed_adj.main_runner();
+  } else if (arg1 == "--helpers") {
+    await helpers.main_runner();
   }
 
   console.log("---ed");

@@ -2254,5 +2254,77 @@ const run_45 = async () => {
   }
 };
 
-const tests = { run: run_45 };
+const run_46 = async () => {
+  console.log("run_46");
+  let [st, ed] = get_date_range_fromto(-90, "days", 0, "minutes");
+  let ar = await zed_ch.db
+    .collection("zed")
+    .aggregate([
+      {
+        $match: {
+          2: {
+            $gte: st,
+            $lte: ed,
+          },
+          // 1: 1200,
+          6: 425534,
+        },
+      },
+      {
+        $group: {
+          _id: "$1",
+          // ntimes: {
+          //   $push: "$23",
+          // },
+          n: { $sum: 1  },
+          mi: { $min: "$23" },
+          mx: { $max: "$23" },
+          med: {
+            $accumulator: {
+              init: `function () {
+                return [];
+              }`,
+              accumulate: `function (bs, b) {
+                return bs.concat(b);
+              }`,
+              accumulateArgs: ["$23"],
+              merge: `function (bs1, bs2) {
+                return bs1.concat(bs2);
+              }`,
+              finalize: `function (bs) {
+                bs.sort(function (a, b) {
+                  return a - b;
+                });
+                var mid = bs.length / 2;
+                return mid % 1 ? bs[mid - 0.5] : (bs[mid - 1] + bs[mid]) / 2;
+              }`,
+              lang: "js",
+            },
+          },
+        },
+      },
+    ])
+    .toArray();
+  console.table(ar);
+  // let ob = [];
+  // for (let e of ar) {
+  //   e.ntimes = _.compact(e.ntimes);
+  //   let mi = _.min(e.ntimes);
+  //   let mx = _.max(e.ntimes);
+  //   let med = calc_median(e.ntimes);
+  //   let n = e.ntimes?.length;
+  //   let count = parseInt(n / 12);
+  //   ob.push({ dist: e._id, n, count, mi, med, mx });
+  // }
+  // ob = _.sortBy(ob, "dist");
+  // console.table(ob);
+  if (false) {
+    await sheet_ops.sheet_print_ob(ob, {
+      range: `Sheet4!${"A14"}`,
+      spreadsheetId: "1WYzF7Unz-IPyJo9d2CFE07QAT-CRO60Z1GVbKSsOcSU",
+    });
+  }
+};
+
+const tests = { run: run_46 };
 module.exports = tests;
