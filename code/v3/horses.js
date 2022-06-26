@@ -311,19 +311,20 @@ const get_missing_only = async (hids_all, p = 1) => {
     console.log("checking", a, "->", b);
     let hids1 = await get_valid_hids_in_details(chunk_hids);
     let hids2 = await get_valid_hids_in_blood(chunk_hids);
-    let hids3 = await get_valid_hids_in_coll(chunk_hids, "rating_breed3");
+    // let hids3 = await get_valid_hids_in_coll(chunk_hids, "rating_breed3");
     let hids4 = await get_valid_hids_in_coll(chunk_hids, "rating_flames3");
     let hids5 = await get_valid_hids_in_ancestry(chunk_hids);
     let hids6 = await get_valid_hids_in_coll(chunk_hids, "line");
 
     if (p) console.log("hids1:", hids1.length);
     if (p) console.log("hids2:", hids2.length);
-    if (p) console.log("hids3:", hids3.length);
+    // if (p) console.log("hids3:", hids3.length);
     if (p) console.log("hids4:", hids4.length);
     if (p) console.log("hids5:", hids5.length);
     if (p) console.log("hids6:", hids6.length);
 
-    let hids_exists = _.intersection(hids1, hids2, hids3, hids4, hids5, hids6);
+    // let hids_exists = _.intersection(hids1, hids2, hids3, hids4, hids5, hids6);
+    let hids_exists = _.intersection(hids1, hids2, hids4, hids5, hids6);
     if (p) console.log("hids_exists", hids_exists.length);
     let missings = _.difference(chunk_hids, hids_exists);
     if (p) console.log("missings", missings.length, missings);

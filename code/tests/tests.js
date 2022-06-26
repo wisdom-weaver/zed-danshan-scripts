@@ -11,6 +11,7 @@ const {
   write_to_path,
   read_from_path,
   calc_median,
+  cdelay,
 } = require("../utils/utils");
 const mega = require("../v3/mega");
 const utils = require("../utils/utils");
@@ -695,11 +696,16 @@ const run_20 = async () => {
 const run_21 = async () => {
   let pays = [
     {
-      WALLET: "0xc2014B17e2234ea18a50F292faEE29371126A3e0",
-      AMOUNT: "0.3",
+      WALLET: "0x33F0F57DCd106DF64FA2B8991cd6bDAe8f53dcf5",
+      AMOUNT: "0.1064",
     },
   ];
-  // await send_weth.sendAllTransactions(pays, process.env.flash_payout_private_key);
+  console.table(pays);
+  await cdelay(5000);
+  // await send_weth.sendAllTransactions(
+  //   pays,
+  //   process.env.flash_payout_private_key
+  // );
 };
 
 const run_22 = async () => {
@@ -2276,7 +2282,7 @@ const run_46 = async () => {
           // ntimes: {
           //   $push: "$23",
           // },
-          n: { $sum: 1  },
+          n: { $sum: 1 },
           mi: { $min: "$23" },
           mx: { $max: "$23" },
           med: {
@@ -2326,5 +2332,5 @@ const run_46 = async () => {
   }
 };
 
-const tests = { run: run_46 };
+const tests = { run: run_45 };
 module.exports = tests;
