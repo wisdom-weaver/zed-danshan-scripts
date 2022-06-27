@@ -830,12 +830,14 @@ const process_t_status_flash = async ({ tid }) => {
       console.log("stable_0", diff, "minutes");
       return {};
     } else if (stables.length == 1) {
-      let txdoc = await zed_db.db.collection("payments").findOne({
+      let par = {
         date: { $gte: entry_st },
         service: tcoll_stables(tid),
         status_code: 1,
         "meta_req.stable_name": stables[0],
-      });
+      };
+      let txdoc = await zed_db.db.collection("payments").findOne(par);
+      // console.log("TXDOC", par, txdoc);
       let st = txdoc.date;
       console.log("stable_1", stables[0], txdoc.pay_id, st);
       let diff = moment(now).diff(moment(st), "minutes");
