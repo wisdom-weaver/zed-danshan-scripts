@@ -324,5 +324,5 @@ const main_runner = async () => {
   if (arg2 == "fixer_cron") await fixer_cron();
 };
 
-const hawku = { main_runner };
+const hawku = { main_runner, hget, base, fX };
 module.exports = hawku;

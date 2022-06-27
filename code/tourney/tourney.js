@@ -946,11 +946,15 @@ const t_status_flash = async () => {
     .toArray();
   let tids = _.map(docs, "tid");
   for (let tid of tids) {
-    let upd = await process_t_status_flash({ tid });
-    console.log("UPDATE t_flash statsus", tid);
-    if (!_.isEmpty(upd))
-      await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: upd });
-    console.log("===");
+    try {
+      let upd = await process_t_status_flash({ tid });
+      console.log("UPDATE t_flash statsus", tid);
+      if (!_.isEmpty(upd))
+        await zed_db.db.collection(tcoll).updateOne({ tid }, { $set: upd });
+      console.log("===");
+    } catch (err) {
+      console.log("ERROR TID FLASH ", tid);
+    }
   }
 };
 
