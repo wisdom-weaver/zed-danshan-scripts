@@ -399,7 +399,7 @@ const filter_r1000 = (races) => {
   return races;
 };
 
-const ag_look = (coll, loc, frn, as, preserve = true, project = null) => {
+const ag_look = (coll, loc, frn, as, preserve = true, addf = null) => {
   let ag = [
     {
       $lookup: {
@@ -417,7 +417,7 @@ const ag_look = (coll, loc, frn, as, preserve = true, project = null) => {
       },
     },
   ];
-  if (!_.isEmpty(project)) ag.push({ $project: project });
+  if (!_.isEmpty(addf)) ag.push({ $addFields: addf });
   return ag;
 };
 

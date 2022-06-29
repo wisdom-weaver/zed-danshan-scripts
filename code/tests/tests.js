@@ -41,6 +41,7 @@ const { knex_conn } = require("../connection/knex_connect");
 const { preset_global } = require("../races/sims");
 const { rfn } = require("../connection/redis");
 const red = require("../connection/redis");
+const { sheet_print_ob } = require("../../sheet_ops/sheets_ops");
 
 const run_01 = async () => {
   let st = "2022-01-06T00:00:00Z";
@@ -2332,5 +2333,76 @@ const run_46 = async () => {
   }
 };
 
-const tests = { run: run_45 };
+const run_47 = async () => {
+  let [hmi, hmx] = [370000, 430000];
+  let ar = await zed_db.db
+    .collection("horse_details")
+    .aggregate([
+      { $match: { hid: { $gte: hmi, $lte: hmx } } },
+      {
+        $project: {
+          _id: 0,
+          hid: 1,
+          m: "$parents.mother",
+          f: "$parents.father",
+        },
+      },
+      ...ag_look("speed", "hid", "hid", "spdoc", false, {
+        baby_sp: "$spdoc.speed",
+      }),
+      ...ag_look("speed", "m", "hid", "mspdoc", false, {
+        m_sp: "$mspdoc.speed",
+      }),
+      ...ag_look("speed", "f", "hid", "fspdoc", false, {
+        f_sp: "$fspdoc.speed",
+      }),
+      {
+        $project: {
+          _id: 0,
+          hid: 1,
+          baby_sp: 1,
+          m: 1,
+          m_sp: 1,
+          f: 1,
+          f_sp: 1,
+        },
+      },
+      {
+        $match: {
+          baby_sp: { $ne: null },
+          m_sp: { $ne: null },
+          f_sp: { $ne: null },
+        },
+      },
+      { $limit: 1000 },
+    ])
+    .toArray();
+  // console.table(ar);
+  const pars = {
+    spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
+  };
+  if (true) {
+    for (let [c, k] of [
+      ["A1", "hid"],
+      ["B1", "baby_sp"],
+      ["C1", "f"],
+      ["D1", "f_sp"],
+      ["E1", "m"],
+      ["F1", "m_sp"],
+    ]) {
+      ob = _.chain(ar)
+        .map((e) => _.pick(e, [k]))
+        .value();
+      console.log(c, k);
+      // console.log(ob);
+      if (true)
+        await sheet_ops.sheet_print_ob(ob, {
+          ...pars,
+          range: `SpeedRatingCorrelation!${c}`,
+        });
+    }
+  }
+};
+
+const tests = { run: run_47 };
 module.exports = tests;
