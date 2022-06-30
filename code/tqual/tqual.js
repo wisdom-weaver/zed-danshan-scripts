@@ -8,13 +8,15 @@ const {
   jstr,
   jparse,
 } = require("../utils/cyclic_dependency");
+const zedf = require("../utils/zedf");
+const bulk = require("../utils/bulk");
 
 const tcoll = "tquall_master";
-let test_mode = true;
+let test_mode = false;
 
 const get_tinfo = async (tid, projection = null) => {
   let q = { tid };
-  let parr = _.isNil(projection) ? [q] : [q, projection];
+  let parr = _.isNil(projection) ? [q] : [q, { projection }];
   let doc = await zed_db.db.collection(tcoll).findOne(...parr);
   return doc;
 };
@@ -28,23 +30,22 @@ const traces_getter = async (rar) => {
       return [e.raceid, e.hid, redid, cache_exists, cache];
     })
   );
-
-  console.table(fins);
+  if (test_mode) console.table(fins);
 
   let cache_races = _.chain(fins)
     .filter((e) => e[3] == true)
     .map(4)
     .compact()
     .value();
-  console.log("cache", cache_races.length);
+  if (test_mode) console.log("cache", cache_races.length);
 
   let rids_not = _.map(
     _.filter(fins, (e) => e[3] == false),
     0
   );
-  console.log("redids_not", rids_not.length);
+  if (test_mode) console.log("redids_not", rids_not.length);
   rids_not = _.uniq(rids_not);
-  console.log("rids_not", rids_not.length);
+  if (test_mode) console.log("rids_not", rids_not.length);
 
   let races = [];
 
@@ -63,11 +64,11 @@ const traces_getter = async (rar) => {
     }
     races.push(earaces);
     i += chu.length;
-    console.log("got", i, jstr(chu));
+    if (test_mode) console.log("got", i, jstr(chu));
   }
   races = _.flatten(races);
-  console.log("ALL", races.length);
-  console.table(races.slice(0, 10));
+  if (test_mode) console.log("ALL", races.length);
+  if (test_mode) console.table(races.slice(0, 10));
 
   return races;
 };
@@ -121,12 +122,12 @@ const calc_t_score = (rrow, tdoc) => {
 };
 
 const normal_races_do = async (hid, tdoc, races) => {
-  console.log(hid);
-  console.log(tdoc.score_cr);
+  if (test_mode) console.log(hid);
+  if (test_mode) console.log(tdoc.score_cr);
   races = races.map((rrow) => {
-    console.table([rrow]);
+    if (test_mode) console.table([rrow]);
     let score = calc_t_score(rrow, tdoc);
-    console.log(rrow.raceid, { score });
+    if (test_mode) console.log(rrow.raceid, { score });
     rrow.score = score;
     return rrow;
   });
@@ -157,9 +158,9 @@ const eval_leaderboard = async ({ tdoc, races }) => {
   let hdocs = {};
   for (let [hid, rs] of _.entries(group)) {
     hid = parseInt(hid);
-    console.log("HORSE", hid);
+    if (test_mode) console.log("HORSE", hid);
     hdocs[hid] = await normal_races_do(hid, tdoc, rs);
-    console.log(hdocs[hid]);
+    if (test_mode) console.log(hdocs[hid]);
   }
 
   let mode = tdoc.score_mode;
@@ -190,9 +191,49 @@ const eval_leaderboard = async ({ tdoc, races }) => {
   return hdocs;
 };
 
+const get_stable_ob = async (hid) => {
+  const fn = async () => {
+    let doc = (await zedf.horse(hid)) || {};
+    let { owner = null, owner_stable_slug = null, owner_stable = null } = doc;
+    return { hid, owner, owner_stable, owner_stable_slug };
+  };
+  const redid = `tqual:horse_stable:${hid}`;
+  let ob = await red.rfn(redid, fn, 4 * 60 * 60);
+  return ob;
+};
+
+const get_stable_map = async (hids) => {
+  let ob = [];
+  let i = 0;
+  for (let chu of _.chunk(hids, 10)) {
+    let ea = await Promise.all(chu.map((hid) => get_stable_ob(hid)));
+    if (test_mode) console.table(ea);
+    ob.push(ea);
+    i += chu.length;
+    if (test_mode) console.log("got ", i, "horse stables");
+  }
+  ob = _.flatten(ob);
+  ob = _.keyBy(ob, "hid");
+  if (test_mode) console.table(ob);
+  return ob;
+};
+
+const get_tstatus = async (tdoc) => {
+  let { tourney_st, tourney_ed } = tdoc;
+  let now = iso();
+  if (_.inRange(nano(now), nano(tourney_st), nano(tourney_ed))) return "live";
+  if (tourney_st > now) return "upcoming";
+  if (tourney_ed < now) return "ended";
+};
+
 const run_tid = async ({ tid }) => {
   console.log("running tid", tid);
-  let tdoc = await get_tinfo(tid);
+  const tcoll_ref = await zed_db.db.collection(tcoll);
+  let tdoc = await get_tinfo(tid, { leaderboard: 0 });
+  if (1) console.log(tdoc);
+  const status = await get_tstatus(tdoc);
+  console.log("status", status);
+  await tcoll_ref.updateOne({ tid }, { $set: { status } });
 
   let [st, ed] = [tdoc.tourney_st, tdoc.tourney_ed];
   console.log("Getting", st, "->>", ed);
@@ -211,7 +252,7 @@ const run_tid = async ({ tid }) => {
     let ea;
     ea = await red.rget(redid);
     if (ea && !_.inRange(Date.now(), nano(nst), nano(ned))) {
-      console.log([nst, ned], "cache:: ", ea.length);
+      if (test_mode) console.log([nst, ned], "cache:: ", ea.length);
     } else {
       ea = await zed_ch.db
         .collection("zed")
@@ -230,33 +271,111 @@ const run_tid = async ({ tid }) => {
           hid: e[6],
         };
       });
-      console.log([nst, ned], "got:: ", ea.length);
+      if (test_mode) console.log([nst, ned], "got:: ", ea.length);
       await red.rset(redid, ea, 60 * 60);
     }
     rar.push(ea);
     now = nano(ned) + 1;
   }
   rar = _.flatten(rar);
-  console.log("got TOTAL:", rar.length);
 
+  console.log("TOTAL race rows:", rar.length);
   let races = await traces_getter(rar);
-  console.log("got all races");
+  console.log("downloaded races required");
 
-  const leaderboard = await eval_leaderboard({ tdoc, races });
-  console.table(leaderboard);
+  let leaderboard = await eval_leaderboard({ tdoc, races });
+  let hids = _.map(leaderboard, "hid");
+  console.log("hids.len", hids.length);
+  const stable_map = await get_stable_map(hids);
+
+  leaderboard = leaderboard.map((e) => {
+    let sob = stable_map[e.hid];
+    return { ...e, ...sob };
+  });
+  if (test_mode) console.table(leaderboard);
+  if (test_mode) console.log(leaderboard[0]);
+
+  await tcoll_ref.updateOne({ tid }, { $set: { leaderboard } });
+  console.log("completed", tid);
+  console.log("=======================\n\n");
+};
+
+const status_updater = async () => {
+  let now = iso();
+  let docs = await zed_db.db
+    .collection(tcoll)
+    .find(
+      {
+        $or: [
+          { status: { $exists: false } },
+          { status: { $eq: null } },
+          {
+            $and: [
+              {
+                tourney_st: {
+                  $gte: moment(now).add(-2, "minutes").toISOString(),
+                },
+              },
+              {
+                tourney_ed: {
+                  $lte: moment(now).add(15, "minutes").toISOString(),
+                },
+              },
+            ],
+          },
+        ],
+      },
+      { projection: { tid: 1, tourney_st: 1, tourney_ed: 1 } }
+    )
+    .toArray();
+  let upd = [];
+  for (let doc of docs) {
+    let status = await get_tstatus(doc);
+    let ea = { tid: doc.tid, status };
+    if (test_mode) console.log(ea);
+    upd.push(ea);
+  }
+  console.table(upd);
+  await bulk.push_bulkc(tcoll, upd, "status_update", "tid");
+};
+
+const runner = async () => {
+  let active_tids = await zed_db.db
+    .collection(tcoll)
+    .find(
+      {
+        $or: [
+          {
+            tourney_ed: { $lte: moment(now).add(15, "minutes").toISOString() },
+          },
+          {
+            status: "live",
+          },
+        ],
+      },
+      { projection: { _id: 0, tid: 1 } }
+    )
+    .toArray();
+  active_tids = _.map(active_tids, "tid");
+  for (let tid of active_tids) await run_tid(tid);
 };
 
 const test = async () => {
   console.log("test");
-  let tid = "87f37293";
-  await run_tid({ tid });
+  // let tid = "87f37293";
+  // await run_tid({ tid });
+  // await status_updater();
 };
 
 const main_runner = async () => {
   console.log("tqual");
   let [_node, _cfile, arg1, arg2, arg3, arg4, arg5] = process.argv;
   if (arg2 == "test") await test();
+  if (arg2 == "status") await status_updater();
+  if (arg2 == "run") await run_tid(arg3);
+  if (arg2 == "runnner") await runner();
 };
+
 const tqual = {
   main_runner,
 };
