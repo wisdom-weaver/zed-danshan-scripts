@@ -255,7 +255,7 @@ const run_tid = async (tid) => {
     let nst = iso(now);
     let ned = moment(nst).add(10, "minutes").toISOString();
     if (ned > ed) ned = ed;
-    let redid = `tqual_rids:${tid}:${nst}->${ned}`;
+    let redid = `tqual_rids:${tid}:${nst}->${ned}::${jstr(tclass_type)}`;
     let ea;
     ea = await red.rget(redid);
     if (ea && !_.inRange(Date.now(), nano(nst), nano(ned))) {
