@@ -242,7 +242,7 @@ const run_tid = async (tid) => {
   let [st, ed] = [tdoc.tourney_st, tdoc.tourney_ed];
   console.log("Getting", st, "->>", ed);
 
-  const rquery = {};
+  let rquery = {};
   let tclass_type = getv(tdoc, `race_cr.tclasstype`) || [];
 
   if (tclass_type.includes("c0")) rquery = { 5: { $in: [0] } };
