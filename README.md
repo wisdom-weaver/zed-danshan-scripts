@@ -57,4 +57,4 @@ fixed unnamed cron
 pm2 start node --name "fix_unnamed" -- code/main.js --horses fix_unnamed_cron
 
 tqual 
-pm2 start node --name "tqual::run_cron" -- code/main.js --tqual run_cron 
+pm2 start node --name "tqual::run_cron" -- code/main.js --tqual cron 

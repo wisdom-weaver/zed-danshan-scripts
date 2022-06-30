@@ -344,17 +344,19 @@ const status_updater = async () => {
 };
 
 const runner = async () => {
-  let now = iso();
+  const now = iso();
+  let st = moment(now).add(-1, "minutes").toISOString();
+  let ed = moment(now).add(15, "minutes").toISOString();
+  // console.log([st, ed]);
   let active_tids = await zed_db.db
     .collection(tcoll)
     .find(
       {
         $or: [
+          { status: "live" },
           {
-            tourney_ed: { $lte: moment(now).add(15, "minutes").toISOString() },
-          },
-          {
-            status: "live",
+            tourney_st: { $gte: st },
+            tourney_ed: { $lte: ed },
           },
         ],
       },
