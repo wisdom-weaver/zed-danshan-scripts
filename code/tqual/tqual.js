@@ -243,7 +243,7 @@ const run_tid = async (tid) => {
   console.log("Getting", st, "->>", ed);
 
   const rc_cr = [];
-  let tclass_type = getv(tdoc, `race_cr.tclasstype`);
+  let tclass_type = getv(tdoc, `race_cr.tclasstype`) || [];
   if (tclass_type.includes("open")) rc_cr.push(1000);
   if (tclass_type.includes("free")) rc_cr.push(0);
 
@@ -355,8 +355,8 @@ const runner = async () => {
         $or: [
           { status: "live" },
           {
-            tourney_st: { $gte: st },
-            tourney_ed: { $lte: ed },
+            tourney_st: { $lte: st },
+            tourney_ed: { $gte: ed },
           },
         ],
       },
