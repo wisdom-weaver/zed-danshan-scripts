@@ -1,15 +1,17 @@
 const _ = require("lodash");
 const { zed_db, zed_ch } = require("../connection/mongo_connect");
-const { nano, iso, getv } = require("../utils/utils");
+const { nano, iso, getv, cron_conf } = require("../utils/utils");
 const moment = require("moment");
 const red = require("../connection/redis");
 const {
   struct_race_row_data,
   jstr,
   jparse,
+  print_cron_details,
 } = require("../utils/cyclic_dependency");
 const zedf = require("../utils/zedf");
 const bulk = require("../utils/bulk");
+const cron = require("node-cron");
 
 const tcoll = "tquall_master";
 let test_mode = false;
@@ -219,6 +221,7 @@ const get_stable_map = async (hids) => {
 };
 
 const get_tstatus = async (tdoc) => {
+  if (_.isEmpty(tdoc)) return null;
   let { tourney_st, tourney_ed } = tdoc;
   let now = iso();
   if (_.inRange(nano(now), nano(tourney_st), nano(tourney_ed))) return "live";
@@ -226,11 +229,12 @@ const get_tstatus = async (tdoc) => {
   if (tourney_ed < now) return "ended";
 };
 
-const run_tid = async ({ tid }) => {
+const run_tid = async (tid) => {
   console.log("running tid", tid);
   const tcoll_ref = await zed_db.db.collection(tcoll);
   let tdoc = await get_tinfo(tid, { leaderboard: 0 });
-  if (1) console.log(tdoc);
+  if (!tdoc) return console.log("doc not found");
+  if (test_mode) console.log(tdoc);
   const status = await get_tstatus(tdoc);
   console.log("status", status);
   await tcoll_ref.updateOne({ tid }, { $set: { status } });
@@ -340,6 +344,7 @@ const status_updater = async () => {
 };
 
 const runner = async () => {
+  let now = iso();
   let active_tids = await zed_db.db
     .collection(tcoll)
     .find(
@@ -356,8 +361,38 @@ const runner = async () => {
       { projection: { _id: 0, tid: 1 } }
     )
     .toArray();
+  if (_.isEmpty(active_tids)) return console.log("no actives");
   active_tids = _.map(active_tids, "tid");
-  for (let tid of active_tids) await run_tid(tid);
+  console.log("active_tids", active_tids);
+
+  for (let tid of active_tids) {
+    try {
+      await run_tid(tid);
+    } catch (err) {
+      console.log("err at tid", tid, "\n", err);
+    }
+  }
+};
+
+const run_cron = async () => {
+  let running = 0;
+  const fn = async () => {
+    if (running) console.log("skip... aleady running");
+    running = 1;
+    try {
+      await status_updater();
+      await runner();
+    } catch (err) {
+      console.log(err);
+    } finally {
+      running = 0;
+    }
+  };
+
+  const cron_str = "*/2 * * * *";
+  console.log("##run cron", "tqual");
+  print_cron_details(cron_str);
+  cron.schedule(cron_str, fn, cron_conf);
 };
 
 const test = async () => {
@@ -373,7 +408,8 @@ const main_runner = async () => {
   if (arg2 == "test") await test();
   if (arg2 == "status") await status_updater();
   if (arg2 == "run") await run_tid(arg3);
-  if (arg2 == "runnner") await runner();
+  if (arg2 == "runner") await runner();
+  if (arg2 == "cron") await run_cron();
 };
 
 const tqual = {

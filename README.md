@@ -55,3 +55,6 @@ pm2 start node --name "mate::cron" -- code/main.js --mate run_cron
 
 fixed unnamed cron
 pm2 start node --name "fix_unnamed" -- code/main.js --horses fix_unnamed_cron
+
+tqual 
+pm2 start node --name "tqual::run_cron" -- code/main.js --tqual run_cron 
