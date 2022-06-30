@@ -242,10 +242,13 @@ const run_tid = async (tid) => {
   let [st, ed] = [tdoc.tourney_st, tdoc.tourney_ed];
   console.log("Getting", st, "->>", ed);
 
-  const rc_cr = [];
+  const rquery = {};
   let tclass_type = getv(tdoc, `race_cr.tclasstype`) || [];
-  if (tclass_type.includes("open")) rc_cr.push(1000);
-  if (tclass_type.includes("free")) rc_cr.push(0);
+
+  if (tclass_type.includes("c0")) rquery = { 5: { $in: [0] } };
+  if (tclass_type.includes("free-all")) rquery = { 3: { $eq: "0.0" } };
+  if (tclass_type.includes("paid-all")) rquery = { 3: { $ne: "0.0" } };
+  if (tclass_type.includes("open")) rquery = { 5: { $in: [1000] } };
 
   let rar = [];
   for (let now = nano(st); now < nano(ed); ) {
@@ -263,7 +266,7 @@ const run_tid = async (tid) => {
         .find(
           {
             2: { $gte: nst, $lte: ned },
-            5: { $in: rc_cr },
+            ...rquery,
           },
           { projection: { 4: 1, 6: 1, _id: 0 } }
         )
