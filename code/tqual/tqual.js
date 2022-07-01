@@ -251,7 +251,7 @@ const run_tid = async (tid) => {
   if (tclass_type.includes("open")) rquery = { 5: { $in: [1000] } };
 
   let rar = [];
-  const use_cached_rids = true;
+  const use_cached_rids = false;
   for (let now = nano(st); now < Math.min(nano(ed), Date.now()); ) {
     let nst = iso(now);
     let ned = moment(nst).add(10, "minutes").toISOString();
