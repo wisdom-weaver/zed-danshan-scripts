@@ -168,18 +168,22 @@ const get_rosters = async () => {
 const get_new = async () => {
   console.log("get_new");
   while (true) {
-    let nhids = await get_rosters();
-    let xhids = await get_valid_hids_in_details(nhids);
-    let hids = _.difference(nhids, xhids);
-    console.log("listing:", nhids.length);
-    console.log("exists :", xhids.length);
-    console.log("new    :", hids.length, "\n");
-    if (!_.isEmpty(hids)) {
-      await get_only(hids, 1);
-      await line.only(hids);
-      console.log("\n\nGOT:", hids.length, "\n");
+    try {
+      let nhids = await get_rosters();
+      let xhids = await get_valid_hids_in_details(nhids);
+      let hids = _.difference(nhids, xhids);
+      console.log("listing:", nhids.length);
+      console.log("exists :", xhids.length);
+      console.log("new    :", hids.length, "\n");
+      if (!_.isEmpty(hids)) {
+        await get_only(hids, 1);
+        await line.only(hids);
+        console.log("\n\nGOT:", hids.length, "\n");
+      }
+      console.log("=====\nstarting again in 1 minute....");
+    } catch (err) {
+      console.log(err);
     }
-    console.log("=====\nstarting again in 1 minute....");
     await delay(60 * 1000);
   }
 };
