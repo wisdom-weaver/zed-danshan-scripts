@@ -156,6 +156,7 @@ const normal_races_do = async (hid, tdoc, races) => {
 };
 
 const eval_leaderboard = async ({ tdoc, races }) => {
+  if (_.isEmpty(races)) return [];
   let group = _.groupBy(races, "hid");
   let hdocs = {};
   for (let [hid, rs] of _.entries(group)) {
@@ -291,19 +292,36 @@ const run_tid = async (tid) => {
   let races = await traces_getter(rar);
   console.log("downloaded races required");
 
-  let leaderboard = await eval_leaderboard({ tdoc, races });
-  let hids = _.map(leaderboard, "hid");
+  let leaderboard = {
+    "10-14": [],
+    "16-20": [],
+    "22-26": [],
+  };
+
+  for (let [k, range] of [
+    ["10-14", [1000, 1200, 1400]],
+    ["16-20", [1600, 1800, 2000]],
+    ["22-26", [2200, 2400, 2600]],
+  ]) {
+    let filt = _.filter(races, (e) => range.includes(parseInt(e.distance)));
+    console.log("leaderboard", { k, range }, filt.length, "races");
+    leaderboard[k] = await eval_leaderboard({
+      tdoc,
+      races: filt,
+    });
+    if (test_mode) console.table(leaderboard[k]);
+    if (test_mode) console.log(leaderboard[k][0]);
+  }
+  let hids = [
+    ..._.map(leaderboard["10-14"], "hid"),
+    ..._.map(leaderboard["16-20"], "hid"),
+    ..._.map(leaderboard["22-26"], "hid"),
+  ];
+
   console.log("hids.len", hids.length);
   const stable_map = await get_stable_map(hids);
 
-  leaderboard = leaderboard.map((e) => {
-    let sob = stable_map[e.hid];
-    return { ...e, ...sob };
-  });
-  if (test_mode) console.table(leaderboard);
-  if (test_mode) console.log(leaderboard[0]);
-
-  await tcoll_ref.updateOne({ tid }, { $set: { leaderboard } });
+  await tcoll_ref.updateOne({ tid }, { $set: { leaderboard, stable_map } });
   console.log("completed", tid);
   console.log("=======================\n\n");
 };
