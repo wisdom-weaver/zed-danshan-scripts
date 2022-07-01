@@ -251,14 +251,15 @@ const run_tid = async (tid) => {
   if (tclass_type.includes("open")) rquery = { 5: { $in: [1000] } };
 
   let rar = [];
-  for (let now = nano(st); now < nano(ed); ) {
+  const use_cached_rids = true;
+  for (let now = nano(st); now < Math.min(nano(ed), Date.now()); ) {
     let nst = iso(now);
     let ned = moment(nst).add(10, "minutes").toISOString();
     if (ned > ed) ned = ed;
     let redid = `tqual_rids:${tid}:${nst}->${ned}::${jstr(tclass_type)}`;
     let ea;
     ea = await red.rget(redid);
-    if (ea && !_.inRange(Date.now(), nano(nst), nano(ned))) {
+    if (use_cached_rids) {
       if (test_mode) console.log([nst, ned], "cache:: ", ea.length);
     } else {
       ea = await zed_ch.db
@@ -410,6 +411,10 @@ const test = async () => {
 const main_runner = async () => {
   console.log("tqual");
   let [_node, _cfile, arg1, arg2, arg3, arg4, arg5] = process.argv;
+  if (process.argv.includes("test_mode")) {
+    test_mode = true;
+    console.log({ test_mode });
+  }
   if (arg2 == "test") await test();
   if (arg2 == "status") await status_updater();
   if (arg2 == "run") await run_tid(arg3);
