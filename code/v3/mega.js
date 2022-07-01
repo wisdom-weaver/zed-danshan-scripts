@@ -235,7 +235,7 @@ const calc_racing = async ({ hid }) => {
   };
 };
 
-const generate = async (hid, mega_mode = "racing") => {
+const generate = async (hid, mega_mode = "all") => {
   let docs;
   if (mega_mode == "racing") docs = await calc_racing({ hid });
   else if (mega_mode == "all") docs = await calc({ hid });
