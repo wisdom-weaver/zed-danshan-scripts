@@ -298,11 +298,11 @@ const calc_breeding = async ({ hid }) => {
     // console.log("dp4", dp4);
     // console.log("hraces_stats", hraces_stats);
   }
-  // let ymca2_doc = { hid, ymca2 };
-  // let est_ymca_doc = { hid, est_ymca };
+  let ymca2_doc = { hid, ymca2 };
+  let est_ymca_doc = { hid, est_ymca };
 
-  let ymca5_doc = { hid, ymca5 };
-  let stats_check_doc = { hid, last_updated: iso(), races: [] };
+  // let ymca5_doc = { hid, ymca5 };
+  // let stats_check_doc = { hid, last_updated: iso(), races: [] };
 
   return {
     // hid,
@@ -512,6 +512,7 @@ const allw_br = async (cs = def_cs) => {
   let [st, ed] = [1, await get_ed_horse()];
   if (_.isNaN(cs) || _.isNil(cs)) cs = def_cs;
   console.log([st, ed], cs);
+  await only_w_parents_br([1], cs, "breeding");
   for (let i = st; i <= ed; i += cs) {
     console.log(i, i + cs);
     let hids = get_hids(i, i + cs);
