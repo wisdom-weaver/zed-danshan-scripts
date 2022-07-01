@@ -260,7 +260,7 @@ const run_tid = async (tid) => {
     let ea;
     ea = await red.rget(redid);
     if (use_cached_rids) {
-      if (test_mode) console.log([nst, ned], "cache:: ", ea.length);
+      if (true || test_mode) console.log([nst, ned], "cache:: ", ea.length);
     } else {
       ea = await zed_ch.db
         .collection("zed")
@@ -279,7 +279,7 @@ const run_tid = async (tid) => {
           hid: e[6],
         };
       });
-      if (test_mode) console.log([nst, ned], "got:: ", ea.length);
+      if (true || test_mode) console.log([nst, ned], "got:: ", ea.length);
       await red.rset(redid, ea, 60 * 60);
     }
     rar.push(ea);
