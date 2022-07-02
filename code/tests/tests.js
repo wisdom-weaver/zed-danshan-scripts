@@ -2184,15 +2184,15 @@ const run_45 = async () => {
   let lim = 500;
   let fin = [];
   for (let [rc, paid] of [
-    // [0, 0],
-    // [1, 0],
-    // [2, 0],
-    // [3, 0],
-    // [4, 0],
-    // [5, 0],
-    // [6, 0],
-    // [99, 0],
-    // [1000, 0],
+    [0, 0],
+    [1, 0],
+    [2, 0],
+    [3, 0],
+    [4, 0],
+    [5, 0],
+    [6, 0],
+    [99, 0],
+    [1000, 0],
 
     [0, 1],
     [1, 1],
@@ -2201,8 +2201,8 @@ const run_45 = async () => {
     [4, 1],
     [5, 1],
     [6, 1],
-    // [99, 1],
-    // [1000, 1],
+    [99, 1],
+    [1000, 1],
   ]) {
     // let [rc, dist, paid] = [1, "a", 1];
     let ar = await zed_ch.db
@@ -2255,7 +2255,7 @@ const run_45 = async () => {
   console.table(fin);
   if (true) {
     await sheet_ops.sheet_print_ob(fin, {
-      range: `WinSpeed!${"G30"}`,
+      range: `WinSpeed!${"G40"}`,
       spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
     });
   }
@@ -2404,5 +2404,5 @@ const run_47 = async () => {
   }
 };
 
-const tests = { run: run_47 };
+const tests = { run: run_45 };
 module.exports = tests;

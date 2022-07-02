@@ -20,6 +20,7 @@ const {
   get_range_hids,
   valid_b5,
   get_parents,
+  filt_valid_hids,
 } = require("../utils/cyclic_dependency");
 const bulk = require("../utils/bulk");
 const cyclic_depedency = require("../utils/cyclic_dependency");
@@ -113,6 +114,8 @@ const all = async () => {
   for (let i = st; i <= ed; i += cs) {
     console.log(i, i + cs - 1);
     let hids = get_hids(i, i + cs - 1);
+    hids = await filt_valid_hids(hids);
+    console.log("valids:", hids.length);
     await bulk.run_bulk_only(name, generate, coll, hids, cs, test_mode);
   }
 };
