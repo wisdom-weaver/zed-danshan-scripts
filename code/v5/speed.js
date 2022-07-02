@@ -35,7 +35,7 @@ let cs = 25;
 let tot_runs = 1;
 const name = "speed";
 const coll = "speed";
-let test_mode = 1;
+let test_mode = 0;
 
 const dist_factor = {
   1000: 1.0,
