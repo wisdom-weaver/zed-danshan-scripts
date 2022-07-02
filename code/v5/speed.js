@@ -35,7 +35,7 @@ let cs = 25;
 let tot_runs = 1;
 const name = "speed";
 const coll = "speed";
-let test_mode = 0;
+let test_mode = 1;
 
 const dist_factor = {
   1000: 1.0,
@@ -62,7 +62,6 @@ const calc = async ({ hid, races }) => {
       .aggregate([
         { $match: { 6: hid, 2: { $gte: st, $lte: ed }, 25: { $ne: null } } },
         { $sort: { 25: -1 } },
-        { $limit: 1 },
         {
           $project: {
             _id: 0,
@@ -72,11 +71,21 @@ const calc = async ({ hid, races }) => {
             distance: "$1",
           },
         },
+        { $limit: 2 },
       ])
       .toArray();
-    let speed_ob = getv(ar, "0");
+    if (test_mode) console.table(ar);
+    let speed_ob;
+    if (ar.length > 1) {
+      let sp1 = getv(ar, `${0}.speed`);
+      let sp2 = getv(ar, `${1}.speed`);
+      if (Math.abs(sp2 - sp1) <= 0.7) speed_ob = getv(ar, 0);
+      else speed_ob = getv(ar, 1);
+    } else {
+      speed_ob = getv(ar, "0");
+    }
     if (_.isEmpty(speed_ob)) speed_ob = { hid, distance: null, speed: null };
-    // console.log(speed_ob);
+    if (test_mode) console.log(speed_ob);
     return speed_ob;
   } catch (err) {
     console.log("err on horse speed", hid);

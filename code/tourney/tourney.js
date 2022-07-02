@@ -1693,8 +1693,10 @@ const main_runner = async (args) => {
 };
 
 const test = async () => {
-  let tid = "00739750";
-  process_t_status_flash({ tid });
+  let ar = await zed_db.db.collection(tcoll).deleteMany({
+    status: "open",
+  });
+  console.log("done");
 };
 
 const tourney = {
