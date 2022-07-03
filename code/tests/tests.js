@@ -2464,6 +2464,7 @@ const run_48 = async () => {
       return [rid, rrows];
     })
     .map(1)
+    .flatten()
     .value();
   console.table(races.slice(0, 30));
   return console.log("rdone");
