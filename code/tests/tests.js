@@ -2412,7 +2412,7 @@ const run_48 = async () => {
   // let [st, ed] = get_date_range_fromto(-15, "days", 0, "minutes");
   let [st, ed] = ["2022-06-18T16:45:47.851Z", "2022-07-03T16:45:47.854Z"];
   console.log([st, ed]);
-  let race_redid = `races::${st}:${ed}:1600M:1`;
+  let race_redid = `races::${st}:${ed}:all:1`;
   console.log(race_redid);
   let races = [];
   let exs = await red.rexists(race_redid);
@@ -2423,7 +2423,7 @@ const run_48 = async () => {
         {
           $match: {
             2: { $gte: st, $lte: ed },
-            1: 1600,
+            // 1: 1600,
           },
         },
         {
@@ -2433,18 +2433,21 @@ const run_48 = async () => {
             paid: { $cond: [{ $eq: ["$3", "0.0"] }, 0, 1] },
             rid: "$4",
             hid: "$6",
+            dist: "$1",
             time: "$7",
+            adjtime: "$23",
           },
         },
       ])
       .toArray();
     console.table(races.slice(0, 3));
-    await red.rset(race_redid, races, 60 * 30);
+    await red.rset(race_redid, races, 60 * 2);
     console.log("races.len::got", races.length);
   } else {
     races = await red.rget(race_redid);
     console.log("races.len::cache", races.length);
   }
+  return console.log("rdone");
 
   let ar = [];
   for (let [rc, paid] of [
