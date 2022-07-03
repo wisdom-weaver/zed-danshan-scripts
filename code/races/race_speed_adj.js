@@ -81,6 +81,7 @@ const update_dur = async (from, to) => {
         .toArray();
       if (_.isEmpty(raws)) {
         console.log(iso(now), iso(now_ed), "EMPTY");
+        now = now_ed + 1;
         continue;
       }
       raws = _.groupBy(raws, "4");
