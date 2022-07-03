@@ -2455,31 +2455,31 @@ const run_48 = async () => {
   races = _.filter(races, { dist: 1600 });
 
   let ar = [];
-  for (let [rc, paid] of [
-    // [0, 0],
-    // [1, 0],
-    // [2, 0],
-    // [3, 0],
-    // [4, 0],
-    // [5, 0],
-    // [6, 0],
-    // [99, 0],
-    // [1000, 0],
+  // let [rc, paid] of [
+  // [0, 0],
+  // [1, 0],
+  // [2, 0],
+  // [3, 0],
+  // [4, 0],
+  // [5, 0],
+  // [6, 0],
+  // [99, 0],
+  // [1000, 0],
 
-    // [0, 1],
-    // [1, 1],
-    // [2, 1],
-    // [3, 1],
-    // [4, 1],
-    // [5, 1],
-    // [6, 1],
-    // [99, 1],
-    // [1000, 1],
+  // [0, 1],
+  // [1, 1],
+  // [2, 1],
+  // [3, 1],
+  // [4, 1],
+  // [5, 1],
+  // [6, 1],
+  // [99, 1],
+  // [1000, 1],
 
-    ["all", "all"],
-  ]) {
-    let filt =
-      rc == "all" && paid == "all" ? races : _.filter(races, { rc, paid });
+  // ]
+  for (let dist of [1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600]) {
+    let filt = (races = _.filter(races, { dist }));
+    // let filt = _.filter(races, { rc, paid });
     let count = filt.length;
 
     let mean = _.chain(filt).map("time").compact().mean().value();
@@ -2493,13 +2493,14 @@ const run_48 = async () => {
     sd = _.sum(sd) / sd.length;
 
     let ob = {
-      rc,
-      paid,
+      // rc,
+      // paid,
+      dist,
       count,
-      raw_time_mean_1600: mean,
-      raw_time_mi_1600: mi,
-      raw_time_mx_1600: mx,
-      raw_time_sd_1600: sd,
+      mean,
+      mi,
+      mx,
+      sd,
     };
     console.log(ob);
     ar.push(ob);
@@ -2507,14 +2508,14 @@ const run_48 = async () => {
   console.table(ar);
 
   if (true) {
-    ar = _.map(ar, (e) =>
-      _.pick(e, [
-        "raw_time_mean_1600",
-        "raw_time_mi_1600",
-        "raw_time_mx_1600",
-        "raw_time_sd_1600",
-      ])
-    );
+    // ar = _.map(ar, (e) =>
+    //   _.pick(e, [
+    //     "raw_time_mean_1600",
+    //     "raw_time_mi_1600",
+    //     "raw_time_mx_1600",
+    //     "raw_time_sd_1600",
+    //   ])
+    // );
     await sheet_ops.sheet_print_ob(ar, {
       spreadsheetId: "1kUY3VjQeuPQi02VGVxxKgD9Ls_58lQsEENutokhT7jU",
       range: `Sheet1!${cell}`,
