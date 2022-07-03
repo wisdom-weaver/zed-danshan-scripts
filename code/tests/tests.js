@@ -2476,7 +2476,8 @@ const run_48 = async () => {
 
   // ]
   for (let dist of [1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600]) {
-    let filt = (races = _.filter(races, { dist }));
+    console.log("dist", dist);
+    let filt = _.filter(races, { dist });
     // let filt = _.filter(races, { rc, paid });
     let count = filt.length;
 
@@ -2506,14 +2507,6 @@ const run_48 = async () => {
   console.table(ar);
 
   if (true) {
-    // ar = _.map(ar, (e) =>
-    //   _.pick(e, [
-    //     "raw_time_mean_1600",
-    //     "raw_time_mi_1600",
-    //     "raw_time_mx_1600",
-    //     "raw_time_sd_1600",
-    //   ])
-    // );
     await sheet_ops.sheet_print_ob(ar, {
       spreadsheetId: "1kUY3VjQeuPQi02VGVxxKgD9Ls_58lQsEENutokhT7jU",
       range: `Sheet1!${cell}`,
