@@ -2408,7 +2408,7 @@ const run_47 = async () => {
 };
 
 const run_48 = async () => {
-  let cell = "G3";
+  let cell = "I3";
   // let [st, ed] = get_date_range_fromto(-15, "days", 0, "minutes");
   let [st, ed] = ["2022-06-18T16:45:47.851Z", "2022-07-03T16:45:47.854Z"];
   console.log([st, ed]);
@@ -2479,12 +2479,24 @@ const run_48 = async () => {
     let filt = _.filter(races, { rc, paid });
     let count = filt.length;
 
-    let avg = _.chain(filt).map("adjtime").compact().mean().value();
+    let mean = _.chain(filt).map("time").compact().mean().value();
+    let mi = _.chain(filt).map("time").compact().min().value();
+    let mx = _.chain(filt).map("time").compact().max().value();
+    let sd = _.chain(filt)
+      .map("time")
+      .compact()
+      .map((e) => Math.pow(mean - e, 2))
+      .value();
+    sd = _.sum(sd) / _.length(sd);
+
     let ob = {
       rc,
       paid,
       count,
-      avg_norm_1600: avg,
+      raw_time_mean_1600: mean,
+      raw_time_mi_1600: mi,
+      raw_time_mx_1600: mx,
+      raw_time_sd_1600: sd,
     };
     console.log(ob);
     ar.push(ob);
@@ -2492,7 +2504,14 @@ const run_48 = async () => {
   console.table(ar);
 
   if (true) {
-    ar = _.map(ar, (e) => _.pick(e, ["avg_norm_1600"]));
+    ar = _.map(ar, (e) =>
+      _.pick(e, [
+        "raw_time_mean_1600",
+        "raw_time_mi_1600",
+        "raw_time_mx_1600",
+        "raw_time_sd_1600",
+      ])
+    );
     await sheet_ops.sheet_print_ob(ar, {
       spreadsheetId: "1kUY3VjQeuPQi02VGVxxKgD9Ls_58lQsEENutokhT7jU",
       range: `Sheet1!${cell}`,
