@@ -2473,7 +2473,11 @@ const run_48 = async () => {
   }
   console.table(ar);
 
-  if (false) {
+  if (true) {
+    await sheet_ops.sheet_print_ob(ar, {
+      spreadsheetId: "1kUY3VjQeuPQi02VGVxxKgD9Ls_58lQsEENutokhT7jU",
+      range: "Sheet1!B3",
+    });
   }
 };
 
