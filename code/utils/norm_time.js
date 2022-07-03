@@ -31,9 +31,14 @@ const eval = (
   let times_mean = _.mean(times);
   let dist = race[0][dist_key];
   let pre = preset_table[dist];
+  console.log(pre);
+  console.log("times_mean", times_mean);
   let mean_diff_from_global = times_mean - pre.mean;
+  console.log("mean_diff_from_global", mean_diff_from_global);
   let diff_allowed = pre.sd;
+  console.log("diff_allowed", diff_allowed);
   let diff_sd_factor = mean_diff_from_global / diff_allowed;
+  console.log("diff_sd_factor", diff_sd_factor);
   race = race.map((r) => {
     let adjtime = r[time_key] - diff_sd_factor * diff_allowed;
     return { ...r, [adjtime_key]: adjtime };
