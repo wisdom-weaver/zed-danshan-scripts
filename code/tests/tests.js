@@ -2409,7 +2409,7 @@ const run_47 = async () => {
 };
 
 const run_48 = async () => {
-  let cell = "I20";
+  let cell = "H3";
   // let [st, ed] = get_date_range_fromto(-15, "days", 0, "minutes");
   let [st, ed] = ["2022-06-18T16:45:47.851Z", "2022-07-03T16:45:47.854Z"];
   console.log([st, ed]);
@@ -2457,21 +2457,19 @@ const run_48 = async () => {
     .entries()
     .slice(0, 3)
     .map(([rid, rrows]) => {
-      console.table(rrows);
-      // /*
+      // console.table(rrows);
       rrows = norm_time_s.eval(rrows, {
         time_key: "time",
         dist_key: "dist",
         adjtime_key: "norm_old",
       });
-      // */
-      console.table(rrows);
+      // console.table(rrows);
       return rrows;
     })
     .flatten()
     .value();
-  console.table(races);
-  return console.log("rdone");
+  console.table(races.slice(0, 3));
+  // return console.log("rdone");
 
   let ar = [];
   for (let [rc, paid] of [
@@ -2501,22 +2499,19 @@ const run_48 = async () => {
     let filt = _.filter(races, { rc, paid });
     let count = filt.length;
 
-    let mean = _.chain(filt).map("time").compact().mean().value();
-    let mi = _.chain(filt).map("time").compact().min().value();
-    let mx = _.chain(filt).map("time").compact().max().value();
-    let sd = _.chain(filt)
-      .map("time")
-      .compact()
-      .map((e) => Math.pow(mean - e, 2))
-      .value();
+    let evalar = _.chain(filt).map("norm_old").compact();
+
+    let mean = evalar.mean().value();
+    let mi = evalar.min().value();
+    let mx = evalar.max().value();
+    let sd = evalar.map((e) => Math.pow(mean - e, 2)).value();
     sd = _.sum(sd) / sd.length;
 
     let ob = {
-      // rc,
-      // paid,
-      dist,
+      rc,
+      paid,
       count,
-      mean,
+      avg_norm_old_1600: mean,
       mi,
       mx,
       sd,
@@ -2527,6 +2522,7 @@ const run_48 = async () => {
   console.table(ar);
 
   if (true) {
+    ar = _.map(ar, (e) => _.pick(e, ["avg_norm_old_1600"]));
     await sheet_ops.sheet_print_ob(ar, {
       spreadsheetId: "1kUY3VjQeuPQi02VGVxxKgD9Ls_58lQsEENutokhT7jU",
       range: `Sheet1!${cell}`,
