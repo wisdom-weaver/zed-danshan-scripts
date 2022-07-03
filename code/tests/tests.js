@@ -2457,14 +2457,15 @@ const run_48 = async () => {
     .entries()
     .slice(0, 5)
     .map(([rid, rrows]) => {
-      /*
+      console.table(rrows);
+      // /*
       rrows = norm_time_s.eval(rrows, {
         time_key: "time",
         dist_key: "dist",
         adjtime_key: "norm_old",
       });
+      // */
       console.table(rrows);
-      */
       return rrows;
     })
     .flatten()
