@@ -2455,47 +2455,47 @@ const run_48 = async () => {
   races = _.chain(races)
     .groupBy("rid")
     .entries()
+    .slice(0, 5)
     .map(([rid, rrows]) => {
       rrows = norm_time_s.eval(rrows, {
         time_key: "time",
         dist_key: "dist",
         adjtime_key: "norm_old",
       });
-      return [rid, rrows];
+      console.table(rrows);
+      return rrows;
     })
-    .map(1)
     .flatten()
     .value();
   console.table(races.slice(0, 30));
   return console.log("rdone");
 
   let ar = [];
-  // let [rc, paid] of [
-  // [0, 0],
-  // [1, 0],
-  // [2, 0],
-  // [3, 0],
-  // [4, 0],
-  // [5, 0],
-  // [6, 0],
-  // [99, 0],
-  // [1000, 0],
+  for (let [rc, paid] of [
+    [0, 0],
+    [1, 0],
+    [2, 0],
+    [3, 0],
+    [4, 0],
+    [5, 0],
+    [6, 0],
+    [99, 0],
+    [1000, 0],
 
-  // [0, 1],
-  // [1, 1],
-  // [2, 1],
-  // [3, 1],
-  // [4, 1],
-  // [5, 1],
-  // [6, 1],
-  // [99, 1],
-  // [1000, 1],
-
-  // ]
-  for (let dist of [1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600]) {
-    console.log("dist", dist);
-    let filt = _.filter(races, { dist });
-    // let filt = _.filter(races, { rc, paid });
+    [0, 1],
+    [1, 1],
+    [2, 1],
+    [3, 1],
+    [4, 1],
+    [5, 1],
+    [6, 1],
+    [99, 1],
+    [1000, 1],
+  ]) {
+    // for (let dist of [1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600]) {
+    // console.log("dist", dist);
+    // let filt = _.filter(races, { dist });
+    let filt = _.filter(races, { rc, paid });
     let count = filt.length;
 
     let mean = _.chain(filt).map("time").compact().mean().value();
