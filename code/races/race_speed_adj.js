@@ -37,7 +37,13 @@ const run_racesdata_speed_adj_raw = (racesData) => {
 
 const run_rid = async (rid) => {
   let ref = zed_ch.db.collection("zed");
-  let race = await ref.find({ 4: rid }).toArray();
+  let race = await ref
+    .find(
+      { 4: rid },
+
+      { projection: { 1: 1, 4: 1, 6: 1, 7: 1, 8: 1 } }
+    )
+    .toArray();
 
   // race = cyclic_depedency.struct_race_row_data(race);
   return run_race_speed_adj_raw(race);
@@ -67,11 +73,15 @@ const update_dur = async (from, to) => {
   do {
     let now_ed = Math.min(now + off, nano(to));
     let raws = await ref
-      .find({ 2: { $gte: iso(now), $lte: iso(now_ed) } })
+      .find(
+        { 2: { $gte: iso(now), $lte: iso(now_ed) } },
+        { projection: { 1: 1, 4: 1, 6: 1, 7: 1, 8: 1 } }
+      )
       .toArray();
     raws = _.groupBy(raws, "4");
 
     console.log(iso(now), iso(now_ed), _.keys(raws).length, "races");
+    console.log("eg rids:", _.keys(raws).slice(0, 3));
 
     let upd = [];
     for (let [rid, race] of _.entries(raws)) {
