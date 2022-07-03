@@ -2408,10 +2408,11 @@ const run_47 = async () => {
 };
 
 const run_48 = async () => {
+  let cell = "F3";
   // let [st, ed] = get_date_range_fromto(-15, "days", 0, "minutes");
   let [st, ed] = ["2022-06-18T16:45:47.851Z", "2022-07-03T16:45:47.854Z"];
   console.log([st, ed]);
-  let race_redid = `races::${st}:${ed}:1`;
+  let race_redid = `races::${st}:${ed}:1600M:1`;
   console.log(race_redid);
   let races = [];
   let exs = await red.rexists(race_redid);
@@ -2420,7 +2421,10 @@ const run_48 = async () => {
       .collection("zed")
       .aggregate([
         {
-          $match: { 2: { $gte: st, $lte: ed } },
+          $match: {
+            2: { $gte: st, $lte: ed },
+            1: 1600,
+          },
         },
         {
           $project: {
@@ -2467,16 +2471,22 @@ const run_48 = async () => {
     let filt = _.filter(races, { rc, paid });
     let count = filt.length;
     let avg_raw_time = _.chain(filt).map("time").compact().mean().value();
-    let ob = { rc, paid, count, avg_raw_time };
+    let ob = {
+      rc,
+      paid,
+      count,
+      avg_raw_time_1600: avg_raw_time,
+    };
     console.log(ob);
     ar.push(ob);
   }
   console.table(ar);
 
   if (true) {
+    ar = _.pick(ar, ["avg_raw_time_1600"]);
     await sheet_ops.sheet_print_ob(ar, {
       spreadsheetId: "1kUY3VjQeuPQi02VGVxxKgD9Ls_58lQsEENutokhT7jU",
-      range: "Sheet1!B3",
+      range: `Sheet1!${cell}`,
     });
   }
 };
