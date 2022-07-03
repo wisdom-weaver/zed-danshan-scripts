@@ -2472,6 +2472,8 @@ const run_48 = async () => {
     .flatten()
     .value();
 
+  console.table(races.slice(0, 100));
+
   races = _.filter(races, { place: 1 });
   console.log("rdone 1's", races.length);
 
