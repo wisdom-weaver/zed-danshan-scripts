@@ -2409,7 +2409,7 @@ const run_47 = async () => {
 };
 
 const run_48 = async () => {
-  let cell = "H3";
+  let cell = "A2";
   // let [st, ed] = get_date_range_fromto(-15, "days", 0, "minutes");
   let [st, ed] = ["2022-06-18T16:45:47.851Z", "2022-07-03T16:45:47.854Z"];
   console.log([st, ed]);
@@ -2453,6 +2453,8 @@ const run_48 = async () => {
   }
 
   races = _.filter(races, { dist: 1600 });
+  console.log("rdone 1600", races.length);
+
   races = _.chain(races)
     .groupBy("rid")
     .entries()
@@ -2470,20 +2472,8 @@ const run_48 = async () => {
     .flatten()
     .value();
 
-  console.table(races.slice(0, 3));
-
-  // return
-  console.log("rdone 1600", races.length);
-  console.table(races.slice(0, 5));
-
-  if (true) {
-    await sheet_ops.sheet_print_ob(races, {
-      spreadsheetId: "1kUY3VjQeuPQi02VGVxxKgD9Ls_58lQsEENutokhT7jU",
-      range: `Sheet1!${'A45'}`,
-    });
-  }
-
-  return ;
+  races = _.filter(races, { place: 1 });
+  console.log("rdone 1's", races.length);
 
   let ar = [];
   for (let [rc, paid] of [
@@ -2497,38 +2487,43 @@ const run_48 = async () => {
     [99, 0],
     [1000, 0],
 
-    [0, 1],
+    // [0, 1],
     [1, 1],
     [2, 1],
     [3, 1],
     [4, 1],
     [5, 1],
     [6, 1],
-    [99, 1],
-    [1000, 1],
+    // [99, 1],
+    // [1000, 1],
   ]) {
     // for (let dist of [1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600]) {
     // console.log("dist", dist);
     // let filt = _.filter(races, { dist });
+
     let filt = _.filter(races, { rc, paid });
     let count = filt.length;
 
-    let evalar = _.chain(filt).map("norm_old").compact();
+    let win_real_time = _.chain(filt).map("time").compact().mean().value();
+    let win_norm_old_time = _.chain(filt)
+      .map("norm_old")
+      .compact()
+      .mean()
+      .value();
+    let win_norm67_time = _.chain(filt).map("adjtime").compact().mean().value();
 
-    let mean = evalar.mean().value();
-    let mi = evalar.min().value();
-    let mx = evalar.max().value();
-    let sd = evalar.map((e) => Math.pow(mean - e, 2)).value();
-    sd = _.sum(sd) / sd.length;
+    // let mi = evalar.min().value();
+    // let mx = evalar.max().value();
+    // let sd = evalar.map((e) => Math.pow(mean - e, 2)).value();
+    // sd = _.sum(sd) / sd.length;
 
     let ob = {
       rc,
       paid,
       count,
-      avg_norm_old_1600: mean,
-      mi,
-      mx,
-      sd,
+      win_real_time,
+      win_norm_old_time,
+      win_norm67_time,
     };
     console.log(ob);
     ar.push(ob);
@@ -2536,10 +2531,12 @@ const run_48 = async () => {
   console.table(ar);
 
   if (true) {
-    ar = _.map(ar, (e) => _.pick(e, ["avg_norm_old_1600"]));
+    ar = _.map(ar, (e) =>
+      _.pick(e, ["win_real_time", "win_norm_old_time", "win_norm67_time  "])
+    );
     await sheet_ops.sheet_print_ob(ar, {
       spreadsheetId: "1kUY3VjQeuPQi02VGVxxKgD9Ls_58lQsEENutokhT7jU",
-      range: `Sheet1!${cell}`,
+      range: `Sheet2!${cell}`,
     });
   }
 };
