@@ -40,6 +40,7 @@ const key_mapping_bs_zed = [
   ["23", "adjtime"],
   ["24", "speed"],
   ["25", "speed_rat"],
+  ["26", "racetime"],
 ];
 
 const from_ch_zed_collection = async (query) => {
@@ -509,6 +510,18 @@ const struct_zed_hdoc_hhh = (hid, doc) => {
 const get_hdoc_hhh = (hid) =>
   zedf.horse(hid).then((doc) => struct_zed_hdoc_hhh(hid, doc));
 
+const speed_dist_factor = {
+  1000: 1.0,
+  1200: 1.03141812,
+  1400: 1.03585102,
+  1600: 1.03832922,
+  1800: 1.03984722,
+  2000: 1.04114768,
+  2200: 1.04225978,
+  2400: 1.04259176,
+  2600: 1.04369422,
+};
+
 const cyclic_depedency = {
   get_races_of_hid,
   from_ch_zed_collection,
@@ -542,6 +555,7 @@ const cyclic_depedency = {
   filt_valid_hids,
   filt_valid_hids_range,
   get_hdoc_hhh,
+  speed_dist_factor,
 };
 
 module.exports = cyclic_depedency;

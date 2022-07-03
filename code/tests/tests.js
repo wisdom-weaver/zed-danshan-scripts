@@ -42,7 +42,7 @@ const { preset_global } = require("../races/sims");
 const { rfn } = require("../connection/redis");
 const red = require("../connection/redis");
 const { sheet_print_ob } = require("../../sheet_ops/sheets_ops");
-const norm_time_s = require("../utils/norm_time");
+const norm_time_s = require("../races/norm_time");
 
 const run_01 = async () => {
   let st = "2022-01-06T00:00:00Z";

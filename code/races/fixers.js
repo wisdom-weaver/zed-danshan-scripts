@@ -6,6 +6,7 @@ const { get_fee_tag, nano, iso } = require("../utils/utils");
 const races_base = require("./races_base");
 const _ = require("lodash");
 const bulk = require("../utils/bulk");
+const norm_time_s = require("./norm_time");
 
 const fix_race_usd = async (rid) => {
   let race = await zed_ch.db
@@ -77,12 +78,48 @@ const usd_price_fixer = async (st, ed) => {
   }
 };
 
+const fix_race_norm = async (rid) => {
+  let race = await zed_ch.db
+    .collection("zed")
+    .find(
+      { 4: rid },
+      {
+        projection: {
+          _id: 0,
+          4: 1,
+          6: 1,
+          1: 1,
+          7: 1,
+        },
+      }
+    )
+    .toArray();
+  race = norm_time_s.eval(race, {
+    time_key: "7",
+    dist_key: "1",
+    adjtime_key: "23",
+    race_time_key: "26",
+  });
+  // console.table(race);
+  return race;
+};
+
+const test = async () => {
+  console.log("\n\ntest");
+  const rid = "Wa2LOCNe";
+  let r = await fix_race_norm(rid);
+  console.table(r);
+};
+
 const main_runner = async () => {
   let [_node, _cfile, arg1, arg2, arg3, arg4, arg5] = process.argv;
   if (arg3 == "race_usd_vals") {
     let [st, ed] = [arg4, arg5];
     console.log("race_usd_vals", st, ed);
     await usd_price_fixer(st, ed);
+  }
+  if (arg3 == "test") {
+    await test();
   }
 };
 
