@@ -2483,7 +2483,7 @@ const run_48 = async () => {
   console.table(ar);
 
   if (true) {
-    ar = _.pick(ar, ["avg_raw_time_1600"]);
+    ar = _.map(ar, (e) => _.pick(e, ["avg_raw_time_1600"]));
     await sheet_ops.sheet_print_ob(ar, {
       spreadsheetId: "1kUY3VjQeuPQi02VGVxxKgD9Ls_58lQsEENutokhT7jU",
       range: `Sheet1!${cell}`,
