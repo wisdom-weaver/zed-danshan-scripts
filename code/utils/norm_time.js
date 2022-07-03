@@ -1,21 +1,16 @@
 const _ = require("lodash");
 
 const preset_table = _.chain([
-  ["1600_0_0", 95.6699, 91.9024, 98.1669, 0.8634],
-  ["1600_1_0", 95.2815, 89.3108, 99.3537, 1.2956],
-  ["1600_2_0", 95.4955, 91.1131, 99.395, 1.0054],
-  ["1600_3_0", 95.5904, 90.3684, 99.1928, 0.9853],
-  ["1600_4_0", 95.7549, 90.4109, 100.1038, 0.8267],
-  ["1600_5_0", 95.9518, 91.5531, 98.7152, 0.7205],
-  ["1600_6_0", 96.3069, 92.8144, 98.45, 0.6625],
-  ["1600_99_0", 95.4158, 90.0207, 98.8606, 1.1711],
-  ["1600_1000_0", 95.5477, 89.6488, 98.6481, 1.0891],
-  ["1600_1_1", 95.276, 90.0802, 100.973, 1.7102],
-  ["1600_2_1", 95.4712, 90.7784, 98.6864, 1.3645],
-  ["1600_3_1", 95.5115, 89.7473, 99.0786, 1.3912],
-  ["1600_4_1", 95.6928, 89.9662, 101.9021, 1.2018],
-  ["1600_5_1", 95.8028, 89.4446, 99.5581, 1.0547],
-  ["1600_6_1", 96.044, 93.1792, 99.8117, 0.8058],
+  // dist	count	mean	mi	mx	sd
+  [1000, 213012, 57.53125162, 52.972, 61.4732, 0.3730371475],
+  [1200, 157956, 71.20395781, 65.517, 75.0555, 0.5629665417],
+  [1400, 122640, 83.43245636, 76.8171, 87.0156, 0.7583723073],
+  [1600, 109080, 95.56369098, 89.3108, 101.9021, 1.103167773],
+  [1800, 100452, 107.696281, 99.6484, 113.7688, 1.361802359],
+  [2000, 86400, 119.7548351, 109.7824, 125.4245, 1.682022896],
+  [2200, 107592, 131.8672145, 123.1638, 138.2836, 1.969148608],
+  [2400, 130140, 143.974639, 133.8396, 151.6369, 2.602412432],
+  [2600, 163296, 156.1284831, 145.5087, 165.9369, 3.414019718],
 ])
   .map((e) => {
     let [k, mean, mi, mx, sd] = e;
@@ -24,19 +19,24 @@ const preset_table = _.chain([
   .fromPairs()
   .value();
 
-const eval = (rrow)=>{
-  let times = _.map(race, "finishtime");
+const eval = (
+  race,
+  { time_key = "finishtime", dist_key = "distance", adjtime_key = "adjtime" }
+) => {
+  let times = _.map(race, time_key);
   let times_mean = _.mean(times);
-  let dist = race[0].distance;
-  let pre = preset_global[dist];
+  let dist = race[0][dist_key];
+  let pre = preset_table[dist];
   let mean_diff_from_global = times_mean - pre.mean;
   let diff_allowed = pre.sd;
   let diff_sd_factor = mean_diff_from_global / diff_allowed;
   race = race.map((r) => {
-    let adjtime = r.finishtime - diff_sd_factor * diff_allowed;
-    return { ...r, adjtime };
+    let adjtime = r[time_key] - diff_sd_factor * diff_allowed;
+    return { ...r, [adjtime_key]: adjtime };
   });
-}
+};
 
-const norm_time_s = {};
+const norm_time_s = {
+  eval,
+};
 module.exports = norm_time_s;

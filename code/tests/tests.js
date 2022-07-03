@@ -42,6 +42,7 @@ const { preset_global } = require("../races/sims");
 const { rfn } = require("../connection/redis");
 const red = require("../connection/redis");
 const { sheet_print_ob } = require("../../sheet_ops/sheets_ops");
+const norm_time_s = require("../utils/norm_time");
 
 const run_01 = async () => {
   let st = "2022-01-06T00:00:00Z";
@@ -2450,7 +2451,22 @@ const run_48 = async () => {
     races = await red.rget(race_redid);
     console.log("races.len::cache", races.length);
   }
-  // return console.log("rdone");
+
+  races = _.chain(races)
+    .groupBy("rid")
+    .entries()
+    .map(([rid, rrows]) => {
+      rrows = norm_time_s.eval(rrows, {
+        time_key: "time",
+        dist_key: "dist",
+        adjtime_key: "norm_old",
+      });
+      return [rid, rrows];
+    })
+    .map(1)
+    .value();
+  console.table(races.slice(0, 30));
+  return console.log("rdone");
 
   let ar = [];
   // let [rc, paid] of [
