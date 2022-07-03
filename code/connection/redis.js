@@ -8,6 +8,9 @@ const rset = async (redid, val, ex) => {
   await redis.setex(redid, ex, jstr(val));
   return;
 };
+const rexists = async (redid) => {
+  return redis.exists(redid);
+};
 const rget = async (redid) => {
   let val = await redis.get(redid);
   return jparse(val);
@@ -24,5 +27,5 @@ const rfn = async (redid, fn, ex, p = 0) => {
   return val;
 };
 
-const red = { redis, rfn, rget, rset };
+const red = { redis, rfn, rget, rset, rexists };
 module.exports = red;

@@ -2081,7 +2081,7 @@ const run_44 = async () => {
   let [st, ed] = get_date_range_fromto(-20, "days", 0, "minutes");
   let ex = 30 * 60;
   // let [st, ed] = ["2022-04-03T22:55:12.849Z", "2022-07-02T22:55:12.853Z"];
-  
+
   console.log(st, ed);
   let redid = `races::run44:${st}:${ed}`;
   const get_races_fn = async () =>
@@ -2407,5 +2407,44 @@ const run_47 = async () => {
   }
 };
 
-const tests = { run: run_31 };
+const run_48 = async () => {
+  // let [st, ed] = get_date_range_fromto(-15, "days", 0, "minutes");
+  let [st, ed] = ["2022-06-18T16:45:47.851Z", "2022-07-03T16:45:47.854Z"];
+  console.log([st, ed]);
+  let race_redid = `races::${st}:${ed}:1`;
+  console.log(race_redid);
+  let races = [];
+  let exs = await red.rexists(race_redid);
+  if (!exs) {
+    races = await zed_ch.db
+      .collection("zed")
+      .aggregate([
+        {
+          $match: { 2: { $gte: st, $lte: ed } },
+        },
+        {
+          $project: {
+            _id: 0,
+            rc: "$5",
+            paid: { $cond: [{ $eq: ["$3", "0.0"] }, 0, 1] },
+            rid: "$4",
+            hid: "$6",
+            time: "$7",
+          },
+        },
+      ])
+      .toArray();
+    console.table(races.slice(0, 3));
+    await red.rset(race_redid, races, 60);
+    console.log("races.len::got", races.length);
+  } else {
+    races = await red.rget(race_redid);
+    console.log("races.len::cache", races.length);
+  }
+
+  if (false) {
+  }
+};
+
+const tests = { run: run_48 };
 module.exports = tests;
