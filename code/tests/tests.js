@@ -2435,7 +2435,10 @@ const run_48 = async () => {
             hid: "$6",
             dist: "$1",
             time: "$7",
+            place: "$8",
             adjtime: "$23",
+            speed: "$24",
+            speed_rat: "$25",
           },
         },
       ])
@@ -2448,6 +2451,8 @@ const run_48 = async () => {
     console.log("races.len::cache", races.length);
   }
   return console.log("rdone");
+
+  races;
 
   let ar = [];
   for (let [rc, paid] of [
