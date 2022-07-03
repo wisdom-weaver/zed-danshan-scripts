@@ -2452,6 +2452,7 @@ const run_48 = async () => {
     console.log("races.len::cache", races.length);
   }
 
+  races = _.filter(races, { dist: 1600 });
   races = _.chain(races)
     .groupBy("rid")
     .entries()
@@ -2471,7 +2472,6 @@ const run_48 = async () => {
 
   console.table(races.slice(0, 3));
 
-  races = _.filter(races, { dist: 1600 });
   // return
   console.log("rdone 1600", races.length);
   console.table(races.slice(0, 5));
