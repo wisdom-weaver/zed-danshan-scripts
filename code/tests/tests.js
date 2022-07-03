@@ -2454,8 +2454,8 @@ const run_48 = async () => {
 
   races = _.chain(races)
     .groupBy("rid")
-    // .entries()
-    // .slice(0, 5)
+    .entries()
+    .slice(0, 5)
     /*
     .map(([rid, rrows]) => {
       rrows = norm_time_s.eval(rrows, {
