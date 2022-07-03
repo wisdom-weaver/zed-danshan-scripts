@@ -2452,6 +2452,8 @@ const run_48 = async () => {
             $match: {
               2: { $gte: st, $lte: ed },
               1: dist,
+              5: { $in: [parseInt(rc), rc.toString()] },
+              3: paid ? { $ne: "0.0" } : { $eq: "0.0" },
             },
           },
           {
@@ -2469,7 +2471,7 @@ const run_48 = async () => {
               speed_rat: "$25",
             },
           },
-          { $match: { rc, paid } },
+          // { $match: { rc, paid } },
         ])
         .toArray();
       console.table(earaces.slice(0, 2));
