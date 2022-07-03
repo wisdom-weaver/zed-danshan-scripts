@@ -20,7 +20,6 @@ const {
   get_range_hids,
   valid_b5,
   get_parents,
-  filt_valid_hids,
 } = require("../utils/cyclic_dependency");
 const bulk = require("../utils/bulk");
 const cyclic_depedency = require("../utils/cyclic_dependency");
