@@ -2456,17 +2456,17 @@ const run_48 = async () => {
     .groupBy("rid")
     .entries()
     .slice(0, 5)
-    /*
     .map(([rid, rrows]) => {
+      /*
       rrows = norm_time_s.eval(rrows, {
         time_key: "time",
         dist_key: "dist",
         adjtime_key: "norm_old",
       });
       console.table(rrows);
+      */
       return rrows;
     })
-    */
     // .flatten()
     .value();
   console.log(races);
