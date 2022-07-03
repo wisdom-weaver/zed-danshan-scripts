@@ -2455,7 +2455,7 @@ const run_48 = async () => {
   races = _.chain(races)
     .groupBy("rid")
     .entries()
-    .slice(0, 5)
+    .slice(0, 3)
     .map(([rid, rrows]) => {
       console.table(rrows);
       // /*
@@ -2470,7 +2470,7 @@ const run_48 = async () => {
     })
     .flatten()
     .value();
-  console.log(races);
+  console.table(races);
   return console.log("rdone");
 
   let ar = [];
