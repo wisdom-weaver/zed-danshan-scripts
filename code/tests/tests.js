@@ -2408,7 +2408,7 @@ const run_47 = async () => {
 };
 
 const run_48 = async () => {
-  let cell = "F3";
+  let cell = "G3";
   // let [st, ed] = get_date_range_fromto(-15, "days", 0, "minutes");
   let [st, ed] = ["2022-06-18T16:45:47.851Z", "2022-07-03T16:45:47.854Z"];
   console.log([st, ed]);
@@ -2450,9 +2450,9 @@ const run_48 = async () => {
     races = await red.rget(race_redid);
     console.log("races.len::cache", races.length);
   }
-  return console.log("rdone");
+  // return console.log("rdone");
 
-  races;
+  races = _.filter(races, { dist: 1600 });
 
   let ar = [];
   for (let [rc, paid] of [
@@ -2478,12 +2478,13 @@ const run_48 = async () => {
   ]) {
     let filt = _.filter(races, { rc, paid });
     let count = filt.length;
-    let avg_raw_time = _.chain(filt).map("time").compact().mean().value();
+
+    let avg = _.chain(filt).map("adjtime").compact().mean().value();
     let ob = {
       rc,
       paid,
       count,
-      avg_raw_time_1600: avg_raw_time,
+      avg_norm_1600: avg,
     };
     console.log(ob);
     ar.push(ob);
@@ -2491,7 +2492,7 @@ const run_48 = async () => {
   console.table(ar);
 
   if (true) {
-    ar = _.map(ar, (e) => _.pick(e, ["avg_raw_time_1600"]));
+    ar = _.map(ar, (e) => _.pick(e, ["avg_norm_1600"]));
     await sheet_ops.sheet_print_ob(ar, {
       spreadsheetId: "1kUY3VjQeuPQi02VGVxxKgD9Ls_58lQsEENutokhT7jU",
       range: `Sheet1!${cell}`,
