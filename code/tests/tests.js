@@ -2487,7 +2487,7 @@ const run_48 = async () => {
       .compact()
       .map((e) => Math.pow(mean - e, 2))
       .value();
-    sd = _.sum(sd) / _.length(sd);
+    sd = _.sum(sd) / sd.length;
 
     let ob = {
       rc,
