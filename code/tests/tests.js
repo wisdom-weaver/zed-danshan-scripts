@@ -2467,7 +2467,7 @@ const run_48 = async () => {
       */
       return rrows;
     })
-    // .flatten()
+    .flatten()
     .value();
   console.log(races);
   return console.log("rdone");
