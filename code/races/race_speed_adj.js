@@ -79,12 +79,14 @@ const update_dur = async (from, to) => {
           { projection: { 1: 1, 4: 1, 6: 1, 7: 1, 8: 1 } }
         )
         .toArray();
+      if (_.isEmpty(raws)) {
+        console.log(iso(now), iso(now_ed), "EMPTY");
+        continue;
+      }
       raws = _.groupBy(raws, "4");
 
       console.log(iso(now), iso(now_ed), _.keys(raws).length, "races");
       console.log("eg rids:", _.keys(raws).slice(0, 3));
-
-      if (_.isEmpty(raws)) continue;
 
       let upd = [];
       for (let [rid, race] of _.entries(raws)) {
