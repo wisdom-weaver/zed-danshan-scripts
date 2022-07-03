@@ -2442,6 +2442,37 @@ const run_48 = async () => {
     console.log("races.len::cache", races.length);
   }
 
+  let ar = [];
+  for (let [rc, paid] of [
+    [0, 0],
+    [1, 0],
+    [2, 0],
+    [3, 0],
+    [4, 0],
+    [5, 0],
+    [6, 0],
+    [99, 0],
+    [1000, 0],
+
+    [0, 1],
+    [1, 1],
+    [2, 1],
+    [3, 1],
+    [4, 1],
+    [5, 1],
+    [6, 1],
+    [99, 1],
+    [1000, 1],
+  ]) {
+    let filt = _.filter(races, { rc, paid });
+    let count = filt.length;
+    let avg_raw_time = _.chain(filt).map("time").compact().mean().value();
+    let ob = { rc, paid, count, avg_raw_time };
+    console.log(ob);
+    ar.push(ob);
+  }
+  console.table(ar);
+
   if (false) {
   }
 };
