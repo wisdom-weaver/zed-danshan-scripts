@@ -2452,8 +2452,6 @@ const run_48 = async () => {
   }
   // return console.log("rdone");
 
-  races = _.filter(races, { dist: 1600 });
-
   let ar = [];
   // let [rc, paid] of [
   // [0, 0],
