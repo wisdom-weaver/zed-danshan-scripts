@@ -2455,7 +2455,7 @@ const run_48 = async () => {
   races = _.chain(races)
     .groupBy("rid")
     .entries()
-    // .slice(0, 3)
+    .slice(0, 10)
     .map(([rid, rrows]) => {
       // console.table(rrows);
       rrows = norm_time_s.eval(rrows, {
@@ -2474,7 +2474,16 @@ const run_48 = async () => {
   races = _.filter(races, { dist: 1600 });
   // return
   console.log("rdone 1600", races.length);
-  console.table(races.slice(0, 30));
+  console.table(races.slice(0, 5));
+
+  if (true) {
+    await sheet_ops.sheet_print_ob(races, {
+      spreadsheetId: "1kUY3VjQeuPQi02VGVxxKgD9Ls_58lQsEENutokhT7jU",
+      range: `Sheet1!${'A45'}`,
+    });
+  }
+
+  return ;
 
   let ar = [];
   for (let [rc, paid] of [
