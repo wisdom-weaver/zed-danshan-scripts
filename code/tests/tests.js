@@ -2435,7 +2435,7 @@ const run_48 = async () => {
       ])
       .toArray();
     console.table(races.slice(0, 3));
-    await red.rset(race_redid, races, 60);
+    await red.rset(race_redid, races, 60 * 30);
     console.log("races.len::got", races.length);
   } else {
     races = await red.rget(race_redid);
