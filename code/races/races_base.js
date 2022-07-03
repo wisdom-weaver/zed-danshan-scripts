@@ -2,9 +2,7 @@ const axios = require("axios");
 const _ = require("lodash");
 const { init, zed_ch, zed_db } = require("../connection/mongo_connect");
 const { delay, iso, nano, get_fee_tag, getv } = require("../utils/utils");
-const {
-  get_adjusted_finish_times,
-} = require("./zed_races_adjusted_finish_time");
+
 const { get_fee_cat_on, get_entryfee_usd } = require("../utils/base");
 const { get_sims_zed_odds } = require("./sims");
 const zedf = require("../utils/zedf");
@@ -317,7 +315,7 @@ const add_times_flames_odds_to_1race = async ([rid, race], config) => {
   let date = raw_race[0][2];
   let thisclass = raw_race[0][5];
   // console.log(rid, 1);
-  let adj_ob = await get_adjusted_finish_times(rid, "raw_data", raw_race);
+  // let adj_ob = await get_adjusted_finish_times(rid, "raw_data", raw_race);
   // console.log(rid, 2);
   let flames_ob = await zedf.race_flames(rid);
   flames_ob = flames_ob?.rpi;
@@ -343,7 +341,7 @@ const add_times_flames_odds_to_1race = async ([rid, race], config) => {
       } else delete e[11];
       e[13] = flames_ob[hid];
       e[14] = fee_cat;
-      e[15] = adj_ob[hid];
+      e[15] = 0;
       return [hid, e];
     })
     .fromPairs()
@@ -701,10 +699,10 @@ const zed_races_zrapi_rid_runner = async (
       ...(doh ? { 22: hsdoc[i.hid].rating } : {}),
     };
   });
-  let adj_ob = await get_adjusted_finish_times(rid, "raw_data", ar);
+  // let adj_ob = await get_adjusted_finish_times(rid, "raw_data", ar);
   // console.log(rid, adj_ob);
 
-  ar = ar.map((i) => ({ ...i, 15: adj_ob[i[6]] }));
+  ar = ar.map((i) => ({ ...i, 15: 0 }));
   if (mode == "g" || (mode == "err" && thisclass !== 0)) {
     // let odds_ob = await get_sims_zed_odds(rid, "raw_race", ar);
     // ar = ar.map((i) => ({ ...i, 11: odds_ob[i[6]] }));

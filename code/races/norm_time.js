@@ -123,7 +123,6 @@ const eval_norm_only_67meth = (finishtime, [t6, t7], dist) => {
   const t67mean = _.mean([t6, t7]);
   const tmean = meth67_table[dist].t67mean;
   let tadj = tmean - t67mean;
-  let finishtime = r[7];
   let adjtime = finishtime + tadj;
   return adjtime;
 };
