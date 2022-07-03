@@ -2531,9 +2531,9 @@ const run_48 = async () => {
   console.table(ar);
 
   if (true) {
-    ar = _.map(ar, (e) =>
-      _.pick(e, ["win_real_time", "win_norm_old_time", "win_norm67_time  "])
-    );
+    // ar = _.map(ar, (e) =>
+    //   _.pick(e, ["win_real_time", "win_norm_old_time", "win_norm67_time  "])
+    // );
     await sheet_ops.sheet_print_ob(ar, {
       spreadsheetId: "1kUY3VjQeuPQi02VGVxxKgD9Ls_58lQsEENutokhT7jU",
       range: `Sheet4!${cell}`,
