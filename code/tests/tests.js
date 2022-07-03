@@ -2454,8 +2454,9 @@ const run_48 = async () => {
 
   races = _.chain(races)
     .groupBy("rid")
-    .entries()
-    .slice(0, 5)
+    // .entries()
+    // .slice(0, 5)
+    /*
     .map(([rid, rrows]) => {
       rrows = norm_time_s.eval(rrows, {
         time_key: "time",
@@ -2465,9 +2466,10 @@ const run_48 = async () => {
       console.table(rrows);
       return rrows;
     })
-    .flatten()
+    */
+    // .flatten()
     .value();
-  console.table(races.slice(0, 30));
+  console.log(races);
   return console.log("rdone");
 
   let ar = [];
