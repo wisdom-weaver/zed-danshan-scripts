@@ -2078,9 +2078,9 @@ const run_43 = async () => {
 };
 
 const run_44 = async () => {
-  // let [st, ed] = get_date_range_fromto(-90, "days", 0, "minutes");
+  let [st, ed] = get_date_range_fromto(-10, "days", 0, "minutes");
   let ex = 30 * 60;
-  let [st, ed] = ["2022-04-03T22:55:12.849Z", "2022-07-02T22:55:12.853Z"];
+  // let [st, ed] = ["2022-04-03T22:55:12.849Z", "2022-07-02T22:55:12.853Z"];
   
   console.log(st, ed);
   let redid = `races::run44:${st}:${ed}`;
