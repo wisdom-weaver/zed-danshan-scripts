@@ -2472,7 +2472,8 @@ const run_48 = async () => {
   console.table(races.slice(0, 3));
 
   races = _.filter(races, { dist: 1600 });
-  return console.log("rdone 1600", races.length);
+  // return 
+  console.log("rdone 1600", races.length);
 
   let ar = [];
   for (let [rc, paid] of [
