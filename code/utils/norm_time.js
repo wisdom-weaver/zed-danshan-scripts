@@ -38,6 +38,7 @@ const eval = (
     let adjtime = r[time_key] - diff_sd_factor * diff_allowed;
     return { ...r, [adjtime_key]: adjtime };
   });
+  return race;
 };
 
 const norm_time_s = {
