@@ -2472,10 +2472,10 @@ const run_48 = async () => {
     .flatten()
     .value();
 
-  console.table(races.slice(0, 100));
-
-  races = _.filter(races, { place: 1 });
-  console.log("rdone 1's", races.length);
+    
+    races = _.filter(races, (e) => e.place == 1);
+    console.log("rdone 1's", races.length);
+    console.table(races.slice(0, 100));
 
   let ar = [];
   for (let [rc, paid] of [
