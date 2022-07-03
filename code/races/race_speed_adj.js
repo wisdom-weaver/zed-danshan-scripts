@@ -72,32 +72,38 @@ const update_dur = async (from, to) => {
   let ref = zed_ch.db.collection("zed");
   do {
     let now_ed = Math.min(now + off, nano(to));
-    let raws = await ref
-      .find(
-        { 2: { $gte: iso(now), $lte: iso(now_ed) } },
-        { projection: { 1: 1, 4: 1, 6: 1, 7: 1, 8: 1 } }
-      )
-      .toArray();
-    raws = _.groupBy(raws, "4");
+    try {
+      let raws = await ref
+        .find(
+          { 2: { $gte: iso(now), $lte: iso(now_ed) } },
+          { projection: { 1: 1, 4: 1, 6: 1, 7: 1, 8: 1 } }
+        )
+        .toArray();
+      raws = _.groupBy(raws, "4");
 
-    console.log(iso(now), iso(now_ed), _.keys(raws).length, "races");
-    console.log("eg rids:", _.keys(raws).slice(0, 3));
+      console.log(iso(now), iso(now_ed), _.keys(raws).length, "races");
+      console.log("eg rids:", _.keys(raws).slice(0, 3));
 
-    let upd = [];
-    for (let [rid, race] of _.entries(raws)) {
-      // console.log(rid);
-      race = run_race_speed_adj_raw(race);
-      race = race.map((e) => ({
-        4: e[4],
-        6: e[6],
-        23: e[23],
-        24: e[24],
-        25: e[25],
-      }));
-      upd.push(race);
+      if (_.isEmpty(raws)) continue;
+
+      let upd = [];
+      for (let [rid, race] of _.entries(raws)) {
+        // console.log(rid);
+        race = run_race_speed_adj_raw(race);
+        race = race.map((e) => ({
+          4: e[4],
+          6: e[6],
+          23: e[23],
+          24: e[24],
+          25: e[25],
+        }));
+        upd.push(race);
+      }
+      upd = _.flatten(upd);
+      await spedit_write_bulk(upd);
+    } catch (err) {
+      console.log("ERRR", err.message);
     }
-    upd = _.flatten(upd);
-    await spedit_write_bulk(upd);
 
     now = now_ed + 1;
   } while (now < nano(to));
