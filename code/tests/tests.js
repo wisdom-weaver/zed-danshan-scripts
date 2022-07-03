@@ -2408,49 +2408,82 @@ const run_47 = async () => {
   }
 };
 
+const rcpaid_range = [
+  [0, 0],
+  [1, 0],
+  [2, 0],
+  [3, 0],
+  [4, 0],
+  [5, 0],
+  [6, 0],
+  [99, 0],
+  [1000, 0],
+
+  // [0, 1],
+  [1, 1],
+  [2, 1],
+  [3, 1],
+  [4, 1],
+  [5, 1],
+  [6, 1],
+  // [99, 1],
+  // [1000, 1],
+];
+
 const run_48 = async () => {
   let cell = "A2";
-  // let [st, ed] = get_date_range_fromto(-15, "days", 0, "minutes");
-  let [st, ed] = ["2022-06-18T16:45:47.851Z", "2022-07-03T16:45:47.854Z"];
+  const dist = 1600;
+  const lim = 1000;
+  // let [st, ed] = get_date_range_fromto(-90, "days", 0, "minutes");
+  let [st, ed] = ["2022-06-03T19:37:02.141Z", "2022-07-03T19:37:02.144Z"];
   console.log([st, ed]);
-  let race_redid = `races::${st}:${ed}:all:1`;
-  console.log(race_redid);
+  // return;
   let races = [];
-  let exs = await red.rexists(race_redid);
-  if (!exs) {
-    races = await zed_ch.db
-      .collection("zed")
-      .aggregate([
-        {
-          $match: {
-            2: { $gte: st, $lte: ed },
-            // 1: 1600,
+  for (let [rc, paid] of rcpaid_range) {
+    let earaces = [];
+    let race_redid = `races::${st}:${ed}:${rc}_${paid}::0`;
+    console.log({ rc, paid }, race_redid);
+    let exs = await red.rexists(race_redid);
+    if (!exs) {
+      earaces = await zed_ch.db
+        .collection("zed")
+        .aggregate([
+          {
+            $match: {
+              2: { $gte: st, $lte: ed },
+              1: dist,
+            },
           },
-        },
-        {
-          $project: {
-            _id: 0,
-            rc: "$5",
-            paid: { $cond: [{ $eq: ["$3", "0.0"] }, 0, 1] },
-            rid: "$4",
-            hid: "$6",
-            dist: "$1",
-            time: "$7",
-            place: "$8",
-            adjtime: "$23",
-            speed: "$24",
-            speed_rat: "$25",
+          {
+            $project: {
+              _id: 0,
+              rc: "$5",
+              paid: { $cond: [{ $eq: ["$3", "0.0"] }, 0, 1] },
+              rid: "$4",
+              hid: "$6",
+              dist: "$1",
+              time: "$7",
+              place: "$8",
+              adjtime: "$23",
+              speed: "$24",
+              speed_rat: "$25",
+            },
           },
-        },
-      ])
-      .toArray();
-    console.table(races.slice(0, 3));
-    await red.rset(race_redid, races, 60 * 60 * 2);
-    console.log("races.len::got", races.length);
-  } else {
-    races = await red.rget(race_redid);
-    console.log("races.len::cache", races.length);
+          { $match: { rc, paid } },
+        ])
+        .toArray();
+      console.table(earaces.slice(0, 2));
+      await red.rset(race_redid, earaces, 60 * 60 * 6);
+      console.log("earaces.len::got", earaces.length);
+    } else {
+      earaces = await red.rget(race_redid);
+      console.log("earaces.len::cache", earaces.length);
+    }
+    races.push(earaces);
   }
+  races = _.flatten(races);
+
+  console.log("rdone all", races.length);
 
   races = _.filter(races, { dist: 1600 });
   console.log("rdone 1600", races.length);
@@ -2472,38 +2505,19 @@ const run_48 = async () => {
     .flatten()
     .value();
 
-    
-    races = _.filter(races, (e) => e.place == 1);
-    console.log("rdone 1's", races.length);
-    console.table(races.slice(0, 100));
+  races = _.filter(races, (e) => e.place == 1);
+  console.log("rdone 1's", races.length);
+  console.table(races.slice(0, 100));
 
   let ar = [];
-  for (let [rc, paid] of [
-    [0, 0],
-    [1, 0],
-    [2, 0],
-    [3, 0],
-    [4, 0],
-    [5, 0],
-    [6, 0],
-    [99, 0],
-    [1000, 0],
-
-    // [0, 1],
-    [1, 1],
-    [2, 1],
-    [3, 1],
-    [4, 1],
-    [5, 1],
-    [6, 1],
-    // [99, 1],
-    // [1000, 1],
-  ]) {
+  for (let [rc, paid] of rcpaid_range) {
     // for (let dist of [1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600]) {
     // console.log("dist", dist);
     // let filt = _.filter(races, { dist });
 
     let filt = _.filter(races, { rc, paid });
+    filt = filt.slice(0, lim);
+
     let count = filt.length;
 
     let win_real_time = _.chain(filt).map("time").compact().mean().value();
