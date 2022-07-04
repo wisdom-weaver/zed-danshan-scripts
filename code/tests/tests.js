@@ -2185,7 +2185,7 @@ const run_44 = async () => {
 
 const run_45 = async () => {
   let [st, ed] = get_date_range_fromto(-90, "days", 0, "minutes");
-  let lim = 500;
+  let lim = 5000;
   let fin = [];
   let i = 15;
   for (let [rc, paid] of [
