@@ -2255,7 +2255,7 @@ const run_45 = async () => {
     i += 2;
     if (true) {
       await sheet_ops.sheet_print_ob([ob], {
-        range: `WinSpeed!G${i}`,
+        range: `WinSpeed!A${i}`,
         spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
       });
     }
