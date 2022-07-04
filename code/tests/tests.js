@@ -2176,7 +2176,7 @@ const run_44 = async () => {
   console.table(ob);
   if (true) {
     await sheet_ops.sheet_print_ob(ob, {
-      range: `WinSpeed!${"A44"}`,
+      range: `WinSpeed!${"A70"}`,
       spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
     });
   }
