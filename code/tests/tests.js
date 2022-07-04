@@ -2184,6 +2184,7 @@ const run_44 = async () => {
 };
 
 const run_45 = async () => {
+  let [st, ed] = get_date_range_fromto(-90, "days", 0, "minutes");
   let lim = 500;
   let fin = [];
   let i = 15;
@@ -2212,7 +2213,16 @@ const run_45 = async () => {
     let ar = await zed_ch.db
       .collection("zed")
       .aggregate([
-        { $match: { 8: 1, 5: rc } },
+        {
+          $match: {
+            2: {
+              $gte: st,
+              $lte: ed,
+            },
+            8: 1,
+            5: rc,
+          },
+        },
         { $sort: { 2: -1 } },
         {
           $project: {
