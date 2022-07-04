@@ -2236,7 +2236,7 @@ const run_45 = async () => {
           },
         },
         { $match: { paid: paid } },
-        // { $limit: lim },
+        { $limit: lim },
       ])
       .toArray();
     let hids = _.map(ar, "hid");
