@@ -2079,9 +2079,10 @@ const run_43 = async () => {
 };
 
 const run_44 = async () => {
-  let [st, ed] = get_date_range_fromto(-20, "days", 0, "minutes");
+  // let [st, ed] = get_date_range_fromto(-20, "days", 0, "minutes");
   let ex = 30 * 60;
-  // let [st, ed] = ["2022-04-03T22:55:12.849Z", "2022-07-02T22:55:12.853Z"];
+  // races::run44:2022-06-14T19:40:16.767Z:2022-07-04T19:40:16.769Z false
+  let [st, ed] = ["2022-06-14T19:40:16.767Z", "2022-07-04T19:40:16.769Z"];
 
   console.log(st, ed);
   let redid = `races::run44:${st}:${ed}`;
@@ -2185,27 +2186,27 @@ const run_44 = async () => {
 const run_45 = async () => {
   let lim = 500;
   let fin = [];
-  let i = 75;
+  let i = 15;
   for (let [rc, paid] of [
-    [0, 0],
-    [1, 0],
-    [2, 0],
-    [3, 0],
-    [4, 0],
-    [5, 0],
-    [6, 0],
-    [99, 0],
-    [1000, 0],
+    // [0, 0],
+    // [1, 0],
+    // [2, 0],
+    // [3, 0],
+    // [4, 0],
+    // [5, 0],
+    // [6, 0],
+    // [99, 0],
+    // [1000, 0],
 
-    [0, 1],
+    // [0, 1],
     [1, 1],
-    [2, 1],
-    [3, 1],
-    [4, 1],
-    [5, 1],
-    [6, 1],
-    [99, 1],
-    [1000, 1],
+    // [2, 1],
+    // [3, 1],
+    // [4, 1],
+    // [5, 1],
+    // [6, 1],
+    // [99, 1],
+    // [1000, 1],
   ]) {
     // let [rc, dist, paid] = [1, "a", 1];
     let ar = await zed_ch.db
@@ -2255,8 +2256,8 @@ const run_45 = async () => {
     i += 2;
     if (true) {
       await sheet_ops.sheet_print_ob([ob], {
-        range: `WinSpeed!A${i}`,
-        spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
+        range: `Sheet7!A${i}`,
+        spreadsheetId: "1kUY3VjQeuPQi02VGVxxKgD9Ls_58lQsEENutokhT7jU",
       });
     }
     fin.push(ob);
@@ -2559,5 +2560,5 @@ const run_48 = async () => {
   }
 };
 
-const tests = { run: run_44 };
+const tests = { run: run_45 };
 module.exports = tests;
