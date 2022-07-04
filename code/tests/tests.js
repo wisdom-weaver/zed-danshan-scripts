@@ -2259,9 +2259,9 @@ const run_45 = async () => {
         dist: e.dist,
       };
     });
-    console.table(ar.slice(0,10));
+    console.table(ar.slice(0, 10));
     let avg_speedrat = _.meanBy(ar, "speedrat");
-    let ob = { rc, paid, avg_speedrat };
+    let ob = { rc, paid, count: ar.length, avg_speedrat };
     console.log(ob);
     i += 2;
     if (true) {
