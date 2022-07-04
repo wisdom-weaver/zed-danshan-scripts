@@ -63,7 +63,7 @@ const calc = async ({ hid, races }) => {
       .aggregate([
         { $match: { 6: hid, 2: { $gte: st, $lte: ed }, 25: { $ne: null } } },
         { $sort: { 25: -1 } },
-        { $limit: 1 },
+        { $limit: 2 },
         {
           $project: {
             _id: 0,
@@ -75,7 +75,17 @@ const calc = async ({ hid, races }) => {
         },
       ])
       .toArray();
-    let speed_ob = getv(ar, "0");
+    let speed_ob = null;
+    if (ar.length > 1) {
+      let [s1, s2] = ar;
+      let diff = Math.abs(s1.speed - s2.speed);
+      if (diff > 1) {
+        let nspeed = s2.speed + 0.2 * diff;
+        speed_ob = { ...s2, speed: nspeed, pos: 2 };
+      } else speed_ob = s1;
+    } else if (ar.length == 1) {
+      speed_ob = getv(ar, "0");
+    }
     if (_.isEmpty(speed_ob)) speed_ob = { hid, distance: null, speed: null };
     // console.log(speed_ob);
     return speed_ob;
