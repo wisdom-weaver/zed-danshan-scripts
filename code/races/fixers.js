@@ -126,7 +126,7 @@ const update_race_prizes = async ([st, ed]) => {
 
   do {
     let raw = await races_base.get_zed_raw_data(st, ed, cursor);
-    console.log(raw);
+    // console.log(raw);
     cursor = getv(raw, "pageInfo.endCursor");
     let races = raw.racesData;
     if (_.isEmpty(races)) {
