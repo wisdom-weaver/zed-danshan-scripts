@@ -2570,5 +2570,62 @@ const run_48 = async () => {
   }
 };
 
-const tests = { run: run_45 };
+const run_49 = async () => {
+  for (let [a, b, c] of [
+    [0, 91, "A"],
+    [91, 92, "C"],
+    [92, 93, "E"],
+  ]) {
+    // let minval = 91;
+    console.log("bad parent theory", a, b);
+    let ar = await zed_db.db
+      .collection("horse_details")
+      .aggregate([
+        { $match: { hid: { $gte: 370000 } } },
+        {
+          $project: {
+            _id: 0,
+            hid: 1,
+            m: "$parents.mother",
+            f: "$parents.father",
+          },
+        },
+
+        ...ag_look("speed", "m", "hid", "mspdoc"),
+        { $addFields: { msp: "$mspdoc.speed" } },
+        { $project: { mspdoc: 0 } },
+
+        ...ag_look("speed", "f", "hid", "fspdoc"),
+        { $addFields: { fsp: "$fspdoc.speed" } },
+        { $project: { fspdoc: 0 } },
+
+        {
+          $match: {
+            $or: [{ msp: { $gte: a, $lte: b } }, { gsp: { $gte: a, $lte: b } }],
+          },
+        },
+
+        // { $limit: 5 },
+
+        ...ag_look("speed", "hid", "hid", "spdoc"),
+        { $addFields: { sp: "$spdoc.speed" } },
+        { $project: { spdoc: 0 } },
+        // { $match: { sp: { $ne: null } } },
+      ])
+      .toArray();
+    if (true) {
+      ar = _.map(ar, (e) => _.pick(e, ["hid", "sp"]));
+      console.table(ar);
+      await sheet_ops.sheet_print_cell(`parent sp.rat ${a} - ${b}`, {
+        spreadsheetId: "1kUY3VjQeuPQi02VGVxxKgD9Ls_58lQsEENutokhT7jU",
+        range: `badparenttheory!${c}3`,
+      });
+      await sheet_ops.sheet_print_ob(ar, {
+        spreadsheetId: "1kUY3VjQeuPQi02VGVxxKgD9Ls_58lQsEENutokhT7jU",
+        range: `badparenttheory!${c}4`,
+      });
+    }
+  }
+};
+const tests = { run: run_49 };
 module.exports = tests;

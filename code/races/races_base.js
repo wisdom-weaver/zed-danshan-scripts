@@ -166,11 +166,13 @@ const get_zed_raw_data = async (from, to, cursor, lim = 100) => {
       let horses = node.horses;
       let race_name = node.name;
       let pool = {
-        1: parseFloat(node.prizePool.first) / 1e18,
-        2: parseFloat(node.prizePool.second) / 1e18,
-        3: parseFloat(node.prizePool.third) / 1e18,
+        1: parseFloat(getv(node, "prizePool.first") ?? 0) / 1e18,
+        2: parseFloat(getv(node, "prizePool.second") ?? 0) / 1e18,
+        3: parseFloat(getv(node, "prizePool.third") ?? 0) / 1e18,
+        4: parseFloat(getv(node, "prizePool.fourth") ?? 0) / 1e18,
+        5: parseFloat(getv(node, "prizePool.fifth") ?? 0) / 1e18,
+        6: parseFloat(getv(node, "prizePool.sixth") ?? 0) / 1e18,
       };
-
       racesData[node_raceId] = {};
       for (let horseIndex in horses) {
         let horse = horses[horseIndex];
@@ -647,11 +649,14 @@ const zed_races_zrapi_rid_runner = async (
     };
   });
   // console.log("base", base);
-  
+
   let pool = {
     1: parseFloat(getv(base, "prize.first") ?? 0) / 1e18,
     2: parseFloat(getv(base, "prize.second") ?? 0) / 1e18,
     3: parseFloat(getv(base, "prize.third") ?? 0) / 1e18,
+    4: parseFloat(getv(base, "prize.fourth") ?? 0) / 1e18,
+    5: parseFloat(getv(base, "prize.fifth") ?? 0) / 1e18,
+    6: parseFloat(getv(base, "prize.sixth") ?? 0) / 1e18,
   };
 
   let now = moment();
