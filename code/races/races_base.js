@@ -80,6 +80,17 @@ const wrap_rating_for_races = async (racesData) => {
   await Promise.all(proms);
 };
 
+const get_rpay = (pool) => {
+  if (_.isEmpty(pool)) return 0;
+  let n = _.chain(pool)
+    .clone()
+    .omit(["total"])
+    .values()
+    .filter((e) => !_.isNil(e) && parseFloat(e) != 0)
+    .value().length;
+  return n ?? 0;
+};
+
 const get_zed_raw_data = async (from, to, cursor, lim = 100) => {
   try {
     let arr = [];
@@ -172,7 +183,16 @@ const get_zed_raw_data = async (from, to, cursor, lim = 100) => {
         4: parseFloat(getv(node, "prizePool.fourth") ?? 0) / 1e18,
         5: parseFloat(getv(node, "prizePool.fifth") ?? 0) / 1e18,
         6: parseFloat(getv(node, "prizePool.sixth") ?? 0) / 1e18,
+        7: parseFloat(getv(node, "prizePool.seventh") ?? 0) / 1e18,
+        8: parseFloat(getv(node, "prizePool.eighth") ?? 0) / 1e18,
+        9: parseFloat(getv(node, "prizePool.ninth") ?? 0) / 1e18,
+        10: parseFloat(getv(node, "prizePool.tenth") ?? 0) / 1e18,
+        11: parseFloat(getv(node, "prizePool.eleventh") ?? 0) / 1e18,
+        12: parseFloat(getv(node, "prizePool.twelfth") ?? 0) / 1e18,
       };
+
+      let rpay = get_rpay(node.prizePool);
+
       racesData[node_raceId] = {};
       for (let horseIndex in horses) {
         let horse = horses[horseIndex];
@@ -195,7 +215,7 @@ const get_zed_raw_data = async (from, to, cursor, lim = 100) => {
           5: node_class,
           6: horses_horseId,
           7: horses_finishTime,
-          8: horses_finalPosition,
+          8: parseInt(horses_finalPosition),
           9: horses_name,
           10: horses_gate,
           11: 0,
@@ -206,6 +226,7 @@ const get_zed_raw_data = async (from, to, cursor, lim = 100) => {
           19: fee_tag,
           20: prize,
           21: prize_usd,
+          27: rpay,
         };
       }
     }
@@ -650,6 +671,7 @@ const zed_races_zrapi_rid_runner = async (
   });
   // console.log("base", base);
 
+  let rpay = get_rpay(base?.prize);
   let pool = {
     1: parseFloat(getv(base, "prize.first") ?? 0) / 1e18,
     2: parseFloat(getv(base, "prize.second") ?? 0) / 1e18,
@@ -657,6 +679,12 @@ const zed_races_zrapi_rid_runner = async (
     4: parseFloat(getv(base, "prize.fourth") ?? 0) / 1e18,
     5: parseFloat(getv(base, "prize.fifth") ?? 0) / 1e18,
     6: parseFloat(getv(base, "prize.sixth") ?? 0) / 1e18,
+    7: parseFloat(getv(base, "prize.seventh") ?? 0) / 1e18,
+    8: parseFloat(getv(base, "prize.eighth") ?? 0) / 1e18,
+    9: parseFloat(getv(base, "prize.ninth") ?? 0) / 1e18,
+    10: parseFloat(getv(base, "prize.tenth") ?? 0) / 1e18,
+    11: parseFloat(getv(base, "prize.eleventh") ?? 0) / 1e18,
+    12: parseFloat(getv(base, "prize.twelfth") ?? 0) / 1e18,
   };
 
   let now = moment();
@@ -702,6 +730,7 @@ const zed_races_zrapi_rid_runner = async (
       20: prize,
       21: prize_usd,
       ...(doh ? { 22: hsdoc[i.hid].rating } : {}),
+      27: rpay,
     };
   });
   // let adj_ob = await get_adjusted_finish_times(rid, "raw_data", ar);
@@ -841,5 +870,6 @@ const races_base = {
   get_zed_rids_only,
   zed_races_zrapi_rid_runner,
   get_zed_raw_data,
+  zed_push_races_to_mongo,
 };
 module.exports = races_base;

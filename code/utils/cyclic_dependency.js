@@ -41,6 +41,7 @@ const key_mapping_bs_zed = [
   ["24", "speed"],
   ["25", "speed_rat"],
   ["26", "racetime"],
+  ["27", "racepay"],
 ];
 
 const from_ch_zed_collection = async (query) => {

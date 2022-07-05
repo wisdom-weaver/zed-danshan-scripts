@@ -2,7 +2,7 @@ const { off } = require("superagent");
 const { zed_ch } = require("../connection/mongo_connect");
 const { get_entryfee_usd } = require("../utils/base");
 const cyclic_depedency = require("../utils/cyclic_dependency");
-const { get_fee_tag, nano, iso } = require("../utils/utils");
+const { get_fee_tag, nano, iso, getv, cdelay } = require("../utils/utils");
 const races_base = require("./races_base");
 const _ = require("lodash");
 const bulk = require("../utils/bulk");
@@ -104,6 +104,60 @@ const fix_race_norm = async (rid) => {
   return race;
 };
 
+const update_race_prizes = async ([st, ed]) => {
+  st = iso(st);
+  ed = iso(ed);
+  let cursor = null;
+
+  const wri_bulk = async (ar) => {
+    let bulk = ar.map((e) => {
+      if (_.isEmpty(e)) return null;
+      return {
+        updateOne: {
+          filter: { 4: e[4], 6: e[6] },
+          update: { $set: { ...e } },
+          upsert: true,
+        },
+      };
+    });
+    bulk = _.compact(bulk);
+    await zed_ch.db.collection("zed").bulkWrite(bulk);
+  };
+
+  do {
+    let raw = await races_base.get_zed_raw_data(st, ed, cursor);
+    console.log(raw);
+    cursor = getv(raw, "pageInfo.endCursor");
+    let races = raw.racesData;
+    if (_.isEmpty(races)) {
+      console.log("empty");
+      continue;
+    }
+    console.log("races", _.keys(races).length);
+    let ar = [];
+    if (_.keys(races).length > 0) {
+      for (let [rid, rs] of _.entries(races)) {
+        if (_.isEmpty(rs)) continue;
+        let rpay = getv(_.values(rs), `0.27`);
+        console.log("\trace:", rid, rpay, "pays");
+        let nrs = _.chain(rs)
+          .values()
+          .map((e) => _.pick(e, ["4", "6", "20", "21", "27"]))
+          .value();
+        // console.log(nrs);
+        ar.push(nrs);
+      }
+    }
+    ar = _.flatten(ar);
+    // console.log(ar[0]);
+    await wri_bulk(ar);
+    console.log("updated", ar.length, "race rows");
+    // await cdelay(10000);
+    if (getv(raw, "pageInfo.hasNextPage") == false) break;
+  } while (true);
+  return console.log("ended");
+};
+
 const test = async () => {
   console.log("\n\ntest");
   const rid = "Wa2LOCNe";
@@ -117,6 +171,11 @@ const main_runner = async () => {
     let [st, ed] = [arg4, arg5];
     console.log("race_usd_vals", st, ed);
     await usd_price_fixer(st, ed);
+  }
+  if (arg3 == "update_race_prizes") {
+    let st = arg4;
+    let ed = arg5 ?? iso();
+    await update_race_prizes([st, ed]);
   }
   if (arg3 == "test") {
     await test();
