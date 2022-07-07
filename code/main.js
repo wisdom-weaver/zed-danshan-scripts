@@ -24,6 +24,7 @@ const base = require("./utils/base");
 const helpers = require("./helpers/helper");
 const transfers = require("./hawku/transfers");
 const { tqual } = require("./tqual/tqual");
+const stables_s = require("./stables/stables");
 const mod = v3;
 
 const main = async (args) => {
@@ -431,6 +432,8 @@ const main = async (args) => {
     await transfers.main_runner();
   } else if (arg1 == "--tqual") {
     await tqual.main_runner();
+  } else if (arg1 == "--stables") {
+    await stables_s.main_runner();
   }
 
   console.log("---ed");

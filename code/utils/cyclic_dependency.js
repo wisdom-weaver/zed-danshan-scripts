@@ -523,6 +523,15 @@ const speed_dist_factor = {
   2600: 1.04369422,
 };
 
+const get_owner_horses_zed = async ({ oid, offset = 0 }) => {
+  let api = `https://api.zed.run/api/v1/horses/get_user_horses?public_address=${oid}&offset=${offset}`;
+  let data = (await zedf.get(api)) || [];
+  if (_.isEmpty(data)) return [];
+  let ar = data;
+  let afters = await get_owner_horses_zed({ oid, offset: offset + 10 });
+  if (!_.isEmpty(afters)) ar = [...ar, ...afters];
+  return ar;
+};
 const cyclic_depedency = {
   get_races_of_hid,
   from_ch_zed_collection,
@@ -557,6 +566,7 @@ const cyclic_depedency = {
   filt_valid_hids_range,
   get_hdoc_hhh,
   speed_dist_factor,
+  get_owner_horses_zed,
 };
 
 module.exports = cyclic_depedency;
