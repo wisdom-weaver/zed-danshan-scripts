@@ -65,11 +65,16 @@ const update_all_stables = async ([st, ed]) => {
     i += scs;
   }
   stabs = _.chain(stabs).compact().flatten().compact().uniq().value();
+  stabs = _.reverse(stabs);
   console.log("stables.len", stabs.length);
 
   i = 0;
   for (let chu of _.chunk(stabs, 5)) {
-    await Promise.all(chu.map((stable) => run_stable(stable)));
+    try {
+      await Promise.all(chu.map((stable) => run_stable(stable)));
+    } catch (err) {
+      console.log(err.message);
+    }
     i += chu.length;
     console.log("done", i);
   }
