@@ -83,7 +83,7 @@ const main_runner = async () => {
   if (arg2 == "all") {
     arg3 = jparse(arg3);
     let st = getv(arg3, "0") ?? 1;
-    let ed = getv(arg3, "1") ?? (await get_ed_horse());
+    let ed = getv(arg3, "1") ?? 550000;
     await update_all_stables([st, ed]);
   }
   if (arg2 == "test") await test();
