@@ -58,3 +58,6 @@ pm2 start node --name "fix_unnamed" -- code/main.js --horses fix_unnamed_cron
 
 tqual 
 pm2 start node --name "tqual::run_cron" -- code/main.js --tqual cron 
+
+stables
+pm2 start node --name "stables getter" --  code/main.js --stables all

@@ -50,7 +50,7 @@ const update_all_stables = async ([st, ed]) => {
   console.log("update_all_stables");
   let stabs = [];
   console.log([st, ed]);
-  let scs = 100;
+  let scs = 1000;
   for (let i = st; i <= ed; ) {
     let docs = await zed_db.db
       .collection("horse_details")
@@ -68,7 +68,7 @@ const update_all_stables = async ([st, ed]) => {
   console.log("stables.len", stabs.length);
 
   i = 0;
-  for (let chu of _.chunk(stabs, 3)) {
+  for (let chu of _.chunk(stabs, 5)) {
     await Promise.all(chu.map((stable) => run_stable(stable)));
     i += chu.length;
     console.log("done", i);
