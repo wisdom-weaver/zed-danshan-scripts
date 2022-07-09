@@ -84,7 +84,7 @@ const update_all_stables = async ([st, ed]) => {
 const main_runner = async () => {
   let [_node, _cfile, arg1, arg2, arg3, arg4, arg5] = process.argv;
   console.log("stables");
-  if (arg2 == "run_stable") await run_stable(arg3);
+  if (arg2 == "run") await run_stable(arg3);
   if (arg2 == "all") {
     arg3 = jparse(arg3);
     let st = getv(arg3, "0") ?? 1;
