@@ -61,3 +61,6 @@ pm2 start node --name "tqual::run_cron" -- code/main.js --tqual cron
 
 stables
 pm2 start node --name "stables getter" --  code/main.js --stables all
+
+sn_pro 
+pm2 start node --name "sn_pro:cron" -- code/main.js --sn_pro run_cron 
