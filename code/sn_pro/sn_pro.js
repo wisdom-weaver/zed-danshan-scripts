@@ -58,22 +58,28 @@ const update_sdoc_after_paid = async (stable) => {
 const get_sdoc = (stable) =>
   zed_db.db.collection("stables").findOne(fqstable(stable));
 
-const gen_profile_status = (s) => {
-  let profile_status = null;
-  if (s.pro_registered == true) {
-    if (s.sn_pro_active) {
-      if (s.expires_at < iso()) profile_status = "expired";
-      else profile_status = "active";
+  const gen_profile_status = (s) => {
+    s.profile_status = null;
+    if (s.pro_registered == true) {
+      if (s.sn_pro_blocked) {
+        s.profile_status = "blocked";
+      } else if (s.sn_pro_active) {
+        if (s.expires_at < iso()) s.profile_status = "expired";
+        else {
+          s.profile_status = "active";
+        }
+      } else {
+        if (s.last_renew == null) s.profile_status = "new";
+        else if (s.expires_at > iso()) s.profile_status = "blocked";
+        else if (s.expires_at < iso()) s.profile_status = "expired";
+      }
     } else {
-      if (s.last_renew == null) profile_status = "new";
-      else if (s.expires_at > iso()) profile_status = "blocked";
-      else if (s.expires_at < iso()) profile_status = "expired";
+      s.profile_status = "not_registered";
     }
-  } else {
-    profile_status = "not_registered";
-  }
-  return profile_status;
-};
+    if (s.profile_status == "active") s.sn_pro_active = true;
+    else s.sn_pro_active = false;
+    return s.profile_status;
+  };
 
 const update_stable_state = async (stable) => {
   let s = await get_sdoc(stable);
@@ -81,9 +87,10 @@ const update_stable_state = async (stable) => {
   let upd = { stable: s.stable };
 
   upd.profile_status = gen_profile_status(s);
-
-  if (upd.profile_status !== "active") upd.sn_pro_active = false;
-  else upd.sn_pro_active = true;
+  let sn_pro_active = null;
+  if (upd.profile_status == "active") sn_pro_active = true;
+  else sn_pro_active = false;
+  upd.sn_pro_active = sn_pro_active;
 
   if (!_.isEmpty(upd)) {
     await zed_db.db
