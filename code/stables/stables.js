@@ -43,6 +43,7 @@ const run_stable = async (stable) => {
       { $set: stable_doc },
       { upsert: true }
     );
+  console.log("done", horses_n, "horses");
   // return stable_doc;
 };
 

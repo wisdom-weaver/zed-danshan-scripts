@@ -53,7 +53,52 @@ const update_sdoc_after_paid = async (stable) => {
   }
 };
 
-const runner = async () => {
+const get_sdoc = (stable) =>
+  zed_db.db.collection("stables").findOne(fqstable(stable));
+
+const update_stable_state = async (stable) => {
+  let s = await get_sdoc(stable);
+  if (!s) throw new Error("stable not found");
+  let upd = { stable: s.stable };
+  let profile_status = "";
+
+  if (s.pro_registered == true) {
+    if (s.sn_pro_active) profile_status = "active";
+    else {
+      if (s.last_renew == null) profile_status = "new";
+      else if (s.expires_at > iso()) profile_status = "blocked";
+      else if (s.expires_at < iso()) profile_status = "expired";
+    }
+  } else {
+    profile_status = "not_registered";
+  }
+  upd.profile_status = profile_status;
+
+  if (profile_status !== "active") upd.sn_pro_active = false;
+  else upd.sn_pro_active = true;
+
+  if (!_.isEmpty(upd)) {
+    await zed_db.db
+      .collection("stables")
+      .updateOne(fqstable(stable), { $set: upd });
+  }
+  console.log(stable, upd);
+};
+
+const update_all_stables = async () => {
+  let stables = await zed_db.db
+    .collection("stables")
+    .find({ pro_registered: true }, { projection: { _id: 0, stable: 1 } })
+    .toArray();
+  stables = _.map(stables, "stable");
+  console.log("stables.len", stables.length);
+
+  for (let chu of _.chunk(stables, 3))
+    await Promise.all(chu.map((e) => update_stable_state(e)));
+  console.log("ended");
+};
+
+const txnchecker = async () => {
   if (!zed_db) return;
   let fmxdate = moment()
     .subtract(...pay_toll)
@@ -108,20 +153,28 @@ const runner = async () => {
 };
 
 const run_cron = async () => {
-  let cron_str = "*/15 * * * * *";
-  print_cron_details(cron_str);
-  cron.schedule(cron_str, runner, cron_conf);
+  // txns
+  const cron_str0 = "*/15 * * * * *";
+  print_cron_details(cron_str0);
+  cron.schedule(cron_str0, txnchecker, cron_conf);
+
+  // 
+  const cron_str1 = "0 * * * * *";
+  print_cron_details(cron_str1);
+  cron.schedule(cron_str0, update_all_stables, cron_conf);
 };
 
 const test = async () => {
   console.log("test");
+  const stable = "0xc2014B17e2234ea18a50F292faEE29371126A3e0";
+  await update_stable_state(stable);
 };
 
 const main_runner = async () => {
   console.log("## sn_pro");
   let [n, f, a1, a2, a3, a4, a5] = process.argv;
   if (a2 == "test") await test();
-  if (a2 == "runner") await runner();
+  if (a2 == "runner") await txnchecker();
   if (a2 == "run_cron") await run_cron();
 };
 
