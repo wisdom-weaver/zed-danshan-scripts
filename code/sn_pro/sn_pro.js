@@ -2,7 +2,7 @@ const _ = require("lodash");
 const moment = require("moment");
 const { zed_db } = require("../connection/mongo_connect");
 const { print_cron_details } = require("../utils/cyclic_dependency");
-const { cron_conf, getv, cdelay } = require("../utils/utils");
+const { cron_conf, getv, cdelay, iso } = require("../utils/utils");
 const cron = require("node-cron");
 
 const coll = "stables";
@@ -58,15 +58,13 @@ const update_sdoc_after_paid = async (stable) => {
 const get_sdoc = (stable) =>
   zed_db.db.collection("stables").findOne(fqstable(stable));
 
-const update_stable_state = async (stable) => {
-  let s = await get_sdoc(stable);
-  if (!s) throw new Error("stable not found");
-  let upd = { stable: s.stable };
-  let profile_status = "";
-
+const gen_profile_status = (s) => {
+  let profile_status = null;
   if (s.pro_registered == true) {
-    if (s.sn_pro_active) profile_status = "active";
-    else {
+    if (s.sn_pro_active) {
+      if (s.expires_at < iso()) profile_status = "expired";
+      else profile_status = "active";
+    } else {
       if (s.last_renew == null) profile_status = "new";
       else if (s.expires_at > iso()) profile_status = "blocked";
       else if (s.expires_at < iso()) profile_status = "expired";
@@ -74,9 +72,17 @@ const update_stable_state = async (stable) => {
   } else {
     profile_status = "not_registered";
   }
-  upd.profile_status = profile_status;
+  return profile_status;
+};
 
-  if (profile_status !== "active") upd.sn_pro_active = false;
+const update_stable_state = async (stable) => {
+  let s = await get_sdoc(stable);
+  if (!s) throw new Error("stable not found");
+  let upd = { stable: s.stable };
+
+  upd.profile_status = gen_profile_status(s);
+
+  if (upd.profile_status !== "active") upd.sn_pro_active = false;
   else upd.sn_pro_active = true;
 
   if (!_.isEmpty(upd)) {
