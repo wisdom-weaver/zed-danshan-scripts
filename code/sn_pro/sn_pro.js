@@ -162,10 +162,10 @@ const run_cron_txns = async () => {
 };
 
 const run_cron_stables = async () => {
-  //
-  const cron_str1 = "0 * * * * *";
-  print_cron_details(cron_str1);
-  cron.schedule(cron_str0, update_all_stables, cron_conf);
+  // stables
+  const cron_str = "0 * * * * *";
+  print_cron_details(cron_str);
+  cron.schedule(cron_str, update_all_stables, cron_conf);
 };
 
 const test = async () => {
