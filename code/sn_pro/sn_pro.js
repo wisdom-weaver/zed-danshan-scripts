@@ -2,7 +2,7 @@ const _ = require("lodash");
 const moment = require("moment");
 const { zed_db } = require("../connection/mongo_connect");
 const { print_cron_details } = require("../utils/cyclic_dependency");
-const { cron_conf, getv } = require("../utils/utils");
+const { cron_conf, getv, cdelay } = require("../utils/utils");
 const cron = require("node-cron");
 
 const coll = "stables";
@@ -48,6 +48,8 @@ const update_sdoc_after_paid = async (stable) => {
         last_renew,
       },
     });
+    await cdelay(1000);
+    await update_stable_state(pdoc.sender);
   } catch (err) {
     console.log("error at update_sdoc_after_paid", err.message);
   }
@@ -152,13 +154,15 @@ const txnchecker = async () => {
   }
 };
 
-const run_cron = async () => {
+const run_cron_txns = async () => {
   // txns
   const cron_str0 = "*/15 * * * * *";
   print_cron_details(cron_str0);
   cron.schedule(cron_str0, txnchecker, cron_conf);
+};
 
-  // 
+const run_cron_stables = async () => {
+  //
   const cron_str1 = "0 * * * * *";
   print_cron_details(cron_str1);
   cron.schedule(cron_str0, update_all_stables, cron_conf);
@@ -175,7 +179,8 @@ const main_runner = async () => {
   let [n, f, a1, a2, a3, a4, a5] = process.argv;
   if (a2 == "test") await test();
   if (a2 == "runner") await txnchecker();
-  if (a2 == "run_cron") await run_cron();
+  if (a2 == "run_cron_txns") await run_cron_txns();
+  if (a2 == "run_cron_stables") await run_cron_stables();
 };
 
 const sn_pro = {

@@ -63,4 +63,5 @@ stables
 pm2 start node --name "stables getter" --  code/main.js --stables all
 
 sn_pro 
-pm2 start node --name "sn_pro:cron" -- code/main.js --sn_pro run_cron 
+pm2 start node --name "sn_pro:cron_txns" -- code/main.js --sn_pro run_cron_txns 
+pm2 start node --name "sn_pro:cron_stables" -- code/main.js --sn_pro run_cron_stables 
