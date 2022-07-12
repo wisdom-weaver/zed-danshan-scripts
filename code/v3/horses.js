@@ -11,13 +11,20 @@ const {
   jparse,
 } = require("../utils/cyclic_dependency");
 const mega = require("./mega");
-const { delay, get_hids, getv } = require("../utils/utils");
+const {
+  delay,
+  get_hids,
+  getv,
+  write_to_path,
+  read_from_path,
+} = require("../utils/utils");
 const ancestry = require("./ancestry");
 const utils = require("../utils/utils");
 const cyclic_depedency = require("../utils/cyclic_dependency");
 const rating_blood_S = require("./rating_blood");
 const mega2 = require("./mega2");
 const { line, rating_breed } = require("../v5/v5");
+const v5 = require("../v5/v5");
 
 const def_cs = 10;
 
@@ -510,7 +517,7 @@ const delete_only = async (hids) => {
 
 const fix_parents_kids_single = async (hid) => {
   try {
-    console.log("fix", hid);
+    // console.log("fix", hid);
     let hdoc = await zed_db.db.collection("horse_details").findOne(
       { hid },
       {
@@ -537,13 +544,23 @@ const fix_parents_kids_single = async (hid) => {
       .collection("horse_details")
       .aggregate([
         {
-          $match: { [`parents.${pkey}`]: 168344 },
+          $match: { [`parents.${pkey}`]: hid },
         },
         { $project: { _id: 0, hid: 1 } },
       ])
       .toArray();
     let noffsprings = _.map(ar, "hid");
-    let alloffspings = _.uniq([...(offsprings || []), ...(noffsprings || [])]);
+
+    // console.log(offsprings);
+    // console.log(noffsprings);
+
+    // console.log(_.difference(offsprings, noffsprings));
+    // console.log(noffsprings);
+
+    // return;
+    // let alloffspings = _.uniq([...(offsprings || []), ...(noffsprings || [])]);
+    let alloffspings = noffsprings;
+
     console.log("alloffspings.len", alloffspings.length);
     if (alloffspings.length > 0)
       if (pkey == "mother") horse_type = "Mare";
@@ -584,22 +601,65 @@ const fix_parents_kids = async ([st, ed]) => {
   }
 };
 
-const test = async () => {
+const test0 = async (arg3) => {
   console.log("test");
-  let resp = await zed_db.db
+  // arg3 = jparse(arg3)
+  // await fix_parents_kids_single(arg3[0])
+
+  let ar = await zed_db.db
     .collection("horse_details")
-    .updateMany(
-      { horse_type: { $eq: "Stalion" } },
-      { $set: { horse_type: "Stallion" } }
-    );
-  console.log(resp.result);
+    .aggregate([
+      {
+        $match: { [`parents.${"father"}`]: 168344 },
+      },
+      { $project: { _id: 0, hid: 1 } },
+    ])
+    .toArray();
+  ar = _.map(ar, "hid");
+  console.log(ar);
+
+  let falses = await zed_db.db
+    .collection("horse_details")
+    .aggregate([
+      {
+        $match: { offsprings: { $elemMatch: { $in: ar } } },
+      },
+      // { $limit: 1 },
+      { $project: { _id: 0, hid: 1 } },
+    ])
+    .toArray();
+  let fhids = _.map(falses, "hid");
+  console.log(fhids.length);
+  // console.log(fhids);
+  // return;
+  // await write_to_path({ file_path: `a.json`, data: fhids });
+  return;
+  await zed_db.db.collection("horse_details").updateMany(
+    {
+      hid: { $in: fhids },
+    },
+    {
+      $pull: { offsprings: { $in: ar } },
+    }
+  );
+};
+
+const test = async (arg3) => {
+  // arg3 = jparse(arg3);
+  // console.log(arg3)
+  // for (let hid of arg3) {
+  //   await fix_parents_kids_single(hid);
+  // }
+
+  let hids = await read_from_path({ file_path: "fix_br_list.json" });
+  await v5.rating_breed.only(hids);
 };
 
 const main_runner = async () => {
   console.log("--horses");
   const [n, f, arg1, arg2, arg3, arg4, arg5] = process.argv;
   if (arg2 == "test") {
-    await test();
+    await test(arg3);
   }
   if (arg2 == "new") {
     await get_new();
