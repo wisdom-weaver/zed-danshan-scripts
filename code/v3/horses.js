@@ -11,7 +11,7 @@ const {
   jparse,
 } = require("../utils/cyclic_dependency");
 const mega = require("./mega");
-const { delay, get_hids } = require("../utils/utils");
+const { delay, get_hids, getv } = require("../utils/utils");
 const ancestry = require("./ancestry");
 const utils = require("../utils/utils");
 const cyclic_depedency = require("../utils/cyclic_dependency");
@@ -539,7 +539,7 @@ const fix_parents_kids_single = async (hid) => {
     ])
     .toArray();
   let noffsprings = _.map(ar, "hid");
-  let alloffspings = _.uniq([...offsprings, ...noffsprings]);
+  let alloffspings = _.uniq([...(offsprings || []), ...(noffsprings || [])]);
   console.log("alloffspings.len", alloffspings.length);
   if (alloffspings.length > 0)
     if (pkey == "mother") horse_type = "Mare";
@@ -601,9 +601,9 @@ const main_runner = async () => {
     await fixer();
   }
   if (arg2 == "fix_parents_kids") {
-    arg3 = jparse(arg3);
-    let st = getv(arg3, "0") ?? 0;
-    let ed = getv(arg3, "1") ?? 550000;
+    let a = jparse(arg3);
+    let st = getv(a, "0") ?? 0;
+    let ed = getv(a, "1") ?? 550000;
     await fix_parents_kids([st, ed]);
   }
   if (arg2 == "new") {
