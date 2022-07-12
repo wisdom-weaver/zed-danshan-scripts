@@ -316,54 +316,7 @@ const main = async (args) => {
       mod.parents_comb.test(conf);
     }
   } else if (arg1 == "--horses") {
-    if (arg2 == "new") {
-      await mod.horses.get_new();
-    }
-    if (arg2 == "fixer") {
-      await mod.horses.fixer();
-    }
-    if (arg2 == "new") {
-      mod.horses.get_new();
-    }
-    if (arg2 == "delete") {
-      arg3 = JSON.parse(arg3) ?? [0, 0];
-      mod.horses.delete_only(arg3);
-    }
-    if (arg2 == "range") {
-      arg3 = JSON.parse(arg3) ?? [0, 0];
-      mod.horses.get_range(arg3);
-    }
-    if (arg2 == "only") {
-      arg3 = JSON.parse(arg3) ?? [0];
-      mod.horses.get_only(arg3);
-    }
-    if (arg2 == "miss") {
-      arg3 = JSON.parse(arg3) ?? [0];
-      mod.horses.get_missings(arg3);
-    }
-    if (arg2 == "new_hdocs") {
-      mod.horses.get_new_hdocs();
-    }
-    if (arg2 == "range_hdocs") {
-      arg3 = JSON.parse(arg3) ?? [0, 0];
-      mod.horses.get_range_hdocs(arg3);
-    }
-    if (arg2 == "only_hdocs") {
-      arg3 = JSON.parse(arg3) ?? [0];
-      mod.horses.get_only_hdocs(arg3);
-    }
-    if (arg2 == "fix_unnamed") {
-      mod.horses.fix_unnamed();
-    }
-    if (arg2 == "fix_unnamed_cron") {
-      mod.horses.fix_unnamed_cron();
-    }
-    if (arg2 == "fix_stable") {
-      mod.horses.fix_stable();
-    }
-    if (arg2 == "fix_stable_cron") {
-      mod.horses.fix_stable_cron();
-    }
+    await mod.horses.main_runner();
   } else if (arg1 == "--parents") {
     if (arg2 == "fix_horse_type_all_cron") {
       mod.parents.fix_horse_type_all_cron();

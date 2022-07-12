@@ -13,7 +13,7 @@ const utils = require("../utils/utils");
 const cyclic_depedency = require("../utils/cyclic_dependency");
 const rating_blood_S = require("./rating_blood");
 const mega2 = require("./mega2");
-const { line } = require("../v5/v5");
+const { line, rating_breed } = require("../v5/v5");
 
 const def_cs = 10;
 
@@ -504,6 +504,138 @@ const delete_only = async (hids) => {
   }
 };
 
+const fix_parents_kids_single = async (hid) => {
+  console.log("fix", hid);
+  let hdoc = await zed_db.db.collection("horse_details").findOne(
+    { hid },
+    {
+      projection: {
+        hid: 1,
+        name: 1,
+        offsprings: 1,
+        horse_type: 1,
+        parents: 1,
+      },
+    }
+  );
+  let { offsprings, horse_type, parents } = hdoc;
+  const pkey =
+    (["Filly", "Mare"].includes(horse_type) && "mother") ||
+    (["Stallion", "Colt"].includes(horse_type) && "father") ||
+    null;
+  // console.log("is ", pkey);
+  if (!pkey) return;
+  let ar = await zed_db.db
+    .collection("horse_details")
+    .aggregate([
+      {
+        $match: { [`parents.${pkey}`]: 168344 },
+      },
+      { $project: { _id: 0, hid: 1 } },
+    ])
+    .toArray();
+  let noffsprings = _.map(ar, "hid");
+  let alloffspings = _.uniq([...offsprings, ...noffsprings]);
+  console.log("alloffspings.len", alloffspings.length);
+  if (alloffspings.length > 0)
+    if (pkey == "mother") horse_type = "Mare";
+    else if (pkey == "father") horse_type = "Stalion";
+  let resp = await zed_db.db
+    .collection("horse_details")
+    .updateOne({ hid }, { $set: { offsprings: alloffspings, horse_type } });
+  if (resp.result?.nModified > 0) await rating_breed.only([hid]);
+
+  let mother = parents.mother;
+  let father = parents.father;
+  if (mother) {
+    let resp = await zed_db.db
+      .collection("horse_details")
+      .updateOne({ hid: mother }, { $addToSet: { offsprings: hid } });
+    if (resp.result?.nModified > 0) await rating_breed.only([mother]);
+  }
+
+  if (father) {
+    let resp = await zed_db.db
+      .collection("horse_details")
+      .updateOne({ hid: father }, { $addToSet: { offsprings: hid } });
+    if (resp.result?.nModified > 0) await rating_breed.only([father]);
+  }
+  console.log("done", hid);
+};
+
+const fix_parents_kids = async () => {
+  let [st, ed] = [1, 50000];
+  let cs = 30;
+  for (let i = st; i <= ed; i += cs) {
+    let chu = await get_range_hids(i, i + cs - 1);
+    console.log(chu.toString());
+    await Promise.all(chu.map((hid) => fix_parents_kids_single(hid)));
+  }
+};
+
+const test = async () => {
+  console.log("test");
+  let hid = 168344;
+  await fix_parents_kids_single(hid);
+};
+
+const main_runner = async () => {
+  console.log("--horses");
+  const [n, f, arg1, arg2, arg3, arg4, arg5] = process.argv;
+  if (arg2 == "test") {
+    await test();
+  }
+  if (arg2 == "new") {
+    await get_new();
+  }
+  if (arg2 == "fixer") {
+    await fixer();
+  }
+  if (arg2 == "fix_parents_kids") await fix_parents_kids();
+  if (arg2 == "new") {
+    get_new();
+  }
+  if (arg2 == "delete") {
+    arg3 = JSON.parse(arg3) ?? [0, 0];
+    delete_only(arg3);
+  }
+  if (arg2 == "range") {
+    arg3 = JSON.parse(arg3) ?? [0, 0];
+    get_range(arg3);
+  }
+  if (arg2 == "only") {
+    arg3 = JSON.parse(arg3) ?? [0];
+    get_only(arg3);
+  }
+  if (arg2 == "miss") {
+    arg3 = JSON.parse(arg3) ?? [0];
+    get_missings(arg3);
+  }
+  if (arg2 == "new_hdocs") {
+    get_new_hdocs();
+  }
+  if (arg2 == "range_hdocs") {
+    arg3 = JSON.parse(arg3) ?? [0, 0];
+    get_range_hdocs(arg3);
+  }
+  if (arg2 == "only_hdocs") {
+    arg3 = JSON.parse(arg3) ?? [0];
+    get_only_hdocs(arg3);
+  }
+  if (arg2 == "fix_unnamed") {
+    fix_unnamed();
+  }
+  if (arg2 == "fix_unnamed_cron") {
+    fix_unnamed_cron();
+  }
+  if (arg2 == "fix_stable") {
+    fix_stable();
+  }
+  if (arg2 == "fix_stable_cron") {
+    fix_stable_cron();
+  }
+};
+
 const horses = {
   get_new,
   get_only,
@@ -520,6 +652,7 @@ const horses = {
   fixer,
   struct_zed_hdoc,
   get_hdoc,
+  main_runner,
 };
 
 module.exports = horses;
