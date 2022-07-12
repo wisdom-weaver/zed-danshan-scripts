@@ -523,6 +523,9 @@ const fix_parents_kids_single = async (hid) => {
         },
       }
     );
+    if (!hdoc) return console.log("empty horse");
+    // let doc = await zedf.horse(hid);
+    // if(doc)
     let { offsprings, horse_type, parents } = hdoc;
     const pkey =
       (["Filly", "Mare"].includes(horse_type) && "mother") ||
