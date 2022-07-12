@@ -5,7 +5,11 @@ const cron_parser = require("cron-parser");
 const cron = require("node-cron");
 const parents = require("./parents");
 const bulk = require("../utils/bulk");
-const { get_ed_horse, get_range_hids } = require("../utils/cyclic_dependency");
+const {
+  get_ed_horse,
+  get_range_hids,
+  jparse,
+} = require("../utils/cyclic_dependency");
 const mega = require("./mega");
 const { delay, get_hids } = require("../utils/utils");
 const ancestry = require("./ancestry");
@@ -539,7 +543,7 @@ const fix_parents_kids_single = async (hid) => {
   console.log("alloffspings.len", alloffspings.length);
   if (alloffspings.length > 0)
     if (pkey == "mother") horse_type = "Mare";
-    else if (pkey == "father") horse_type = "Stalion";
+    else if (pkey == "father") horse_type = "Stallion";
   let resp = await zed_db.db
     .collection("horse_details")
     .updateOne({ hid }, { $set: { offsprings: alloffspings, horse_type } });
@@ -563,8 +567,8 @@ const fix_parents_kids_single = async (hid) => {
   console.log("done", hid);
 };
 
-const fix_parents_kids = async () => {
-  let [st, ed] = [1, 50000];
+const fix_parents_kids = async ([st, ed]) => {
+  // let [st, ed] = [1, 50000];
   let cs = 30;
   for (let i = st; i <= ed; i += cs) {
     let chu = await get_range_hids(i, i + cs - 1);
@@ -575,8 +579,13 @@ const fix_parents_kids = async () => {
 
 const test = async () => {
   console.log("test");
-  let hid = 168344;
-  await fix_parents_kids_single(hid);
+  let resp = await zed_db.db
+    .collection("horse_details")
+    .updateMany(
+      { horse_type: { $eq: "Stalion" } },
+      { $set: { horse_type: "Stallion" } }
+    );
+  console.log(resp.result);
 };
 
 const main_runner = async () => {
@@ -591,7 +600,12 @@ const main_runner = async () => {
   if (arg2 == "fixer") {
     await fixer();
   }
-  if (arg2 == "fix_parents_kids") await fix_parents_kids();
+  if (arg2 == "fix_parents_kids") {
+    arg3 = jparse(arg3);
+    let st = getv(arg3, "0") ?? 0;
+    let ed = getv(arg3, "1") ?? 550000;
+    await fix_parents_kids([st, ed]);
+  }
   if (arg2 == "new") {
     get_new();
   }
