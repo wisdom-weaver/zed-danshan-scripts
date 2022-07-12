@@ -509,62 +509,66 @@ const delete_only = async (hids) => {
 };
 
 const fix_parents_kids_single = async (hid) => {
-  console.log("fix", hid);
-  let hdoc = await zed_db.db.collection("horse_details").findOne(
-    { hid },
-    {
-      projection: {
-        hid: 1,
-        name: 1,
-        offsprings: 1,
-        horse_type: 1,
-        parents: 1,
-      },
-    }
-  );
-  let { offsprings, horse_type, parents } = hdoc;
-  const pkey =
-    (["Filly", "Mare"].includes(horse_type) && "mother") ||
-    (["Stallion", "Colt"].includes(horse_type) && "father") ||
-    null;
-  // console.log("is ", pkey);
-  if (!pkey) return;
-  let ar = await zed_db.db
-    .collection("horse_details")
-    .aggregate([
+  try {
+    console.log("fix", hid);
+    let hdoc = await zed_db.db.collection("horse_details").findOne(
+      { hid },
       {
-        $match: { [`parents.${pkey}`]: 168344 },
-      },
-      { $project: { _id: 0, hid: 1 } },
-    ])
-    .toArray();
-  let noffsprings = _.map(ar, "hid");
-  let alloffspings = _.uniq([...(offsprings || []), ...(noffsprings || [])]);
-  console.log("alloffspings.len", alloffspings.length);
-  if (alloffspings.length > 0)
-    if (pkey == "mother") horse_type = "Mare";
-    else if (pkey == "father") horse_type = "Stallion";
-  let resp = await zed_db.db
-    .collection("horse_details")
-    .updateOne({ hid }, { $set: { offsprings: alloffspings, horse_type } });
-  if (resp.result?.nModified > 0) await rating_breed.only([hid]);
-
-  let mother = parents.mother;
-  let father = parents.father;
-  if (mother) {
+        projection: {
+          hid: 1,
+          name: 1,
+          offsprings: 1,
+          horse_type: 1,
+          parents: 1,
+        },
+      }
+    );
+    let { offsprings, horse_type, parents } = hdoc;
+    const pkey =
+      (["Filly", "Mare"].includes(horse_type) && "mother") ||
+      (["Stallion", "Colt"].includes(horse_type) && "father") ||
+      null;
+    // console.log("is ", pkey);
+    if (!pkey) return;
+    let ar = await zed_db.db
+      .collection("horse_details")
+      .aggregate([
+        {
+          $match: { [`parents.${pkey}`]: 168344 },
+        },
+        { $project: { _id: 0, hid: 1 } },
+      ])
+      .toArray();
+    let noffsprings = _.map(ar, "hid");
+    let alloffspings = _.uniq([...(offsprings || []), ...(noffsprings || [])]);
+    console.log("alloffspings.len", alloffspings.length);
+    if (alloffspings.length > 0)
+      if (pkey == "mother") horse_type = "Mare";
+      else if (pkey == "father") horse_type = "Stallion";
     let resp = await zed_db.db
       .collection("horse_details")
-      .updateOne({ hid: mother }, { $addToSet: { offsprings: hid } });
-    if (resp.result?.nModified > 0) await rating_breed.only([mother]);
-  }
+      .updateOne({ hid }, { $set: { offsprings: alloffspings, horse_type } });
+    if (resp.result?.nModified > 0) await rating_breed.only([hid]);
 
-  if (father) {
-    let resp = await zed_db.db
-      .collection("horse_details")
-      .updateOne({ hid: father }, { $addToSet: { offsprings: hid } });
-    if (resp.result?.nModified > 0) await rating_breed.only([father]);
+    let mother = parents.mother;
+    let father = parents.father;
+    if (mother) {
+      let resp = await zed_db.db
+        .collection("horse_details")
+        .updateOne({ hid: mother }, { $addToSet: { offsprings: hid } });
+      if (resp.result?.nModified > 0) await rating_breed.only([mother]);
+    }
+
+    if (father) {
+      let resp = await zed_db.db
+        .collection("horse_details")
+        .updateOne({ hid: father }, { $addToSet: { offsprings: hid } });
+      if (resp.result?.nModified > 0) await rating_breed.only([father]);
+    }
+    console.log("done", hid);
+  } catch (err) {
+    console.log("ERROR hid\n", hid, err);
   }
-  console.log("done", hid);
 };
 
 const fix_parents_kids = async ([st, ed]) => {
