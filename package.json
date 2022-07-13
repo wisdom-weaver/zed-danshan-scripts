@@ -70,7 +70,7 @@
     "ymca2_all": "run-func js_code_files/ymca2.js ymca2_generator_all_horses",
     "racerat2_all": "run-func js_code_files/ymca2.js racerat2_generator_all_horses",
     "clear_zed_tour": "run-func js_code_files/zed_tournament.js clear_zed_tour",
-    "pull":"git checkout -f main ; git pull;"
+    "pull": "git checkout -f main ; git pull;"
   },
   "keywords": [],
   "author": "",
@@ -78,6 +78,8 @@
   "dependencies": {
     "app-root-path": "^3.0.0",
     "axios": "^0.21.4",
+    "bcrypt": "^5.0.1",
+    "bcryptjs": "^2.4.3",
     "chromedriver": "^94.0.0",
     "cron-parser": "^4.0.0",
     "cronstrue": "^1.125.0",
@@ -88,6 +90,7 @@
     "fs": "^0.0.1-security",
     "googleapis": "^97.0.0",
     "ioredis": "^5.0.6",
+    "jsonwebtoken": "^8.5.1",
     "knex": "^1.0.3",
     "lodash": "^4.17.21",
     "moment": "^2.29.1",
