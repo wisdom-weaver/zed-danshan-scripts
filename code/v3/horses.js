@@ -689,8 +689,8 @@ const main_runner = async () => {
     get_only(arg3);
   }
   if (arg2 == "miss") {
-    arg3 = JSON.parse(arg3) ?? [0];
-    get_missings(arg3);
+    let aarg3 = JSON.parse(arg3) ?? [0];
+    get_missings(aarg3);
   }
   if (arg2 == "new_hdocs") {
     get_new_hdocs();
