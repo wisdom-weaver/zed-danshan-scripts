@@ -22,9 +22,11 @@ const mil = {
 };
 const update_sdoc_after_paid = async (stable) => {
   try {
-    let sdoc = await zed_db.db.collection("stables").findOne(fqstable(stable), {
-      projection: { _id: 0, stable: 1, sn_pro_txns: 1 },
-    });
+    let sdoc = await zed_db.db
+      .collection("stables")
+      .findOne(fqstable(stable), {
+        projection: { _id: 0, stable: 1, sn_pro_txns: 1 },
+      });
     if (_.isEmpty(sdoc)) throw new Error("no such stable");
     let fmaxdate = moment().subtract(30, "minutes").toISOString();
     let payids = sdoc.sn_pro_txns ?? [];
@@ -62,7 +64,7 @@ const update_sdoc_after_paid = async (stable) => {
         expires_at,
       },
       salt,
-      { expiresIn: subs_dur[0] * mil[subs_dur[1]] }
+      { expiresIn: 1e14 }
     );
 
     await zed_db.db.collection("stables").updateOne(fqstable(stable), {
