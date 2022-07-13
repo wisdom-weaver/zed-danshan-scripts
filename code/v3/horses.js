@@ -454,6 +454,7 @@ const get_range_miss = async (range) => {
   let cs = 10;
   console.log([st, ed]);
   for (let i = st; i <= ed; i += cs) {
+    console.log(i, i + cs - 1);
     let hids = await get_range_hids(i, i + cs - 1);
     let hids1 = await get_valid_hids_in_details(hids);
     let eval = _.difference(hids, hids1);
