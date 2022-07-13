@@ -63,14 +63,9 @@ const get_sdoc = (stable) =>
     if (s.pro_registered == true) {
       if (s.sn_pro_blocked) {
         s.profile_status = "blocked";
-      } else if (s.sn_pro_active) {
-        if (s.expires_at < iso()) s.profile_status = "expired";
-        else {
-          s.profile_status = "active";
-        }
       } else {
         if (s.last_renew == null) s.profile_status = "new";
-        else if (s.expires_at > iso()) s.profile_status = "blocked";
+        else if (s.expires_at > iso()) s.profile_status = "active";
         else if (s.expires_at < iso()) s.profile_status = "expired";
       }
     } else {
