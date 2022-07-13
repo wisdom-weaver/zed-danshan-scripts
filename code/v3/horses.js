@@ -446,6 +446,26 @@ const get_range_hdocs = async (range) => {
   }
 };
 
+const get_range_miss = async (range) => {
+  let [st, ed] = range;
+  st = utils.get_n(st);
+  ed = utils.get_n(ed);
+  if (ed == "ed" || ed == null) ed = await get_ed_horse();
+  let cs = 10;
+  console.log([st, ed]);
+  for (let i = st; i <= ed; i += cs) {
+    let hids = await get_range_hids(i, i + cs - 1);
+    let hids1 = await get_valid_hids_in_details(hids);
+    let eval = _.difference(hids, hids1);
+    if (!_.isEmpty(eval)) {
+      console.log(eval);
+      let resp = await add_hdocs(eval);
+      eval = _.map(resp, "hid");
+      if (!_.isEmpty(eval)) await mega.only(eval);
+    }
+  }
+};
+
 const fix_unnamed = async () => {
   let cs = 10;
 
@@ -657,7 +677,7 @@ const test = async (arg3) => {
 
 const main_runner = async () => {
   console.log("--horses");
-  const [n, f, arg1, arg2, arg3, arg4, arg5] = process.argv;
+  let [n, f, arg1, arg2, arg3, arg4, arg5] = process.argv;
   if (arg2 == "test") {
     await test(arg3);
   }
@@ -691,6 +711,10 @@ const main_runner = async () => {
   if (arg2 == "miss") {
     let aarg3 = JSON.parse(arg3) ?? [0];
     get_missings(aarg3);
+  }
+  if (arg2 == "range_miss") {
+    let aarg3 = JSON.parse(arg3) ?? [0];
+    get_range_miss(aarg3);
   }
   if (arg2 == "new_hdocs") {
     get_new_hdocs();
