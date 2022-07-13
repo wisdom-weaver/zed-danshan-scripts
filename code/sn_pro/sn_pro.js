@@ -4,6 +4,7 @@ const { zed_db } = require("../connection/mongo_connect");
 const { print_cron_details } = require("../utils/cyclic_dependency");
 const { cron_conf, getv, cdelay, iso } = require("../utils/utils");
 const cron = require("node-cron");
+const jwt = require("jsonwebtoken");
 
 const coll = "stables";
 const eval_failed = true;
@@ -22,11 +23,9 @@ const mil = {
 };
 const update_sdoc_after_paid = async (stable) => {
   try {
-    let sdoc = await zed_db.db
-      .collection("stables")
-      .findOne(fqstable(stable), {
-        projection: { _id: 0, stable: 1, sn_pro_txns: 1 },
-      });
+    let sdoc = await zed_db.db.collection("stables").findOne(fqstable(stable), {
+      projection: { _id: 0, stable: 1, sn_pro_txns: 1 },
+    });
     if (_.isEmpty(sdoc)) throw new Error("no such stable");
     let fmaxdate = moment().subtract(30, "minutes").toISOString();
     let payids = sdoc.sn_pro_txns ?? [];
@@ -54,10 +53,6 @@ const update_sdoc_after_paid = async (stable) => {
       .add(...subs_dur)
       .toISOString();
 
-    await zed_db.db
-      .collection("payments")
-      .updateOne({ pay_id }, { $set: { "meta_req.sn_pro_marked": true } });
-
     const token = jwt.sign(
       {
         stable: stable.toLowerCase(),
@@ -77,6 +72,10 @@ const update_sdoc_after_paid = async (stable) => {
     });
     await cdelay(1000);
     await update_stable_state(pdoc.sender);
+
+    await zed_db.db
+      .collection("payments")
+      .updateOne({ pay_id }, { $set: { "meta_req.sn_pro_marked": true } });
   } catch (err) {
     console.log("error at update_sdoc_after_paid", err.message);
   }
