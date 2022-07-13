@@ -53,6 +53,8 @@ const update_sdoc_after_paid = async (stable) => {
       .add(...subs_dur)
       .toISOString();
 
+    const stable0 = stable.toLowerCase();
+    const salt = process.env.TOKEN_KEY + stable0;
     const token = jwt.sign(
       {
         stable: stable.toLowerCase(),
