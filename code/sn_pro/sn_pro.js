@@ -6,12 +6,20 @@ const { cron_conf, getv, cdelay, iso } = require("../utils/utils");
 const cron = require("node-cron");
 
 const coll = "stables";
-const eval_failed = false;
+const eval_failed = true;
 const pay_toll = [15, "minutes"];
 const fqstable = (stable) => ({ stable: { $regex: stable, $options: "i" } });
 
 const get_bod = (req) => ({ ...req.query, ...req.body, ...req.params });
 
+const subs_dur = [30, "minutes"];
+// const subs_dur = [30, 'days'];
+const mil = {
+  month: 30 * 24 * 60 * 60 * 1000,
+  days: 24 * 60 * 60 * 1000,
+  minutes: 60 * 1000,
+  seconds: 1000,
+};
 const update_sdoc_after_paid = async (stable) => {
   try {
     let sdoc = await zed_db.db.collection("stables").findOne(fqstable(stable), {
@@ -38,14 +46,31 @@ const update_sdoc_after_paid = async (stable) => {
       return;
     }
     let pdoc = getv(paids, 0);
-    let { date } = pdoc;
+    let { date, pay_id } = pdoc;
     let last_renew = date;
-    let expires_at = moment(last_renew).add(31, "days").toISOString();
+    let expires_at = moment(last_renew)
+      .add(...subs_dur)
+      .toISOString();
+
+    await zed_db.db
+      .collection("payments")
+      .updateOne({ pay_id }, { $set: { "meta_req.sn_pro_marked": true } });
+
+    const token = jwt.sign(
+      {
+        stable: stable.toLowerCase(),
+        expires_at,
+      },
+      salt,
+      { expiresIn: subs_dur[0] * mil[subs_dur[1]] }
+    );
+
     await zed_db.db.collection("stables").updateOne(fqstable(stable), {
       $set: {
         sn_pro_active: true,
         expires_at,
         last_renew,
+        token,
       },
     });
     await cdelay(1000);
@@ -58,23 +83,23 @@ const update_sdoc_after_paid = async (stable) => {
 const get_sdoc = (stable) =>
   zed_db.db.collection("stables").findOne(fqstable(stable));
 
-  const gen_profile_status = (s) => {
-    s.profile_status = null;
-    if (s.pro_registered == true) {
-      if (s.sn_pro_blocked) {
-        s.profile_status = "blocked";
-      } else {
-        if (s.last_renew == null) s.profile_status = "new";
-        else if (s.expires_at > iso()) s.profile_status = "active";
-        else if (s.expires_at < iso()) s.profile_status = "expired";
-      }
+const gen_profile_status = (s) => {
+  s.profile_status = null;
+  if (s.pro_registered == true) {
+    if (s.sn_pro_blocked) {
+      s.profile_status = "blocked";
     } else {
-      s.profile_status = "not_registered";
+      if (s.last_renew == null) s.profile_status = "new";
+      else if (s.expires_at > iso()) s.profile_status = "active";
+      else if (s.expires_at < iso()) s.profile_status = "expired";
     }
-    if (s.profile_status == "active") s.sn_pro_active = true;
-    else s.sn_pro_active = false;
-    return s.profile_status;
-  };
+  } else {
+    s.profile_status = "not_registered";
+  }
+  if (s.profile_status == "active") s.sn_pro_active = true;
+  else s.sn_pro_active = false;
+  return s.profile_status;
+};
 
 const update_stable_state = async (stable) => {
   let s = await get_sdoc(stable);
@@ -120,16 +145,18 @@ const txnchecker = async () => {
         service: "buy:sn_pro",
         status_code: 1,
         date: { $gte: fmxdate },
+        "meta_req.sn_pro_marked": { $ne: true },
       },
       { projection: { _id: 0, sender: 1, pay_id: 1 } }
     )
     .toArray();
+
   if (_.isEmpty(paids)) {
     console.log("paids: empty nothing paid");
   } else {
     console.table(paids);
     console.log("paids", paids.length);
-    for (let { sender } of paids) {
+    for (let { pay_id, sender } of paids) {
       await update_sdoc_after_paid(sender);
     }
   }
