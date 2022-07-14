@@ -148,6 +148,7 @@ const verify_user_payments = async (
   let rx_list = [
     "0xcad173dc87ddfd5ed550030470c35d9bec4bde3d",
     "0x55b76d32503e7c604d7ef2bab655fcfb31c2cafd",
+    "0x5e155b0d1263dcd2d2d583f620221f6b94ff9d7f",
   ];
   rx_list = _.uniq(rx_list);
   // console.log(rx_list);
