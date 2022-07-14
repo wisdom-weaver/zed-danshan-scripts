@@ -29,7 +29,7 @@ pm2 start node --name "bt3_race_horses_miss" -- code/main.js --race_horses run_m
 horses 
 pm2 start node  --name "bt_horses_fix" -- code/main.js --horses fixer 
 pm2 start node  --name "bt_horses_new" -- code/main.js --horses new 
-pm2 start node  --name "bt_horses_new" -- node code/main.js --horses new_miss
+pm2 start node  --name "bt_horses_new_miss" -- code/main.js --horses new_miss
 
 pm2 start node --name "line_run_cron" -- code/main.js v5 --line run_cron 
 
