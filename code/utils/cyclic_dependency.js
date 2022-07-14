@@ -145,7 +145,10 @@ const general_bulk_push = async (coll, obar) => {
 const get_ed_horse = async () => {
   let end_doc = await zed_db.db
     .collection("horse_details")
-    .find({ hid: { $type: 16 } }, { projection: { _id: 0, hid: 1 } })
+    .find(
+      { hid: { $type: 16, $lte: 550000 } },
+      { projection: { _id: 0, hid: 1 } }
+    )
     .sort({ hid: -1 })
     .limit(1)
     .toArray();

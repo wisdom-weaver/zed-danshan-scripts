@@ -41,7 +41,9 @@ const fget = (api, a, headers = {}) =>
     headers: { "Content-Type": "application/json", ...headers },
   })
     .then((r) => r.json())
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      // console.log(err);
+    });
 const fpost = (api, data) =>
   fetch(api, {
     method: "POST",

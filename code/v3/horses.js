@@ -9,6 +9,7 @@ const {
   get_ed_horse,
   get_range_hids,
   jparse,
+  print_cron_details,
 } = require("../utils/cyclic_dependency");
 const mega = require("./mega");
 const {
@@ -17,6 +18,7 @@ const {
   getv,
   write_to_path,
   read_from_path,
+  cron_conf,
 } = require("../utils/utils");
 const ancestry = require("./ancestry");
 const utils = require("../utils/utils");
@@ -114,22 +116,29 @@ const get_hdoc = (hid) =>
   zedf.horse(hid).then((doc) => struct_zed_hdoc(hid, doc));
 
 const add_hdocs = async (hids, cs = def_cs) => {
+  // console.log(hids.toString());
+  let resp = [];
   for (let chunk_hids of _.chunk(hids, cs)) {
+    // console.log(chunk_hids.toString());
     let obar = await Promise.all(
       chunk_hids.map((hid) =>
         zedf.horse(hid).then((doc) => struct_zed_hdoc(hid, doc))
       )
     );
     obar = _.compact(obar);
-    bulk.push_bulk("horse_details", obar, "new_horses");
-    await bulk_write_kid_to_parent(obar);
-    console.log("done", chunk_hids.toString());
-
-    return _.chain(obar)
-      .map((i) => (i && i.bloodline ? { hid: i.hid, tc: i.tc } : null))
-      .compact()
-      .value();
+    if (!_.isEmpty(obar)) {
+      bulk.push_bulk("horse_details", obar, "new_horses");
+      await bulk_write_kid_to_parent(obar);
+      console.log("done", chunk_hids.toString());
+    }
+    resp.push(
+      _.chain(obar)
+        .map((i) => (i && i.bloodline ? { hid: i.hid, tc: i.tc } : null))
+        .compact()
+        .value()
+    );
   }
+  return _.flatten(resp);
 };
 
 const fixer = async () => {
@@ -446,12 +455,11 @@ const get_range_hdocs = async (range) => {
   }
 };
 
-const get_range_miss = async (range) => {
+const get_range_miss = async (range, cs = 10) => {
   let [st, ed] = range;
   st = utils.get_n(st);
   ed = utils.get_n(ed);
   if (ed == "ed" || ed == null) ed = await get_ed_horse();
-  let cs = 10;
   console.log([st, ed]);
   for (let i = st; i <= ed; i += cs) {
     console.log(i, i + cs - 1);
@@ -459,12 +467,38 @@ const get_range_miss = async (range) => {
     let hids1 = await get_valid_hids_in_details(hids);
     let eval = _.difference(hids, hids1);
     if (!_.isEmpty(eval)) {
-      console.log(eval);
+      console.log("eval", eval.length);
       let resp = await add_hdocs(eval);
       eval = _.map(resp, "hid");
+      console.log("exists", eval.length);
       if (!_.isEmpty(eval)) await mega.only(eval);
     }
   }
+};
+
+const get_new_miss = async () => {
+  const rcs = 100;
+  let running = 0;
+  const cron_str = "0 */15 * * * *";
+  print_cron_details(cron_str);
+  const runner = async () => {
+    try {
+      if (running == 1) return console.log("ALREADY RUNNING >>>>>>");
+      running = 1;
+      let ed = (await get_ed_horse()) + 1000;
+      let st = ed - 50000;
+      console.log({ st, ed });
+      for (let i = ed; i >= st; i -= rcs) {
+        await get_range_miss([i, i + rcs], 1000);
+      }
+    } catch (err) {
+      console.log(err);
+    } finally {
+      running = 0;
+    }
+  };
+  await runner();
+  cron.schedule(cron_str, runner, cron_conf);
 };
 
 const fix_unnamed = async () => {
@@ -712,6 +746,9 @@ const main_runner = async () => {
   if (arg2 == "miss") {
     let aarg3 = JSON.parse(arg3) ?? [0];
     get_missings(aarg3);
+  }
+  if (arg2 == "new_miss") {
+    get_new_miss();
   }
   if (arg2 == "range_miss") {
     let aarg3 = JSON.parse(arg3) ?? [0];
