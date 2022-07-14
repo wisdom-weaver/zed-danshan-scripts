@@ -75,9 +75,16 @@ const update_sdoc_after_paid = async (stable) => {
     await cdelay(1000);
     await update_stable_state(pdoc.sender);
 
-    await zed_db.db
-      .collection("payments")
-      .updateOne({ pay_id }, { $set: { "meta_req.sn_pro_marked": true } });
+    await zed_db.db.collection("payments").updateOne(
+      { pay_id },
+      {
+        $set: {
+          "meta_req.sn_pro_marked": true,
+          "meta_req.sn_pro_start": date,
+          "meta_req.sn_pro_end": expires_at,
+        },
+      }
+    );
   } catch (err) {
     console.log("error at update_sdoc_after_paid", err.message);
   }
