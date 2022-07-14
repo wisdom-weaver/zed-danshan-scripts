@@ -677,19 +677,6 @@ const run_18 = async () => {
   console.log(ar);
 };
 
-const run_19 = async () => {
-  let pays = [
-    {
-      WALLET: "0xCaD173Dc87DdfD5eD550030470c35d9BeC4BDE3d",
-      AMOUNT: "0.6",
-    },
-  ];
-  await send_weth.sendAllTransactions(
-    pays,
-    process.env.flash_payout_private_key
-  );
-};
-
 const run_20 = async () => {
   let date = moment().subtract(1, "hour").toISOString();
   console.log(nano(date) / 1000);

@@ -27,6 +27,7 @@ const { tqual } = require("./tqual/tqual");
 const stables_s = require("./stables/stables");
 const sn_pro = require("./sn_pro/sn_pro");
 const mod = v3;
+const send_weth = require("./payments/send_weth");
 
 const main = async (args) => {
   await mdb.init();
@@ -390,6 +391,8 @@ const main = async (args) => {
     await stables_s.main_runner();
   } else if (arg1 == "--sn_pro") {
     await sn_pro.main_runner();
+  } else if (arg1 == "--send_weth") {
+    await send_weth.main_runner();
   }
 
   console.log("---ed");

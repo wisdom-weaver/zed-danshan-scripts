@@ -1,9 +1,10 @@
 // #!/usr/bin/env node --async-stack-traces
-
-require("dotenv").config();
 const Web3 = require("web3");
 const csv = require("csv-parser");
 const fs = require("fs");
+const { cdelay } = require("../utils/utils");
+
+require("dotenv").config();
 
 let minABI = [
   // transfer
@@ -110,8 +111,32 @@ async function sendAllTransactions(payments, privateKey) {
   return c;
 }
 
+const send_direct = async (wallet, amt) => {
+  let pays = [
+    {
+      WALLET: wallet,
+      AMOUNT: amt.toString(),
+    },
+  ];
+
+  console.log("send_direct");
+  console.log(pays);
+  console.log("waiting 10 seconds");
+  await cdelay(10 * 1000);
+  await sendAllTransactions(pays, process.env.flash_payout_private_key);
+};
+
+const main_runner = async () => {
+  console.log("--send_weth");
+  let [n, f, arg1, arg2, arg3, arg4, arg5] = process.argv;
+  if (arg2 == "direct") {
+    await send_direct(arg3, arg4);
+  }
+};
+
 const send_weth = {
   sendAllTransactions,
+  main_runner,
 };
 
 module.exports = send_weth;
