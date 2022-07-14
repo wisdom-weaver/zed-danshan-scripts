@@ -13,8 +13,8 @@ const fqstable = (stable) => ({ stable: { $regex: stable, $options: "i" } });
 
 const get_bod = (req) => ({ ...req.query, ...req.body, ...req.params });
 
-const subs_dur = [30, "minutes"];
-// const subs_dur = [30, 'days'];
+// const subs_dur = [30, "minutes"];
+const subs_dur = [30, 'days'];
 const mil = {
   month: 30 * 24 * 60 * 60 * 1000,
   days: 24 * 60 * 60 * 1000,
