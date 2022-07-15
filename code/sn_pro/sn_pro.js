@@ -14,7 +14,7 @@ const fqstable = (stable) => ({ stable: { $regex: stable, $options: "i" } });
 const get_bod = (req) => ({ ...req.query, ...req.body, ...req.params });
 
 // const subs_dur = [30, "minutes"];
-const subs_dur = [30, 'days'];
+const subs_dur = [30, "days"];
 const mil = {
   month: 30 * 24 * 60 * 60 * 1000,
   days: 24 * 60 * 60 * 1000,
@@ -23,11 +23,12 @@ const mil = {
 };
 const update_sdoc_after_paid = async (stable) => {
   try {
+    console.log("update_stable");
     let sdoc = await zed_db.db.collection("stables").findOne(fqstable(stable), {
-      projection: { _id: 0, stable: 1, sn_pro_txns: 1 },
+      projection: { _id: 0, stable: 1, sn_pro_txns: 1, last_renew: 1 },
     });
     if (_.isEmpty(sdoc)) throw new Error("no such stable");
-    let fmaxdate = moment().subtract(30, "minutes").toISOString();
+    let fmaxdate = null; //moment().subtract(30, "minutes").toISOString();
     let payids = sdoc.sn_pro_txns ?? [];
     if (_.isEmpty(payids)) return;
     let paids = await zed_db.db
@@ -36,18 +37,28 @@ const update_sdoc_after_paid = async (stable) => {
         {
           status_code: 1,
           pay_id: { $in: payids },
-          date: { $gte: fmaxdate },
+          ...(!_.isNil(sdoc?.last_renew)
+            ? { date: { $gt: sdoc.last_renew } }
+            : {}),
         },
         { projection: { _id: 0 } }
       )
       .limit(1)
       .toArray();
+
+    // console.table(paids);
+
     if (_.isEmpty(paids)) {
-      console.log("notpaid");
+      console.log("emp paids");
       return;
     }
     let pdoc = getv(paids, 0);
     let { date, pay_id } = pdoc;
+    if (pdoc.date == sdoc.last_renew) {
+      console.log("done already");
+      return;
+    }
+
     let last_renew = date;
     let expires_at = moment(last_renew)
       .add(...subs_dur)
@@ -87,6 +98,7 @@ const update_sdoc_after_paid = async (stable) => {
     );
   } catch (err) {
     console.log("error at update_sdoc_after_paid", err.message);
+    console.log(err);
   }
 };
 
@@ -222,10 +234,16 @@ const test = async () => {
 const main_runner = async () => {
   console.log("## sn_pro");
   let [n, f, a1, a2, a3, a4, a5] = process.argv;
+  console.log(process.argv);
+
   if (a2 == "test") await test();
   if (a2 == "runner") await txnchecker();
   if (a2 == "run_cron_txns") await run_cron_txns();
   if (a2 == "run_cron_stables") await run_cron_stables();
+  if (a2 == "update_stable") {
+    await update_sdoc_after_paid(a3);
+    await update_stable_state(a3);
+  }
 };
 
 const sn_pro = {
