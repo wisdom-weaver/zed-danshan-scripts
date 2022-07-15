@@ -211,6 +211,16 @@ const txnchecker = async () => {
   }
 };
 
+const check_new = async () => {
+  console.log("check_new");
+  let ss = await zed_db.db
+    .collection("stables")
+    .find({ profile_status: "new" }, { projection: { stable: 1 } })
+    .toArray();
+  ss = _.map(ss, "stable");
+  for (let stable of ss) await update_sdoc_after_paid(stable);
+};
+
 const run_cron_txns = async () => {
   // txns
   const cron_str0 = "*/15 * * * * *";
@@ -223,13 +233,13 @@ const run_cron_stables = async () => {
   const cron_str = "0 * * * * *";
   print_cron_details(cron_str);
   cron.schedule(cron_str, update_all_stables, cron_conf);
+
+  const cron_str1 = "0 */10 * * * *";
+  print_cron_details(cron_str1);
+  cron.schedule(cron_str, check_new, cron_conf);
 };
 
-const test = async () => {
-  console.log("test");
-  const stable = "0xc2014B17e2234ea18a50F292faEE29371126A3e0";
-  await update_stable_state(stable);
-};
+const test = async () => {};
 
 const main_runner = async () => {
   console.log("## sn_pro");
@@ -244,6 +254,7 @@ const main_runner = async () => {
     await update_sdoc_after_paid(a3);
     await update_stable_state(a3);
   }
+  if (a2 == "check_new") await check_new();
 };
 
 const sn_pro = {
