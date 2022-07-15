@@ -151,7 +151,7 @@ const update_all_stables = async () => {
   console.log("stables.len", stables.length);
 
   for (let chu of _.chunk(stables, 3))
-    await Promise.all(chu.map((e) => update_stable_state(e)));
+    await Promise.all(chu.map((e) => update_sdoc_after_paid(e)));
   console.log("ended");
 };
 
@@ -230,13 +230,10 @@ const run_cron_txns = async () => {
 
 const run_cron_stables = async () => {
   // stables
-  const cron_str = "0 * * * * *";
+  const cron_str = "0 */2 * * * *";
   print_cron_details(cron_str);
   cron.schedule(cron_str, update_all_stables, cron_conf);
 
-  const cron_str1 = "0 */10 * * * *";
-  print_cron_details(cron_str1);
-  cron.schedule(cron_str, check_new, cron_conf);
 };
 
 const test = async () => {};
