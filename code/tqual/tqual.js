@@ -320,7 +320,7 @@ const run_tid = async (tid) => {
       })
       .value();
 
-    ar = _.filter(ar, (e) => e.rank != 1e14);
+    ar = _.filter(ar, (e) => e.traces_n != 0);
 
     leaderboard[k] = ar;
     if (test_mode) console.table(leaderboard[k]);
