@@ -11,10 +11,33 @@ const { getv, nano, iso, cdelay } = require("../utils/utils");
 const { push_bulkc } = require("../utils/bulk");
 const { print_cron_details } = require("../utils/cyclic_dependency");
 const cron = require("node-cron");
+const horses_s = require("../v3/horses");
+const stables_s = require("../stables/stables");
 
 let test_mode = 0;
 const name = "hawku";
 const coll = "hawku";
+
+const print_bulk_resp = (resp, msg = "") => {
+  let ok = getv(resp, "ok");
+  let writeErrors = getv(resp, "writeErrors")?.length || 0;
+  let nInserted = getv(resp, "nInserted");
+  let nUpserted = getv(resp, "nUpserted");
+  let nMatched = getv(resp, "nMatched");
+  let nModified = getv(resp, "nModified");
+  let nRemoved = getv(resp, "nRemoved");
+  let str = "";
+  str += ok ? "ok " : "NOT OK";
+  if (ok) {
+    if (!_.isNil(nInserted)) str += nInserted + "I ";
+    if (!_.isNil(nUpserted)) str += nUpserted + "U ";
+    if (!_.isNil(nMatched)) str += nMatched + "M ";
+    if (!_.isNil(nModified)) str += nModified + "W ";
+    if (!_.isNil(nRemoved)) str += nRemoved + "R ";
+    if (!_.isNil(writeErrors)) str += writeErrors + "E";
+  }
+  console.log(msg, str);
+};
 
 const base = `https://api.hawku.com/api/v1/marketplace`;
 const asset_contract_address = `0x67F4732266C7300cca593C814d46bee72e40659F`;
@@ -111,6 +134,23 @@ const track_sales = async ([st, ed]) => {
   }
   return data;
 };
+const track_transfers = async ([st, ed]) => {
+  st = fX(st);
+  ed = fX(ed);
+  const par = {
+    asset_contract_address,
+    timestamp_start: st,
+    timestamp_end: ed,
+    // owner_address: `0xAf1320faA9a484a4702EC16fFEC18260Cc42c3c2`,
+  };
+  const resp = await hget(`${base}/transfers`, par);
+  let data = getv(resp, "data");
+  if (_.isEmpty(data)) {
+    console.log("transfers:: empty");
+    return [];
+  }
+  return data;
+};
 
 const get_bulk_actives = (actives) => {
   let bulk = [];
@@ -179,7 +219,6 @@ const get_bulk_events = (events) => {
     });
   return bulk;
 };
-
 const get_bulk_sales = (sales) => {
   let bulk = [];
   if (!_.isEmpty(sales))
@@ -201,12 +240,86 @@ const get_bulk_sales = (sales) => {
   return bulk;
 };
 
-const post_track = async ({ actives = [], events = [], sales = [] }) => {
+const struct_update_horse_stables_transfers = (ar) => {
+  ar = _.map(ar, (e) => {
+    let { transfered_at: transfer_date, token_id: hid, sender, receiver } = e;
+    transfer_date = iso(transfer_date * 1000);
+    return { hid, sender, receiver, transfer_date, owner: receiver };
+  });
+  return ar;
+};
+const struct_update_horse_stables_sales = (ar) => {
+  ar = _.map(ar, (e) => {
+    let { sold_at: transfer_date, token_id: hid, buyer, seller } = e;
+    transfer_date = iso(transfer_date * 1000);
+    return { hid, buyer, seller, transfer_date, owner: buyer };
+  });
+  return ar;
+};
+const update_horse_stables = async (ar) => {
+  if (_.isEmpty(ar)) return;
+  let now = iso();
+  // console.log(ar);
+  // ar = ar.slice(0, 1);
+
+  let stables = [
+    ..._.map(ar, "sender"),
+    ..._.map(ar, "receiver"),
+    ..._.map(ar, "buyer"),
+    ..._.map(ar, "seller"),
+    ..._.map(ar, "owner"),
+  ];
+  // console.log(stables);
+  let miss_stables = await stables_s.get_missing_stables_in(stables);
+  if (!_.isEmpty(miss_stables)) {
+    console.log("miss_stables.len", miss_stables.length);
+    await stables_s.run_stables(miss_stables);
+  }
+
+  let hids = _.map(ar, "hid");
+  let miss_hids = await horses_s.get_missing_hids_in(hids);
+  if (!_.isEmpty(miss_hids)) {
+    console.log("missing hids.len", miss_hids.length);
+    await horses_s.get_only(miss_hids);
+  }
+
+
+  if (!_.isEmpty(ar)) {
+    let resp = await zed_db.db.collection("horse_details").bulkWrite(
+      ar.map((e) => {
+        return {
+          updateOne: {
+            filter: {
+              hid: e.hid,
+              $or: [
+                { transfer_date: { $in: [null, "iso-err"] } },
+                { transfer_date: { $exists: false } },
+                { transfer_date: { $lt: e.transfer_date } },
+              ],
+            },
+            update: {
+              $set: { oid: e.owner, transfer_date: e.transfer_date },
+            },
+          },
+        };
+      })
+    );
+    print_bulk_resp(resp, "trans:");
+  }
+};
+
+const post_track = async ({
+  actives = [],
+  events = [],
+  sales = [],
+  transfers = [],
+}) => {
   let bulk = [];
   let now = fX(iso());
-  console.log("actives: ", actives.length);
-  console.log("events : ", events.length);
-  console.log("sales  : ", sales.length);
+  console.log("actives  : ", actives.length);
+  console.log("events   : ", events.length);
+  console.log("sales    : ", sales.length);
+  console.log("transfers: ", transfers.length);
   let bulk_actives = get_bulk_actives(actives);
   let bulk_events = get_bulk_events(events);
   let bulk_sales = get_bulk_sales(sales);
@@ -219,25 +332,14 @@ const post_track = async ({ actives = [], events = [], sales = [] }) => {
   let ref = zed_db.db.collection(coll);
   if (!_.isEmpty(bulk)) {
     let resp = await ref.bulkWrite(bulk);
-    let ok = getv(resp, "ok");
-    let writeErrors = getv(resp, "writeErrors")?.length || 0;
-    let nInserted = getv(resp, "nInserted");
-    let nUpserted = getv(resp, "nUpserted");
-    let nMatched = getv(resp, "nMatched");
-    let nModified = getv(resp, "nModified");
-    let nRemoved = getv(resp, "nRemoved");
-    let str = "";
-    str += ok ? "ok " : "NOT OK";
-    if (ok) {
-      if (!_.isNil(nInserted)) str += nInserted + "I ";
-      if (!_.isNil(nUpserted)) str += nUpserted + "U ";
-      if (!_.isNil(nMatched)) str += nMatched + "M ";
-      if (!_.isNil(nModified)) str += nModified + "% ";
-      if (!_.isNil(nRemoved)) str += nRemoved + "R ";
-      if (!_.isNil(writeErrors)) str += writeErrors + "E";
-    }
-    console.log(str);
+    print_bulk_resp(resp, "hawku write:");
   } else console.log("nothing to write");
+
+  let data_transfers = [
+    ...struct_update_horse_stables_sales(sales),
+    ...struct_update_horse_stables_transfers(transfers),
+  ];
+  await update_horse_stables(data_transfers);
 };
 
 const runner = async () => {
@@ -260,7 +362,8 @@ const run = async ([st, ed]) => {
     let actives = await track_active([iso(now_st), iso(now_ed)]);
     let events = await track_events([iso(now_st), iso(now_ed)]);
     let sales = await track_sales([iso(now_st), iso(now_ed)]);
-    await post_track({ actives, events, sales });
+    let transfers = await track_transfers([iso(now_st), iso(now_ed)]);
+    await post_track({ actives, events, sales, transfers });
     // console.table(actives);
     // console.table(events);
     // console.table(sales);
@@ -308,6 +411,13 @@ const fixer_cron = () => {
   cron.schedule(cron_str, () => fixer(40, "minutes"));
 };
 
+const test = async () => {
+  // let st = moment(1651436952 * 1000).toISOString();
+  // let ed = moment(1656707352 * 1000).toISOString();
+  let [st, ed] = ["2022-07-01T00:00:00.000Z", "2022-07-01T01:00:00.000Z"];
+  await run([st, ed]);
+};
+
 const main_runner = async () => {
   let args = process.argv;
   let [_node, _cfile, arg1, arg2, arg3, arg4, arg5] = args;
@@ -322,6 +432,7 @@ const main_runner = async () => {
     await fixer(dur, durunit);
   }
   if (arg2 == "fixer_cron") await fixer_cron();
+  if (arg2 == "test") await test();
 };
 
 const hawku = { main_runner, hget, base, fX };

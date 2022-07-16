@@ -30,11 +30,13 @@ const run_stable = async (stable) => {
     let hid = getv(e, "horse_id");
     return { hid, name };
   });
+  let hids = _.map(horses, "hid");
   let horses_n = horses.length;
   stable_doc = {
     ...stable_doc,
     horses_n,
-    horses,
+    // horses,
+    hids,
   };
   await zed_db.db
     .collection(coll)
@@ -45,6 +47,19 @@ const run_stable = async (stable) => {
     );
   console.log("done", horses_n, "horses");
   // return stable_doc;
+};
+
+const run_stables = async (stables) => {
+  i = 0;
+  for (let chu of _.chunk(stables, 5)) {
+    try {
+      await Promise.all(chu.map((stable) => run_stable(stable)));
+    } catch (err) {
+      console.log(err.message);
+    }
+    i += chu.length;
+    console.log("done", i);
+  }
 };
 
 const update_all_stables = async ([st, ed]) => {
@@ -82,6 +97,22 @@ const update_all_stables = async ([st, ed]) => {
   console.log("done all");
 };
 
+const get_missing_stables_in = async (stables) => {
+  stables = _.chain(stables)
+    .compact()
+    .filter((e) => e != "0x0000000000000000000000000000000000000000")
+    .map((e) => e.toLowerCase())
+    .uniq()
+    .value();
+  let exists = await zed_db.db
+    .collection("stables")
+    .find({ stable0: { $in: stables } }, { projection: { stable0: 1 } })
+    .toArray();
+  exists = _.map(exists, "stable0");
+  let diff = _.difference(stables, exists);
+  return diff;
+};
+
 const main_runner = async () => {
   let [_node, _cfile, arg1, arg2, arg3, arg4, arg5] = process.argv;
   console.log("stables");
@@ -95,5 +126,10 @@ const main_runner = async () => {
   if (arg2 == "test") await test();
 };
 
-const stables_s = { main_runner };
+const stables_s = {
+  main_runner,
+  get_missing_stables_in,
+  run_stable,
+  run_stables,
+};
 module.exports = stables_s;

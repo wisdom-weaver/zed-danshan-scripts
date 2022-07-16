@@ -710,6 +710,12 @@ const test = async (arg3) => {
   await v5.rating_breed.only(hids);
 };
 
+const get_missing_hids_in = async (hids) => {
+  let hext = await get_valid_hids_in_details(hids);
+  let diff = _.difference(hids, hext);
+  return diff;
+};
+
 const main_runner = async () => {
   console.log("--horses");
   let [n, f, arg1, arg2, arg3, arg4, arg5] = process.argv;
@@ -795,6 +801,7 @@ const horses = {
   fixer,
   struct_zed_hdoc,
   get_hdoc,
+  get_missing_hids_in,
   main_runner,
 };
 
