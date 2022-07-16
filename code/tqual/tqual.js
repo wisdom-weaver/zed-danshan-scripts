@@ -136,33 +136,34 @@ const normal_races_do = async (hid, tdoc, races) => {
 
   races = _.sortBy(races, (r) => -nano(r.date));
 
-  let races_ob = {};
-  races_ob["all"] = races.length ?? 0;
+  let racesn_ob = {};
+  racesn_ob["all"] = races.length ?? 0;
 
-  races_ob["10-14"] =
+  racesn_ob["10-14"] =
     _.filter(races, (r) => [1000, 1200, 1400].includes(parseInt(r.distance)))
       .length ?? 0;
-  races_ob["16-20"] =
+  racesn_ob["16-20"] =
     _.filter(races, (r) => [1600, 1800, 2000].includes(parseInt(r.distance)))
       .length ?? 0;
-  races_ob["22-26"] =
+  racesn_ob["22-26"] =
     _.filter(races, (r) => [2200, 2400, 2600].includes(parseInt(r.distance)))
       .length ?? 0;
 
   let tot_score = _.sumBy(races, "score");
   if ([NaN, undefined, null].includes(tot_score)) tot_score = 0;
-  let avg_score = (tot_score || 0) / (races_ob["all"] || 1);
+  let avg_score = (tot_score || 0) / (racesn_ob["all"] || 1);
 
   let races_map = _.clone(races).map((e) => {
     return { raceid: e.raceid, score: e.score };
   });
+  // races_map = races_map?.slice(0, 5);
 
   update_doc = {
     hid,
-    races_ob,
+    racesn_ob,
     tot_score,
     avg_score,
-    races_map,
+    // races_map,
   };
   return update_doc;
 };
@@ -177,20 +178,6 @@ const get_hdocs = async ({ tdoc, races }) => {
     hdocs[hid] = await normal_races_do(hid, tdoc, rs);
     if (test_mode) console.log(hdocs[hid]);
   }
-
-  let mode = tdoc.score_mode;
-  let type = tdoc.type;
-  let k =
-    (mode == "total" && "tot_score") || (mode == "avg" && "avg_score") || null;
-  console.log({ type, mode });
-
-  if (!k) return hdocs;
-  // hdocs = _.sortBy(hdocs, (i) => {
-  //   let val = Number(i[k]);
-  //   let n = Number(i["traces_n"]);
-  //   if (!n) return 1e14;
-  //   return [NaN, undefined, 0, null].includes(val) ? -n : -(val * 1000 + n);
-  // });
   return hdocs;
 };
 
@@ -305,6 +292,12 @@ const run_tid = async (tid) => {
   let hdocs = await get_hdocs({ tdoc, races });
   let lim = 5;
 
+  let mode = tdoc.score_mode;
+  let type = tdoc.type;
+  let scrk =
+    (mode == "total" && "tot_score") || (mode == "avg" && "avg_score") || null;
+  console.log({ type, mode });
+
   for (let [k, range] of [
     ["10-14", [1000, 1200, 1400]],
     ["16-20", [1600, 1800, 2000]],
@@ -315,10 +308,11 @@ const run_tid = async (tid) => {
       .clone()
       .map((e) => {
         let rank = null;
-        let traces_n = e.races_ob[k];
-        if (e[k] != 0 && traces_n >= lim) rank = ++i;
-        console.log("e.", k, e.hid, traces_n, rank);
-        return { ...e, rank, traces_n };
+        let { hid, racesn_ob, tot_score, avg_score } = e;
+        let traces_n = e.racesn_ob[k];
+        if (e[scrk] != 0 && traces_n >= lim) rank = ++i;
+        // console.log("e.", k, e.hid, traces_n, rank);
+        return { rank, hid, tot_score, avg_score, traces_n };
       })
       .sortBy(hdocs, (e) => {
         if (_.isNil(e.rank)) return 1e14;
@@ -346,10 +340,10 @@ const run_tid = async (tid) => {
   console.log(
     _.compact(
       hdocs.map((e) => {
-        if (e.races_ob["10-14"] < 5) return null;
-        if (e.races_ob["16-20"] < 5) return null;
-        if (e.races_ob["22-26"] < 5) return null;
-        return { hd: e.hid, ...e.races_ob };
+        if (e.racesn_ob["10-14"] < 5) return null;
+        if (e.racesn_ob["16-20"] < 5) return null;
+        if (e.racesn_ob["22-26"] < 5) return null;
+        return { hd: e.hid, ...e.racesn_ob };
       })
     )
   );
