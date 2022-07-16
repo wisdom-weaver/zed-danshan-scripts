@@ -283,7 +283,6 @@ const update_horse_stables = async (ar) => {
     await horses_s.get_only(miss_hids);
   }
 
-
   if (!_.isEmpty(ar)) {
     let resp = await zed_db.db.collection("horse_details").bulkWrite(
       ar.map((e) => {
@@ -396,7 +395,8 @@ const fixer = async (dur, durunit) => {
     let now_ed = Math.min(edn, now_st + off);
     // console.log(iso(now_st), iso(now_ed));
     let sales = await track_sales([iso(now_st), iso(now_ed)]);
-    await post_track({ actives: [], events: [], sales });
+    let transfers = await track_transfers([iso(now_st), iso(now_ed)]);
+    await post_track({ actives: [], events: [], sales, transfers });
     // console.table(actives);
     // console.table(events);
     // console.table(sales);
