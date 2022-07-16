@@ -320,6 +320,8 @@ const run_tid = async (tid) => {
       })
       .value();
 
+    ar = _.filter(ar, (e) => e.rank != 1e14);
+
     leaderboard[k] = ar;
     if (test_mode) console.table(leaderboard[k]);
     if (test_mode) console.log(leaderboard[k][0]);
@@ -337,16 +339,16 @@ const run_tid = async (tid) => {
   console.log("completed", tid);
   console.log("=======================\n\n");
 
-  console.log(
-    _.compact(
-      hdocs.map((e) => {
-        if (e.racesn_ob["10-14"] < 5) return null;
-        if (e.racesn_ob["16-20"] < 5) return null;
-        if (e.racesn_ob["22-26"] < 5) return null;
-        return { hd: e.hid, ...e.racesn_ob };
-      })
-    )
-  );
+  // console.log(
+  //   _.compact(
+  //     hdocs.map((e) => {
+  //       if (e.racesn_ob["10-14"] < 5) return null;
+  //       if (e.racesn_ob["16-20"] < 5) return null;
+  //       if (e.racesn_ob["22-26"] < 5) return null;
+  //       return { hd: e.hid, ...e.racesn_ob };
+  //     })
+  //   )
+  // );
 };
 
 const status_updater = async () => {
