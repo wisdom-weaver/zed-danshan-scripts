@@ -303,24 +303,27 @@ const run_tid = async (tid) => {
     ["16-20", [1600, 1800, 2000]],
     ["22-26", [2200, 2400, 2600]],
   ]) {
-    let i = 0;
     let ar = _.chain(hdocs)
       .clone()
       .map((e) => {
-        let rank = null;
         let { hid, racesn_ob, tot_score, avg_score } = e;
         let traces_n = e.racesn_ob[k];
-        if (e[scrk] != 0 && traces_n >= lim) rank = ++i;
-        // console.log("e.", k, e.hid, traces_n, rank);
-        return { rank, hid, tot_score, avg_score, traces_n };
+        return { hid, tot_score, avg_score, traces_n };
       })
-      .sortBy(hdocs, (e) => {
-        if (_.isNil(e.rank)) return 1e14;
-        return _.toNumber(e.rank);
+      .filter((e) => e.traces_n != 0)
+      .sortBy((e) => {
+        if (e.traces_n < lim) return 1e5 - e[scrk];
+        return -parseFloat(e[scrk]);
       })
       .value();
 
-    ar = _.filter(ar, (e) => e.traces_n != 0);
+    let i = 0;
+    ar = _.map(ar, (e) => {
+      let rank;
+      if (e.traces_n < lim) rank = null;
+      else rank = ++i;
+      return { ...e, rank };
+    }).value();
 
     leaderboard[k] = ar;
     if (test_mode) console.table(leaderboard[k]);
