@@ -136,10 +136,22 @@ const normal_races_do = async (hid, tdoc, races) => {
 
   races = _.sortBy(races, (r) => -nano(r.date));
 
-  let traces_n = races.length;
+  let races_ob = {};
+  races_ob["all"] = races.length ?? 0;
+
+  races_ob["10-14"] =
+    _.filter(races, (r) => [1000, 1200, 1400].includes(parseInt(r.distance)))
+      .length ?? 0;
+  races_ob["16-20"] = _.filter(races, (r) =>
+    [1600, 1800, 2000].includes(parseInt(r.distance))
+  );
+  races_ob["22-26"] =
+    _.filter(races, (r) => [2200, 2400, 2600].includes(parseInt(r.distance)))
+      .length ?? 0;
+
   let tot_score = _.sumBy(races, "score");
   if ([NaN, undefined, null].includes(tot_score)) tot_score = 0;
-  let avg_score = (tot_score || 0) / (traces_n || 1);
+  let avg_score = (tot_score || 0) / (races_ob["all"] || 1);
 
   let races_map = _.clone(races).map((e) => {
     return { raceid: e.raceid, score: e.score };
@@ -147,7 +159,7 @@ const normal_races_do = async (hid, tdoc, races) => {
 
   update_doc = {
     hid,
-    traces_n,
+    races_ob,
     tot_score,
     avg_score,
     races_map,
@@ -155,7 +167,7 @@ const normal_races_do = async (hid, tdoc, races) => {
   return update_doc;
 };
 
-const eval_leaderboard = async ({ tdoc, races }) => {
+const get_hdocs = async ({ tdoc, races }) => {
   if (_.isEmpty(races)) return [];
   let group = _.groupBy(races, "hid");
   let hdocs = {};
@@ -170,27 +182,15 @@ const eval_leaderboard = async ({ tdoc, races }) => {
   let type = tdoc.type;
   let k =
     (mode == "total" && "tot_score") || (mode == "avg" && "avg_score") || null;
-  let lim = 5;
-  console.log({ type, mode, lim });
+  console.log({ type, mode });
 
   if (!k) return hdocs;
-  hdocs = _.sortBy(hdocs, (i) => {
-    let val = Number(i[k]);
-    let n = Number(i["traces_n"]);
-    if (!n) return 1e14;
-    return [NaN, undefined, 0, null].includes(val) ? -n : -(val * 1000 + n);
-  });
-  let i = 0;
-  hdocs = _.map(hdocs, (e) => {
-    let rank = null;
-    if (e[k] != 0 && e.traces_n >= lim) rank = ++i;
-    return { ...e, rank };
-  });
-  hdocs = _.sortBy(hdocs, (e) => {
-    if (_.isNil(e.rank)) return 1e14;
-    return _.toNumber(e.rank);
-  });
-
+  // hdocs = _.sortBy(hdocs, (i) => {
+  //   let val = Number(i[k]);
+  //   let n = Number(i["traces_n"]);
+  //   if (!n) return 1e14;
+  //   return [NaN, undefined, 0, null].includes(val) ? -n : -(val * 1000 + n);
+  // });
   return hdocs;
 };
 
@@ -302,17 +302,27 @@ const run_tid = async (tid) => {
     "22-26": [],
   };
 
+  let hdocs = await get_hdocs({ tdoc, races });
+  let lim = 5;
+
   for (let [k, range] of [
     ["10-14", [1000, 1200, 1400]],
     ["16-20", [1600, 1800, 2000]],
     ["22-26", [2200, 2400, 2600]],
   ]) {
-    let filt = _.filter(races, (e) => range.includes(parseInt(e.distance)));
-    console.log("leaderboard", { k, range }, filt.length, "races");
-    leaderboard[k] = await eval_leaderboard({
-      tdoc,
-      races: filt,
+    let i = 0;
+    let ar = _.map(hdocs, (e) => {
+      let rank = null;
+      let traces_n = e.races_ob[k];
+      if (e[k] != 0 && traces_n >= lim) rank = ++i;
+      return { ...e, rank, traces_n };
     });
+    ar = _.sortBy(hdocs, (e) => {
+      if (_.isNil(e.rank)) return 1e14;
+      return _.toNumber(e.rank);
+    });
+
+    leaderboard[k] = ar;
     if (test_mode) console.table(leaderboard[k]);
     if (test_mode) console.log(leaderboard[k][0]);
   }
@@ -323,9 +333,9 @@ const run_tid = async (tid) => {
   ];
 
   console.log("hids.len", hids.length);
-  const stable_map = await get_stable_map(hids);
+  // const stable_map = await get_stable_map(hids);
 
-  await tcoll_ref.updateOne({ tid }, { $set: { leaderboard, stable_map } });
+  // await tcoll_ref.updateOne({ tid }, { $set: { leaderboard, stable_map } });
   console.log("completed", tid);
   console.log("=======================\n\n");
 };
