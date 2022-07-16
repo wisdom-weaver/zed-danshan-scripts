@@ -343,16 +343,16 @@ const run_tid = async (tid) => {
   console.log("completed", tid);
   console.log("=======================\n\n");
 
-  // console.log(
-  //   _.compact(
-  //     hdocs.map((e) => {
-  //       if (e.races_ob["10-14"] < 5) return null;
-  //       if (e.races_ob["16-20"] < 5) return null;
-  //       if (e.races_ob["22-26"] < 5) return null;
-  //       return { hd: e.hid, ...e.races_ob };
-  //     })
-  //   )
-  // );
+  console.log(
+    _.compact(
+      hdocs.map((e) => {
+        if (e.races_ob["10-14"] < 5) return null;
+        if (e.races_ob["16-20"] < 5) return null;
+        if (e.races_ob["22-26"] < 5) return null;
+        return { hd: e.hid, ...e.races_ob };
+      })
+    )
+  );
 };
 
 const status_updater = async () => {
