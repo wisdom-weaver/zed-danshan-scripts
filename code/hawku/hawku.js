@@ -135,6 +135,7 @@ const track_sales = async ([st, ed]) => {
   return data;
 };
 const track_transfers = async ([st, ed]) => {
+  st = moment(st).add(-5, "minutes").toISOString();
   st = fX(st);
   ed = fX(ed);
   const par = {
@@ -293,7 +294,12 @@ const update_horse_stables = async (ar) => {
               $or: [
                 { transfer_date: { $in: [null, "iso-err"] } },
                 { transfer_date: { $exists: false } },
-                { transfer_date: { $lt: e.transfer_date } },
+                {
+                  transfer_date: {
+                    $lt: e.transfer_date,
+                  },
+                  oid: { $regex: e.owner, $options: "i" },
+                },
               ],
             },
             update: {
@@ -396,6 +402,7 @@ const fixer = async (dur, durunit) => {
     // console.log(iso(now_st), iso(now_ed));
     let sales = await track_sales([iso(now_st), iso(now_ed)]);
     let transfers = await track_transfers([iso(now_st), iso(now_ed)]);
+    console.table(transfers);
     await post_track({ actives: [], events: [], sales, transfers });
     // console.table(actives);
     // console.table(events);
