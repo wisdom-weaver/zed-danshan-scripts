@@ -142,9 +142,9 @@ const normal_races_do = async (hid, tdoc, races) => {
   races_ob["10-14"] =
     _.filter(races, (r) => [1000, 1200, 1400].includes(parseInt(r.distance)))
       .length ?? 0;
-  races_ob["16-20"] = _.filter(races, (r) =>
-    [1600, 1800, 2000].includes(parseInt(r.distance))
-  );
+  races_ob["16-20"] =
+    _.filter(races, (r) => [1600, 1800, 2000].includes(parseInt(r.distance)))
+      .length ?? 0;
   races_ob["22-26"] =
     _.filter(races, (r) => [2200, 2400, 2600].includes(parseInt(r.distance)))
       .length ?? 0;
@@ -311,16 +311,20 @@ const run_tid = async (tid) => {
     ["22-26", [2200, 2400, 2600]],
   ]) {
     let i = 0;
-    let ar = _.map(hdocs, (e) => {
-      let rank = null;
-      let traces_n = e.races_ob[k];
-      if (e[k] != 0 && traces_n >= lim) rank = ++i;
-      return { ...e, rank, traces_n };
-    });
-    ar = _.sortBy(hdocs, (e) => {
-      if (_.isNil(e.rank)) return 1e14;
-      return _.toNumber(e.rank);
-    });
+    let ar = _.chain(hdocs)
+      .clone()
+      .map((e) => {
+        let rank = null;
+        let traces_n = e.races_ob[k];
+        if (e[k] != 0 && traces_n >= lim) rank = ++i;
+        console.log("e.", k, e.hid, traces_n, rank);
+        return { ...e, rank, traces_n };
+      })
+      .sortBy(hdocs, (e) => {
+        if (_.isNil(e.rank)) return 1e14;
+        return _.toNumber(e.rank);
+      })
+      .value();
 
     leaderboard[k] = ar;
     if (test_mode) console.table(leaderboard[k]);
@@ -338,6 +342,17 @@ const run_tid = async (tid) => {
   await tcoll_ref.updateOne({ tid }, { $set: { leaderboard, stable_map } });
   console.log("completed", tid);
   console.log("=======================\n\n");
+
+  // console.log(
+  //   _.compact(
+  //     hdocs.map((e) => {
+  //       if (e.races_ob["10-14"] < 5) return null;
+  //       if (e.races_ob["16-20"] < 5) return null;
+  //       if (e.races_ob["22-26"] < 5) return null;
+  //       return { hd: e.hid, ...e.races_ob };
+  //     })
+  //   )
+  // );
 };
 
 const status_updater = async () => {
