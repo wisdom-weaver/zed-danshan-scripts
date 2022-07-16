@@ -323,7 +323,7 @@ const run_tid = async (tid) => {
       if (e.traces_n < lim) rank = null;
       else rank = ++i;
       return { ...e, rank };
-    }).value();
+    });
 
     leaderboard[k] = ar;
     if (test_mode) console.table(leaderboard[k]);
