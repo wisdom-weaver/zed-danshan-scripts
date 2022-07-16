@@ -413,9 +413,9 @@ const fixer = async (dur, durunit) => {
 };
 
 const fixer_cron = () => {
-  const cron_str = "*/30 * * * *";
+  const cron_str = "*/15 * * * *";
   print_cron_details(cron_str);
-  cron.schedule(cron_str, () => fixer(40, "minutes"));
+  cron.schedule(cron_str, () => fixer(20, "minutes"));
 };
 
 const test = async () => {
