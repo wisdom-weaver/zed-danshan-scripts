@@ -247,9 +247,13 @@ const run_tid = async (tid) => {
   let tclass_type = getv(tdoc, `race_cr.tclasstype`) || [];
 
   if (tclass_type.includes("c0")) rquery = { 5: { $in: [0] } };
-  if (tclass_type.includes("free-all")) rquery = { 3: { $eq: "0.0" } };
-  if (tclass_type.includes("paid-all")) rquery = { 3: { $ne: "0.0" } };
+  if (tclass_type.includes("free-all"))
+    rquery = { 3: { $eq: "0.0" }, 5: { $ne: 99 } };
+  if (tclass_type.includes("paid-all"))
+    rquery = { 3: { $ne: "0.0" }, 5: { $ne: 99 } };
   if (tclass_type.includes("open")) rquery = { 5: { $in: [1000] } };
+
+  rquery;
 
   let rar = [];
   const use_cached_rids = false;
