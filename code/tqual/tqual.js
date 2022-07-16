@@ -333,7 +333,7 @@ const run_tid = async (tid) => {
   ];
 
   console.log("hids.len", hids.length);
-  // const stable_map = await get_stable_map(hids);
+  const stable_map = await get_stable_map(hids);
 
   await tcoll_ref.updateOne({ tid }, { $set: { leaderboard, stable_map } });
   console.log("completed", tid);
