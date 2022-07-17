@@ -48,7 +48,6 @@ const base_events = `${base}/listing-events`;
 const base_active = `${base}/active-listings`;
 const base_sales = `${base}/sales`;
 const head = { "X-HAWKU-TOKEN": process.env.hawku_token };
-// timestamp_start=1651436952&timestamp_end=1653164952&offset=500&
 
 const hget = async (base_ap, par) => {
   const se = qs.stringify(par);
@@ -265,8 +264,8 @@ const update_horse_stables = async (ar) => {
   if (!_.isEmpty(ar)) {
     let now = iso();
     // ar = ar.slice(0, 1);
-    // ar = _.filter(ar, (e) => e.hid == 441620);
-    // console.log(ar);
+    // ar = _.filter(ar, (e) => e.hid == 379054);
+    // console.table(ar);
 
     let stables = [
       ..._.map(ar, "sender"),
@@ -349,11 +348,13 @@ const post_track = async ({
     let resp = await ref.bulkWrite(bulk);
     print_bulk_resp(resp, "hawku write:");
   } else console.log("nothing to write");
-
+  
   let data_transfers = [
     ...struct_update_horse_stables_sales(sales),
     ...struct_update_horse_stables_transfers(transfers),
   ];
+  // console.log(data_transfers)
+  
   await update_horse_stables(data_transfers);
 };
 

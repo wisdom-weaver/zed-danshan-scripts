@@ -535,6 +535,28 @@ const get_owner_horses_zed = async ({ oid, offset = 0 }) => {
   if (!_.isEmpty(afters)) ar = [...ar, ...afters];
   return ar;
 };
+
+const print_bulk_resp = (resp, msg = "") => {
+  let ok = getv(resp, "ok");
+  let writeErrors = getv(resp, "writeErrors")?.length || 0;
+  let nInserted = getv(resp, "nInserted");
+  let nUpserted = getv(resp, "nUpserted");
+  let nMatched = getv(resp, "nMatched");
+  let nModified = getv(resp, "nModified");
+  let nRemoved = getv(resp, "nRemoved");
+  let str = "";
+  str += ok ? "ok " : "NOT OK";
+  if (ok) {
+    if (!_.isNil(nInserted)) str += nInserted + "I ";
+    if (!_.isNil(nUpserted)) str += nUpserted + "U ";
+    if (!_.isNil(nMatched)) str += nMatched + "M ";
+    if (!_.isNil(nModified)) str += nModified + "W ";
+    if (!_.isNil(nRemoved)) str += nRemoved + "R ";
+    if (!_.isNil(writeErrors)) str += writeErrors + "E";
+  }
+  console.log(msg, str);
+};
+
 const cyclic_depedency = {
   get_races_of_hid,
   from_ch_zed_collection,
@@ -570,6 +592,7 @@ const cyclic_depedency = {
   get_hdoc_hhh,
   speed_dist_factor,
   get_owner_horses_zed,
+  print_bulk_resp,
 };
 
 module.exports = cyclic_depedency;

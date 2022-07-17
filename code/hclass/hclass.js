@@ -7,6 +7,8 @@ const { print_cron_details } = require("../utils/cyclic_dependency");
 const cron = require("node-cron");
 const red = require("../connection/redis");
 const axios = require("axios");
+const zedf = require("../utils/zedf");
+const bulk = require("../utils/bulk");
 
 let test_mode = 0;
 const zed_gql = "https://zed-ql.zed.run/graphql/getRaceResults";
@@ -27,10 +29,8 @@ const get_zed_raw_data = async (from, to, cursor, lim = 100) => {
     edges {
       cursor
       node {
-        raceId
         horses {
           horseId
-          class
         }
       }
     }
@@ -61,21 +61,47 @@ const get_zed_raw_data = async (from, to, cursor, lim = 100) => {
       data: JSON.stringify(payload),
     };
     let result = await axios(axios_config);
-    console.log(result.data.data);
+    // console.log(result.data.data);
     let data = result?.data?.data?.getRaceResults || {};
     let edges = data?.edges || [];
     let pageInfo = data?.pageInfo || {};
-    return { racesData: edges, pageInfo };
+    let racesData = [];
+    for (let e of edges) {
+      // let rid = getv(e, "node.raceId");
+      // let date = getv(e, "node.startTime");
+      let ar = getv(e, "node.horses");
+      // console.log({ rid, date });
+      for (let h of ar) {
+        let { horseId: hid } = h;
+        // console.log({ hid, tc });
+        racesData.push({ hid });
+      }
+    }
+    return { racesData, pageInfo };
   } catch (err) {
     console.log(err.message);
     throw new Error(err.message);
   }
 };
 
-const watch_classes = async ([st, ed]) => {
-  st = iso(st);
-  ed = iso(ed);
-  console.log([st, ed]);
+const watch_classes = async (rdata) => {
+  let hids = _.map(rdata, "hid");
+  hids = _.uniq(hids);
+  console.log("getting", hids.length);
+  for (let chu of _.chunk(hids, 50)) {
+    try {
+      let eaar = _.chunk(chu, 10);
+      let ar = await Promise.all(eaar.map((hs) => zedf.horses(hs)));
+      ar = _.flatten(ar);
+      ar = _.map(ar, (e) => {
+        return { hid: e.horse_id, tc: e.class };
+      });
+      await bulk.push_bulkc("horse_details", ar, "class_update", "hid");
+      await cdelay(1000);
+    } catch (err) {
+      console.log(err.message);
+    }
+  }
 };
 
 const run = async ([st, ed]) => {
@@ -85,14 +111,19 @@ const run = async ([st, ed]) => {
   let off = 60 * utils.mt;
   let cursor = null;
   do {
-    let resp = await get_zed_raw_data(st, ed, cursor);
-    console.log(resp);
-    await cdelay(10000);
+    let resp = await get_zed_raw_data(st, ed, cursor, 50);
+    cursor = getv(resp, "pageInfo.endCursor");
+    console.log("rdata:", resp.racesData?.length);
+    let hasNextPage = getv(resp, "pageInfo.hasNextPage");
+    if (!hasNextPage) break;
+    await watch_classes(resp.racesData);
+    await cdelay(2000);
   } while (true);
 };
 
 const runner = async () => {
-  let st = moment().add(-15, "minutes").toISOString();
+  console.log("runner started");
+  let st = moment().add(-5, "minutes").toISOString();
   let ed = moment().add(-4, "minutes").toISOString();
   await run([st, ed]);
 };
@@ -118,20 +149,6 @@ const fixer = async (mode, arg) => {
   console.log(iso(st), "->", iso(ed));
   let now = nano(st);
   let edn = nano(ed);
-  let off = 6 * 60 * utils.mt;
-  while (now < edn) {
-    let now_st = nano(now);
-    let now_ed = Math.min(edn, now_st + off);
-    // console.log(iso(now_st), iso(now_ed));
-    let sales = await track_sales([iso(now_st), iso(now_ed)]);
-    let transfers = await track_transfers([iso(now_st), iso(now_ed)]);
-    await post_track({ actives: [], events: [], sales, transfers });
-    // console.table(actives);
-    // console.table(events);
-    // console.table(sales);
-    await cdelay(1000);
-    now += off;
-  }
 };
 
 const fixer_cron = async () => {

@@ -20,7 +20,7 @@ const get = (api, auth = 0) => {
       return response.body;
     })
     .catch((err) => {
-      // console.log(err.response.text);
+      console.log("z fget err", err.response.text);
       return null;
     });
 };
