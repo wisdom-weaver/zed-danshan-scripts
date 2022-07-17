@@ -406,7 +406,7 @@ const fixer = async (mode, arg) => {
     let [dur, durunit] = arg;
     console.log({ dur, durunit });
     ed = moment().toISOString();
-    st = moment().subtract(dur, durunit).toISOString();
+    st = moment().subtract(parseInt(dur), durunit).toISOString();
   } else if (mode == "dates") {
     st = moment(arg[0]).toISOString();
     ed = moment(arg[1]).toISOString();
@@ -457,8 +457,8 @@ const main_runner = async () => {
   if (arg2 == "fixer") {
     console.log(args);
     let mode = getv(args, "4");
-    let dur = parseInt(getv(args, "5") ?? 1) || 1;
-    let durunit = getv(args, "6") ?? "days";
+    let dur = getv(args, "5");
+    let durunit = getv(args, "6");
     await fixer(mode, [dur, durunit]);
   }
   if (arg2 == "fixer_cron") await fixer_cron();
