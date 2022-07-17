@@ -13,10 +13,13 @@ const { print_cron_details } = require("../utils/cyclic_dependency");
 const cron = require("node-cron");
 const horses_s = require("../v3/horses");
 const stables_s = require("../stables/stables");
+const red = require("../connection/redis");
 
 let test_mode = 0;
 const name = "hawku";
 const coll = "hawku";
+
+let new_hids = [];
 
 const print_bulk_resp = (resp, msg = "") => {
   let ok = getv(resp, "ok");
@@ -283,7 +286,7 @@ const update_horse_stables = async (ar) => {
   let miss_hids = await horses_s.get_missing_hids_in(hids);
   if (!_.isEmpty(miss_hids)) {
     console.log("missing hids.len", miss_hids.length);
-    await horses_s.get_only(miss_hids);
+    new_hids = _.uniq([...new_hids, ...miss_hids]);
   }
 
   if (!_.isEmpty(ar)) {
@@ -309,6 +312,15 @@ const update_horse_stables = async (ar) => {
     );
     print_bulk_resp(resp, "trans:");
   }
+
+  if (!_.isEmpty(new_hids)) {
+    console.log("reeval new_hids", new_hids.length);
+    let done_hids = await horses_s.get_only(new_hids);
+    console.log("done_hids.len", done_hids);
+    new_hids = _.difference(new_hids, done_hids);
+    console.log("left new_hids", new_hids.length);
+  }
+  await red.rset("hawku::new_hids", new_hids, 1e14);
 };
 
 const post_track = async ({
@@ -430,6 +442,7 @@ const test = async () => {
 };
 
 const main_runner = async () => {
+  new_hids = (await red.rget("hawku::new_hids", new_hids, 1e14)) || [];
   let args = process.argv;
   let [_node, _cfile, arg1, arg2, arg3, arg4, arg5] = args;
   if (arg2 == "runner") await runner();
