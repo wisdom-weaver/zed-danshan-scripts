@@ -261,8 +261,8 @@ const update_horse_stables = async (ar) => {
   if (_.isEmpty(ar)) return;
   let now = iso();
   // ar = ar.slice(0, 1);
-  ar = _.filter(ar, (e) => e.hid == 441620);
-  console.log(ar);
+  // ar = _.filter(ar, (e) => e.hid == 441620);
+  // console.log(ar);
 
   let stables = [
     ..._.map(ar, "sender"),
