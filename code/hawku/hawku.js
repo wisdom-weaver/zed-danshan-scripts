@@ -358,6 +358,7 @@ const post_track = async ({
 };
 
 const runner = async () => {
+  new_hids = (await red.rget("hawku::new_hids", new_hids, 1e14)) || [];
   let st = moment().add(-1, "minutes").toISOString();
   let ed = moment().add(0, "minutes").toISOString();
   await run([st, ed]);
