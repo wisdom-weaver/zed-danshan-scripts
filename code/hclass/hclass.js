@@ -111,13 +111,17 @@ const run = async ([st, ed]) => {
   let off = 60 * utils.mt;
   let cursor = null;
   do {
-    let resp = await get_zed_raw_data(st, ed, cursor, 50);
-    cursor = getv(resp, "pageInfo.endCursor");
-    console.log("rdata:", resp.racesData?.length);
-    let hasNextPage = getv(resp, "pageInfo.hasNextPage");
-    if (!hasNextPage) break;
-    await watch_classes(resp.racesData);
-    await cdelay(2000);
+    try {
+      let resp = await get_zed_raw_data(st, ed, cursor, 50);
+      cursor = getv(resp, "pageInfo.endCursor");
+      console.log("rdata:", resp.racesData?.length);
+      await watch_classes(resp.racesData);
+      let hasNextPage = getv(resp, "pageInfo.hasNextPage");
+      if (!hasNextPage) break;
+      await cdelay(2000);
+    } catch (err) {
+      console.log("err", err.message);
+    }
   } while (true);
 };
 
