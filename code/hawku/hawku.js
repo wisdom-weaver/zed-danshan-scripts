@@ -262,57 +262,57 @@ const struct_update_horse_stables_sales = (ar) => {
   return ar;
 };
 const update_horse_stables = async (ar) => {
-  if (_.isEmpty(ar)) return;
-  let now = iso();
-  // ar = ar.slice(0, 1);
-  // ar = _.filter(ar, (e) => e.hid == 441620);
-  // console.log(ar);
-
-  let stables = [
-    ..._.map(ar, "sender"),
-    ..._.map(ar, "receiver"),
-    ..._.map(ar, "buyer"),
-    ..._.map(ar, "seller"),
-    ..._.map(ar, "owner"),
-  ];
-  // console.log(stables);
-  let miss_stables = await stables_s.get_missing_stables_in(stables);
-  if (!_.isEmpty(miss_stables)) {
-    console.log("miss_stables.len", miss_stables.length);
-    await stables_s.run_stables(miss_stables);
-  }
-
-  let hids = _.map(ar, "hid");
-  let miss_hids = await horses_s.get_missing_hids_in(hids);
-  if (!_.isEmpty(miss_hids)) {
-    console.log("missing hids.len", miss_hids.length);
-    new_hids = _.uniq([...new_hids, ...miss_hids]);
-  }
-
   if (!_.isEmpty(ar)) {
-    let resp = await zed_db.db.collection("horse_details").bulkWrite(
-      ar.map((e) => {
-        return {
-          updateOne: {
-            filter: {
-              hid: e.hid,
-              $or: [
-                { transfer_date: { $in: [null, "iso-err"] } },
-                { transfer_date: { $exists: false } },
-                { transfer_date: { $lt: e.transfer_date } },
-                { oid: { $ne: e.owner } },
-              ],
-            },
-            update: {
-              $set: { oid: e.owner, transfer_date: e.transfer_date },
-            },
-          },
-        };
-      })
-    );
-    print_bulk_resp(resp, "trans:");
-  }
+    let now = iso();
+    // ar = ar.slice(0, 1);
+    // ar = _.filter(ar, (e) => e.hid == 441620);
+    // console.log(ar);
 
+    let stables = [
+      ..._.map(ar, "sender"),
+      ..._.map(ar, "receiver"),
+      ..._.map(ar, "buyer"),
+      ..._.map(ar, "seller"),
+      ..._.map(ar, "owner"),
+    ];
+    // console.log(stables);
+    let miss_stables = await stables_s.get_missing_stables_in(stables);
+    if (!_.isEmpty(miss_stables)) {
+      console.log("miss_stables.len", miss_stables.length);
+      await stables_s.run_stables(miss_stables);
+    }
+
+    let hids = _.map(ar, "hid");
+    let miss_hids = await horses_s.get_missing_hids_in(hids);
+    if (!_.isEmpty(miss_hids)) {
+      console.log("missing hids.len", miss_hids.length);
+      new_hids = _.uniq([...new_hids, ...miss_hids]);
+    }
+
+    if (!_.isEmpty(ar)) {
+      let resp = await zed_db.db.collection("horse_details").bulkWrite(
+        ar.map((e) => {
+          return {
+            updateOne: {
+              filter: {
+                hid: e.hid,
+                $or: [
+                  { transfer_date: { $in: [null, "iso-err"] } },
+                  { transfer_date: { $exists: false } },
+                  { transfer_date: { $lt: e.transfer_date } },
+                  { oid: { $ne: e.owner } },
+                ],
+              },
+              update: {
+                $set: { oid: e.owner, transfer_date: e.transfer_date },
+              },
+            },
+          };
+        })
+      );
+      print_bulk_resp(resp, "trans:");
+    }
+  }
   if (!_.isEmpty(new_hids)) {
     console.log("reeval new_hids", new_hids.length);
     let done_hids = await horses_s.get_only(new_hids);
@@ -453,7 +453,7 @@ const main_runner = async () => {
   if (arg2 == "run_cron") await run_cron();
   if (arg2 == "clear") await clear();
   if (arg2 == "fixer") {
-    console.log(args)
+    console.log(args);
     let mode = getv(args, "4");
     let dur = parseInt(getv(args, "5") ?? 1) || 1;
     let durunit = getv(args, "6") ?? "days";
