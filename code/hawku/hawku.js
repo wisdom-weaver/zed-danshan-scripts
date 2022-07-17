@@ -400,6 +400,7 @@ const clear = async () => {
 
 const fixer = async (mode, arg) => {
   let st, ed;
+  console.log("fixer ", mode, arg);
   if (mode == "dur") {
     let [dur, durunit] = arg;
     console.log({ dur, durunit });
