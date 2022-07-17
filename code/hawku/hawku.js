@@ -445,7 +445,7 @@ const test = async () => {
 
 const main_runner = async () => {
   new_hids = (await red.rget("hawku::new_hids", new_hids, 1e14)) || [];
-  console.log("newhids.len", new_hids.length);
+  console.log("from prev newhids.len", new_hids.length);
 
   let args = process.argv;
   let [_node, _cfile, arg1, arg2, arg3, arg4, arg5] = args;
