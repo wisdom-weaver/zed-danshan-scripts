@@ -133,7 +133,7 @@ const runner = async () => {
 };
 
 const run_cron = async () => {
-  const cron_str = "*/30 * * * * *";
+  const cron_str = "*/50 * * * * *";
   print_cron_details(cron_str);
   cron.schedule(cron_str, runner);
 };
