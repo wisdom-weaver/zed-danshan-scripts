@@ -135,7 +135,7 @@ const track_sales = async ([st, ed]) => {
   return data;
 };
 const track_transfers = async ([st, ed]) => {
-  st = moment(st).add(-5, "minutes").toISOString();
+  st = moment(st).add(-2, "minutes").toISOString();
   st = fX(st);
   ed = fX(ed);
   const par = {
@@ -260,8 +260,9 @@ const struct_update_horse_stables_sales = (ar) => {
 const update_horse_stables = async (ar) => {
   if (_.isEmpty(ar)) return;
   let now = iso();
-  // console.log(ar);
   // ar = ar.slice(0, 1);
+  ar = _.filter(ar, (e) => e.hid == 441620);
+  console.log(ar);
 
   let stables = [
     ..._.map(ar, "sender"),
@@ -294,12 +295,8 @@ const update_horse_stables = async (ar) => {
               $or: [
                 { transfer_date: { $in: [null, "iso-err"] } },
                 { transfer_date: { $exists: false } },
-                {
-                  transfer_date: {
-                    $lt: e.transfer_date,
-                  },
-                  oid: { $regex: e.owner, $options: "i" },
-                },
+                { transfer_date: { $lt: e.transfer_date } },
+                { oid: { $ne: e.owner } },
               ],
             },
             update: {
@@ -388,10 +385,17 @@ const clear = async () => {
   console.log("cleared");
 };
 
-const fixer = async (dur, durunit) => {
-  console.log({ dur, durunit });
-  let ed = moment().toISOString();
-  let st = moment().subtract(dur, durunit).toISOString();
+const fixer = async (mode, arg) => {
+  let st, ed;
+  if (mode == "dur") {
+    let [dur, durunit] = arg;
+    console.log({ dur, durunit });
+    ed = moment().toISOString();
+    st = moment().subtract(dur, durunit).toISOString();
+  } else if (mode == "dates") {
+    st = moment(arg[0]).toISOString();
+    ed = moment(arg[1]).toISOString();
+  }
   console.log(iso(st), "->", iso(ed));
   let now = nano(st);
   let edn = nano(ed);
@@ -402,7 +406,6 @@ const fixer = async (dur, durunit) => {
     // console.log(iso(now_st), iso(now_ed));
     let sales = await track_sales([iso(now_st), iso(now_ed)]);
     let transfers = await track_transfers([iso(now_st), iso(now_ed)]);
-    console.table(transfers);
     await post_track({ actives: [], events: [], sales, transfers });
     // console.table(actives);
     // console.table(events);
@@ -412,17 +415,17 @@ const fixer = async (dur, durunit) => {
   }
 };
 
-const fixer_cron = () => {
+const fixer_cron = async () => {
   const cron_str = "*/15 * * * *";
   print_cron_details(cron_str);
-  cron.schedule(cron_str, () => fixer(20, "minutes"));
+  cron.schedule(cron_str, () => fixer("dur", [20, "minutes"]));
 };
 
 const test = async () => {
-  // let st = moment(1651436952 * 1000).toISOString();
-  // let ed = moment(1656707352 * 1000).toISOString();
-  let [st, ed] = ["2022-07-01T00:00:00.000Z", "2022-07-01T01:00:00.000Z"];
-  await run([st, ed]);
+  let st = moment(1658014042 * 1000).toISOString();
+  let ed = moment(1658014044 * 1000).toISOString();
+  // let [st, ed] = ["2022-07-01T00:00:00.000Z", "2022-07-01T01:00:00.000Z"];
+  await fixer("dates", [st, ed]);
 };
 
 const main_runner = async () => {
@@ -434,9 +437,10 @@ const main_runner = async () => {
   if (arg2 == "run_cron") await run_cron();
   if (arg2 == "clear") await clear();
   if (arg2 == "fixer") {
+    let mode = getv(args, "3");
     let dur = parseInt(getv(args, "4") ?? 1) || 1;
-    let durunit = getv(args, "5") ?? "days";
-    await fixer(dur, durunit);
+    let durunit = getv(args, "3") ?? "days";
+    await fixer(mode, [dur, durunit]);
   }
   if (arg2 == "fixer_cron") await fixer_cron();
   if (arg2 == "test") await test();

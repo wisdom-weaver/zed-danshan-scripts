@@ -25,6 +25,7 @@ const run_stable = async (stable) => {
     stable_name,
     stable_slug,
   };
+  console.log(stable_doc)
   let horses = ar.map((e) => {
     let name = getv(e, "hash_info.name");
     let hid = getv(e, "horse_id");
