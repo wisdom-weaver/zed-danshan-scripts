@@ -453,7 +453,7 @@ const main_runner = async () => {
   if (arg2 == "fixer") {
     let mode = getv(args, "3");
     let dur = parseInt(getv(args, "4") ?? 1) || 1;
-    let durunit = getv(args, "3") ?? "days";
+    let durunit = getv(args, "5") ?? "days";
     await fixer(mode, [dur, durunit]);
   }
   if (arg2 == "fixer_cron") await fixer_cron();
