@@ -136,6 +136,7 @@ const track_sales = async ([st, ed]) => {
 };
 const track_transfers = async ([st, ed]) => {
   st = moment(st).add(-2, "minutes").toISOString();
+  ed = moment(ed).add(-2, "minutes").toISOString();
   st = fX(st);
   ed = fX(ed);
   const par = {
