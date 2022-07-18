@@ -123,11 +123,11 @@ const get_missing_stables_in = async (stables) => {
 };
 
 const fix_stable_horses = async () => {
-  let old_date = moment().add(10, "days").toISOString();
+  let old_date = moment().add(-10, "days").toISOString();
   let stables = await zed_db.db
     .collection("stables")
     .find({}, { projection: { stable0: 1, horses: 1 } })
-    // .limit(3)
+    .limit(3)
     .toArray();
   console.log("all stables", stables.length);
 
@@ -141,7 +141,7 @@ const fix_stable_horses = async () => {
           { hid: { $in: hids } },
           { $set: { oid: stable0, transfer_date: old_date } }
         );
-    console.log(stable0, "n:", hids.length);
+    console.log(stable0, "n:", hids.length, hids);
   }
 };
 
