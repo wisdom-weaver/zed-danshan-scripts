@@ -142,7 +142,7 @@ const fix_stable_horses = async () => {
           { hid: { $in: hids } },
           { $set: { oid: stable0, transfer_date: old_date } }
         );
-    console.log(i, stable0, "n:", hids.length, hids);
+    console.log(i, stable0, "n:", hids.length);
   }
 };
 
