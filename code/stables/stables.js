@@ -36,7 +36,7 @@ const run_stable = async (stable) => {
   stable_doc = {
     ...stable_doc,
     horses_n,
-    // horses,
+    horses,
     hids,
   };
   await zed_db.db

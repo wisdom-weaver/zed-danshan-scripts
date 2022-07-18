@@ -9,7 +9,7 @@ const qs = require("query-string");
 const { fget } = require("../utils/fetch");
 const { getv, nano, iso, cdelay } = require("../utils/utils");
 const { push_bulkc } = require("../utils/bulk");
-const { print_cron_details } = require("../utils/cyclic_dependency");
+const { print_cron_details, jparse } = require("../utils/cyclic_dependency");
 const cron = require("node-cron");
 const horses_s = require("../v3/horses");
 const stables_s = require("../stables/stables");
@@ -327,35 +327,42 @@ const post_track = async ({
   events = [],
   sales = [],
   transfers = [],
+
+  update_hawku_prices = true,
+  update_stables = true,
 }) => {
+  console.log({ update_hawku_prices, update_stables });
   let bulk = [];
   let now = fX(iso());
   console.log("actives  : ", actives.length);
   console.log("events   : ", events.length);
   console.log("sales    : ", sales.length);
   console.log("transfers: ", transfers.length);
-  let bulk_actives = get_bulk_actives(actives);
-  let bulk_events = get_bulk_events(events);
-  let bulk_sales = get_bulk_sales(sales);
-  bulk = [...bulk_actives, ...bulk_events, ...bulk_sales];
+  if (update_hawku_prices) {
+    let bulk_actives = get_bulk_actives(actives);
+    let bulk_events = get_bulk_events(events);
+    let bulk_sales = get_bulk_sales(sales);
+    bulk = [...bulk_actives, ...bulk_events, ...bulk_sales];
 
-  bulk.push({
-    deleteMany: { filter: { expires_at: { $ne: null, $lte: now } } },
-  });
+    bulk.push({
+      deleteMany: { filter: { expires_at: { $ne: null, $lte: now } } },
+    });
 
-  let ref = zed_db.db.collection(coll);
-  if (!_.isEmpty(bulk)) {
-    let resp = await ref.bulkWrite(bulk);
-    print_bulk_resp(resp, "hawku write:");
-  } else console.log("nothing to write");
-  
-  let data_transfers = [
-    ...struct_update_horse_stables_sales(sales),
-    ...struct_update_horse_stables_transfers(transfers),
-  ];
-  // console.log(data_transfers)
-  
-  await update_horse_stables(data_transfers);
+    let ref = zed_db.db.collection(coll);
+    if (!_.isEmpty(bulk)) {
+      let resp = await ref.bulkWrite(bulk);
+      print_bulk_resp(resp, "hawku write:");
+    } else console.log("nothing to write");
+  }
+
+  if (update_stables) {
+    let data_transfers = [
+      ...struct_update_horse_stables_sales(sales),
+      ...struct_update_horse_stables_transfers(transfers),
+    ];
+    // console.log(data_transfers)
+    await update_horse_stables(data_transfers);
+  }
 };
 
 const runner = async () => {
@@ -400,7 +407,7 @@ const clear = async () => {
   console.log("cleared");
 };
 
-const fixer = async (mode, arg) => {
+const fixer = async (mode, arg, extra = {}) => {
   let st, ed;
   console.log("fixer ", mode, arg);
   if (mode == "dur") {
@@ -422,7 +429,7 @@ const fixer = async (mode, arg) => {
     // console.log(iso(now_st), iso(now_ed));
     let sales = await track_sales([iso(now_st), iso(now_ed)]);
     let transfers = await track_transfers([iso(now_st), iso(now_ed)]);
-    await post_track({ actives: [], events: [], sales, transfers });
+    await post_track({ actives: [], events: [], sales, transfers, ...extra });
     // console.table(actives);
     // console.table(events);
     // console.table(sales);
@@ -460,7 +467,8 @@ const main_runner = async () => {
     let mode = getv(args, "4");
     let dur = getv(args, "5");
     let durunit = getv(args, "6");
-    await fixer(mode, [dur, durunit]);
+    let extra = jparse(getv(args, "7")) || {};
+    await fixer(mode, [dur, durunit], extra);
   }
   if (arg2 == "fixer_cron") await fixer_cron();
   if (arg2 == "test") await test();
