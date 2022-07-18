@@ -426,7 +426,7 @@ const fixer = async (mode, arg, extra = {}) => {
   while (now < edn) {
     let now_st = nano(now);
     let now_ed = Math.min(edn, now_st + off);
-    // console.log(iso(now_st), iso(now_ed));
+    console.log(iso(now_st), iso(now_ed));
     let sales = await track_sales([iso(now_st), iso(now_ed)]);
     let transfers = await track_transfers([iso(now_st), iso(now_ed)]);
     await post_track({ actives: [], events: [], sales, transfers, ...extra });
