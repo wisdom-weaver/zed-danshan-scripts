@@ -1,3 +1,4 @@
+const moment = require("moment");
 const _ = require("lodash");
 const { zed_ch, zed_db } = require("../connection/mongo_connect");
 const {
@@ -5,7 +6,7 @@ const {
   get_ed_horse,
   jparse,
 } = require("../utils/cyclic_dependency");
-const { getv } = require("../utils/utils");
+const { getv, iso } = require("../utils/utils");
 
 const coll = "stables";
 
@@ -25,7 +26,7 @@ const run_stable = async (stable) => {
     stable_name,
     stable_slug,
   };
-  console.log(stable_doc)
+  console.log(stable_doc);
   let horses = ar.map((e) => {
     let name = getv(e, "hash_info.name");
     let hid = getv(e, "horse_id");
@@ -46,6 +47,13 @@ const run_stable = async (stable) => {
       { $set: stable_doc },
       { upsert: true }
     );
+  if (!_.isEmpty(hids))
+    await zed_db.db
+      .collection("horse_details")
+      .updateMany(
+        { hid: { $in: hids } },
+        { $set: { oid: stable0, transfer_date: iso() } }
+      );
   console.log("done", horses_n, "horses");
   // return stable_doc;
 };
@@ -114,6 +122,29 @@ const get_missing_stables_in = async (stables) => {
   return diff;
 };
 
+const fix_stable_horses = async () => {
+  let old_date = moment().add(10, "days").toISOString();
+  let stables = await zed_db.db
+    .collection("stables")
+    .find({}, { projection: { stable0: 1, horses: 1 } })
+    // .limit(3)
+    .toArray();
+  console.log("all stables", stables.length);
+
+  for (let stable of stables) {
+    let { stable0, horses } = stable;
+    let hids = _.map(horses, "hid");
+    if (!_.isEmpty(hids))
+      await zed_db.db
+        .collection("horse_details")
+        .updateMany(
+          { hid: { $in: hids } },
+          { $set: { oid: stable0, transfer_date: old_date } }
+        );
+    console.log(stable0, "n:", hids.length);
+  }
+};
+
 const main_runner = async () => {
   let [_node, _cfile, arg1, arg2, arg3, arg4, arg5] = process.argv;
   console.log("stables");
@@ -125,6 +156,7 @@ const main_runner = async () => {
     await update_all_stables([st, ed]);
   }
   if (arg2 == "test") await test();
+  if (arg2 == "fix_stable_horses") await fix_stable_horses();
 };
 
 const stables_s = {
