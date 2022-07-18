@@ -289,6 +289,11 @@ const update_horse_stables = async (ar) => {
     }
 
     if (!_.isEmpty(ar)) {
+      ar = _.chain(ar)
+        .sortBy((e) => -nano(e.transfer_date))
+        .uniqBy((e) => e.hid)
+        .value();
+
       let resp = await zed_db.db.collection("horse_details").bulkWrite(
         ar.map((e) => {
           return {

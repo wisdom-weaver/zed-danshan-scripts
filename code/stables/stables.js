@@ -146,6 +146,21 @@ const fix_stable_horses = async () => {
   }
 };
 
+const fix_sn_pro_horses_class = async () => {
+  let users = await zed_db.db
+    .collection("stables")
+    .find({ pro_registered: true }, { projection: { stable0: 1 } })
+    .limit(3)
+    .toArray();
+  for (let u of users) {
+    let stable = u.stable0;
+    console.log(u.stable0);
+    let ar = await get_owner_horses_zed({ oid: stable });
+    ar = _.map(ar, (e) => ({ hid: e.horse_id, tc: e.class }));
+    console.table(ar);
+  }
+};
+
 const main_runner = async () => {
   let [_node, _cfile, arg1, arg2, arg3, arg4, arg5] = process.argv;
   console.log("stables");
@@ -158,6 +173,7 @@ const main_runner = async () => {
   }
   if (arg2 == "test") await test();
   if (arg2 == "fix_stable_horses") await fix_stable_horses();
+  if (arg2 == "fix_sn_pro_horses_class") await fix_sn_pro_horses_class();
 };
 
 const stables_s = {
