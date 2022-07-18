@@ -130,8 +130,9 @@ const fix_stable_horses = async () => {
     // .limit(3)
     .toArray();
   console.log("all stables", stables.length);
-
+  let i = 0;
   for (let stable of stables) {
+    ++i;
     let { stable0, horses } = stable;
     let hids = _.map(horses, "hid");
     if (!_.isEmpty(hids))
@@ -141,7 +142,7 @@ const fix_stable_horses = async () => {
           { hid: { $in: hids } },
           { $set: { oid: stable0, transfer_date: old_date } }
         );
-    console.log(stable0, "n:", hids.length, hids);
+    console.log(i, stable0, "n:", hids.length, hids);
   }
 };
 
