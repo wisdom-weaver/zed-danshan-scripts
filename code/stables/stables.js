@@ -127,7 +127,7 @@ const fix_stable_horses = async () => {
   let stables = await zed_db.db
     .collection("stables")
     .find({}, { projection: { stable0: 1, horses: 1 } })
-    .limit(3)
+    // .limit(3)
     .toArray();
   console.log("all stables", stables.length);
 
