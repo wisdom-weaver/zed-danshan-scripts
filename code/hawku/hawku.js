@@ -337,6 +337,7 @@ const post_track = async ({
   update_stables = true,
 }) => {
   console.log({ update_hawku_prices, update_stables });
+  //{"update_hawku_prices":false,"update_stables":true}
   let bulk = [];
   let now = fX(iso());
   console.log("actives  : ", actives.length);

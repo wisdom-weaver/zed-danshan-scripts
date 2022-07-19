@@ -1,6 +1,6 @@
 const _ = require("lodash");
 const { zed_db, zed_ch } = require("../connection/mongo_connect");
-const { nano, iso, getv, cron_conf } = require("../utils/utils");
+const { nano, iso, getv, cron_conf, dec } = require("../utils/utils");
 const moment = require("moment");
 const red = require("../connection/redis");
 const {
@@ -307,21 +307,30 @@ const run_tid = async (tid) => {
       .clone()
       .map((e) => {
         let { hid, racesn_ob, tot_score, avg_score } = e;
+        avg_score = parseFloat(dec(avg_score, 2));
+        tot_score = parseFloat(dec(tot_score, 2));
         let traces_n = e.racesn_ob[k];
         return { hid, tot_score, avg_score, traces_n };
       })
       .filter((e) => e.traces_n != 0)
       .sortBy((e) => {
         if (e.traces_n < lim) return 1e5 - e[scrk];
-        return -parseFloat(e[scrk]);
+        return -parseFloat(e[scrk]) * 100 + -e.traces_n;
       })
       .value();
 
-    let i = 0;
-    ar = _.map(ar, (e) => {
+    let prev_rank = 0;
+    let countmap = _.countBy(ar, (e) => `${e[scrk]}-${e.traces_n}`);
+    // console.table(countmap);
+
+    ar = _.map(ar, (e, idx) => {
       let rank;
       if (e.traces_n < lim) rank = null;
-      else rank = ++i;
+      else {
+        let identicals = countmap[`${e[scrk]}-${e.traces_n}`];
+        rank = prev_rank + identicals;
+      }
+      if (getv(ar, `${idx + 1}.${scrk}`) != e[scrk]) prev_rank = rank;
       return { ...e, rank };
     });
 
@@ -449,9 +458,65 @@ const run_cron = async () => {
 
 const test = async () => {
   console.log("test");
-  // let tid = "87f37293";
-  // await run_tid({ tid });
-  // await status_updater();
+  let hdocs = await red.rget("tqual:test:hdocs:01");
+  console.log("hdoc.len", _.keys(hdocs).length);
+
+  let tdoc = await get_tinfo("8cf1aff0");
+  let lim = 5;
+
+  let mode = tdoc.score_mode;
+  let type = tdoc.type;
+  let scrk =
+    (mode == "total" && "tot_score") || (mode == "avg" && "avg_score") || null;
+  console.log({ type, mode });
+
+  let leaderboard = {
+    "10-14": [],
+    "16-20": [],
+    "22-26": [],
+  };
+  for (let [k, range] of [
+    ["10-14", [1000, 1200, 1400]],
+    ["16-20", [1600, 1800, 2000]],
+    ["22-26", [2200, 2400, 2600]],
+  ]) {
+    let ar = _.chain(hdocs)
+      .clone()
+      .map((e) => {
+        let { hid, racesn_ob, tot_score, avg_score } = e;
+        avg_score = parseFloat(dec(avg_score, 2));
+        tot_score = parseFloat(dec(tot_score, 2));
+        let traces_n = e.racesn_ob[k];
+        return { hid, tot_score, avg_score, traces_n };
+      })
+      .filter((e) => e.traces_n != 0)
+      .sortBy((e) => {
+        if (e.traces_n < lim) return 1e5 - e[scrk];
+        return -parseFloat(e[scrk]) * 100 + -e.traces_n;
+      })
+      .value();
+
+    let prev_rank = 0;
+    let countmap = _.countBy(ar, (e) => `${e[scrk]}-${e.traces_n}`);
+    // console.table(countmap);
+
+    ar = _.map(ar, (e, idx) => {
+      let rank;
+      if (e.traces_n < lim) rank = null;
+      else {
+        let identicals = countmap[`${e[scrk]}-${e.traces_n}`];
+        rank = prev_rank + identicals;
+      }
+      if (getv(ar, `${idx + 1}.${scrk}`) != e[scrk]) prev_rank = rank;
+      return { ...e, rank };
+    });
+
+    leaderboard[k] = ar;
+    console.table(leaderboard[k]);
+    console.log(leaderboard[k][0]);
+  }
+
+  return console.log("end test");
 };
 
 const main_runner = async () => {
