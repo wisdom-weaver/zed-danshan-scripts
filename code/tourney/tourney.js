@@ -1197,7 +1197,7 @@ const run_tid = async (tid) => {
   );
 };
 
-const cron_str = "* * * * *";
+const cron_str = "*/5 * * * *";
 const run_cron = async () => {
   console.log("##run cron", "tourney");
   print_cron_details(cron_str);
