@@ -2614,5 +2614,39 @@ const run_49 = async () => {
     }
   }
 };
-const tests = { run: run_49 };
+
+const run_50 = async () => {
+  let docs = await zed_db.db
+    .collection("horse_details")
+    .aggregate([
+      { $match: { hid: { $gte: 365000 } } },
+      // { $limit: 5 },
+      {
+        $group: {
+          _id: {
+            $concat: [
+              { $toString: "$parents.father" },
+              " - ",
+              { $toString: "$parents.mother" },
+            ],
+          },
+          hids: { $push: "$hid" },
+        },
+      },
+      { $addFields: { size: { $size: "$hids" } } },
+      { $sort: { size: -1 } },
+      // { $project: { _id: 0, hid: 1 } },
+    ])
+    .toArray();
+  docs = _.map(_.clone(docs), (e) => {
+    let hids = jstr(e.hids);
+    return { ...e, size: e.size, hids };
+  });
+  await sheet_ops.sheet_print_ob(docs, {
+    spreadsheetId: "1Coj3voJ6XiOMgdBO3M91DoDWrsSObPAxwOA5luBRHo0",
+    range: "sameparentskids",
+  });
+  console.log(docs);
+};
+const tests = { run: run_50 };
 module.exports = tests;

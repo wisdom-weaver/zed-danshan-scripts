@@ -546,6 +546,10 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
   if (_.isEmpty(rcr.fee_tag));
   else rquery[19] = { $in: rcr.fee_tag };
 
+  if (tdoc.tid == "52154eb1") {
+    rquery[17] = { $regex: "^LM4 - ", $options: "i" };
+  }
+
   if (test_mode) console.log(JSON.stringify(rquery, "", 4));
 
   let races = await zed_ch.db
@@ -569,6 +573,7 @@ const run_t_horse = async (hid, tdoc, entry_date) => {
         // 14: 1, // fee_cat
         // 15: 1, // adjfinishtime
         // 16: 1, // tc
+        // 17: 1, // race_name
         19: 1, // fee_tag
         // 20: 1, // prize
         // 21: 1, // prize_usd
